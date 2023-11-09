@@ -66,7 +66,7 @@ export const newOrderPOListing = async (req, res) => {
           ORDER_NO,
           // ORDER_REFERENCE_PO_NO,
           PRODUCT_ITEM_CODE,
-          ORDER_STYLE_DESCRIPTION,
+          // ORDER_STYLE_DESCRIPTION,
           ITEM_COLOR_CODE,
           ITEM_COLOR_NAME,
           // TARGET_PCD,
