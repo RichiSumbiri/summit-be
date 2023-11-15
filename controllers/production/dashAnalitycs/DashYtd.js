@@ -183,7 +183,11 @@ export const getDataWeekly = async (req, res) => {
       ACT_MP: line.ACT_MP,
     }));
 
-    // console.log(dataByLineDate);
+    const filterNoMp = weeklyData.filter((wMp) => wMp.ACT_MP !== null);
+    const weekForMp = await sumData(filterNoMp, [
+      "SCHD_PROD_DATE",
+      "ID_SITELINE",
+    ]);
 
     let topTenStyle = [];
     let bottomStyle = [];
@@ -243,9 +247,12 @@ export const getDataWeekly = async (req, res) => {
       const dataEachDate = dataByLineDate.filter(
         (dataDate) => dataDate.ID_SITELINE === line.ID_SITELINE
       );
+      const weekForMpTot = weekForMp.filter(
+        (dataDate) => dataDate.ID_SITELINE === line.ID_SITELINE
+      );
 
       // cari total manpower table weekl to date
-      const mp = SumByColoum(dataEachDate, "ACT_MP");
+      const mp = SumByColoum(weekForMpTot, "ACT_MP");
       const newLineData = {
         ...line,
         dataLineDate: dataEachDate,

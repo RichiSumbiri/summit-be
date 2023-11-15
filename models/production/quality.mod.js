@@ -34,6 +34,8 @@ export const QcType = db.define(
       autoIncrement: true,
     },
     QC_TYPE_NAME: { type: DataTypes.STRING, allowNull: false },
+    QC_CATEGORY: { type: DataTypes.STRING },
+    QC_SAMPLING_RULE: { type: DataTypes.DECIMAL },
     QC_TYPE_ADD_ID: { type: DataTypes.INTEGER },
     QC_TYPE_MOD_ID: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },
