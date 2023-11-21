@@ -173,14 +173,14 @@ export const posDataZd = async (req, res) => {
   try {
     const { dataHeader, dataDetail } = req.body;
 
-    if (!dataHeader || !dataDetail)
+    if (!dataHeader)
       return res
         .status(400)
         .json({ message: "Tidak Ada Data Header Atau Detail " });
 
     const postDataHeader = await ZeroDefectHeader.create(dataHeader);
 
-    if (postDataHeader) {
+    if (postDataHeader && dataDetail) {
       const idHeader = postDataHeader.ID_ZD;
       const dataDetailWithId = dataDetail.map((dt) => ({
         ...dt,
@@ -195,10 +195,9 @@ export const posDataZd = async (req, res) => {
       }
     }
 
-    return res.status(400).json({
-      success: true,
-      message: "NO Data Defect",
-    });
+    return res
+      .status(200)
+      .json({ status: "success", message: "Data Telah Ditambahkan" });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -234,6 +233,9 @@ export const deleteDataZd = async (req, res) => {
           .status(200)
           .json({ status: "success", message: "Data Telah Didelete" });
       }
+      return res
+        .status(200)
+        .json({ status: "success", message: "Data Telah Didelete" });
     }
   } catch (error) {
     console.log(error);
@@ -248,7 +250,7 @@ export const updateDataZd = async (req, res) => {
   try {
     const { dataHeader, dataDetail } = req.body;
 
-    if (!dataHeader || !dataDetail)
+    if (!dataHeader)
       return res
         .status(400)
         .json({ message: "Tidak Ada Data Header Atau Detail " });
@@ -259,7 +261,7 @@ export const updateDataZd = async (req, res) => {
       },
     });
 
-    if (updateHeader) {
+    if (updateHeader && dataDetail) {
       const idHeader = dataHeader.ID_ZD;
       await ZeroDefectDetail.destroy({
         where: {
