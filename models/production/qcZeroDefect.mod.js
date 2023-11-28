@@ -45,6 +45,7 @@ a.AUDITOR_NAME,
 a.CUSTOMER_DIVISION,
 a.ORDER_REFERENCE_PO_NO,
 a.ORDER_STYLE_DESCRIPTION,
+a.GROUP,
 a.ITEM_COLOR_CODE,
 a.ITEM_COLOR_NAME,
 a.PROD_SUBCATEGORY,
@@ -62,6 +63,16 @@ LEFT JOIN xref_user_web b ON a.ADD_BY = b.USER_ID
 LEFT JOIN xref_user_web c ON a.MOD_BY = c.USER_ID
 WHERE a.DATE_INSPECTION BETWEEN  :startDate AND :endDate 
 ORDER BY a.MOD_TIME `;
+
+export const QryZdDetailForCombain = `SELECT 
+a.ID_ZD,
+a.ZD_DEFECT_CODE,
+SUM(a.ZD_DEFECT_QTY) ZD_DEFECT_QTY
+FROM zerodefect_detail a WHERE a.ID_ZD IN (
+  SELECT zd.ID_ZD FROM zerodefect_header zd 
+  WHERE zd.DATE_INSPECTION BETWEEN :startDate AND :endDate
+)
+GROUP BY a.ID_ZD, a.ZD_DEFECT_CODE`;
 
 export const QryDataZdDeail = `SELECT 
 a.ID_ZD,
@@ -86,6 +97,10 @@ export const ZeroDefectHeader = db.define(
     },
     SCHEMA: {
       type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    GROUP: {
+      type: DataTypes.STRING(3),
       allowNull: true,
     },
     SCH_CAPACITY_ID: {

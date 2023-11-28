@@ -7,6 +7,7 @@ import {
   QryListLineZd,
   QryListSiteZd,
   QryPoNoSoruce,
+  QryZdDetailForCombain,
   QueryListDefPvh,
   ZeroDefectDetail,
   ZeroDefectHeader,
@@ -122,15 +123,51 @@ export const getDataHeaderZd = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const dataDetail = await db.query(QryZdDetailForCombain, {
+      replacements: { startDate, endDate },
+      type: QueryTypes.SELECT,
+    });
+
     if (dataHeaderZd.length < 0) {
       return res.status(400).json({
         success: true,
         message: "Data Tidak Ditemukan",
       });
     }
+
+    const reStruktur = dataDetail.reduce((acc, obj) => {
+      const { ID_ZD, ZD_DEFECT_CODE, ZD_DEFECT_QTY } = obj;
+
+      // Jika objek dengan ID_ZD tersebut sudah ada dalam hasil, tambahkan properti baru
+      if (acc[ID_ZD]) {
+        acc[ID_ZD][ZD_DEFECT_CODE] = parseInt(ZD_DEFECT_QTY);
+      } else {
+        // Jika belum, buat objek baru dengan properti ID_ZD
+        acc[ID_ZD] = {
+          ID_ZD: parseInt(ID_ZD),
+          [ZD_DEFECT_CODE]: parseInt(ZD_DEFECT_QTY),
+        };
+      }
+
+      return acc;
+    }, {});
+
+    // // Ubah hasil dari objek menjadi array
+    // const finalResult = Object.values(reStruktur);
+
+    const joinDataHeader = dataHeaderZd.map((head) => {
+      const headIdString = head.ID_ZD.toString();
+      const newDetail = reStruktur[headIdString];
+      if (newDetail) {
+        return { ...head, ...newDetail };
+      } else {
+        return head;
+      }
+    });
+
     return res.status(200).json({
       success: true,
-      data: dataHeaderZd,
+      data: joinDataHeader,
     });
   } catch (error) {
     console.log(error);
