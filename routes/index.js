@@ -22,6 +22,7 @@ import packingroute from "./production/packing.route.js";
 import measurement from "./production/measurement.route.js";
 import sewDashboard from "./production/sewDashAnytic.router.js";
 import zerodefectRoute from "./production/qcZeroD.route.js";
+import auditRoute from "./audit/auditTracking.js";
 
 const router = express.Router();
 
@@ -49,6 +50,7 @@ router.use("/packing", packingroute);
 router.use("/measurement", measurement);
 router.use("/sewdashboard", sewDashboard);
 router.use("/zerodefect", zerodefectRoute);
+router.use("/audit", auditRoute);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
