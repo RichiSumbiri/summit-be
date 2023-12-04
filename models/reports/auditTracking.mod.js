@@ -12,6 +12,8 @@ NA.Product_Item_ID PRODUCT_IT,
 NA.Product_Item_Code ORDER_STYLE_DESCRIPTION,
 NA.Order_Reference_PONo,
 NA.Item_Color_Name ITEM_COLOR_NAME,
+NA.Plan_Exfactory_Date PLAN_EX_FACTORY, 
+NF.ACTUAL_EX_FACTORY_DATE,
 NA.ORDER_QTY,
 NA.MO_QTY MO_QTY,
 NB.BUNDLE_QTY SEWING_IN_QTY,
@@ -38,6 +40,7 @@ FROM (
         nb.Product_Item_ID,
         nb.Product_Item_Code,
         nb.MOID,
+        nb.Plan_Exfactory_Date,
         nb.Item_Color_Name,
         SUM(nb.ORDER_QTY) ORDER_QTY,
         SUM(nb.MO_QTY) MO_QTY,
@@ -54,6 +57,7 @@ FROM (
         a.Product_Item_ID,
         a.Product_Item_Code,
         a.MOID,
+        a.Plan_Exfactory_Date,
         a.Item_Color_Name,
         CAST(REPLACE(a.Order_Qty,',','') AS INT) ORDER_QTY,
         CAST(REPLACE(a.MO_Qty,',','') AS INT) MO_QTY,
@@ -116,7 +120,7 @@ LEFT JOIN (
 ) NE ON NE.ORDER_ID = NA.ORDER_ID AND NE.MOID = NA.MOID
 LEFT JOIN (
 	SELECT 
-	    a.ORDER_ID, a.ORDER_REF_PO_No, b.MOID, SUM(a.PACKING_SLIP_QTY) PACKING_SLIP_QTY
+        a.ORDER_ID, a.ORDER_REF_PO_No, b.MOID, a.ACTUAL_EX_FACTORY_DATE, SUM(a.PACKING_SLIP_QTY) PACKING_SLIP_QTY
 	FROM 
 	CustomerPackingSlip a
 	LEFT JOIN OrderPOListing b ON a.ORDER_PO_ID	= b.Order_PO_ID
