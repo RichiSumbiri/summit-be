@@ -142,6 +142,7 @@ export const QRScanSewingIn = async (req, res) => {
           sizeCode: valueBarcode.ORDER_SIZE,
           prodMonth: valueBarcode.PRODUCTION_MONTH,
           planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
+          fxSiteName: valueBarcode.MANUFACTURING_SITE,
         },
         type: QueryTypes.SELECT,
       });

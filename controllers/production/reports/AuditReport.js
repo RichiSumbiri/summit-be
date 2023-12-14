@@ -7,7 +7,6 @@ export const getAuditTrack = async (req, res) => {
   try {
     const { listMonth } = req.params;
     // console.log(listMonth);
-
     const months = listMonth
       .split("-")
       .map((month) => decodeURIComponent(month));

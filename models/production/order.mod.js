@@ -385,3 +385,21 @@ WHERE b.ID_CAPACITY = :capId`;
 
 export const findNewCapId = `SELECT a.ID_CAPACITY, a.NEW_ID_CAPACITY
 FROM viewcapacity_new_id a WHERE a.PRODUCTION_MONTH = :prodMonth AND  NEW_ID_CAPACITY IS NOT NULL `;
+
+export const getOrderSizeByBlk = `SELECT 
+a.ORDER_NO,
+a.CUSTOMER_NAME,
+a.ORDER_REFERENCE_PO_NO, 
+a.MO_NO,
+a.PO_REF_CODE, 
+a.PRODUCT_ITEM_CODE,
+a.ITEM_COLOR_NAME,
+a.SIZE_CODE,
+a.ORDER_QTY,
+a.MO_QTY
+FROM order_po_listing_size a WHERE a.ORDER_NO = :orderId `;
+
+export const getListBlkNo = `SELECT 
+a.ORDER_NO
+FROM order_po_listing_size a WHERE a.ORDER_NO LIKE :orderId
+GROUP BY a.ORDER_NO `;

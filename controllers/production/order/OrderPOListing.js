@@ -2,6 +2,8 @@ import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import {
   findNewCapId,
+  getListBlkNo,
+  getOrderSizeByBlk,
   OrderPoListing,
   OrderPoListingSize,
 } from "../../../models/production/order.mod.js";
@@ -241,6 +243,55 @@ export const newOrderPOListingSizes = async (req, res) => {
     res.status(404).json({
       success: false,
       message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+// get order poListingSize
+export const getOrderPOListingSize = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const ordersSize = await db.query(getOrderSizeByBlk, {
+      where: {
+        orderId,
+      },
+    });
+    res.status(200).json({
+      success: true,
+      message: "Data Order Retrieved Successfully",
+      data: ordersSize,
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: "error saat mencari order size",
+      data: error,
+    });
+  }
+};
+
+// get order poListingSize
+export const getBlkNoList = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const qry = `%${orderId}%`;
+
+    const ordersSize = await db.query(getListBlkNo, {
+      where: {
+        orderId: qry,
+      },
+    });
+    res.status(200).json({
+      success: true,
+      message: "Data Order Retrieved Successfully",
+      data: ordersSize,
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: "error saat mencari order size",
       data: error,
     });
   }

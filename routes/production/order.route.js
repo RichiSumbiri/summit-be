@@ -9,7 +9,9 @@ import {
   deleteOrder,
 } from "../../controllers/production/order/OrderDetail.js";
 import {
+  getBlkNoList,
   getOrderPOListing,
+  getOrderPOListingSize,
   newOrderPOListing,
   newOrderPOListingSizes,
 } from "../../controllers/production/order/OrderPOListing.js";
@@ -36,6 +38,9 @@ router.get("/polisting", getOrderPOListing);
 router.post("/polisting", newOrderPOListing);
 
 router.post("/polisting-sizes", newOrderPOListingSizes);
+
+router.get("/polisting-sizes/:orderId", getOrderPOListingSize);
+router.get("/polisting-blk-list/:orderId", getBlkNoList);
 
 router.post("/pomatrixdeliv", postPOMatrixDeliv);
 router.get("/pomatrixdeliv/:capId", getMatrixPoDelivSize);
