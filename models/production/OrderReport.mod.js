@@ -266,32 +266,46 @@ LEFT JOIN (
 						) GROUP BY b.MO_NO,  b.ORDER_COLOR, b.ORDER_SIZE
 						UNION ALL
 						-- SEWING OUT
-						SELECT b.MO_NO, b.ORDER_COLOR,  b.ORDER_SIZE,
-						0 QR_QTY,  0 CUT_GENERATE, 0 LOADING_QTY, SUM(b.ORDER_QTY) SEWING_OUT, 0 PACKING_IN
-						FROM scan_sewing_out a 
-						LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-						WHERE b.MO_NO IN (
+						SELECT a.MO_NO, a.ORDER_COLOR,  a.ORDER_SIZE,
+						0 QR_QTY,  0 CUT_GENERATE, 0 LOADING_QTY, SUM(a.ORDER_QTY) SEWING_OUT, 0 PACKING_IN
+						FROM (
+							SELECT DISTINCT  b.MO_NO, b.ORDER_COLOR,  b.ORDER_SIZE, a.SCH_ID, 
+							a.BARCODE_MAIN AS BARCODE_SERIAL,
+							CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+							FROM scan_sewing_out a 
+							LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+							LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+							WHERE  b.MO_NO IN  (
 								SELECT DISTINCT a.MO_NO FROM order_po_listing_size a 
 								WHERE a.PRODUCTION_MONTH = :prodMonth AND
 								  a.MANUFACTURING_SITE = :site AND
 								  a.ORDER_REFERENCE_PO_NO = :po AND
 	        					  a.ITEM_COLOR_CODE = :colors
 								GROUP BY a.MO_NO
-						) GROUP BY b.MO_NO,  b.ORDER_COLOR, b.ORDER_SIZE
+							) 
+							GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+						) a GROUP BY a.MO_NO,  a.ORDER_COLOR, a.ORDER_SIZE
 						UNION ALL 
 						-- packing in
-						SELECT b.MO_NO,  b.ORDER_COLOR, b.ORDER_SIZE,
-						0 QR_QTY,  0 CUT_GENERATE, 0 LOADING_QTY, 0 SEWING_OUT, SUM(b.ORDER_QTY) PACKING_IN
-						FROM scan_packing_in a 
-						LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-						WHERE b.MO_NO IN (
+						SELECT a.MO_NO, a.ORDER_COLOR,  a.ORDER_SIZE,
+						0 QR_QTY,  0 CUT_GENERATE, 0 LOADING_QTY, 0 SEWING_OUT,  SUM(a.ORDER_QTY) PACKING_IN
+						FROM (
+						  SELECT DISTINCT  b.MO_NO, b.ORDER_COLOR,  b.ORDER_SIZE, a.SCH_ID, 
+						  a.BARCODE_MAIN AS BARCODE_SERIAL,
+						  CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+						  FROM scan_packing_in a 
+						  LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+						  LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+						  WHERE  b.MO_NO IN  (
 								SELECT DISTINCT a.MO_NO FROM order_po_listing_size a 
 								WHERE a.PRODUCTION_MONTH = :prodMonth AND
-								  a.MANUFACTURING_SITE = :site AND
-								  a.ORDER_REFERENCE_PO_NO = :po AND
-	        					  a.ITEM_COLOR_CODE = :colors
+								a.MANUFACTURING_SITE = :site AND
+								a.ORDER_REFERENCE_PO_NO = :po AND
+								a.ITEM_COLOR_CODE = :colors
 								GROUP BY a.MO_NO
-						) GROUP BY b.MO_NO,  b.ORDER_COLOR, b.ORDER_SIZE
+						  ) 
+						  GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+						) a GROUP BY a.MO_NO,  a.ORDER_COLOR, a.ORDER_SIZE
 					) n 
 				GROUP BY n.MO_NO, n.ORDER_COLOR,  n.ORDER_SIZE
 	      	-- batas bawah 
@@ -399,12 +413,19 @@ FROM (
 				GROUP BY A.ENDLINE_SCH_ID
 		) f ON(a.SCH_ID = f.ENDLINE_SCH_ID )
 		LEFT JOIN (
-					SELECT a.SCH_ID, SUM(b.ORDER_QTY) TTL_SEWING_OUT
-					FROM scan_sewing_out a 
-					LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-					WHERE a.SCH_ID IN (
-							SELECT a.SCH_ID FROM weekly_prod_schedule a WHERE SUBSTRING_INDEX(a.SCH_CAPACITY_ID,'.',-1) IN (:listMonth)
-					) GROUP BY a.SCH_ID
+			SELECT a.SCH_ID, SUM(a.ORDER_QTY) TTL_SEWING_OUT
+			FROM (
+				SELECT DISTINCT  a.SCH_ID, 
+				a.BARCODE_MAIN AS BARCODE_SERIAL,
+				CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+				FROM scan_packing_in a 
+				LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+				LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+				WHERE a.SCH_ID IN (
+					SELECT a.SCH_ID FROM weekly_prod_schedule a WHERE SUBSTRING_INDEX(a.SCH_CAPACITY_ID,'.',-1) IN (:listMonth)
+					)
+				GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+		  	) a GROUP BY a.SCH_ID
 		) g ON(a.SCH_ID = g.SCH_ID)
 		LEFT JOIN (
 			SELECT 
@@ -497,25 +518,35 @@ FROM (
 			        GROUP BY A.ENDLINE_SCH_ID
 	        ) f ON(a.SCH_ID = f.ENDLINE_SCH_ID )
 	        LEFT JOIN (
-						SELECT a.SCH_ID, SUM(b.ORDER_QTY) TTL_SEWING_OUT
-						FROM scan_sewing_out a 
-						LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-						WHERE a.SCH_ID IN (
-									SELECT a.SCH_ID FROM weekly_prod_schedule a WHERE a.SCH_CAPACITY_ID = :idCapacity
-						) GROUP BY a.SCH_ID
+				SELECT a.SCH_ID, SUM(a.ORDER_QTY) TTL_SEWING_OUT
+				FROM (
+					SELECT DISTINCT  a.SCH_ID, 
+					a.BARCODE_MAIN AS BARCODE_SERIAL,
+					CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+					FROM scan_sewing_out a 
+					LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+					LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+					WHERE a.SCH_ID IN (
+						SELECT a.SCH_ID FROM weekly_prod_schedule a WHERE a.SCH_CAPACITY_ID = :idCapacity
+						)
+					GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+				  ) a GROUP BY a.SCH_ID
 	        ) g ON(a.SCH_ID = g.SCH_ID)
 	        LEFT JOIN (
-		        SELECT 
-		            SUM(AB.ORDER_QTY) AS TTL_PACKING_IN,
-		            AA.SCHD_ID AS SCHD_ID,
-		            AA.SCH_ID AS SCH_ID
-		        FROM (scan_packing_in AA
-		        LEFT JOIN order_detail AB ON(AA.BARCODE_SERIAL = AB.BARCODE_SERIAL))
-		        WHERE AA.SCH_ID IN (
-				  		SELECT a.SCH_ID FROM weekly_prod_schedule a WHERE a.SCH_CAPACITY_ID = :idCapacity
-				  )
-		        GROUP BY AA.SCH_ID
-	        	) h ON(h.SCH_ID = a.SCH_ID )
+		        SELECT a.SCH_ID, SUM(a.ORDER_QTY) TTL_PACKING_IN
+				FROM (
+					SELECT DISTINCT  a.SCH_ID, 
+					a.BARCODE_MAIN AS BARCODE_SERIAL,
+					CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+					FROM scan_packing_in a 
+					LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+					LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+					WHERE a.SCH_ID IN (
+						SELECT a.SCH_ID FROM weekly_prod_schedule a WHERE a.SCH_CAPACITY_ID = :idCapacity
+						)
+					GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+				  ) a GROUP BY a.SCH_ID
+	        ) h ON(h.SCH_ID = a.SCH_ID )
 	        WHERE a.SCH_CAPACITY_ID = :idCapacity
 	        ORDER BY a.SCH_ID_SITELINE, a.SCH_START_PROD ASC
 	    ) M 
@@ -581,19 +612,30 @@ FROM (
 							a.ENDLINE_PLAN_SIZE
 	        ) f ON(a.SCH_ID = f.ENDLINE_SCH_ID AND f.ENDLINE_PLAN_SIZE = a.SIZE_CODE  )
 	        LEFT JOIN (
-						SELECT a.SCH_ID, b.ORDER_SIZE, SUM(b.ORDER_QTY) TTL_SEWING_OUT
-						FROM scan_sewing_out a 
-						LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-						WHERE a.SCH_ID =  :schId
-						GROUP BY a.SCH_ID, b.ORDER_SIZE
+				SELECT a.SCH_ID, a.ORDER_SIZE, SUM(a.ORDER_QTY) TTL_SEWING_OUT
+				FROM (
+					SELECT DISTINCT  a.SCH_ID, b.ORDER_SIZE,
+					a.BARCODE_MAIN AS BARCODE_SERIAL,
+					CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+					FROM scan_sewing_out a 
+					LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+					LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+					WHERE a.SCH_ID = :schId
+					GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+				) a GROUP BY a.SCH_ID, a.ORDER_SIZE
 	        ) g ON(a.SCH_ID = g.SCH_ID AND a.SIZE_CODE = g.ORDER_SIZE)
 	        LEFT JOIN (
-			        SELECT AA.SCH_ID AS SCH_ID,  AB.ORDER_SIZE,
-		            SUM(AB.ORDER_QTY) AS TTL_PACKING_IN
-		            FROM scan_packing_in AA
-			        LEFT JOIN order_detail AB ON(AA.BARCODE_SERIAL = AB.BARCODE_SERIAL)
-			        WHERE AA.SCH_ID =  :schId
-			        GROUP BY AA.SCH_ID,  AB.ORDER_SIZE
+				SELECT a.SCH_ID, a.ORDER_SIZE, SUM(a.ORDER_QTY) TTL_PACKING_IN
+				FROM (
+					SELECT DISTINCT  a.SCH_ID, b.ORDER_SIZE,
+					a.BARCODE_MAIN AS BARCODE_SERIAL,
+					CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+					FROM scan_packing_in a 
+					LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+					LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+					WHERE a.SCH_ID = :schId
+					GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+				) a GROUP BY a.SCH_ID, a.ORDER_SIZE
 	        	) h ON(h.SCH_ID = a.SCH_ID AND a.SIZE_CODE = h.ORDER_SIZE)
 	        WHERE a.SCH_ID = :schId AND a.SCH_SIZE_QTY <> 0
 	    ) M 

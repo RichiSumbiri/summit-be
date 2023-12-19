@@ -393,13 +393,19 @@ a.ORDER_REFERENCE_PO_NO,
 a.MO_NO,
 a.PO_REF_CODE, 
 a.PRODUCT_ITEM_CODE,
+a.ORDER_STYLE_DESCRIPTION,
 a.ITEM_COLOR_NAME,
+a.ORDER_PO_ID,
 a.SIZE_CODE,
+a.PLAN_EXFACTORY_DATE,
+a.MANUFACTURING_SITE,
+a.COUNTRY,
+a.PRODUCT_TYPE,
 a.ORDER_QTY,
 a.MO_QTY
 FROM order_po_listing_size a WHERE a.ORDER_NO = :orderId `;
 
 export const getListBlkNo = `SELECT 
-a.ORDER_NO
-FROM order_po_listing_size a WHERE a.ORDER_NO LIKE :orderId
+a.ORDER_NO 
+FROM order_po_listing_size a WHERE a.ORDER_NO LIKE :orderId AND a.MO_NO IS NOT NULL
 GROUP BY a.ORDER_NO `;

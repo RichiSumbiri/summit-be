@@ -254,16 +254,19 @@ export const getOrderPOListingSize = async (req, res) => {
     const { orderId } = req.params;
 
     const ordersSize = await db.query(getOrderSizeByBlk, {
-      where: {
-        orderId,
+      replacements: {
+        orderId: orderId,
       },
+      type: QueryTypes.SELECT,
     });
+
     res.status(200).json({
       success: true,
-      message: "Data Order Retrieved Successfully",
+      message: "Get Data Order Successfully",
       data: ordersSize,
     });
   } catch (error) {
+    console.log(error);
     res.status(404).json({
       success: false,
       message: "error saat mencari order size",
@@ -279,16 +282,19 @@ export const getBlkNoList = async (req, res) => {
     const qry = `%${orderId}%`;
 
     const ordersSize = await db.query(getListBlkNo, {
-      where: {
+      replacements: {
         orderId: qry,
       },
+      type: QueryTypes.SELECT,
     });
+
     res.status(200).json({
       success: true,
       message: "Data Order Retrieved Successfully",
       data: ordersSize,
     });
   } catch (error) {
+    console.log(error);
     res.status(404).json({
       success: false,
       message: "error saat mencari order size",
