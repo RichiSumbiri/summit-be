@@ -10,6 +10,7 @@ import {
 } from "../../controllers/production/order/OrderDetail.js";
 import {
   getBlkNoList,
+  getOneDetailPoSize,
   getOrderPOListing,
   getOrderPOListingSize,
   newOrderPOListing,
@@ -39,11 +40,16 @@ router.post("/polisting", newOrderPOListing);
 
 router.post("/polisting-sizes", newOrderPOListingSizes);
 
-router.get("/polisting-sizes/:orderId", getOrderPOListingSize);
-router.get("/polisting-blk-list/:orderId", getBlkNoList);
-
 router.post("/pomatrixdeliv", postPOMatrixDeliv);
 router.get("/pomatrixdeliv/:capId", getMatrixPoDelivSize);
+
+//bundle generate
+router.get("/polisting-sizes/:orderId", getOrderPOListingSize);
+router.get("/polisting-blk-list/:orderId", getBlkNoList);
+router.get(
+  "/polisting-sizes-detail/:poId/:colorCode/:sizeCode",
+  getOneDetailPoSize
+);
 
 //report order status
 router.get("/order-status-po/:listMonth", getOrderStatusMo);

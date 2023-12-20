@@ -2,6 +2,8 @@ import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import {
   findNewCapId,
+  getDetailPoSize,
+  getDetailQrGenerate,
   getListBlkNo,
   getOrderSizeByBlk,
   OrderPoListing,
@@ -292,6 +294,37 @@ export const getBlkNoList = async (req, res) => {
       success: true,
       message: "Data Order Retrieved Successfully",
       data: ordersSize,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      message: "error saat mencari order size",
+      data: error,
+    });
+  }
+};
+
+// get order poListingSize
+export const getOneDetailPoSize = async (req, res) => {
+  try {
+    const { poId, colorCode, sizeCode } = req.params;
+
+    const ordersSizeDetail = await db.query(getDetailPoSize, {
+      replacements: { poId, colorCode, sizeCode },
+      type: QueryTypes.SELECT,
+    });
+
+    const resultDetail = await db.query(getDetailQrGenerate, {
+      replacements: { poId, colorCode, sizeCode },
+      type: QueryTypes.SELECT,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Data Order Retrieved Successfully",
+      data: ordersSizeDetail,
+      dataResult: resultDetail,
     });
   } catch (error) {
     console.log(error);

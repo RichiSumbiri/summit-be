@@ -11,7 +11,10 @@ import {
   QRScanCutting,
   QRScanSewingIn,
 } from "../../controllers/production/cutting/CuttingScan.js";
-import { newQRCutting } from "../../controllers/production/cutting/CuttingGenerateQR.js";
+import {
+  generateBdlOrder,
+  newQRCutting,
+} from "../../controllers/production/cutting/CuttingGenerateQR.js";
 import {
   getCuttingOrder,
   getOrderByBLK,
@@ -27,6 +30,7 @@ router.get(
   QrListAftrSewingIn
 );
 
+router.post("/bundle/generate", generateBdlOrder);
 router.post("/order/qrgenerate", newQRCutting);
 router.post("/order/scan", QRScanCutting);
 router.post("/qr/scan-sewing-in", QRScanSewingIn);
