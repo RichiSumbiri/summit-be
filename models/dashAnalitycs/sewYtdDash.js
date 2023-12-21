@@ -114,3 +114,9 @@ export const QueryMonthRep = (params) => {
       ORDER BY a.ID_SITELINE
 ) n`;
 };
+
+export const queryFindStyle = `SELECT a.PRODUCT_ITEM_CODE, CONCAT(a.PRODUCT_ITEM_CODE,' - ', a.ORDER_STYLE_DESCRIPTION) AS STYLE
+FROM log_daily_output a 
+WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
+AND a.PRODUCT_ITEM_CODE LIKE :qry
+GROUP BY a.PRODUCT_ITEM_CODE `;

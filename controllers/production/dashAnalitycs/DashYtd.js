@@ -1,6 +1,9 @@
 import { QueryTypes, Op } from "sequelize";
 import moment from "moment";
-import { QueryWeekRep } from "../../../models/dashAnalitycs/sewYtdDash.js";
+import {
+  QueryWeekRep,
+  queryFindStyle,
+} from "../../../models/dashAnalitycs/sewYtdDash.js";
 import db from "../../../config/database.js";
 import {
   CheckNilai,
@@ -444,4 +447,24 @@ export const sumData = async (data, keys) => {
   });
 
   return dataSum;
+};
+
+export const findStyleCode = async (req, res) => {
+  try {
+    const { rangeDate, style } = req.query;
+    const dates = rangeDate.split(",");
+
+    const decStyle = decodeURIComponent(style);
+    const qry = `%${decStyle}%`;
+
+    const stylFind = await db.query(queryFindStyle, {
+      replacements: { qry, startDate: dates[0], endDate: dates[1] },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: stylFind });
+  } catch (error) {
+    console.log(error);
+    res.json({ message: "Data style tidak", error });
+  }
 };

@@ -15,6 +15,7 @@ import {
   getTopDefectPart,
 } from "../../controllers/production/dashAnalitycs/DashboardSite.js";
 import {
+  findStyleCode,
   getDataWeekly,
   getYtdListWe,
 } from "../../controllers/production/dashAnalitycs/DashYtd.js";
@@ -33,6 +34,7 @@ router.get("/allsite", getDataAllSiteDash, sumByLine, splitDataDashboard);
 router.get("/effYesAll", getEffYtdOverAll);
 router.get("/defRate", getDefRate);
 router.get("/topthree", getThreeTop);
+router.get("/style-code", findStyleCode);
 
 //site route
 router.get("/sitedash/:schDate/:sitename", getDataDashSite);
