@@ -140,16 +140,20 @@ export const getDataWeekly = async (req, res) => {
     const totalNormal = SumByColoum(weeklyData, "NORMAL_OUTPUT");
     const totalOt = SumByColoum(weeklyData, "OT_OUTPUT");
     const totalXot = SumByColoum(weeklyData, "X_OT_OUTPUT");
+    const totalAllot = SumByColoum(weeklyData, "ALL_OUTPUT_OT");
     const totalNormalEh = SumByColoum(weeklyData, "ACTUAL_EH");
     const totalOtEh = SumByColoum(weeklyData, "ACTUAL_EH_OT");
     const totalXotEh = SumByColoum(weeklyData, "ACTUAL_EH_X_OT");
+    const totalEhAllOt = SumByColoum(weeklyData, "TOTAL_ALL_EH_OT");
     const totalNormalAh = SumByColoum(weeklyData, "ACTUAL_AH");
     const totalOtAh = SumByColoum(weeklyData, "ACTUAL_AH_OT");
     const totalXotAh = SumByColoum(weeklyData, "ACTUAL_AH_X_OT");
+    const totalAhAllot = SumByColoum(weeklyData, "TOTAL_ALL_AH_OT");
     const totalNormalEff = JmlEff(totalNormalEh, totalNormalAh);
     const totalOtEff = JmlEff(totalOtEh, totalOtAh);
     const totalXOtEff = JmlEff(totalXotEh, totalXotAh);
     const totalEff = JmlEff(totalEh, totalAh);
+    const totalEffAllot = JmlEff(totalEhAllOt, totalAhAllot);
     const varTarget = totalOuput - totalTarget;
     const varSchedule = totalOuput - totalSchQty;
 
@@ -256,10 +260,12 @@ export const getDataWeekly = async (req, res) => {
 
       // cari total manpower table weekl to date
       const mp = SumByColoum(weekForMpTot, "ACT_MP");
+      const mpAllOt = SumByColoum(weekForMpTot, "ACT_MP_ALL_OT");
       const newLineData = {
         ...line,
         dataLineDate: dataEachDate,
         TOTAL_MP: mp,
+        TOTAL_ALL_MP: mpAllOt,
       };
       return newLineData;
     });
@@ -284,12 +290,15 @@ export const getDataWeekly = async (req, res) => {
         totalOuput,
         totalEh,
         totalAh,
+        totalEhAllOt,
+        totalAhAllot,
         totalEff,
         varTarget,
         varSchedule,
         totalNormal,
         totalOt,
         totalXot,
+        totalAllot,
         totalNormalEh,
         totalOtEh,
         totalXotEh,
@@ -299,6 +308,7 @@ export const getDataWeekly = async (req, res) => {
         totalNormalEff,
         totalOtEff,
         totalXOtEff,
+        totalEffAllot,
       },
     });
   } catch (error) {
@@ -392,12 +402,16 @@ export const sumData = async (data, keys) => {
             TOTAL_OUTPUT: CheckNilai(current.TOTAL_OUTPUT),
             TOTAL_EH: ChkNilaFlt(current.TOTAL_EH),
             TOTAL_AH: CheckNilai(current.TOTAL_AH),
+            TOTAL_ALL_EH_OT: ChkNilaFlt(current.TOTAL_ALL_EH_OT),
+            TOTAL_ALL_AH_OT: CheckNilai(current.TOTAL_ALL_AH_OT),
             ACT_TARGET: ChkNilaFlt(current.ACT_TARGET),
             ACT_TARGET_OT: ChkNilaFlt(current.ACT_TARGET_OT),
             ACT_TARGET_X_OT: ChkNilaFlt(current.ACT_TARGET_X_OT),
+            ACT_TARGET_ALL_OT: ChkNilaFlt(current.ACT_TARGET_ALL_OT),
             NORMAL_OUTPUT: CheckNilai(current.NORMAL_OUTPUT),
             OT_OUTPUT: CheckNilai(current.OT_OUTPUT),
             X_OT_OUTPUT: CheckNilai(current.X_OT_OUTPUT),
+            ALL_OUTPUT_OT: CheckNilai(current.ALL_OUTPUT_OT),
           });
         } else {
           distLine.set(groupKey, {
@@ -414,6 +428,12 @@ export const sumData = async (data, keys) => {
               ChkNilaFlt(grouped.TOTAL_EH) + ChkNilaFlt(current.TOTAL_EH),
             TOTAL_AH:
               CheckNilai(grouped.TOTAL_AH) + CheckNilai(current.TOTAL_AH),
+            TOTAL_ALL_EH_OT:
+              ChkNilaFlt(grouped.TOTAL_ALL_EH_OT) +
+              ChkNilaFlt(current.TOTAL_ALL_EH_OT),
+            TOTAL_ALL_AH_OT:
+              CheckNilai(grouped.TOTAL_ALL_AH_OT) +
+              CheckNilai(current.TOTAL_ALL_AH_OT),
             ACT_TARGET:
               ChkNilaFlt(grouped.ACT_TARGET) + ChkNilaFlt(current.ACT_TARGET),
             ACT_TARGET_OT:
@@ -422,6 +442,9 @@ export const sumData = async (data, keys) => {
             ACT_TARGET_X_OT:
               ChkNilaFlt(grouped.ACT_TARGET_X_OT) +
               ChkNilaFlt(current.ACT_TARGET_X_OT),
+            ACT_TARGET_ALL_OT:
+              ChkNilaFlt(grouped.ACT_TARGET_ALL_OT) +
+              ChkNilaFlt(current.ACT_TARGET_ALL_OT),
             NORMAL_OUTPUT:
               CheckNilai(grouped.NORMAL_OUTPUT) +
               CheckNilai(current.NORMAL_OUTPUT),
@@ -429,6 +452,9 @@ export const sumData = async (data, keys) => {
               CheckNilai(grouped.OT_OUTPUT) + CheckNilai(current.OT_OUTPUT),
             X_OT_OUTPUT:
               CheckNilai(grouped.X_OT_OUTPUT) + CheckNilai(current.X_OT_OUTPUT),
+            ALL_OUTPUT_OT:
+              CheckNilai(grouped.ALL_OUTPUT_OT) +
+              CheckNilai(current.ALL_OUTPUT_OT),
           });
         }
 
@@ -439,6 +465,9 @@ export const sumData = async (data, keys) => {
     ...sum,
     VAR_SCHD: CheckNilai(sum.TOTAL_OUTPUT - sum.SCHD_QTY),
     VAR_TARGET: ChkNilaFlt(sum.TOTAL_OUTPUT - sum.TOTAL_TARGET),
+    VAR_TARGET_AOT: ChkNilaFlt(sum.ACT_TARGET_ALL_OT - sum.ALL_OUTPUT_OT),
+    EFF_NORMAL: JmlEff(sum.ACTUAL_EH, sum.ACTUAL_AH),
+    EFF_ALL_OT: JmlEff(sum.TOTAL_ALL_EH_OT, sum.TOTAL_ALL_AH_OT),
     EFF: JmlEff(sum.TOTAL_EH, sum.TOTAL_AH),
   }));
 

@@ -113,16 +113,20 @@ export const getDataMtd = async (req, res) => {
     const totalNormal = SumByColoum(monthData, "NORMAL_OUTPUT");
     const totalOt = SumByColoum(monthData, "OT_OUTPUT");
     const totalXot = SumByColoum(monthData, "X_OT_OUTPUT");
+    const totalAllot = SumByColoum(monthData, "ALL_OUTPUT_OT");
     const totalNormalEh = SumByColoum(monthData, "ACTUAL_EH");
     const totalOtEh = SumByColoum(monthData, "ACTUAL_EH_OT");
     const totalXotEh = SumByColoum(monthData, "ACTUAL_EH_X_OT");
+    const totalEhAllOt = SumByColoum(monthData, "TOTAL_ALL_EH_OT");
     const totalNormalAh = SumByColoum(monthData, "ACTUAL_AH");
     const totalOtAh = SumByColoum(monthData, "ACTUAL_AH_OT");
     const totalXotAh = SumByColoum(monthData, "ACTUAL_AH_X_OT");
+    const totalAhAllot = SumByColoum(monthData, "TOTAL_ALL_AH_OT");
     const totalNormalEff = JmlEff(totalNormalEh, totalNormalAh);
     const totalOtEff = JmlEff(totalOtEh, totalOtAh);
     const totalXOtEff = JmlEff(totalXotEh, totalXotAh);
     const totalEff = JmlEff(totalEh, totalAh);
+    const totalEffAllot = JmlEff(totalEhAllOt, totalAhAllot);
     const varTarget = totalOuput - totalTarget;
     const varSchedule = totalOuput - totalSchQty;
 
@@ -257,12 +261,15 @@ export const getDataMtd = async (req, res) => {
         totalOuput,
         totalEh,
         totalAh,
+        totalEhAllOt,
+        totalAhAllot,
         totalEff,
         varTarget,
         varSchedule,
         totalNormal,
         totalOt,
         totalXot,
+        totalAllot,
         totalNormalEh,
         totalOtEh,
         totalXotEh,
@@ -272,6 +279,7 @@ export const getDataMtd = async (req, res) => {
         totalNormalEff,
         totalOtEff,
         totalXOtEff,
+        totalEffAllot,
       },
     });
   } catch (error) {
