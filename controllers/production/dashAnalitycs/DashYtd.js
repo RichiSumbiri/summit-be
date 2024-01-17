@@ -402,6 +402,8 @@ export const sumData = async (data, keys) => {
             TOTAL_OUTPUT: CheckNilai(current.TOTAL_OUTPUT),
             TOTAL_EH: ChkNilaFlt(current.TOTAL_EH),
             TOTAL_AH: CheckNilai(current.TOTAL_AH),
+            ACTUAL_EH: CheckNilai(current.ACTUAL_EH),
+            ACTUAL_AH: CheckNilai(current.ACTUAL_AH),
             TOTAL_ALL_EH_OT: ChkNilaFlt(current.TOTAL_ALL_EH_OT),
             TOTAL_ALL_AH_OT: CheckNilai(current.TOTAL_ALL_AH_OT),
             ACT_TARGET: ChkNilaFlt(current.ACT_TARGET),
@@ -428,6 +430,10 @@ export const sumData = async (data, keys) => {
               ChkNilaFlt(grouped.TOTAL_EH) + ChkNilaFlt(current.TOTAL_EH),
             TOTAL_AH:
               CheckNilai(grouped.TOTAL_AH) + CheckNilai(current.TOTAL_AH),
+            ACTUAL_EH:
+              ChkNilaFlt(grouped.ACTUAL_EH) + ChkNilaFlt(current.ACTUAL_EH),
+            ACTUAL_AH:
+              CheckNilai(grouped.ACTUAL_AH) + CheckNilai(current.ACTUAL_AH),
             TOTAL_ALL_EH_OT:
               ChkNilaFlt(grouped.TOTAL_ALL_EH_OT) +
               ChkNilaFlt(current.TOTAL_ALL_EH_OT),
