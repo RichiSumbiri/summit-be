@@ -79,7 +79,11 @@ PATCH  http://localhost:5001/planning/daily
 Content-Type: application/json
 
 {"SCH_ID":7,"SCHD_PROD_MONTH":"2022-11-22","SCHD_PROD_DATE":"2022-11-22","SCHD_SITE":"SBR_01","SCHD_ID_SITELINE":"SLD0000001","SCHD_CAPACITY_ID":"SBR_01.C&A.7989320360519001;002 USIM: 2190348.MD2498 Pippa Bralette.128042.20221129","SCHD_HEADER_QTY":7634,"SCHD_QTY":"3","SCHD_ADD_ID":127}
+###
+POST   http://localhost:5001/sewing/clear-double/
+Content-Type: application/json
 
+{ "schdId" : "16247", "shift" : "Shift_A" }
 ###
 GET http://localhost:5001/holidays/2002
 ###
@@ -105,3 +109,9 @@ GET http://localhost:5001/order/order-status-mo/asdadad
 GET http://localhost:5001/sewdashboard/ytd/list-we/2023
 ###
 GET http://localhost:5001/sewdashboard/ytd/weekly
+###
+GET http://localhost:5001/sewdashboard/ytd/monthly?rangeDate=2023-09-01
+###
+GET http://localhost:5001/sewdashboard/sitedash/2023-10-17/SBR_01
+###
+GET http://localhost:5001/zerodefect/data-header/2023-11-20/2023-11-27
