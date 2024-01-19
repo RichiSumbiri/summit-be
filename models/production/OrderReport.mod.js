@@ -146,7 +146,7 @@ LEFT JOIN (
 LEFT JOIN (
 	 SELECT a.MOID MO_NO, a.FGColorID, a.FGColorDescription, SUM(a.GoodQty) PACKING_OUT, SUM(a.RejectedQty) PACKING_OUT_REJECT
 	FROM 
-	FinishingProdDetail a
+	FX_FinishingProdDetail a
 	WHERE  a.MOID IN  (
 		SELECT DISTINCT a.MO_NO FROM order_po_listing_size a 
 			WHERE a.PRODUCTION_MONTH IN (:listMonth) 
@@ -479,7 +479,7 @@ LEFT JOIN (
 		b.PRODUCT_ITEM_CODE, b.ORDER_PO_ID, b.ORDER_NO, b.ITEM_COLOR_CODE, b.ITEM_COLOR_NAME, b.PLAN_EXFACTORY_DATE,
 		SUM(a.GoodQty) PACKING_OUT, SUM(a.RejectedQty) PACKING_OUT_REJECT
 		FROM 
-		FinishingProdDetail a
+		FX_FinishingProdDetail a
 		LEFT JOIN  (
 			SELECT DISTINCT 		REPLACE(CONCAT(CAST(a.MANUFACTURING_SITE AS CHAR),".",
 				CAST(a.CUSTOMER_NAME AS CHAR),".",

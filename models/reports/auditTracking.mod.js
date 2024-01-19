@@ -109,7 +109,7 @@ LEFT JOIN (
 	SELECT 
 	a.OrderID ORDER_ID,  a.OrderRefPONo, a.MOID, SUM(a.GoodQty) PACKING_OUT
 	FROM 
-	finishingProdDetail a 
+	FX_FinishingProdDetail a 
 	WHERE a.MOID IN (
 	        SELECT 
 	        v.MOID
@@ -234,7 +234,7 @@ LEFT JOIN (
 SELECT 
 a.OrderID ORDER_ID,  a.OrderRefPONo, a.MOID, SUM(a.GoodQty) PACKING_OUT
 FROM 
-finishingProdDetail a 
+FX_FinishingProdDetail a 
 WHERE a.OrderRefPONo IN (
         SELECT 
         v.Order_Reference_PONo
