@@ -1,4 +1,7 @@
-export const qryViewSchSewingForCutting = `SELECT a.SCH_ID, a.SCH_ID_SITELINE,  c.SITE_NAME, c.LINE_NAME, b.MO_NO,
+import { DataTypes } from "sequelize";
+import db from "../../config/database.js";
+
+export const qryViewSchSewingForCutting = `SELECT a.SCH_ID, d.CUT_ID, a.SCH_ID_SITELINE,  c.SITE_NAME, c.LINE_NAME, b.MO_NO,
 b.ORDER_REFERENCE_PO_NO ORDER_REF,
 a.SCH_CAPACITY_ID, a.SCH_START_PROD, a.SCH_FINISH_PROD,
 b.ORDER_NO, b.CUSTOMER_NAME, b.CUSTOMER_PROGRAM, b.PRODUCT_ITEM_CODE, 
@@ -17,6 +20,7 @@ LEFT JOIN (
   				WHERE a.SCHD_SITE = :site AND  a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
 	) GROUP BY a.SCH_ID
 ) d ON d.SCH_ID = a.SCH_ID
+LEFT JOIN cuting_loading_schedule d ON d.CUT_SCH_ID = a.SCH_ID
 WHERE a.SCH_SITE = :site AND a.SCH_ID IN  (
 	  SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
 	  WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
@@ -24,7 +28,7 @@ WHERE a.SCH_SITE = :site AND a.SCH_ID IN  (
 ORDER BY a.SCH_ID_SITELINE, a.SCH_START_PROD ASC
 `;
 
-export const getSewingSchSize = `SELECT  a.SCH_ID, a.SCH_ID_SITELINE, b.SIZE_CODE, SUM(b.SCH_SIZE_QTY) SCH_SIZE_QTY, 
+export const getSewingSchSize = `SELECT  a.SCH_ID, b.SCH_SIZE_ID, d.CUT_ID_SIZE,  a.SCH_ID_SITELINE, b.SIZE_CODE, SUM(b.SCH_SIZE_QTY) SCH_SIZE_QTY, 
 IFNULL(c.LOADING_QTY,0) LOADING_QTY, b.SCH_SIZE_QTY-IFNULL(c.LOADING_QTY,0) BALANCE_LOADING
 FROM weekly_prod_schedule a
 LEFT JOIN  weekly_sch_size b ON a.SCH_ID = b.SCH_ID AND b.SCH_SIZE_QTY <> 0
@@ -37,9 +41,132 @@ LEFT JOIN (
       WHERE a.SCHD_SITE = :site AND  a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
     ) GROUP BY a.SCH_ID, b.ORDER_SIZE
   ) c ON (c.SCH_ID = b.SCH_ID AND b.SIZE_CODE = c.ORDER_SIZE )
+LEFT JOIN cuting_loading_sch_size d ON d.CUT_SCH_ID_SIZE = b.SCH_SIZE_ID
 WHERE  a.SCH_SITE = :site AND a.SCH_ID IN  (
     SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
     WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
 ) OR IFNULL(a.SCH_START_PROD ,'') =  '' 
 GROUP BY  a.SCH_ID, a.SCH_ID_SITELINE, b.SIZE_CODE
 `;
+
+export const CutingLoadingSchedule = db.define(
+  "cuting_loading_schedule",
+  {
+    CUT_ID: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    CUT_SCH_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    CUT_ID_CAPACITY: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    CUT_ID_SITELINE: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    CUT_SITE_NAME: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    CUT_SCH_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CUT_SEW_SCH_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CUT_SIZE_TYPE: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    CUT_SEW_START: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    CUT_SEW_FINISH: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    CUT_ADD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    CUT_MOD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    CUT_ADD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    CUT_MOD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "CUT_ADD_TIME",
+    updatedAt: "CUT_MOD_TIME",
+  }
+);
+
+export const CutingLoadingSchSize = db.define(
+  "cuting_loading_sch_size",
+  {
+    CUT_ID_SIZE: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    CUT_SCH_ID_SIZE: {
+      type: DataTypes.BIGINT,
+    },
+    CUT_ID: {
+      type: DataTypes.BIGINT,
+    },
+    CUT_SCH_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    CUT_SEW_SIZE_CODE: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    CUT_ID_SITELINE: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    CUT_SEW_SCH_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CUT_ADD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    CUT_MOD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    CUT_ADD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    CUT_MOD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "CUT_ADD_TIME",
+    updatedAt: "CUT_MOD_TIME",
+  }
+);

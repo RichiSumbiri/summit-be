@@ -20,11 +20,15 @@ import {
   getOrderByBLK,
 } from "../../controllers/production/cutting/CuttingGetOrder.js";
 import { getBaseRepCutLoad } from "../../controllers/production/cutting/CuttingLoadinRep.js";
-import { getSchSewForCut } from "../../controllers/production/planning/CutSchedule.js";
+import {
+  getSchSewForCut,
+  postSewToCutSchd,
+} from "../../controllers/production/planning/CutSchedule.js";
 
 // ROUTE CUTTING
 
 router.get("/planning/:startDate/:endDate/:site", getSchSewForCut);
+router.post("/sewing-to-planning", postSewToCutSchd);
 
 router.get("/order/list/:startDate/:endDate", getCuttingOrder);
 router.get("/order/bundle/:orderNo", getOrderByBLK);

@@ -135,8 +135,7 @@ AND e.ORDER_PO_ID = SUBSTRING_INDEX(c.BUYER_PO,',',-1) -- jika MO ada 2 ambil mo
 LEFT JOIN item_siteline f ON b.SCHD_ID_SITELINE = f.ID_SITELINE 
 WHERE a.SEWING_SCAN_LOCATION LIKE :sitename AND date(a.CONFRIM_DATE) BETWEEN :startDate AND :endDate AND a.CONFIRM_STATUS <> '0' `;
 
-export const QueryRepCutLoading = `-- QUERY UNTUK CUTTING OUTPUT and LOADING
-SELECT n.*,  e.LOADING_QTY, f.LINE_NAME , e.LOADING_QTY-n.SCH_SIZE_QTY BAL,
+export const QueryRepCutLoading = `SELECT n.*,  e.LOADING_QTY, f.LINE_NAME , e.LOADING_QTY-n.SCH_SIZE_QTY BAL,
 CASE WHEN (IFNULL(e.LOADING_QTY,0) - n.SCH_SIZE_QTY) < 0 THEN "Open"
      WHEN (IFNULL(e.LOADING_QTY,0) - n.SCH_SIZE_QTY) = 0 THEN "Completed"
      ELSE "Over" END AS STATUS
@@ -177,8 +176,8 @@ FROM (
 				SELECT c.ORDER_NO FROM weekly_prod_schedule a 
 				LEFT JOIN viewcapacity c ON a.SCH_CAPACITY_ID = c.ID_CAPACITY
 				WHERE a.SCH_ID IN (
-					SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-					WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate AND a.SCHD_SITE = :site
+					SELECT DISTINCT a.SCH_ID  FROM  scan_sewing_in a
+					WHERE DATE(a.SEWING_SCAN_TIME)  BETWEEN :startDate AND :endDate AND a.SEWING_SCAN_LOCATION = :site
 				)  
 			)
 			GROUP by a.BARCODE_SERIAL
@@ -192,8 +191,8 @@ FROM (
 	 	AND d.ITEM_COLOR_CODE = c.ITEM_COLOR_CODE
 	 	AND d.ORDER_SIZE = b.SIZE_CODE 
 	WHERE a.SCH_ID IN (
-			SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-			WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate AND a.SCHD_SITE = :site
+			SELECT DISTINCT a.SCH_ID  FROM  scan_sewing_in a
+			WHERE DATE(a.SEWING_SCAN_TIME)  BETWEEN :startDate AND :endDate AND a.SEWING_SCAN_LOCATION = :site
 	)  
 	 GROUP BY a.SCH_ID,  b.SIZE_CODE
 ) n
@@ -208,7 +207,7 @@ LEFT JOIN (
 	GROUP BY a.SCH_ID,  b.ORDER_SIZE
 ) e ON n.SCH_ID = e.SCH_ID AND e.ORDER_SIZE =  n.SIZE_CODE
 LEFT JOIN item_siteline f ON f.ID_SITELINE = n.SCH_ID_SITELINE
-ORDER BY n.SCH_ID_SITELINE`;
+ORDER BY n.SCH_ID`;
 
 export const QueryRepCutLoadDateSize = `SELECT a.SCH_ID, DATE(a.SEWING_SCAN_TIME) SCAN_DATE, b.ORDER_SIZE, SUM(b.ORDER_QTY) LOADING_QTY
 FROM scan_sewing_in a

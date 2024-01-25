@@ -1,8 +1,10 @@
-import { QueryTypes } from "sequelize";
+import { QueryTypes, where } from "sequelize";
 import db from "../../../config/database.js";
 import {
   qryViewSchSewingForCutting,
   getSewingSchSize,
+  CutingLoadingSchedule,
+  CutingLoadingSchSize,
 } from "../../../models/planning/cuttingplan.mod.js";
 
 export const getSchSewForCut = async (req, res) => {
@@ -29,9 +31,90 @@ export const getSchSewForCut = async (req, res) => {
     return res.json({ data: { weekSchHead, weekSchSize } });
   } catch (error) {
     console.log(error);
-    res.status(404).json({
+    return res.status(404).json({
       message: "error processing request",
       data: error,
     });
   }
 };
+
+export const postSewToCutSchd = async (req, res) => {
+  try {
+    const { arrPlanSew, arrPlanSize } = req.body;
+
+    if (!arrPlanSew)
+      return res.status(404).json({
+        message: "Tidak ada data schedule untuk di post",
+      });
+
+    for (const [i, arr] of arrPlanSew.entries()) {
+      const dataCutSch = {
+        CUT_SCH_ID: arr.SCH_ID,
+        CUT_ID_CAPACITY: arr.SCH_CAPACITY_ID,
+        CUT_ID_SITELINE: arr.SCH_ID_SITELINE,
+        CUT_SEW_SCH_QTY: arr.SCH_QTY,
+        CUT_SITE_NAME: arr.SITE_NAME,
+        CUT_SIZE_TYPE: arr.SIZE,
+        CUT_SEW_START: arr.SCH_START_PROD,
+        CUT_SEW_FINISH: arr.SCH_FINISH_PROD,
+      };
+
+      if (!arr.CUT_ID) {
+        const creatData = await CutingLoadingSchedule.create(dataCutSch);
+        await postSewToCutSchdSize(arrPlanSize, arr.SCH_ID, creatData.CUT_ID);
+      } else {
+        const updatData = await CutingLoadingSchedule.update(dataCutSch, {
+          where: {
+            CUT_ID: arr.CUT_ID,
+          },
+        });
+        await postSewToCutSchdSize(arrPlanSize, arr.SCH_ID, updatData.CUT_ID);
+      }
+
+      if (i + 1 === arrPlanSew.length) {
+        return res.status(200).json({ message: "Success Post" });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "Terdapat error ketika post data schedule",
+      data: error,
+    });
+  }
+};
+
+async function postSewToCutSchdSize(arraySize, schId, cutId) {
+  try {
+    const filterArrSize = arraySize.filter(
+      (arrSize) => arrSize.SCH_ID === schId
+    );
+
+    if (filterArrSize.length === 0) return [];
+
+    const arrPlan = filterArrSize.map((arrSize) => ({
+      CUT_ID: cutId,
+      CUT_ID_SIZE: arrSize.CUT_ID_SIZE || null,
+      CUT_SCH_ID_SIZE: arrSize.SCH_SIZE_ID,
+      CUT_SCH_ID: arrSize.SCH_ID,
+      CUT_ID_SITELINE: arrSize.SCH_ID_SITELINE,
+      CUT_SEW_SCH_QTY: arrSize.SCH_SIZE_QTY,
+      CUT_SEW_SIZE_CODE: arrSize.SIZE_CODE,
+    }));
+
+    for (const [i, arr] of arrPlan.entries()) {
+      if (!arr.CUT_ID_SIZE) {
+        await CutingLoadingSchSize.create(arr);
+      } else {
+        await CutingLoadingSchSize.update(arr, {
+          where: {
+            CUT_ID_SIZE: arr.CUT_ID_SIZE,
+          },
+        });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}

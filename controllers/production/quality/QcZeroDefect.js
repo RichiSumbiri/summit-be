@@ -209,7 +209,6 @@ export const getDataDetailZd = async (req, res) => {
 export const posDataZd = async (req, res) => {
   try {
     const { dataHeader, dataDetail } = req.body;
-
     if (!dataHeader)
       return res
         .status(400)

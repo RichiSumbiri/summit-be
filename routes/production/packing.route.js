@@ -4,6 +4,7 @@ import {
   PackInScanInDayRepPo,
   PackInScanInDaySize,
   PackInScanInDaySizePo,
+  packingInSizeSum,
 } from "../../controllers/production/packing/PackingReport.js";
 import {
   getDailyPlanPackIn,
@@ -30,8 +31,9 @@ router.post("/qr-split-print-by-scan/", generateSplitByScan);
 router.post("/qr/scanin", ScanPackingQrIn);
 
 //packing in report
-router.get("/daily/scaninRep/:scanDate", PackInScanInDayRep);
-router.get("/daily/scaninRepSize/:scanDate", PackInScanInDaySize);
+router.get("/daily/scaninRep/:startDate/:endDate", PackInScanInDayRep);
+router.get("/daily/scanInSumSize/:startDate/:endDate", packingInSizeSum);
+router.get("/daily/scaninRepSize/:startDate/:endDate", PackInScanInDaySize);
 router.get("/daily/scaninRepPo/:scanDate", PackInScanInDayRepPo);
 router.get("/daily/scaninRepSizePo/:scanDate", PackInScanInDaySizePo);
 export default router;
