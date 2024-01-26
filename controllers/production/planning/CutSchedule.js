@@ -5,6 +5,9 @@ import {
   getSewingSchSize,
   CutingLoadingSchedule,
   CutingLoadingSchSize,
+  queryGetSchCutLoad,
+  qryGetCutSchSize,
+  qryCutingSchDetail,
 } from "../../../models/planning/cuttingplan.mod.js";
 
 export const getSchSewForCut = async (req, res) => {
@@ -38,6 +41,46 @@ export const getSchSewForCut = async (req, res) => {
   }
 };
 
+export const getCuttingSchedule = async (req, res) => {
+  try {
+    const { startDate, endDate, site } = req.params;
+    const weekSchHead = await db.query(queryGetSchCutLoad, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const weekSchSize = await db.query(qryGetCutSchSize, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const weekSchDetail = await db.query(qryCutingSchDetail, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: { weekSchHead, weekSchSize, weekSchDetail } });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
 export const postSewToCutSchd = async (req, res) => {
   try {
     const { arrPlanSew, arrPlanSize } = req.body;
@@ -57,6 +100,8 @@ export const postSewToCutSchd = async (req, res) => {
         CUT_SIZE_TYPE: arr.SIZE,
         CUT_SEW_START: arr.SCH_START_PROD,
         CUT_SEW_FINISH: arr.SCH_FINISH_PROD,
+        CUT_ADD_ID: arr.CUT_ADD_ID,
+        CUT_MOD_ID: arr.CUT_MOD_ID,
       };
 
       if (!arr.CUT_ID) {
@@ -100,6 +145,8 @@ async function postSewToCutSchdSize(arraySize, schId, cutId) {
       CUT_ID_SITELINE: arrSize.SCH_ID_SITELINE,
       CUT_SEW_SCH_QTY: arrSize.SCH_SIZE_QTY,
       CUT_SEW_SIZE_CODE: arrSize.SIZE_CODE,
+      CUT_ADD_ID: arrSize.CUT_ADD_ID,
+      CUT_MOD_ID: arrSize.CUT_MOD_ID,
     }));
 
     for (const [i, arr] of arrPlan.entries()) {
