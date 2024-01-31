@@ -8,6 +8,7 @@ import {
   queryGetSchCutLoad,
   qryGetCutSchSize,
   qryCutingSchDetail,
+  CuttingSchDetails,
 } from "../../../models/planning/cuttingplan.mod.js";
 
 export const getSchSewForCut = async (req, res) => {
@@ -62,7 +63,7 @@ export const getCuttingSchedule = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const weekSchDetail = await db.query(qryCutingSchDetail, {
+    const getSchDetail = await db.query(qryCutingSchDetail, {
       replacements: {
         startDate: startDate,
         endDate: endDate,
@@ -70,6 +71,12 @@ export const getCuttingSchedule = async (req, res) => {
       },
       type: QueryTypes.SELECT,
     });
+
+    const weekSchDetail =
+      getSchDetail?.map((sch) => ({
+        ...sch,
+        LOAD_STATUS: sch.LOADING_QTY ? true : false,
+      })) || [];
 
     return res.json({ data: { weekSchHead, weekSchSize, weekSchDetail } });
   } catch (error) {
@@ -129,6 +136,7 @@ export const postSewToCutSchd = async (req, res) => {
   }
 };
 
+//controler post data schedule size
 async function postSewToCutSchdSize(arraySize, schId, cutId) {
   try {
     const filterArrSize = arraySize.filter(
@@ -165,3 +173,50 @@ async function postSewToCutSchdSize(arraySize, schId, cutId) {
     throw error;
   }
 }
+
+export const PostDetailCutSch = async (req, res) => {
+  try {
+    const dataPost = req.body;
+    const findData = await CuttingSchDetails.findOne({
+      where: {
+        CUT_SCH_ID: dataPost.CUT_SCH_ID,
+        CUT_LOAD_DATE: dataPost.CUT_LOAD_DATE,
+        CUT_ID_SIZE: dataPost.CUT_ID_SIZE,
+      },
+    });
+
+    if (dataPost.CUT_SCH_QTY === "" && findData.CUT_ID_DETAIL) {
+      console.log("lewat delete");
+      await CuttingSchDetails.destroy({
+        where: {
+          CUT_ID_DETAIL: findData.CUT_ID_DETAIL,
+        },
+      });
+      return res
+        .status(200)
+        .json({ status: "delete", message: "success delete" });
+    }
+
+    if (findData && dataPost.CUT_SCH_QTY) {
+      await CuttingSchDetails.update(dataPost, {
+        where: {
+          CUT_ID_DETAIL: findData.CUT_ID_DETAIL,
+        },
+      });
+      return res.status(200).json({
+        status: "modify",
+        message: "Successfully modified",
+      });
+    }
+    await CuttingSchDetails.create(dataPost);
+    return res
+      .status(200)
+      .json({ status: "create", message: "success tambahkan data" });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "Terdapat error ketika post data detail schedule",
+      data: error,
+    });
+  }
+};
