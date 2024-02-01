@@ -9,7 +9,10 @@ import {
   qryGetCutSchSize,
   qryCutingSchDetail,
   CuttingSchDetails,
+  qryCekQtyCutSch,
+  findOneScanIn,
 } from "../../../models/planning/cuttingplan.mod.js";
+import { CuttinScanSewingIn } from "../../../models/production/cutting.mod.js";
 
 export const getSchSewForCut = async (req, res) => {
   try {
@@ -177,45 +180,226 @@ async function postSewToCutSchdSize(arraySize, schId, cutId) {
 export const PostDetailCutSch = async (req, res) => {
   try {
     const dataPost = req.body;
-    const findData = await CuttingSchDetails.findOne({
+    const findDataAll = await CuttingSchDetails.findAll({
       where: {
         CUT_SCH_ID: dataPost.CUT_SCH_ID,
-        CUT_LOAD_DATE: dataPost.CUT_LOAD_DATE,
+        // CUT_LOAD_DATE: dataPost.CUT_LOAD_DATE,
+        CUT_ID_SIZE: dataPost.CUT_ID_SIZE,
+      },
+      attributes: [
+        "CUT_ID_DETAIL",
+        "CUT_LOAD_DATE",
+        "CUT_ID_SIZE",
+        "CUT_SCH_ID",
+        "CUT_SCH_QTY",
+      ],
+      raw: true, // <--- HERE
+    });
+
+    const findSizes = await CutingLoadingSchSize.findOne({
+      where: {
         CUT_ID_SIZE: dataPost.CUT_ID_SIZE,
       },
     });
 
-    if (dataPost.CUT_SCH_QTY === "" && findData.CUT_ID_DETAIL) {
-      console.log("lewat delete");
-      await CuttingSchDetails.destroy({
-        where: {
-          CUT_ID_DETAIL: findData.CUT_ID_DETAIL,
-        },
-      });
-      return res
-        .status(200)
-        .json({ status: "delete", message: "success delete" });
+    let sewSchQty = findSizes.CUT_SEW_SCH_QTY ? findSizes.CUT_SEW_SCH_QTY : 0;
+    let cutSchQty =
+      findDataAll.reduce((sum, item) => sum + item["CUT_SCH_QTY"], 0) || 0;
+
+    //check jumlah yang sudah di sew schd dan jmlh cutting sch
+    let findData =
+      findDataAll.filter(
+        (dts) => dts.CUT_LOAD_DATE === dataPost.CUT_LOAD_DATE
+      )[0] || null;
+
+    if (findDataAll.length > 0) {
+      if (dataPost.CUT_SCH_QTY === "" && findData.CUT_ID_DETAIL) {
+        await CuttingSchDetails.destroy({
+          where: {
+            CUT_ID_DETAIL: findData.CUT_ID_DETAIL,
+          },
+        });
+        //delete start and finish
+        funcUpdateDate(dataPost.CUT_SCH_ID);
+        return res
+          .status(200)
+          .json({ status: "delete", message: "success delete" });
+      }
+
+      // jika update
+      if (findData && dataPost.CUT_SCH_QTY) {
+        //jumlah oSchd cutting yang ada di kurang-findData
+
+        const currentQty =
+          parseInt(cutSchQty) -
+          findData.CUT_SCH_QTY +
+          parseInt(dataPost.CUT_SCH_QTY);
+
+        if (currentQty > sewSchQty)
+          return res.status(404).json({
+            message: "Tidak Bisa melebihi QTY Schedule Sewing",
+          });
+
+        await CuttingSchDetails.update(dataPost, {
+          where: {
+            CUT_ID_DETAIL: findData.CUT_ID_DETAIL,
+          },
+        });
+        funcUpdateDate(dataPost.CUT_SCH_ID);
+
+        return res.status(200).json({
+          status: "modify",
+          message: "Successfully modified",
+        });
+      }
     }
 
-    if (findData && dataPost.CUT_SCH_QTY) {
-      await CuttingSchDetails.update(dataPost, {
-        where: {
-          CUT_ID_DETAIL: findData.CUT_ID_DETAIL,
-        },
+    const currentQty = parseInt(cutSchQty) + parseInt(dataPost.CUT_SCH_QTY);
+
+    if (currentQty > sewSchQty)
+      return res.status(404).json({
+        message: "Tidak Bisa melebihi QTY Schedule Sewing",
       });
-      return res.status(200).json({
-        status: "modify",
-        message: "Successfully modified",
-      });
-    }
+
     await CuttingSchDetails.create(dataPost);
+    funcUpdateDate(dataPost.CUT_SCH_ID);
     return res
       .status(200)
       .json({ status: "create", message: "success tambahkan data" });
   } catch (error) {
-    console.log(error);
     res.status(404).json({
       message: "Terdapat error ketika post data detail schedule",
+      data: error,
+    });
+  }
+};
+
+//function untuk update data start dan end date
+const funcUpdateDate = async (schdId) => {
+  try {
+    // Mendapatkan baris pertama
+    const firstRow = await CuttingSchDetails.findOne({
+      where: {
+        CUT_SCH_ID: schdId,
+      },
+      order: [["CUT_LOAD_DATE", "ASC"]],
+    });
+
+    // Mendapatkan baris terakhir
+    const lastRow = await CuttingSchDetails.findOne({
+      where: {
+        CUT_SCH_ID: schdId,
+      },
+      order: [["CUT_LOAD_DATE", "DESC"]],
+    });
+
+    let updateDate = {
+      CUT_LOADING_START: firstRow.CUT_LOAD_DATE || null,
+      CUT_LOADING_FINISH: lastRow.CUT_LOAD_DATE || null,
+    };
+
+    console.log(schdId);
+
+    return await CutingLoadingSchedule.update(updateDate, {
+      where: {
+        CUT_SCH_ID: schdId,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const delHeadCutSch = async (req, res) => {
+  try {
+    const { cutSch } = req.params;
+    if (!cutSch)
+      return res.status(404).json({ message: "Tidak ada id schedule" });
+
+    const checkLoading = await CuttinScanSewingIn.findOne({
+      where: { SCH_ID: cutSch },
+    });
+
+    if (checkLoading)
+      return res
+        .status(404)
+        .json({ message: "Tidak dapat di delete, Sudah terdapat loading" });
+
+    const deleteSchHead = await CutingLoadingSchedule.destroy({
+      where: {
+        CUT_SCH_ID: cutSch,
+      },
+    });
+
+    if (deleteSchHead) {
+      await CuttingSchDetails.destroy({
+        where: {
+          CUT_SCH_ID: cutSch,
+        },
+      });
+      await CutingLoadingSchSize.destroy({
+        where: {
+          CUT_SCH_ID: cutSch,
+        },
+      });
+    }
+
+    return res.json({ message: "Schedule Telah Di Hapus" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      message: "Terdapat error ketika Delete schedule",
+      data: error,
+    });
+  }
+};
+
+export const delHeadCutSchSize = async (req, res) => {
+  try {
+    const { cutSch, sizeCode } = req.params;
+    if (!cutSch)
+      return res.status(404).json({ message: "Tidak ada id schedule" });
+
+    const checkLoading = await db.query(findOneScanIn, {
+      replacements: { cutSch, sizeCode },
+      type: QueryTypes.SELECT,
+    });
+
+    if (checkLoading.length > 0)
+      return res
+        .status(404)
+        .json({ message: "Tidak dapat di delete, Sudah terdapat loading" });
+
+    const findIdSize = await CutingLoadingSchSize.findAll({
+      where: {
+        CUT_SCH_ID: cutSch,
+        CUT_SEW_SIZE_CODE: sizeCode,
+      },
+      raw: true, // <--- HERE
+    });
+
+    //cari list id size untuk delete detail karena detail tidak memiliki sizecode
+    const listIdSize = findIdSize.map((schZ) => schZ.CUT_ID_SIZE);
+    const deleteSchZ = await CutingLoadingSchSize.destroy({
+      where: {
+        CUT_ID_SIZE: listIdSize,
+      },
+    });
+
+    if (deleteSchZ) {
+      await CuttingSchDetails.destroy({
+        where: {
+          CUT_ID_SIZE: listIdSize,
+        },
+      });
+    }
+
+    return res.json({ message: "Schedule Telah Di Hapus" });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "Terdapat error ketika Delete schedule",
       data: error,
     });
   }

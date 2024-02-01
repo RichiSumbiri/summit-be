@@ -21,6 +21,8 @@ import {
 } from "../../controllers/production/cutting/CuttingGetOrder.js";
 import { getBaseRepCutLoad } from "../../controllers/production/cutting/CuttingLoadinRep.js";
 import {
+  delHeadCutSch,
+  delHeadCutSchSize,
   getCuttingSchedule,
   getSchSewForCut,
   PostDetailCutSch,
@@ -33,6 +35,8 @@ router.get("/planning/:startDate/:endDate/:site", getSchSewForCut);
 router.get("/planning-loading/:startDate/:endDate/:site", getCuttingSchedule);
 router.post("/sewing-to-planning", postSewToCutSchd);
 router.post("/planing/schedule-detail/", PostDetailCutSch);
+router.delete("/planing/schedule/:cutSch", delHeadCutSch);
+router.delete("/planing/schedule-size/:cutSch/:sizeCode", delHeadCutSchSize);
 
 router.get("/order/list/:startDate/:endDate", getCuttingOrder);
 router.get("/order/bundle/:orderNo", getOrderByBLK);
