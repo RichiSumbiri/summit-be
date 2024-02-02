@@ -218,7 +218,7 @@ FROM (
 				) s GROUP BY s.CUT_SCH_ID  
 			) GROUP BY 	b.SCH_ID, c.ORDER_SIZE
 	 ) s ON s.SCH_ID = a.CUT_SCH_ID 
-    WHERE (a.CUT_SITE_NAME =  :site AND a.CUT_ID IN (
+    WHERE (a.CUT_SITE_NAME =  :site AND a.CUT_SCH_ID IN (
           SELECT DISTINCT	cls.CUT_SCH_ID
           FROM cuting_loading_sch_detail cls 
           LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
@@ -362,8 +362,11 @@ LEFT JOIN cuting_loading_sch_size c ON c.CUT_ID_SIZE = b.CUT_ID_SIZE
 WHERE b.CUT_ID_SIZE = :cutSizeId
 GROUP BY 	b.CUT_ID_SIZE`;
 
-export const findOneScanIn = `	SELECT  
-b.SCH_ID, c.ORDER_SIZE,  SUM(c.ORDER_QTY) ORDER_QTY
-FROM scan_sewing_in b
-LEFT JOIN view_order_detail c ON c.BARCODE_SERIAL = b.BARCODE_SERIAL 
-WHERE b.SCH_ID = :cutSch AND c.ORDER_SIZE = :sizeCode`;
+export const findOneScanIn = `SELECT n.* FROM (
+  	SELECT  
+    b.SCH_ID, c.ORDER_SIZE,  SUM(c.ORDER_QTY) ORDER_QTY
+    FROM scan_sewing_in b
+    LEFT JOIN view_order_detail c ON c.BARCODE_SERIAL = b.BARCODE_SERIAL 
+    WHERE b.SCH_ID = :cutSch AND c.ORDER_SIZE = :sizeCode
+  ) n WHERE n.SCH_ID IS NOT NULL
+    `;
