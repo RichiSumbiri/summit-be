@@ -229,7 +229,7 @@ FROM (
 ) na
 LEFT JOIN viewcapacity b ON b.ID_CAPACITY = na.CUT_ID_CAPACITY
 LEFT JOIN weekly_prod_schedule c ON c.SCH_ID = na.CUT_SCH_ID
-ORDER BY na.LINE_NAME, na.CUT_SCH_ID`;
+ORDER BY na.LINE_NAME, na.CUT_SCH_ID, na.CUT_LOADING_START`;
 
 export const qryGetCutSchSize = `SELECT 
 a.CUT_ID_SIZE, b.SCH_SIZE_ID,  a.CUT_ID, a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE, a.CUT_SEW_SCH_QTY, a.CUT_ID_SITELINE ,
