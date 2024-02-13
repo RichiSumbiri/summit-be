@@ -121,12 +121,12 @@ export const postSewToCutSchd = async (req, res) => {
         const creatData = await CutingLoadingSchedule.create(dataCutSch);
         await postSewToCutSchdSize(arrPlanSize, arr.SCH_ID, creatData.CUT_ID);
       } else {
-        const updatData = await CutingLoadingSchedule.update(dataCutSch, {
+        await CutingLoadingSchedule.update(dataCutSch, {
           where: {
             CUT_ID: arr.CUT_ID,
           },
         });
-        await postSewToCutSchdSize(arrPlanSize, arr.SCH_ID, updatData.CUT_ID);
+        await postSewToCutSchdSize(arrPlanSize, arr.SCH_ID, arr.CUT_ID);
       }
 
       if (i + 1 === arrPlanSew.length) {
@@ -317,8 +317,8 @@ const funcUpdateDate = async (schdId) => {
     });
 
     let updateDate = {
-      CUT_LOADING_START: firstRow.CUT_LOAD_DATE || null,
-      CUT_LOADING_FINISH: lastRow.CUT_LOAD_DATE || null,
+      CUT_LOADING_START: firstRow.CUT_LOAD_DATE ? firstRow.CUT_LOAD_DATE : null,
+      CUT_LOADING_FINISH: lastRow.CUT_LOAD_DATE ? lastRow.CUT_LOAD_DATE : null,
     };
 
     // console.log(schdId);
