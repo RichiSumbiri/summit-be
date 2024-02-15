@@ -12,115 +12,116 @@ CONCAT(ROUND(IFNULL(N.TTL_QC_QTY / N.SCH_SIZE_QTY, 0) * 100, 2), '%') AS TTL_QC_
 CONCAT(ROUND(IFNULL(N.TTL_SEWING_OUT / N.SCH_SIZE_QTY, 0) * 100, 2), '%') AS TTL_SEWING_OUT_PERCENTAGE,
 CONCAT(ROUND(IFNULL(N.TTL_PACKING_IN / N.SCH_SIZE_QTY, 0) * 100, 2), '%') AS TTL_PACKING_IN_PERCENTAGE
 FROM (
-SELECT 
-    M.SCH_ID, M.ACTUAL_MONTH,
-    M.PRODUCTION_MONTH, M.MANUFACTURING_SITE,
-    M.SCH_SITE, M.SCH_ID_SITELINE, M.LINE_NAME, M.CUSTOMER_NAME, 
-    M.SCH_CAPACITY_ID, M.ORDER_REFERENCE_PO_NO, 
-    M.PRODUCT_ITEM_CODE, M.PRODUCT_ITEM_DESCRIPTION,
-    M.ORDER_STYLE_DESCRIPTION, M.ITEM_COLOR_NAME, 
-    M.ITEM_COLOR_CODE, M.TARGET_PCD, M.PLAN_EXFACTORY_DATE,
-    M.FINAL_DELIVERY_DATE, M.SCH_START_PROD, M.SCH_FINISH_PROD, M.SCH_ORDER,
-    M.NEW_TARGET_PCD, M.NEW_PLAN_EXFACTORY_DATE,  M.NEW_FINAL_DELIVERY_DATE, 
-    M.SCH_QTY, M.MO_QTY, CASE WHEN M.SCH_QTY = M.MO_QTY  THEN  'ALL' ELSE 'PARTIAL' END AS SIZE_CODE,
-    SUM(M.SCH_SIZE_QTY) SCH_SIZE_QTY,
-    SUM(M.TTL_SEWING_IN) TTL_SEWING_IN,
-    SUM(M.TTL_QC_QTY) TTL_QC_QTY,
-    SUM(M.TTL_SEWING_OUT) TTL_SEWING_OUT,
-    SUM(M.TTL_PACKING_IN) TTL_PACKING_IN
-FROM (
-    SELECT a.SCH_ID, 
-    CASE WHEN ISNULL(a.SCH_START_PROD) THEN b.PRODUCTION_MONTH ELSE DATE_FORMAT(a.SCH_START_PROD,'%M/%Y') END ACTUAL_MONTH,
-    b.PRODUCTION_MONTH, b.MANUFACTURING_SITE,  a.SCH_SITE, a.SCH_ID_SITELINE, c.LINE_NAME, b.CUSTOMER_NAME, 
-    a.SCH_CAPACITY_ID, a.SCH_QTY, b.MO_QTY, b.ORDER_REFERENCE_PO_NO, 
-    b.PRODUCT_ITEM_CODE, b.PRODUCT_ITEM_DESCRIPTION,
-    b.ORDER_STYLE_DESCRIPTION, b.ITEM_COLOR_NAME, 
-    b.ITEM_COLOR_CODE, b.TARGET_PCD, b.PLAN_EXFACTORY_DATE,
-    b.FINAL_DELIVERY_DATE, a.SCH_START_PROD, a.SCH_FINISH_PROD, a.SCH_ORDER,
-    b.NEW_TARGET_PCD, b.NEW_PLAN_EXFACTORY_DATE,  b.NEW_FINAL_DELIVERY_DATE,
-    
-    d.SIZE_CODE, 
-      IFNULL(d.SCH_SIZE_QTY,0) AS SCH_SIZE_QTY, 
-    IFNULL(e.TTL_SEWING_IN, 0) AS TTL_SEWING_IN,
-    IFNULL(f.TTL_QC_QTY, 0) AS TTL_QC_QTY,
-    IFNULL(g.TTL_SEWING_OUT, 0) AS TTL_SEWING_OUT,
-    IFNULL(h.TTL_PACKING_IN, 0) AS TTL_PACKING_IN
-    FROM weekly_prod_schedule a  
-    LEFT JOIN viewcapacity b ON a.SCH_CAPACITY_ID = b.ID_CAPACITY
-    LEFT JOIN item_siteline c ON a.SCH_ID_SITELINE = c.ID_SITELINE
-    LEFT JOIN (
-        SELECT p.SCH_ID, p.SIZE_CODE, SUM(p.SCH_SIZE_QTY) SCH_SIZE_QTY
-        FROM  weekly_sch_size p 
-        WHERE p.SCH_ID IN (
-            SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-            WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
-        ) 
-        GROUP BY p.SCH_ID, p.SIZE_CODE
-    ) d ON d.SCH_ID = a.SCH_ID
-    LEFT JOIN (
-      SELECT a.SCH_ID, b.ORDER_SIZE, SUM(b.ORDER_QTY) TTL_SEWING_IN
-            FROM scan_sewing_in a 
-            LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-            WHERE a.SCH_ID IN (
-                          SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                           WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
+    SELECT 
+        M.SCH_ID, M.ACTUAL_MONTH,
+        M.PRODUCTION_MONTH, M.MANUFACTURING_SITE,
+        M.SCH_SITE, M.SCH_ID_SITELINE, M.LINE_NAME, M.CUSTOMER_NAME, 
+        M.SCH_CAPACITY_ID, M.ORDER_REFERENCE_PO_NO, 
+        M.PRODUCT_ITEM_CODE, M.PRODUCT_ITEM_DESCRIPTION,
+        M.ORDER_STYLE_DESCRIPTION, M.ITEM_COLOR_NAME, 
+        M.ITEM_COLOR_CODE, M.TARGET_PCD, 
+        IFNULL(M.NEW_PLAN_EXFACTORY_DATE,  M.PLAN_EXFACTORY_DATE) PLAN_EXFACTORY_DATE,
+        M.FINAL_DELIVERY_DATE, M.SCH_START_PROD, M.SCH_FINISH_PROD, M.SCH_ORDER,
+        M.NEW_TARGET_PCD, M.NEW_FINAL_DELIVERY_DATE, 
+        M.SCH_QTY, M.MO_QTY, CASE WHEN M.SCH_QTY = M.MO_QTY  THEN  'ALL' ELSE 'PARTIAL' END AS SIZE_CODE,
+        SUM(M.SCH_SIZE_QTY) SCH_SIZE_QTY,
+        SUM(M.TTL_SEWING_IN) TTL_SEWING_IN,
+        SUM(M.TTL_QC_QTY) TTL_QC_QTY,
+        SUM(M.TTL_SEWING_OUT) TTL_SEWING_OUT,
+        SUM(M.TTL_PACKING_IN) TTL_PACKING_IN
+    FROM (
+        SELECT a.SCH_ID, 
+        CASE WHEN ISNULL(a.SCH_START_PROD) THEN b.PRODUCTION_MONTH ELSE DATE_FORMAT(a.SCH_START_PROD,'%M/%Y') END ACTUAL_MONTH,
+        b.PRODUCTION_MONTH, b.MANUFACTURING_SITE,  a.SCH_SITE, a.SCH_ID_SITELINE, c.LINE_NAME, b.CUSTOMER_NAME, 
+        a.SCH_CAPACITY_ID, a.SCH_QTY, b.MO_QTY, b.ORDER_REFERENCE_PO_NO, 
+        b.PRODUCT_ITEM_CODE, b.PRODUCT_ITEM_DESCRIPTION,
+        b.ORDER_STYLE_DESCRIPTION, b.ITEM_COLOR_NAME, 
+        b.ITEM_COLOR_CODE, b.TARGET_PCD, b.PLAN_EXFACTORY_DATE,
+        b.FINAL_DELIVERY_DATE, a.SCH_START_PROD, a.SCH_FINISH_PROD, a.SCH_ORDER,
+        b.NEW_TARGET_PCD, b.NEW_PLAN_EXFACTORY_DATE,  b.NEW_FINAL_DELIVERY_DATE,
+        
+        d.SIZE_CODE, 
+        IFNULL(d.SCH_SIZE_QTY,0) AS SCH_SIZE_QTY, 
+        IFNULL(e.TTL_SEWING_IN, 0) AS TTL_SEWING_IN,
+        IFNULL(f.TTL_QC_QTY, 0) AS TTL_QC_QTY,
+        IFNULL(g.TTL_SEWING_OUT, 0) AS TTL_SEWING_OUT,
+        IFNULL(h.TTL_PACKING_IN, 0) AS TTL_PACKING_IN
+        FROM weekly_prod_schedule a  
+        LEFT JOIN viewcapacity b ON a.SCH_CAPACITY_ID = b.ID_CAPACITY
+        LEFT JOIN item_siteline c ON a.SCH_ID_SITELINE = c.ID_SITELINE
+        LEFT JOIN (
+            SELECT p.SCH_ID, p.SIZE_CODE, SUM(p.SCH_SIZE_QTY) SCH_SIZE_QTY
+            FROM  weekly_sch_size p 
+            WHERE p.SCH_ID IN (
+                SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
+                WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
             ) 
-            GROUP BY a.SCH_ID, b.ORDER_SIZE
-    ) e ON(a.SCH_ID = e.SCH_ID AND d.SIZE_CODE = e.ORDER_SIZE)
-    LEFT JOIN (
-            SELECT  
-                a.ENDLINE_SCH_ID, 
-                a.ENDLINE_PLAN_SIZE, 
-                SUM(a.ENDLINE_OUT_QTY) AS TTL_QC_QTY
-                FROM qc_endline_output a 
-                WHERE a.ENDLINE_SCH_ID IN (
-                          SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                           WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
-                )  AND 
-                    (
-                        (a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL) OR 
-                        (a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL)
-                    )
-                GROUP BY 
+            GROUP BY p.SCH_ID, p.SIZE_CODE
+        ) d ON d.SCH_ID = a.SCH_ID
+        LEFT JOIN (
+        SELECT a.SCH_ID, b.ORDER_SIZE, SUM(b.ORDER_QTY) TTL_SEWING_IN
+                FROM scan_sewing_in a 
+                LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+                WHERE a.SCH_ID IN (
+                            SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
+                            WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
+                ) 
+                GROUP BY a.SCH_ID, b.ORDER_SIZE
+        ) e ON(a.SCH_ID = e.SCH_ID AND d.SIZE_CODE = e.ORDER_SIZE)
+        LEFT JOIN (
+                SELECT  
                     a.ENDLINE_SCH_ID, 
-                    a.ENDLINE_PLAN_SIZE
-    ) f ON(a.SCH_ID = f.ENDLINE_SCH_ID AND d.SIZE_CODE = f.ENDLINE_PLAN_SIZE)
-    LEFT JOIN (
-                SELECT a.SCH_ID, a.ORDER_SIZE, SUM(a.ORDER_QTY) TTL_SEWING_OUT 
-                FROM (
-                    SELECT DISTINCT a.SCH_ID, b.ORDER_SIZE, 
-                    a.BARCODE_MAIN AS BARCODE_SERIAL,
-                    CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
-                    FROM scan_sewing_out a 
-                    LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
-                    LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
-                    WHERE a.SCH_ID IN (
-                          SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
+                    a.ENDLINE_PLAN_SIZE, 
+                    SUM(a.ENDLINE_OUT_QTY) AS TTL_QC_QTY
+                    FROM qc_endline_output a 
+                    WHERE a.ENDLINE_SCH_ID IN (
+                            SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
                             WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
-                    ) 
-                    GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
-                ) a GROUP BY a.SCH_ID, a.ORDER_SIZE
-    ) g ON(a.SCH_ID = g.SCH_ID AND d.SIZE_CODE = g.ORDER_SIZE)
-    LEFT JOIN (
-             SELECT a.SCH_ID, a.ORDER_SIZE, SUM(a.ORDER_QTY) AS TTL_PACKING_IN 
-                FROM (
-                    SELECT DISTINCT a.SCH_ID, b.ORDER_SIZE, 
-                    a.BARCODE_MAIN AS BARCODE_SERIAL,
-                    CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
-                    FROM scan_packing_in a 
-                    LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
-                    LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
-                    WHERE a.SCH_ID IN (
-                          SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                            WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
-                    ) 
-                    GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
-                ) a GROUP BY a.SCH_ID, a.ORDER_SIZE
-    ) h ON(h.SCH_ID = a.SCH_ID AND h.ORDER_SIZE = d.SIZE_CODE)
-    WHERE a.SCH_SITE = :sitename AND a.SCH_ID IN  (
-    SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
-    ) AND (d.SCH_SIZE_QTY + IFNULL(e.TTL_SEWING_IN, 0) <> 0)  
-    ORDER BY a.SCH_ID_SITELINE, a.SCH_START_PROD ASC
+                    )  AND 
+                        (
+                            (a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL) OR 
+                            (a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL)
+                        )
+                    GROUP BY 
+                        a.ENDLINE_SCH_ID, 
+                        a.ENDLINE_PLAN_SIZE
+        ) f ON(a.SCH_ID = f.ENDLINE_SCH_ID AND d.SIZE_CODE = f.ENDLINE_PLAN_SIZE)
+        LEFT JOIN (
+                    SELECT a.SCH_ID, a.ORDER_SIZE, SUM(a.ORDER_QTY) TTL_SEWING_OUT 
+                    FROM (
+                        SELECT DISTINCT a.SCH_ID, b.ORDER_SIZE, 
+                        a.BARCODE_MAIN AS BARCODE_SERIAL,
+                        CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+                        FROM scan_sewing_out a 
+                        LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+                        LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+                        WHERE a.SCH_ID IN (
+                            SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
+                                WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
+                        ) 
+                        GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+                    ) a GROUP BY a.SCH_ID, a.ORDER_SIZE
+        ) g ON(a.SCH_ID = g.SCH_ID AND d.SIZE_CODE = g.ORDER_SIZE)
+        LEFT JOIN (
+                SELECT a.SCH_ID, a.ORDER_SIZE, SUM(a.ORDER_QTY) AS TTL_PACKING_IN 
+                    FROM (
+                        SELECT DISTINCT a.SCH_ID, b.ORDER_SIZE, 
+                        a.BARCODE_MAIN AS BARCODE_SERIAL,
+                        CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+                        FROM scan_packing_in a 
+                        LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+                        LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+                        WHERE a.SCH_ID IN (
+                            SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
+                                WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
+                        ) 
+                        GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+                    ) a GROUP BY a.SCH_ID, a.ORDER_SIZE
+        ) h ON(h.SCH_ID = a.SCH_ID AND h.ORDER_SIZE = d.SIZE_CODE)
+        WHERE a.SCH_SITE = :sitename AND a.SCH_ID IN  (
+         SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
+        ) AND (d.SCH_SIZE_QTY + IFNULL(e.TTL_SEWING_IN, 0) <> 0)  
+        ORDER BY a.SCH_ID_SITELINE, a.SCH_START_PROD ASC
     ) M GROUP BY M.SCH_ID
 ) N ORDER BY N.SCH_ID_SITELINE`;
 
