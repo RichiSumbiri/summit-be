@@ -258,7 +258,7 @@ LEFT JOIN (
 			 chead.CUT_SCH_ID
 			 FROM cuting_loading_schedule chead 
 			 LEFT JOIN item_siteline st ON chead.CUT_ID_SITELINE = st.ID_SITELINE 
-			 WHERE  st.SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+			 WHERE  (st.SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  '')
 		) s GROUP BY s.CUT_SCH_ID  
 	) GROUP BY 	b.SCH_ID, c.ORDER_SIZE
 ) s ON s.SCH_ID = a.CUT_SCH_ID  AND a.CUT_SEW_SIZE_CODE = s.ORDER_SIZE
@@ -275,8 +275,8 @@ WHERE a.CUT_ID IN (
     SELECT DISTINCT
     chead.CUT_ID
     FROM cuting_loading_schedule chead 
-    LEFT JOIN item_siteline st ON chead.CUT_ID_SITELINE = st.ID_SITELINE 
-    WHERE  st.SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
   ) s GROUP BY s.CUT_ID  
 ) 
 GROUP BY a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE 
