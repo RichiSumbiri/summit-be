@@ -224,6 +224,7 @@ FROM (
           LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
           WHERE  cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
     ) )OR (a.CUT_LOADING_START IS NULL AND  a.CUT_SITE_NAME =  :site)
+    OR  (a.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND a.CUT_SITE_NAME =  :site )
     GROUP BY a.CUT_SCH_ID
     ORDER BY a.CUT_ID_SITELINE, a.CUT_SEW_START, a.CUT_LOADING_START
 ) na
