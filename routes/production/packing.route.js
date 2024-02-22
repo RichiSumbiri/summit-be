@@ -16,6 +16,15 @@ import {
   getPackingQrSplitList,
   qrSplitGenerate,
 } from "../../controllers/production/packing/PackingQrSplit.js";
+import {
+  getListSizeCodeByProdId,
+  getListStylePack,
+  getPackBox,
+  getResltBoxStyle,
+  postPackBox,
+  postSetCartonStyle,
+  postSetCtnPrepack,
+} from "../../controllers/production/packing/PackingPlan.js";
 const router = express.Router();
 
 router.get(
@@ -36,4 +45,14 @@ router.get("/daily/scanInSumSize/:startDate/:endDate", packingInSizeSum);
 router.get("/daily/scaninRepSize/:startDate/:endDate", PackInScanInDaySize);
 router.get("/daily/scaninRepPo/:scanDate", PackInScanInDayRepPo);
 router.get("/daily/scaninRepSizePo/:scanDate", PackInScanInDaySizePo);
+
+//packing style
+router.get("/list-style-setup/:buyer", getListStylePack);
+router.get("/list-box-buyer/:buyer", getPackBox);
+router.get("/list-size-code/:prodItemCode", getListSizeCodeByProdId);
+router.get("/getresult-box-style/:prodItemCode", getResltBoxStyle);
+router.post("/list-box-buyer", postPackBox);
+router.post("/set-box-style-size/:prodItemCode", postSetCartonStyle);
+router.post("/set-box-style-size-prepack/:prodItemCode", postSetCtnPrepack);
+
 export default router;

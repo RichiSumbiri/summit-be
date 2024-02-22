@@ -222,3 +222,66 @@ LEFT JOIN viewcapacity e ON d.SCH_CAPACITY_ID = e.ID_CAPACITY
 LEFT JOIN item_siteline f ON f.ID_SITELINE = d.SCH_ID_SITELINE
 WHERE a.BARCODE_MAIN = :qrCode
 `;
+
+export const queryGetSytleByBuyer = `	SELECT DISTINCT a.CUSTOMER_NAME, a.CUSTOMER_DIVISION, a.PRODUCT_ITEM_ID, a.PRODUCT_TYPE,
+a.PRODUCT_ITEM_CODE, a.PRODUCT_ITEM_DESCRIPTION
+FROM order_po_listing a
+WHERE a.CUSTOMER_NAME = :byr 
+GROUP BY  a.PRODUCT_ITEM_ID`;
+
+export const CartonBox = db.define(
+  "item_carton_list",
+  {
+    BOX_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    BUYER_CODE: { type: DataTypes.STRING },
+    BOX_CODE: { type: DataTypes.STRING },
+    LWH_UOM: { type: DataTypes.STRING },
+    LENGTH: { type: DataTypes.DECIMAL },
+    WIDTH: { type: DataTypes.DECIMAL },
+    HEIGHT: { type: DataTypes.DECIMAL },
+    WEIGHT: { type: DataTypes.DECIMAL },
+  },
+  {
+    freezeTableName: true,
+    createdAt: false,
+    updatedAt: false,
+  }
+);
+
+export const getSizeCodeByStyleId = `SELECT DISTINCT a.SIZE_CODE
+FROM order_po_listing_size a
+WHERE a.PRODUCT_ITEM_ID = :prodItemCode
+GROUP BY a.PRODUCT_ITEM_ID,  a.SIZE_CODE`;
+
+export const PackBoxStyle = db.define(
+  "pack_box_style",
+  {
+    ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    BOX_ID: {
+      type: DataTypes.INTEGER,
+    },
+    BUYER_CODE: { type: DataTypes.STRING },
+    BOX_CODE: { type: DataTypes.STRING },
+    PRODUCT_ITEM_ID: { type: DataTypes.STRING },
+    SIZE_CODE: { type: DataTypes.STRING },
+    TYPE_PACK: { type: DataTypes.STRING },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
+export const getBoxStyleCode = `SELECT 
+pbs.BOX_ID, pbs.BUYER_CODE, pbs.BOX_CODE, pbs.PRODUCT_ITEM_ID, pbs.SIZE_CODE, pbs.TYPE_PACK 
+FROM pack_box_style pbs
+WHERE pbs.PRODUCT_ITEM_ID = :prodItemCode `;
