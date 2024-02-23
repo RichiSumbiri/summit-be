@@ -11,6 +11,7 @@ import {
   CuttingSchDetails,
   qryCekQtyCutSch,
   findOneScanIn,
+  queryInfoSchSize,
 } from "../../../models/planning/cuttingplan.mod.js";
 import { CuttinScanSewingIn } from "../../../models/production/cutting.mod.js";
 import Moment from "moment";
@@ -279,10 +280,10 @@ export const PostDetailCutSch = async (req, res) => {
         message: "Tidak Bisa melebihi QTY Schedule Sewing",
       });
 
-    if (schDate.isBefore(currentDate))
-      return res.status(404).json({
-        message: "Tidak Bisa Add Schedule ditanggal sebelum hari ini",
-      });
+    // if (schDate.isBefore(currentDate))
+    //   return res.status(404).json({
+    //     message: "Tidak Bisa Add Schedule ditanggal sebelum hari ini",
+    //   });
 
     await CuttingSchDetails.create(dataPost);
     funcUpdateDate(dataPost.CUT_SCH_ID);
@@ -424,6 +425,29 @@ export const delHeadCutSchSize = async (req, res) => {
     console.log(error);
     res.status(404).json({
       message: "Terdapat error ketika Delete schedule",
+      data: error,
+    });
+  }
+};
+
+export const getInfoDetailSize = async (req, res) => {
+  try {
+    const { cutIdSize, schId, sizeCode } = req.params;
+
+    const detailIdSize = await db.query(queryInfoSchSize, {
+      replacements: {
+        cutIdSize,
+        schId,
+        sizeCode,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: detailIdSize });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error processing request",
       data: error,
     });
   }

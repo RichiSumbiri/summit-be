@@ -24,6 +24,7 @@ import {
   delHeadCutSch,
   delHeadCutSchSize,
   getCuttingSchedule,
+  getInfoDetailSize,
   getSchSewForCut,
   PostDetailCutSch,
   postSewToCutSchd,
@@ -37,6 +38,10 @@ router.post("/sewing-to-planning", postSewToCutSchd);
 router.post("/planing/schedule-detail/", PostDetailCutSch);
 router.delete("/planing/schedule/:cutSch", delHeadCutSch);
 router.delete("/planing/schedule-size/:cutSch/:sizeCode", delHeadCutSchSize);
+router.get(
+  "/planing-info-schedule-size/:cutIdSize/:schId/:sizeCode",
+  getInfoDetailSize
+);
 
 router.get("/order/list/:startDate/:endDate", getCuttingOrder);
 router.get("/order/bundle/:orderNo", getOrderByBLK);

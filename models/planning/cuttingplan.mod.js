@@ -184,16 +184,16 @@ export const CutingLoadingSchSize = db.define(
 export const queryGetSchCutLoad = `SELECT 	
 na.CUT_ID, c.SCH_ID, na.CUT_SCH_ID, na.CUT_ID_CAPACITY, na.CUT_SITE_NAME, na.LINE_NAME,
 b.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.CUSTOMER_NAME, b.CUSTOMER_PROGRAM, b.PRODUCT_ITEM_CODE, 
-b.ITEM_COLOR_CODE,  b.ITEM_COLOR_NAME, b.ORDER_STYLE_DESCRIPTION, c.SCH_START_PROD, b.MO_QTY,CUT_SCH_QTY, 
+b.ITEM_COLOR_CODE,  b.ITEM_COLOR_NAME, b.ORDER_STYLE_DESCRIPTION, c.SCH_START_PROD, b.MO_QTY,
 na.CUT_SIZE_TYPE, IFNULL(b.NEW_PLAN_EXFACTORY_DATE, b.PLAN_EXFACTORY_DATE) PLAN_EXFACTORY_DATE,
-na.CUT_LOADING_START, na.CUT_LOADING_FINISH, na.CUT_SEW_SCH_QTY, na.LOADING_QTY, na.CUT_SEW_SCH_QTY - IFNULL(na.LOADING_QTY, 0) BAL,
+na.CUT_LOADING_START, na.CUT_LOADING_FINISH, na.CUT_SEW_SCH_QTY, na.LOADING_QTY, na.CUT_SCH_QTY, na.CUT_SEW_SCH_QTY - IFNULL(na.LOADING_QTY, 0) BAL,
 CASE WHEN (IFNULL(na.LOADING_QTY,0) - na.CUT_SEW_SCH_QTY) < 0 THEN "Open"
      WHEN (IFNULL(na.LOADING_QTY,0) - na.CUT_SEW_SCH_QTY) = 0 THEN "Completed"
      ELSE "Over" END AS STATUS
 FROM (
     SELECT a.CUT_ID, a.CUT_SCH_ID, a.CUT_ID_CAPACITY, a.CUT_SITE_NAME, c.LINE_NAME, 
-      a.CUT_SCH_QTY, a.CUT_SIZE_TYPE, a.CUT_LOADING_START, a.CUT_LOADING_FINISH,
-      a.CUT_SEW_SCH_QTY, SUM(s.ORDER_QTY) LOADING_QTY
+      a.CUT_SIZE_TYPE, a.CUT_LOADING_START, a.CUT_LOADING_FINISH,
+      a.CUT_SEW_SCH_QTY, SUM(s.ORDER_QTY) LOADING_QTY, clr.CUT_SCH_QTY
     FROM cuting_loading_schedule a
     LEFT JOIN item_siteline c ON a.CUT_ID_SITELINE = c.ID_SITELINE
 	 LEFT JOIN (
@@ -218,6 +218,27 @@ FROM (
 				) s GROUP BY s.CUT_SCH_ID  
 			) GROUP BY 	b.SCH_ID, c.ORDER_SIZE
 	 ) s ON s.SCH_ID = a.CUT_SCH_ID 
+	 LEFT JOIN (
+	 -- cari nilai schedule di hari sebelum start date untuk mencari balance di front end
+		 	SELECT 
+			cls.CUT_ID, cls.CUT_SCH_ID, cls.CUT_ID_SIZE,  IFNULL(SUM(cls.CUT_SCH_QTY),0) CUT_SCH_QTY
+			FROM cuting_loading_sch_detail cls 
+			WHERE cls.CUT_ID IN (
+					SELECT DISTINCT
+				    cls.CUT_ID
+				    FROM cuting_loading_sch_detail cls 
+				    LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
+				    WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
+				    UNION ALL 
+				    SELECT DISTINCT
+				    chead.CUT_ID
+				    FROM cuting_loading_schedule chead 
+				    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+				    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
+			) AND 
+			cls.CUT_LOAD_DATE NOT BETWEEN :startDate AND :endDate
+			GROUP BY cls.CUT_ID, cls.CUT_SCH_ID
+	 ) clr ON clr.CUT_SCH_ID = a.CUT_SCH_ID 
     WHERE (a.CUT_SITE_NAME =  :site AND a.CUT_SCH_ID IN (
           SELECT DISTINCT	cls.CUT_SCH_ID
           FROM cuting_loading_sch_detail cls 
@@ -233,9 +254,10 @@ LEFT JOIN weekly_prod_schedule c ON c.SCH_ID = na.CUT_SCH_ID
 ORDER BY na.LINE_NAME, c.SCH_START_PROD`;
 
 export const qryGetCutSchSize = `SELECT 
-a.CUT_ID_SIZE, b.SCH_SIZE_ID,  a.CUT_ID, a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE, a.CUT_SEW_SCH_QTY, a.CUT_ID_SITELINE ,
-IFNULL(SUM(s.ORDER_QTY) ,0) LOADING_QTY,
+a.CUT_ID_SIZE, b.SCH_SIZE_ID,  a.CUT_ID, a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE,  a.CUT_ID_SITELINE, a.CUT_SEW_SCH_QTY,
+IFNULL(SUM(s.ORDER_QTY) ,0) LOADING_QTY, IFNULL(clr.CUT_SCH_QTY,0) CUT_SCH_QTY,
 a.CUT_SEW_SCH_QTY - IFNULL(SUM(s.ORDER_QTY) ,0) BAL,
+a.CUT_SEW_SCH_QTY -  IFNULL(clr.CUT_SCH_QTY,0) BAL_SCH_CUT,
 CASE WHEN (IFNULL(SUM(s.ORDER_QTY) ,0) - a.CUT_SEW_SCH_QTY) < 0 THEN "Open"
 	  WHEN (IFNULL(SUM(s.ORDER_QTY) ,0) - a.CUT_SEW_SCH_QTY) = 0 THEN "Completed"
 	  ELSE "Over" END AS STATUS
@@ -263,6 +285,26 @@ LEFT JOIN (
 	) GROUP BY 	b.SCH_ID, c.ORDER_SIZE
 ) s ON s.SCH_ID = a.CUT_SCH_ID  AND a.CUT_SEW_SIZE_CODE = s.ORDER_SIZE
 LEFT JOIN weekly_sch_size b ON b.SCH_ID = a.CUT_SCH_ID AND a.CUT_SEW_SIZE_CODE = b.SIZE_CODE AND b.SCH_SIZE_QTY <> 0
+LEFT JOIN (
+	SELECT 
+	cls.CUT_ID, cls.CUT_SCH_ID, cls.CUT_ID_SIZE,  IFNULL(SUM(cls.CUT_SCH_QTY),0) CUT_SCH_QTY
+	FROM cuting_loading_sch_detail cls 
+	WHERE cls.CUT_ID IN (
+			SELECT DISTINCT
+		    cls.CUT_ID
+		    FROM cuting_loading_sch_detail cls 
+		    LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
+		    WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
+		    UNION ALL 
+		    SELECT DISTINCT
+		    chead.CUT_ID
+		    FROM cuting_loading_schedule chead 
+		    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+		    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
+	) AND 
+	cls.CUT_LOAD_DATE NOT BETWEEN :startDate AND :endDate
+	GROUP BY cls.CUT_ID, cls.CUT_SCH_ID, cls.CUT_ID_SIZE
+) clr ON clr.CUT_SCH_ID = a.CUT_SCH_ID AND a.CUT_ID_SIZE = clr.CUT_ID_SIZE
 WHERE a.CUT_ID IN (
   SELECT s.CUT_ID  
   FROM (
@@ -278,7 +320,7 @@ WHERE a.CUT_ID IN (
     WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
     OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
   ) s GROUP BY s.CUT_ID  
-) 
+) -- AND a.CUT_SCH_ID = '7184'
 GROUP BY a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE 
 ORDER BY  a.CUT_ID_SITELINE, a.CUT_SEW_SIZE_CODE`;
 
@@ -371,3 +413,22 @@ export const findOneScanIn = `SELECT n.* FROM (
     WHERE b.SCH_ID = :cutSch AND c.ORDER_SIZE = :sizeCode
   ) n WHERE n.SCH_ID IS NOT NULL
     `;
+
+export const queryInfoSchSize = `
+    SELECT 
+n.CUT_SCH_ID, n.CUT_LOAD_DATE, n.CUT_SEW_SIZE_CODE, SUM(n.CUT_SCH_QTY)  CUT_SCH_QTY, SUM(n.LOADING_QTY) LOADING_QTY
+FROM (
+	SELECT DISTINCT
+	a.CUT_SCH_ID, a.CUT_LOAD_DATE, b.CUT_SEW_SIZE_CODE, a.CUT_SCH_QTY , 0 LOADING_QTY
+	FROM cuting_loading_sch_detail a 
+	LEFT JOIN cuting_loading_sch_size b ON b.CUT_ID_SIZE = a.CUT_ID_SIZE
+	LEFT JOIN item_siteline st ON a.CUT_ID_SITELINE = st.ID_SITELINE 
+	WHERE a.CUT_ID_SIZE = :cutIdSize
+	UNION ALL 
+	SELECT 
+	a.SCH_ID CUT_SCH_ID, DATE(a.SEWING_SCAN_TIME) CUT_LOAD_DATE, b.ORDER_SIZE CUT_SEW_SIZE_CODE, 0 CUT_SCH_QTY, SUM(b.ORDER_QTY) LOADING_QTY
+	FROM scan_sewing_in a
+	LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+	WHERE a.SCH_ID =  :schId AND b.ORDER_SIZE = :sizeCode
+	GROUP BY a.SCH_ID,  DATE(a.SEWING_SCAN_TIME), b.ORDER_SIZE
+) n GROUP BY n.CUT_SCH_ID, n.CUT_LOAD_DATE, n.CUT_SEW_SIZE_CODE`;
