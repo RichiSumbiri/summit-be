@@ -3,10 +3,13 @@ import db from "../../../config/database.js";
 import {
   CartonBox,
   PackBoxStyle,
+  PackPlanHeader,
   getBoxStyleCode,
   getSizeCodeByStyleId,
+  qryGetLastPPI,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
+import moment from "moment";
 
 export const getListStylePack = async (req, res) => {
   try {
@@ -200,6 +203,31 @@ export const getResltBoxStyle = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get data listSizeCode",
+      data: error,
+    });
+  }
+};
+
+// get packing plan id
+export const getPackingPlanId = async (req, res) => {
+  try {
+    const getNoId = await db.query(qryGetLastPPI, {
+      type: QueryTypes.SELECT,
+    });
+
+    const lasPPID = getNoId[0]
+      ? getNoId[0].LAST_ID.toString().padStart(7, "0")
+      : "0000001";
+
+    const years = moment().format("YYYY");
+
+    const newPPID = "PPID" + years + lasPPID;
+
+    return res.status(200).json({ data: newPPID });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing Plan ID",
       data: error,
     });
   }

@@ -285,3 +285,38 @@ export const getBoxStyleCode = `SELECT
 pbs.BOX_ID, pbs.BUYER_CODE, pbs.BOX_CODE, pbs.PRODUCT_ITEM_ID, pbs.SIZE_CODE, pbs.TYPE_PACK 
 FROM pack_box_style pbs
 WHERE pbs.PRODUCT_ITEM_ID = :prodItemCode `;
+
+export const PackPlanHeader = db.define(
+  "packing_plan_header",
+  {
+    PACKPLAN_ID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    PACKPLAN_BUYER: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    PACKPLAN_BUYER_DIVISION: { type: DataTypes.STRING },
+    PACKPLAN_METHOD: { type: DataTypes.STRING },
+    PACKPLAN_COUNTRY: { type: DataTypes.STRING },
+    PACKPLAN_LOCATION: { type: DataTypes.STRING },
+    PACKPLAN_QTY: { type: DataTypes.INTEGER },
+    PACKPLAN_EX_FACTORY: { type: DataTypes.DATE },
+    PACKPLAN_ACD: { type: DataTypes.DATE },
+    PACKPLAN_SBD: { type: DataTypes.DATE },
+    PACKPLAN_ADD_ID: { type: DataTypes.INTEGER },
+    PACKPLAN_MOD_ID: { type: DataTypes.INTEGER },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
+export const qryGetLastPPI = `SELECT CAST(SUBSTRING(a.PACKPLAN_ID,9) AS INTEGER)+1 LAST_ID, YEAR(a.createdAt) LAST_YEAR 
+FROM packing_plan_header a 
+WHERE YEAR(a.createdAt) = YEAR(CURDATE())
+ORDER BY a.createdAt DESC
+LIMIT 1`;

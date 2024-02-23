@@ -42,7 +42,7 @@ LEFT JOIN (
       WHERE a.SCHD_SITE = :site AND  a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate
     ) GROUP BY a.SCH_ID, b.ORDER_SIZE
   ) c ON (c.SCH_ID = b.SCH_ID AND b.SIZE_CODE = c.ORDER_SIZE )
-LEFT JOIN cuting_loading_sch_size d ON d.CUT_SCH_ID = b.SCH_ID AND d.CUT_SEW_SIZE_CODE AND b.SIZE_CODE
+LEFT JOIN cuting_loading_sch_size d ON  d.CUT_SCH_ID_SIZE = b.SCH_SIZE_ID -- d.CUT_SCH_ID = b.SCH_ID AND d.CUT_SEW_SIZE_CODE AND b.SIZE_CODE
 WHERE  (a.SCH_SITE = :site AND a.SCH_ID IN  (
   SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
   WHERE a.SCHD_PROD_DATE BETWEEN :startDate AND :endDate

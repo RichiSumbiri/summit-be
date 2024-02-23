@@ -20,6 +20,7 @@ import {
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
+  getPackingPlanId,
   getResltBoxStyle,
   postPackBox,
   postSetCartonStyle,
@@ -54,5 +55,9 @@ router.get("/getresult-box-style/:prodItemCode", getResltBoxStyle);
 router.post("/list-box-buyer", postPackBox);
 router.post("/set-box-style-size/:prodItemCode", postSetCartonStyle);
 router.post("/set-box-style-size-prepack/:prodItemCode", postSetCtnPrepack);
+
+// packing plan
+
+router.get("/plann/id", getPackingPlanId);
 
 export default router;
