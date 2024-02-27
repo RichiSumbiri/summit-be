@@ -6,7 +6,11 @@ import {
   PackPlanHeader,
   getBoxStyleCode,
   getSizeCodeByStyleId,
+  qryGetCusDivision,
+  qryGetCustLoaction,
   qryGetLastPPI,
+  qryGetPackHeader,
+  qryGetPackMethod,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
@@ -214,10 +218,9 @@ export const getPackingPlanId = async (req, res) => {
     const getNoId = await db.query(qryGetLastPPI, {
       type: QueryTypes.SELECT,
     });
-
     const lasPPID = getNoId[0]
-      ? getNoId[0].LAST_ID.toString().padStart(7, "0")
-      : "0000001";
+      ? getNoId[0].LAST_ID.toString().padStart(6, "0")
+      : "000001";
 
     const years = moment().format("YYYY");
 
@@ -228,6 +231,95 @@ export const getPackingPlanId = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing Plan ID",
+      data: error,
+    });
+  }
+};
+
+export const getPackingPlanHd = async (req, res) => {
+  try {
+    const { customer, startDate, endDate } = req.params;
+    const listDataHeader = await db.query(qryGetPackHeader, {
+      replacements: {
+        customer,
+        startDate,
+        endDate,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({ data: listDataHeader });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing Plan data header",
+      data: error,
+    });
+  }
+};
+
+// get packing plan id
+export const getRefPackPlanByByr = async (req, res) => {
+  try {
+    const { customer } = req.params;
+
+    const listDivision = await db.query(qryGetCusDivision, {
+      replacements: {
+        customer,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const listPackMethod = await db.query(qryGetPackMethod, {
+      replacements: {
+        customer,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const listCustLocation = await db.query(qryGetCustLoaction, {
+      replacements: {
+        customer,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const listRef = {
+      listDivision,
+      listPackMethod,
+      listCustLocation,
+    };
+
+    return res.status(200).json({ data: listRef });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi by buyer",
+      data: error,
+    });
+  }
+};
+
+export const postDataPackPlanHeader = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data) res.status(400).json({ message: "no data provided" });
+
+    //check duplicate packplan code
+    let checkIdExist = await PackPlanHeader.findOne({
+      where: { PACKPLAN_ID: data.PACKPLAN_ID },
+    });
+    if (checkIdExist)
+      return res.status(400).json({ message: "ID Already Exist" });
+
+    const postDataHeader = PackPlanHeader.create(data);
+    if (postDataHeader)
+      return res.status(200).json({ message: "Success Create Header Post" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi by buyer",
       data: error,
     });
   }

@@ -20,8 +20,11 @@ import {
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
+  getPackingPlanHd,
   getPackingPlanId,
+  getRefPackPlanByByr,
   getResltBoxStyle,
+  postDataPackPlanHeader,
   postPackBox,
   postSetCartonStyle,
   postSetCtnPrepack,
@@ -59,5 +62,9 @@ router.post("/set-box-style-size-prepack/:prodItemCode", postSetCtnPrepack);
 // packing plan
 
 router.get("/plann/id", getPackingPlanId);
+router.get(`/plann-header/:customer/:startDate/:endDate`, getPackingPlanHd);
+//list ref packing plan
+router.get("/plann-referensi/:customer", getRefPackPlanByByr);
 
+router.post("/plann-data/", postDataPackPlanHeader);
 export default router;

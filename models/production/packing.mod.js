@@ -292,6 +292,7 @@ export const PackPlanHeader = db.define(
     PACKPLAN_ID: {
       type: DataTypes.STRING,
       allowNull: false,
+      primaryKey: true,
     },
     PACKPLAN_BUYER: {
       type: DataTypes.STRING,
@@ -320,3 +321,23 @@ FROM packing_plan_header a
 WHERE YEAR(a.createdAt) = YEAR(CURDATE())
 ORDER BY a.createdAt DESC
 LIMIT 1`;
+
+export const qryGetCusDivision = `SELECT DISTINCT a.CUSTOMER_NAME, a.CUSTOMER_DIVISION
+FROM order_po_listing  a 
+WHERE a.CUSTOMER_NAME = :customer`;
+
+export const qryGetPackMethod = `SELECT DISTINCT c.CUSTOMER_NAME, c.PACKING_METHOD
+FROM order_po_listing  c 
+WHERE c.CUSTOMER_NAME = :customer`;
+
+export const qryGetCustLoaction = `SELECT DISTINCT  d.DELIVERY_LOCATION_ID, d.DELIVERY_LOCATION_NAME, d.COUNTRY
+FROM order_po_listing  d 
+WHERE d.CUSTOMER_NAME = :customer
+ORDER BY d.DELIVERY_LOCATION_ID`;
+
+export const qryGetPackHeader = `SELECT a.PACKPLAN_ID, a.PACKPLAN_BUYER, a.PACKPLAN_BUYER_DIVISION, a.PACKPLAN_METHOD, a.PACKPLAN_LOCATION,
+a.PACKPLAN_EX_FACTORY, a.PACKPLAN_ACD, a.PACKPLAN_SBD, a.PACKPLAN_ADD_ID, b.USER_INISIAL, a.PACKPLAN_COUNTRY
+FROM packing_plan_header a 
+LEFT JOIN xref_user_web b ON a.PACKPLAN_ADD_ID = b.USER_ID
+WHERE a.PACKPLAN_BUYER = :customer AND a.PACKPLAN_EX_FACTORY BETWEEN :startDate AND :endDate 
+ORDER BY a.createdAt`;
