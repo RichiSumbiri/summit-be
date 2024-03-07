@@ -43,10 +43,11 @@ export const getYtdListWe = async (req, res) => {
       let theWeek = moment(yr).week(we + 1);
       let startDate = theWeek
         .day("Saturday")
-        .day("Saturday")
         .subtract(5, "days")
         .format("YYYY-MM-DD");
+
       let endDate = theWeek.day("Saturday").format("YYYY-MM-DD");
+
       let startWeek = theWeek
         .day("Saturday")
         .subtract(5, "days")
@@ -56,7 +57,7 @@ export const getYtdListWe = async (req, res) => {
         // .subtract(7, "days")
         .format("DD-MMM");
       //   let monthWeek = theWeek.day("Saturday").format("MM");
-      let idx = we < 9 ? `0${we + 1}` : we;
+      let idx = we + 1;
       arrWeek.push({
         id: we,
         value: { startDate, endDate },

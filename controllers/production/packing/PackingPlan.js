@@ -4,13 +4,16 @@ import {
   CartonBox,
   PackBoxStyle,
   PackPlanHeader,
+  findPoPlanPack,
   getBoxStyleCode,
   getSizeCodeByStyleId,
+  qryDeliveryMode,
   qryGetCusDivision,
   qryGetCustLoaction,
   qryGetLastPPI,
   qryGetPackHeader,
   qryGetPackMethod,
+  qryGetlistPo,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
@@ -239,9 +242,12 @@ export const getPackingPlanId = async (req, res) => {
 export const getPackingPlanHd = async (req, res) => {
   try {
     const { customer, startDate, endDate } = req.params;
+
+    const buyer = decodeURIComponent(customer);
+
     const listDataHeader = await db.query(qryGetPackHeader, {
       replacements: {
-        customer,
+        customer: buyer,
         startDate,
         endDate,
       },
@@ -262,24 +268,32 @@ export const getPackingPlanHd = async (req, res) => {
 export const getRefPackPlanByByr = async (req, res) => {
   try {
     const { customer } = req.params;
+    const buyer = decodeURIComponent(customer);
 
     const listDivision = await db.query(qryGetCusDivision, {
       replacements: {
-        customer,
+        customer: buyer,
       },
       type: QueryTypes.SELECT,
     });
 
     const listPackMethod = await db.query(qryGetPackMethod, {
       replacements: {
-        customer,
+        customer: buyer,
       },
       type: QueryTypes.SELECT,
     });
 
     const listCustLocation = await db.query(qryGetCustLoaction, {
       replacements: {
-        customer,
+        customer: buyer,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const listDelivMode = await db.query(qryDeliveryMode, {
+      replacements: {
+        customer: buyer,
       },
       type: QueryTypes.SELECT,
     });
@@ -288,6 +302,7 @@ export const getRefPackPlanByByr = async (req, res) => {
       listDivision,
       listPackMethod,
       listCustLocation,
+      listDelivMode,
     };
 
     return res.status(200).json({ data: listRef });
@@ -316,6 +331,57 @@ export const postDataPackPlanHeader = async (req, res) => {
     const postDataHeader = PackPlanHeader.create(data);
     if (postDataHeader)
       return res.status(200).json({ message: "Success Create Header Post" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi by buyer",
+      data: error,
+    });
+  }
+};
+
+//get list po
+export const getQryListPo = async (req, res) => {
+  try {
+    const { buyer, poNum } = req.params;
+    const customer = decodeURIComponent(buyer);
+    const texpO = decodeURIComponent(poNum);
+
+    const qryPO = `%${texpO}%`;
+
+    const listPO = await db.query(qryGetlistPo, {
+      replacements: {
+        customer,
+        qryPO,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listPO });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi po number",
+      data: error,
+    });
+  }
+};
+
+//get po for packing plan
+export const getDataPoForPack = async (req, res) => {
+  try {
+    const { poNum } = req.params;
+
+    const poNumber = decodeURIComponent(poNum);
+
+    const listPO = await db.query(findPoPlanPack, {
+      replacements: {
+        poNumber,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listPO });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
