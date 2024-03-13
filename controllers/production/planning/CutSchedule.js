@@ -252,11 +252,11 @@ export const PostDetailCutSch = async (req, res) => {
           parseInt(cutSchQty) -
           findData.CUT_SCH_QTY +
           parseInt(dataPost.CUT_SCH_QTY);
-        console.log(currentQty);
-        if (currentQty > sewSchQty)
-          return res.status(404).json({
-            message: "Tidak Bisa melebihi QTY Schedule Sewing",
-          });
+        // console.log(currentQty);
+        // if (currentQty > sewSchQty)
+        //   return res.status(404).json({
+        //     message: "Tidak Bisa melebihi QTY Schedule Sewing",
+        //   });
 
         await CuttingSchDetails.update(dataPost, {
           where: {
@@ -275,10 +275,10 @@ export const PostDetailCutSch = async (req, res) => {
     const currentQty = parseInt(cutSchQty) + parseInt(dataPost.CUT_SCH_QTY);
     // console.log(currentQty);
 
-    if (currentQty > sewSchQty)
-      return res.status(404).json({
-        message: "Tidak Bisa melebihi QTY Schedule Sewing",
-      });
+    // if (currentQty > sewSchQty)
+    //   return res.status(404).json({
+    //     message: "Tidak Bisa melebihi QTY Schedule Sewing",
+    //   });
 
     // if (schDate.isBefore(currentDate))
     //   return res.status(404).json({
