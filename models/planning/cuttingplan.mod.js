@@ -284,7 +284,25 @@ LEFT JOIN (
 		) s GROUP BY s.CUT_SCH_ID  
 	) GROUP BY 	b.SCH_ID, c.ORDER_SIZE
 ) s ON s.SCH_ID = a.CUT_SCH_ID  AND a.CUT_SEW_SIZE_CODE = s.ORDER_SIZE
-LEFT JOIN weekly_sch_size b ON b.SCH_ID = a.CUT_SCH_ID AND a.CUT_SEW_SIZE_CODE = b.SIZE_CODE AND b.SCH_SIZE_QTY <> 0
+LEFT JOIN  (
+  SELECT
+    b.SCH_ID, b.SCH_SIZE_ID, b.SIZE_CODE, b.SCH_SIZE_QTY
+  FROM  weekly_sch_size b WHERE
+  b.SCH_ID IN (
+    SELECT DISTINCT
+    cls.CUT_SCH_ID
+    FROM cuting_loading_sch_detail cls 
+    LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
+    WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate  AND st.SITE_NAME = :site
+    UNION ALL 
+    SELECT DISTINCT
+    chead.CUT_SCH_ID
+    FROM cuting_loading_schedule chead 
+    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate  AND chead.CUT_SITE_NAME =  :site )
+  ) AND b.SCH_SIZE_QTY <> 0
+  GROUP BY b.SCH_ID, b.SIZE_CODE
+) b ON b.SCH_ID = a.CUT_SCH_ID AND a.CUT_SEW_SIZE_CODE = b.SIZE_CODE 
 LEFT JOIN (
 	SELECT 
 	cls.CUT_ID, cls.CUT_SCH_ID, cls.CUT_ID_SIZE,  IFNULL(SUM(cls.CUT_SCH_QTY),0) CUT_SCH_QTY
