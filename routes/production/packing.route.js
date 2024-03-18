@@ -17,7 +17,8 @@ import {
   qrSplitGenerate,
 } from "../../controllers/production/packing/PackingQrSplit.js";
 import {
-  getDataPoForPack,
+  getDataPoSizeForPack,
+  getDataPolistPoBuyer,
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
@@ -28,6 +29,7 @@ import {
   getResltBoxStyle,
   postDataPackPlanHeader,
   postPackBox,
+  postPackBuyerPo,
   postSetCartonStyle,
   postSetCtnPrepack,
 } from "../../controllers/production/packing/PackingPlan.js";
@@ -68,7 +70,9 @@ router.get(`/plann-header/:customer/:startDate/:endDate`, getPackingPlanHd);
 //list ref packing plan
 router.get("/plann-referensi/:customer", getRefPackPlanByByr);
 router.get("/plann-ref-ponumber/:buyer/:poNum", getQryListPo);
-router.get("/plann-poList/:poNum", getDataPoForPack);
+router.get("/plann-poList-buyer/:poNum", getDataPolistPoBuyer);
+router.get("/plann-podetail-size/:poNum", getDataPoSizeForPack);
 
+router.post("/po-buyer-data/", postPackBuyerPo);
 router.post("/plann-data/", postDataPackPlanHeader);
 export default router;

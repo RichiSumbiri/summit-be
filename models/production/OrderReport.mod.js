@@ -466,7 +466,7 @@ LEFT JOIN (
 					SELECT DISTINCT  a.SCH_ID, 
 					a.BARCODE_MAIN AS BARCODE_SERIAL,
 					CASE WHEN  c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
-					FROM scan_packing_in a 
+					FROM scan_sewing_out a 
 					LEFT JOIN view_order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
 					LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
 					WHERE a.SCH_ID IN (

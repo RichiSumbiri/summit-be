@@ -358,3 +358,68 @@ WHERE a.ORDER_REFERENCE_PO_NO = :poNumber`;
 
 export const qryGetlistPo = `SELECT DISTINCT a.ORDER_REFERENCE_PO_NO
 FROM order_po_listing a WHERE a.CUSTOMER_NAME = :customer AND a.ORDER_REFERENCE_PO_NO LIKE :qryPO`;
+
+export const qryPackPoIdPoBuyer = `SELECT 
+  a.PRODUCT_ITEM_CODE,
+  a.CUSTOMER_NAME, a.CUSTOMER_DIVISION, a.PO_REF_CODE, a.DELIVERY_LOCATION_NAME,
+  a.ORDER_NO, a.ORDER_REFERENCE_PO_NO, a.ITEM_COLOR_CODE, a.ORDER_PO_ID, a.ITEM_COLOR_NAME,
+  a.PLAN_EXFACTORY_DATE, a.ORDER_QTY,
+  a.PACKING_METHOD,
+  b.BUYER_PO, b.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME
+FROM order_po_listing a 
+LEFT JOIN order_po_buyer b ON a.ORDER_PO_ID = b.ORDER_PO_ID
+WHERE a.ORDER_REFERENCE_PO_NO = :poNumber`;
+
+export const OrderPoBuyer = db.define(
+  "order_po_buyer",
+  {
+    ORDER_PO_ID: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    BUYER_PO: { type: DataTypes.STRING },
+    BUYER_COLOR_CODE: { type: DataTypes.STRING },
+    BUYER_COLOR_NAME: { type: DataTypes.STRING },
+    ADD_ID: { type: DataTypes.INTEGER },
+    MOD_ID: { type: DataTypes.INTEGER },
+    ADD_TIME: { type: DataTypes.DATE },
+    MOD_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: "MOD_TIME",
+  }
+);
+
+export const PackingPlanDetail = db.define(
+  "packing_plan_detail",
+  {
+    PACKPLAN_ID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    UNIKID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    ORDER_PO_ID: { type: DataTypes.STRING },
+    SIZE_CODE: { type: DataTypes.STRING },
+    BUYER_PO: { type: DataTypes.STRING },
+    BUYER_COLOR_CODE: { type: DataTypes.STRING },
+    ACT_UNIT_PRICE: { type: DataTypes.DECIMAL },
+    SHIPMENT_QTY: { type: DataTypes.INTEGER },
+    ADD_ID: { type: DataTypes.INTEGER },
+    MOD_ID: { type: DataTypes.INTEGER },
+    ADD_TIME: { type: DataTypes.DATE },
+    MOD_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: "MOD_TIME",
+  }
+);
+
+PackingPlanDetail.removeAttribute("id");

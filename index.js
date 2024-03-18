@@ -32,7 +32,7 @@ const runDb = async () => {
 
 runDb();
 
-funcReschedule();
+// funcReschedule();
 // cron.schedule(" 30 * * * *", () => {
 //   console.log("running a task reschedule");
 // funcReschedule();

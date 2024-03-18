@@ -2,6 +2,7 @@ import { QueryTypes } from "sequelize";
 import db from "../../../config/database.js";
 import {
   CartonBox,
+  OrderPoBuyer,
   PackBoxStyle,
   PackPlanHeader,
   findPoPlanPack,
@@ -14,6 +15,7 @@ import {
   qryGetPackHeader,
   qryGetPackMethod,
   qryGetlistPo,
+  qryPackPoIdPoBuyer,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
@@ -368,7 +370,31 @@ export const getQryListPo = async (req, res) => {
 };
 
 //get po for packing plan
-export const getDataPoForPack = async (req, res) => {
+export const getDataPolistPoBuyer = async (req, res) => {
+  try {
+    const { poNum } = req.params;
+
+    const poNumber = decodeURIComponent(poNum);
+
+    const listPO = await db.query(qryPackPoIdPoBuyer, {
+      replacements: {
+        poNumber,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listPO });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing po list buyer",
+      data: error,
+    });
+  }
+};
+
+//get po for packing plan
+export const getDataPoSizeForPack = async (req, res) => {
   try {
     const { poNum } = req.params;
 
@@ -386,6 +412,32 @@ export const getDataPoForPack = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing referensi by buyer",
+      data: error,
+    });
+  }
+};
+
+export const postPackBuyerPo = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data || data.length === 0)
+      res.status(400).json({ message: "no data provided" });
+
+    //create or update
+    let createOrUpdate = await OrderPoBuyer.bulkCreate(data, {
+      updateOnDuplicate: ["BUYER_PO", "BUYER_COLOR_CODE", "BUYER_COLOR_NAME"],
+      where: { ORDER_PO_ID: ["ORDER_PO_ID"] },
+    });
+
+    if (createOrUpdate)
+      return res
+        .status(200)
+        .json({ status: "success", message: "Success Post PO Buyer" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post po buyer",
       data: error,
     });
   }
