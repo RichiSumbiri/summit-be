@@ -144,7 +144,7 @@ export const postSewToCutSchd = async (req, res) => {
 };
 
 //controler post data schedule size
-async function postSewToCutSchdSize(arraySize, schId, cutId) {
+export async function postSewToCutSchdSize(arraySize, schId, cutId) {
   try {
     const filterArrSize = arraySize.filter(
       (arrSize) => arrSize.SCH_ID === schId
@@ -244,6 +244,7 @@ export const PostDetailCutSch = async (req, res) => {
           .json({ status: "delete", message: "success delete" });
       }
 
+      const saldo = sewSchQty - parseInt(cutSchQty);
       // jika update
       if (findData && dataPost.CUT_SCH_QTY) {
         //jumlah oSchd cutting yang ada di kurang-findData
@@ -253,10 +254,10 @@ export const PostDetailCutSch = async (req, res) => {
           findData.CUT_SCH_QTY +
           parseInt(dataPost.CUT_SCH_QTY);
         // console.log(currentQty);
-        // if (currentQty > sewSchQty)
-        //   return res.status(404).json({
-        //     message: "Tidak Bisa melebihi QTY Schedule Sewing",
-        //   });
+        if (currentQty > sewSchQty)
+          return res.status(404).json({
+            message: `Tidak Bisa melebihi balance Qty Schedule Sewing ${saldo}`,
+          });
 
         await CuttingSchDetails.update(dataPost, {
           where: {
@@ -273,17 +274,18 @@ export const PostDetailCutSch = async (req, res) => {
     }
 
     const currentQty = parseInt(cutSchQty) + parseInt(dataPost.CUT_SCH_QTY);
+
     // console.log(currentQty);
 
-    // if (currentQty > sewSchQty)
-    //   return res.status(404).json({
-    //     message: "Tidak Bisa melebihi QTY Schedule Sewing",
-    //   });
+    if (currentQty > sewSchQty)
+      return res.status(404).json({
+        message: `Tidak Bisa melebihi balance Qty Schedule Sewing ${saldo}`,
+      });
 
-    // if (schDate.isBefore(currentDate))
-    //   return res.status(404).json({
-    //     message: "Tidak Bisa Add Schedule ditanggal sebelum hari ini",
-    //   });
+    if (schDate.isBefore(currentDate))
+      return res.status(404).json({
+        message: "Tidak Bisa Add Schedule ditanggal sebelum hari ini",
+      });
 
     await CuttingSchDetails.create(dataPost);
     funcUpdateDate(dataPost.CUT_SCH_ID);
@@ -299,7 +301,7 @@ export const PostDetailCutSch = async (req, res) => {
 };
 
 //function untuk update data start dan end date
-const funcUpdateDate = async (schdId) => {
+export const funcUpdateDate = async (schdId) => {
   try {
     // Mendapatkan baris pertama
     const firstRow = await CuttingSchDetails.findOne({

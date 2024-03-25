@@ -140,7 +140,8 @@ export const createNewSchdl = async (newDet, datas) => {
     };
 
     await WeekSchDetail.create(newBalance).then((res) => {
-      funcUpdateDate(datas, newDet.SCH_ID);
+      const newDatas = [...datas, newBalance];
+      funcUpdateDate(newDatas, newDet.SCH_ID);
     });
   } catch (error) {
     console.log(error);
@@ -173,7 +174,7 @@ const funcUpdateDate = async (datas, schdId) => {
       };
 
       if (finishDay.SCHD_HEADER_QTY - checkTotalSch !== 0) {
-        delete updateDate.SCH_FINISH_PROD;
+        updateDate.SCH_FINISH_PROD = null;
       }
 
       return await WeeklyProSchd.update(updateDate, {

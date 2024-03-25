@@ -12,6 +12,7 @@ import cron from "node-cron";
 import sumbiriOneRoute from "./routes/index.js";
 import { funcReschedule } from "./cronjob/cronSchdVsActual.js";
 import { cronLogDialyOut } from "./cronjob/logDailyOutput.js";
+import { mainCutReSchedule } from "./cronjob/cronCutingSchd.js";
 
 // import fs from "fs"; //untuk ssl
 // import https from "https"; //untuk ssl
@@ -42,6 +43,7 @@ runDb();
 //   console.log("running a task log");
 //   cronLogDialyOut();
 // });
+// mainCutReSchedule();
 
 // app.use(cors());
 

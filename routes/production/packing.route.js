@@ -17,19 +17,24 @@ import {
   qrSplitGenerate,
 } from "../../controllers/production/packing/PackingQrSplit.js";
 import {
+  PosPackPlanDetail,
+  delPackPosum,
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
+  getLisPoPPID,
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
   getPackingPlanHd,
   getPackingPlanId,
   getQryListPo,
+  getQrySumDetail,
   getRefPackPlanByByr,
   getResltBoxStyle,
   postDataPackPlanHeader,
   postPackBox,
   postPackBuyerPo,
+  postPackPosum,
   postSetCartonStyle,
   postSetCtnPrepack,
 } from "../../controllers/production/packing/PackingPlan.js";
@@ -67,12 +72,19 @@ router.post("/set-box-style-size-prepack/:prodItemCode", postSetCtnPrepack);
 
 router.get("/plann/id", getPackingPlanId);
 router.get(`/plann-header/:customer/:startDate/:endDate`, getPackingPlanHd);
-//list ref packing plan
+router.get("/plann-polist-for-ppid/:ppid", getLisPoPPID);
+
+//list ref packing plan modal
 router.get("/plann-referensi/:customer", getRefPackPlanByByr);
 router.get("/plann-ref-ponumber/:buyer/:poNum", getQryListPo);
 router.get("/plann-poList-buyer/:poNum", getDataPolistPoBuyer);
-router.get("/plann-podetail-size/:poNum", getDataPoSizeForPack);
+router.get("/plann-podetail-size/:poNum/:ppid", getDataPoSizeForPack);
+router.get("/plann-podetail-summary/:poNum/:ppid", getQrySumDetail);
 
-router.post("/po-buyer-data/", postPackBuyerPo);
 router.post("/plann-data/", postDataPackPlanHeader);
+router.post("/plann-detail-size/", PosPackPlanDetail);
+router.post("/plann-po-summary/", postPackPosum);
+router.post("/po-buyer-data/", postPackBuyerPo);
+
+router.delete("/plann-po-summary", delPackPosum);
 export default router;

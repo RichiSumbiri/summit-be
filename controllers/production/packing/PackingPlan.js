@@ -1,10 +1,12 @@
-import { QueryTypes } from "sequelize";
+import { QueryTypes, where } from "sequelize";
 import db from "../../../config/database.js";
 import {
   CartonBox,
   OrderPoBuyer,
   PackBoxStyle,
   PackPlanHeader,
+  PackingPlanDetail,
+  PackingPlanPoSum,
   findPoPlanPack,
   getBoxStyleCode,
   getSizeCodeByStyleId,
@@ -12,10 +14,14 @@ import {
   qryGetCusDivision,
   qryGetCustLoaction,
   qryGetLastPPI,
+  qryGetLisPOPPID,
+  qryGetLisSizePPID,
   qryGetPackHeader,
   qryGetPackMethod,
+  qryGetSumPoPront,
   qryGetlistPo,
   qryPackPoIdPoBuyer,
+  qrySumPoDetil,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
@@ -396,13 +402,14 @@ export const getDataPolistPoBuyer = async (req, res) => {
 //get po for packing plan
 export const getDataPoSizeForPack = async (req, res) => {
   try {
-    const { poNum } = req.params;
+    const { poNum, ppid } = req.params;
 
     const poNumber = decodeURIComponent(poNum);
 
     const listPO = await db.query(findPoPlanPack, {
       replacements: {
         poNumber,
+        ppid,
       },
       type: QueryTypes.SELECT,
     });
@@ -426,7 +433,12 @@ export const postPackBuyerPo = async (req, res) => {
 
     //create or update
     let createOrUpdate = await OrderPoBuyer.bulkCreate(data, {
-      updateOnDuplicate: ["BUYER_PO", "BUYER_COLOR_CODE", "BUYER_COLOR_NAME"],
+      updateOnDuplicate: [
+        "BUYER_PO",
+        "BUYER_COLOR_CODE",
+        "BUYER_COLOR_NAME",
+        "MOD_ID",
+      ],
       where: { ORDER_PO_ID: ["ORDER_PO_ID"] },
     });
 
@@ -438,6 +450,209 @@ export const postPackBuyerPo = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error post po buyer",
+      data: error,
+    });
+  }
+};
+
+export const PosPackPlanDetail = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data || data.length === 0)
+      return res.status(400).json({ message: "no data provided" });
+
+    // const dataCreatUpdate = data.filter(items => items.SHIPMENT_QTY)
+    // const dataDelete = data.filter(items => !items.SHIPMENT_QTY).map()
+
+    // //create or update
+    for (const [i, ppDetail] of data.entries()) {
+      const checkExist = await PackingPlanDetail.findOne({
+        where: {
+          UNIKID: ppDetail.UNIKID,
+          PACKPLAN_ID: ppDetail.PACKPLAN_ID,
+        },
+        raw: true,
+      });
+      if (checkExist && ppDetail.SHIPMENT_QTY) {
+        ppDetail.ADD_ID = null;
+        await PackingPlanDetail.update(ppDetail, {
+          where: {
+            UNIKID: ppDetail.UNIKID,
+            PACKPLAN_ID: ppDetail.PACKPLAN_ID,
+          },
+        });
+      }
+      if (checkExist && !ppDetail.SHIPMENT_QTY) {
+        console.log("execute delete");
+        await PackingPlanDetail.destroy({
+          where: {
+            UNIKID: ppDetail.UNIKID,
+            PACKPLAN_ID: ppDetail.PACKPLAN_ID,
+          },
+        });
+      }
+      if (!checkExist && ppDetail.SHIPMENT_QTY) {
+        await PackingPlanDetail.create(ppDetail);
+      }
+
+      if (data.length === i + 1)
+        return res
+          .status(200)
+          .json({ status: "success", message: "Success Post Packing detail" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post packing plan detail",
+      data: error,
+    });
+  }
+};
+
+//get list po detail sum
+export const getQrySumDetail = async (req, res) => {
+  try {
+    const { poNum, ppid } = req.params;
+    const poNumber = decodeURIComponent(poNum);
+
+    const sumPODetail = await db.query(qrySumPoDetil, {
+      replacements: {
+        poNumber,
+        ppid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: sumPODetail });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi po number",
+      data: error,
+    });
+  }
+};
+
+//post data summary po packing plan
+export const postPackPosum = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data || data.length === 0)
+      return res.status(400).json({ message: "no data provided" });
+
+    for (const [i, poSUm] of data.entries()) {
+      const checkExist = await PackingPlanPoSum.findOne({
+        where: {
+          PACKPLAN_ID: poSUm.PACKPLAN_ID,
+          BUYER_PO: poSUm.BUYER_PO,
+          BUYER_COLOR_CODE: poSUm.BUYER_COLOR_CODE,
+        },
+        raw: true,
+      });
+      if (checkExist && poSUm.SHIPMENT_QTY) {
+        await PackingPlanPoSum.update(poSUm, {
+          where: {
+            PACKPLAN_ID: poSUm.PACKPLAN_ID,
+            BUYER_PO: poSUm.BUYER_PO,
+            BUYER_COLOR_CODE: poSUm.BUYER_COLOR_CODE,
+          },
+        });
+      } else {
+        await PackingPlanPoSum.create(poSUm);
+      }
+
+      if (data.length === i + 1)
+        return res.status(200).json({
+          status: "success",
+          message: "Success Post Packing PO Summary",
+        });
+    }
+    if (dataSum) {
+      return res.json({
+        status: "success",
+        message: "Success Post Packing detail",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post when save packing po summary",
+      data: error,
+    });
+  }
+};
+
+//Delete DataPackSum
+export const delPackPosum = async (req, res) => {
+  try {
+    const { poNum, ppid, colorCode } = req.query;
+
+    const poNumber = decodeURIComponent(poNum);
+    const clrCode = decodeURIComponent(colorCode);
+
+    const paramWhere = {
+      PACKPLAN_ID: ppid,
+      BUYER_PO: poNumber,
+    };
+
+    if (colorCode) {
+      paramWhere.BUYER_COLOR_CODE = clrCode;
+    }
+
+    await PackingPlanDetail.destroy({
+      where: paramWhere,
+    });
+
+    await PackingPlanPoSum.destroy({
+      where: paramWhere,
+    });
+
+    return res.json({
+      status: "success",
+      message: "Success Post Packing detail",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error delete when save packing po summary",
+      data: error,
+    });
+  }
+};
+
+//get list po ppid
+export const getLisPoPPID = async (req, res) => {
+  try {
+    const { ppid } = req.params;
+
+    const listPOppid = await db.query(qryGetLisPOPPID, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const lisSizePpid = await db.query(qryGetLisSizePPID, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const listPOSum = await db.query(qryGetSumPoPront, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const datas = {
+      listPOppid,
+      lisSizePpid,
+      listPOSum,
+    };
+
+    return res.json({ data: datas });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get list po ppid",
       data: error,
     });
   }

@@ -522,7 +522,8 @@ export const patchSchDataDetail = async (req, res) => {
           SCHD_DAYS_NUMBER: i + 1,
           SCHD_HEAD_BALANCE: findSubValue(newSdetialAftrSort, ds, i + 1),
         }));
-
+        //set start and finish date
+        funcUpdateDate(newDnumber, dataSchDetail.SCH_ID);
         newDnumber.forEach(async (newDet) => {
           await WeekSchDetail.update(newDet, {
             where: {
@@ -551,6 +552,7 @@ export const patchSchDataDetail = async (req, res) => {
     if (!findExist) return;
     res.status(404).json({ message: "No Data Schedule" });
   } catch (error) {
+    console.log(error);
     res.status(404).json({
       success: false,
       message: "error processing request",
@@ -638,13 +640,14 @@ const funcUpdateDate = async (data, schdId) => {
       const checkTotalSch = totalCol(data, "SCHD_QTY");
       const startDay = data[0];
       const finishDay = data[data.length - 1];
+
       let updateDate = {
         SCH_START_PROD: startDay.SCHD_PROD_DATE,
         SCH_FINISH_PROD: finishDay.SCHD_PROD_DATE,
       };
 
       if (finishDay.SCHD_HEADER_QTY - checkTotalSch !== 0) {
-        delete updateDate.SCH_FINISH_PROD;
+        updateDate.SCH_FINISH_PROD = null;
       }
 
       return await WeeklyProSchd.update(updateDate, {
