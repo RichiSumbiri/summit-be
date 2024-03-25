@@ -209,6 +209,7 @@ export const PostDetailCutSch = async (req, res) => {
     let sewSchQty = findSizes.CUT_SEW_SCH_QTY ? findSizes.CUT_SEW_SCH_QTY : 0;
     let cutSchQty =
       findDataAll.reduce((sum, item) => sum + item["CUT_SCH_QTY"], 0) || 0;
+    const saldo = sewSchQty - parseInt(cutSchQty);
 
     //check jumlah yang sudah di sew schd dan jmlh cutting sch
     let findData =
@@ -244,7 +245,6 @@ export const PostDetailCutSch = async (req, res) => {
           .json({ status: "delete", message: "success delete" });
       }
 
-      const saldo = sewSchQty - parseInt(cutSchQty);
       // jika update
       if (findData && dataPost.CUT_SCH_QTY) {
         //jumlah oSchd cutting yang ada di kurang-findData
@@ -293,6 +293,7 @@ export const PostDetailCutSch = async (req, res) => {
       .status(200)
       .json({ status: "create", message: "success tambahkan data" });
   } catch (error) {
+    console.log(error);
     res.status(404).json({
       message: "Terdapat error ketika post data detail schedule",
       data: error,
