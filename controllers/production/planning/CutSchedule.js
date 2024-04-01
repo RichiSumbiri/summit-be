@@ -12,10 +12,20 @@ import {
   qryCekQtyCutSch,
   findOneScanIn,
   queryInfoSchSize,
+  qrySizeDailyPlan,
+  qryDailyPlanCut,
+  qryRsltSupIN,
+  queryChkclSupSchIn,
+  qryRsltSupOut,
 } from "../../../models/planning/cuttingplan.mod.js";
-import { CuttinScanSewingIn } from "../../../models/production/cutting.mod.js";
+import {
+  CutSupermarketIn,
+  CutSupermarketOut,
+  CuttinScanSewingIn,
+} from "../../../models/production/cutting.mod.js";
 import Moment from "moment";
 import momentRange from "moment-range";
+import { QueryfindQrSewingIn } from "../../../models/planning/dailyPlan.mod.js";
 const moment = momentRange.extendMoment(Moment);
 
 export const getSchSewForCut = async (req, res) => {
@@ -452,6 +462,442 @@ export const getInfoDetailSize = async (req, res) => {
     return res.status(404).json({
       message: "error processing request",
       data: error,
+    });
+  }
+};
+
+export const getCutDailySizePlan = async (req, res) => {
+  try {
+    const { schDate, site } = req.params;
+
+    const detailIdSizePlan = await db.query(qrySizeDailyPlan, {
+      replacements: {
+        schDate,
+        site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: detailIdSizePlan });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+// daily plan cutting sch
+export const getDailyCutSch = async (req, res) => {
+  try {
+    const { schDate, site } = req.params;
+
+    const weekSchHead = await db.query(qryDailyPlanCut, {
+      replacements: {
+        schDate,
+        site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json(weekSchHead);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
+// daily plan cutting sch size
+export const getDailyCutSchSize = async (req, res) => {
+  try {
+    const { schDate, site } = req.params;
+
+    const weekSchSize = await db.query(qrySizeDailyPlan, {
+      replacements: {
+        schDate,
+        site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json(weekSchSize);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
+// daily  result scan sup in
+export const getResulSacnSupIN = async (req, res) => {
+  try {
+    const { schDate, site } = req.params;
+
+    const resulScanSupIN = await db.query(qryRsltSupIN, {
+      replacements: {
+        schDate,
+        site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: resulScanSupIN });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+// daily  result scan sup in
+export const getResulSacnSupOut = async (req, res) => {
+  try {
+    const { schDate, site } = req.params;
+
+    const resulScanSupout = await db.query(qryRsltSupOut, {
+      replacements: {
+        schDate,
+        site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: resulScanSupout });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
+//CUTTING SEWING IN
+export const QRScanSuperMarketIn = async (req, res) => {
+  try {
+    const { barcodeserial, schDate, sitename, lineName, userId, idCapacity } =
+      req.body;
+    //check apakah barcode serial ada pada table orders detail
+    //find schedule
+    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+      replacements: {
+        barcodeserial: barcodeserial,
+      },
+      type: QueryTypes.SELECT,
+    });
+    // console.log(checkBarcodeSerial);
+    //jika tidak ada reject
+    if (checkBarcodeSerial.length === 0) {
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "QRCode Tidak Ditemukan",
+      });
+    }
+
+    //jika ada maka bandingkan dengan
+    if (checkBarcodeSerial) {
+      const valueBarcode = checkBarcodeSerial[0];
+
+      const checkScan = await CutSupermarketIn.findAll({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+      });
+      //jika ketemu sudah di scan reject
+      if (checkScan.length !== 0) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "duplicate",
+          message: "Sudah Discan",
+        });
+      }
+
+      //find schedule
+      const checkSchdNsize = await db.query(queryChkclSupSchIn, {
+        replacements: {
+          plannDate: schDate,
+          sitename: sitename,
+          lineName: lineName ? lineName : valueBarcode.LINE_NAME,
+          // moNo: valueBarcode.MO_NO,
+          orderNo: valueBarcode.ORDER_NO,
+          orderRef: valueBarcode.ORDER_REF,
+          styleDesc: valueBarcode.ORDER_STYLE,
+          colorCode: valueBarcode.ORDER_COLOR,
+          sizeCode: valueBarcode.ORDER_SIZE,
+          prodMonth: valueBarcode.PRODUCTION_MONTH,
+          planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
+          fxSiteName: valueBarcode.MANUFACTURING_SITE,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      if (checkSchdNsize.length > 0) {
+        const { CUT_ID, SCH_ID } = checkSchdNsize[0];
+        const dataBarcode = {
+          BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
+          SCH_ID,
+          CUT_ID,
+          CUT_SCAN_BY: userId,
+          CUT_SITE: sitename,
+        };
+        const returnData = {
+          ...valueBarcode,
+          LINE_NAME: lineName ? lineName : valueBarcode.LINE_NAME,
+          CUT_ID,
+          SCH_ID,
+          SITE_NAME: sitename,
+        };
+        const pushQrSewin = await CutSupermarketIn.create(dataBarcode);
+        if (pushQrSewin)
+          return res.status(200).json({
+            success: true,
+            qrstatus: "success",
+            message: "Scan Success",
+            data: returnData,
+          });
+      }
+
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "No Schedule",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
+    });
+  }
+};
+
+export const QRScanSuperMarketOut = async (req, res) => {
+  try {
+    const { barcodeserial, schDate, sitename, lineName, userId, idCapacity } =
+      req.body;
+    //check apakah barcode serial ada pada table orders detail
+    //find schedule
+    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+      replacements: {
+        barcodeserial: barcodeserial,
+      },
+      type: QueryTypes.SELECT,
+    });
+    // console.log(checkBarcodeSerial);
+    //jika tidak ada reject
+    if (checkBarcodeSerial.length === 0) {
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "QRCode Tidak Ditemukan",
+      });
+    }
+
+    //jika ada maka bandingkan dengan
+    if (checkBarcodeSerial) {
+      const valueBarcode = checkBarcodeSerial[0];
+
+      const checkScan = await CutSupermarketOut.findAll({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+      });
+      //jika ketemu sudah di scan reject
+      if (checkScan.length !== 0) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "duplicate",
+          message: "Sudah Discan",
+        });
+      }
+
+      const checkScaIn = await CutSupermarketIn.findOne({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+        raw: true,
+      });
+
+      if (!checkScaIn) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "error",
+          message: "Belum Scan In",
+        });
+      }
+      //find schedule
+      const checkSchdNsize = await db.query(queryChkclSupSchIn, {
+        replacements: {
+          plannDate: schDate,
+          sitename: sitename,
+          lineName: lineName ? lineName : valueBarcode.LINE_NAME,
+          // moNo: valueBarcode.MO_NO,
+          orderNo: valueBarcode.ORDER_NO,
+          orderRef: valueBarcode.ORDER_REF,
+          styleDesc: valueBarcode.ORDER_STYLE,
+          colorCode: valueBarcode.ORDER_COLOR,
+          sizeCode: valueBarcode.ORDER_SIZE,
+          prodMonth: valueBarcode.PRODUCTION_MONTH,
+          planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
+          fxSiteName: valueBarcode.MANUFACTURING_SITE,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      if (checkSchdNsize.length > 0) {
+        const { CUT_ID, SCH_ID } = checkSchdNsize[0];
+        const dataBarcode = {
+          BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
+          SCH_ID,
+          CUT_ID,
+          CUT_SCAN_BY: userId,
+          CUT_SITE: sitename,
+        };
+        const returnData = {
+          ...valueBarcode,
+          LINE_NAME: lineName ? lineName : valueBarcode.LINE_NAME,
+          CUT_ID,
+          SCH_ID,
+          SITE_NAME: sitename,
+        };
+        const pushQrSewin = await CutSupermarketOut.create(dataBarcode);
+        if (pushQrSewin)
+          return res.status(200).json({
+            success: true,
+            qrstatus: "success",
+            message: "Scan Success",
+            data: returnData,
+          });
+      }
+
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "No Schedule",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
+    });
+  }
+};
+
+//delete qr supermarket IN
+export const DelQrScanSupIN = async (req, res) => {
+  try {
+    const { barcodeserial } = req.params;
+
+    const checkQr = await CutSupermarketIn.findOne({
+      where: {
+        BARCODE_SERIAL: barcodeserial,
+      },
+      raw: true,
+    });
+
+    if (!checkQr)
+      return res.status(202).json({
+        success: false,
+        message: "QR Tidak Ditemukan",
+      });
+
+    const checkOutput = await CutSupermarketOut.findOne({
+      where: {
+        BARCODE_SERIAL: barcodeserial,
+      },
+      raw: true,
+    });
+
+    if (checkOutput)
+      return res.status(202).json({
+        success: false,
+        message: "QR Sudah discan Out",
+      });
+
+    const deleteQr = await CutSupermarketIn.destroy({
+      where: {
+        BARCODE_SERIAL: barcodeserial,
+      },
+    });
+
+    if (deleteQr) {
+      return res.status(200).json({
+        success: true,
+        message: "QR Deleted",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
+    });
+  }
+};
+
+//delete qr supermarket IN
+export const DelQrScanSupOUT = async (req, res) => {
+  try {
+    const { barcodeserial } = req.params;
+
+    const checkQr = await CutSupermarketOut.findOne({
+      where: {
+        BARCODE_SERIAL: barcodeserial,
+      },
+      raw: true,
+    });
+
+    if (!checkQr)
+      return res.status(202).json({
+        success: false,
+        message: "QR Tidak Ditemukan",
+      });
+
+    const checkOutput = await CuttinScanSewingIn.findOne({
+      where: {
+        BARCODE_SERIAL: barcodeserial,
+      },
+      raw: true,
+    });
+
+    if (checkOutput)
+      return res.status(202).json({
+        success: false,
+        message: "QR Sudah Sewing IN",
+      });
+
+    const deleteQr = await CutSupermarketOut.destroy({
+      where: {
+        BARCODE_SERIAL: barcodeserial,
+      },
+    });
+
+    if (deleteQr) {
+      return res.status(200).json({
+        success: true,
+        message: "QR Deleted",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
     });
   }
 };

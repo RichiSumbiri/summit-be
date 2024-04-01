@@ -61,7 +61,7 @@ export async function mainCutReSchedule() {
       await resSchDataNoSize(noIdDetail);
     }
 
-    for (const [i, arr] of withIdDetail.entries()) {
+    for await (const [i, arr] of withIdDetail.entries()) {
       const dataDetail = {
         ...arr,
         CUT_SCH_QTY: arr.LOADING_QTY,

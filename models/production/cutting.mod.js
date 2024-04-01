@@ -219,3 +219,43 @@ export const GetLastQr = `SELECT  CAST(SUBSTRING(a.BARCODE_SERIAL, 4) AS UNSIGNE
 FROM order_detail a WHERE SUBSTRING(a.BARCODE_SERIAL,1,3) ='SSC' 
 ORDER BY  a.BARCODE_SERIAL DESC
 LIMIT 1 `;
+
+export const CutSupermarketIn = db.define(
+  "scan_supermarket_in",
+  {
+    BARCODE_SERIAL: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    SCH_ID: { type: DataTypes.BIGINT },
+    CUT_ID: { type: DataTypes.BIGINT },
+    CUT_SCAN_BY: { type: DataTypes.BIGINT },
+    CUT_SITE: { type: DataTypes.STRING },
+    CUT_SCAN_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "CUT_SCAN_TIME",
+    updatedAt: false,
+  }
+);
+
+export const CutSupermarketOut = db.define(
+  "scan_supermarket_out",
+  {
+    BARCODE_SERIAL: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    SCH_ID: { type: DataTypes.BIGINT },
+    CUT_ID: { type: DataTypes.BIGINT },
+    CUT_SCAN_BY: { type: DataTypes.BIGINT },
+    CUT_SITE: { type: DataTypes.STRING },
+    CUT_SCAN_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "CUT_SCAN_TIME",
+    updatedAt: false,
+  }
+);
