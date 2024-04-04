@@ -27,6 +27,7 @@ import {
   DelQrScanSupOUT,
   getCutDailySizePlan,
   getCuttingSchedule,
+  getCuttingSchReal,
   getDailyCutSch,
   getDailyCutSchSize,
   getInfoDetailSize,
@@ -34,6 +35,7 @@ import {
   getResulSacnSupOut,
   getSchSewForCut,
   PostDetailCutSch,
+  postSchCutFromLoad,
   postSewToCutSchd,
   QRScanSuperMarketIn,
   QRScanSuperMarketOut,
@@ -43,8 +45,13 @@ import {
 
 router.get("/planning/:startDate/:endDate/:site", getSchSewForCut);
 router.get("/planning-loading/:startDate/:endDate/:site", getCuttingSchedule);
+router.get(
+  "/planning-loading-real/:startDate/:endDate/:site",
+  getCuttingSchReal
+);
 router.post("/sewing-to-planning", postSewToCutSchd);
 router.post("/planing/schedule-detail/", PostDetailCutSch);
+router.post("/planing/get-schedule/", postSchCutFromLoad);
 router.delete("/planing/schedule/:cutSch", delHeadCutSch);
 router.delete("/planing/schedule-size/:cutSch/:sizeCode", delHeadCutSchSize);
 router.get(

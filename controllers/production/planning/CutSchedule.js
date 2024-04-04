@@ -17,6 +17,11 @@ import {
   qryRsltSupIN,
   queryChkclSupSchIn,
   qryRsltSupOut,
+  CutSchDtlReal,
+  qryGetFromLoad,
+  queryGetSchCutReal,
+  qryGetCutSchSizeReal,
+  qryCutingSchDetailReal,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -26,6 +31,7 @@ import {
 import Moment from "moment";
 import momentRange from "moment-range";
 import { QueryfindQrSewingIn } from "../../../models/planning/dailyPlan.mod.js";
+import { QueryGetHoliday } from "../../../models/setup/holidays.mod.js";
 const moment = momentRange.extendMoment(Moment);
 
 export const getSchSewForCut = async (req, res) => {
@@ -898,6 +904,155 @@ export const DelQrScanSupOUT = async (req, res) => {
       success: false,
       data: error,
       message: "error processing request",
+    });
+  }
+};
+
+//post schedule cuting from loading schedule
+export const postSchCutFromLoad = async (req, res) => {
+  try {
+    const dataPost = req.body;
+
+    if (!dataPost)
+      return res.status(400).json({
+        success: true,
+        message: "no data",
+      });
+
+    //data post terdiri dari 3 data object
+    const { site, userId, dateList } = req.body;
+    //dapatakan list holiday
+    const listYear = dateList.map((dt) =>
+      moment(dt, "YYYY-MM-DD").format("YYYY")
+    );
+    //dapatkan unik array untuk ambil holiday
+    const uniqYear = Array.from(new Set(listYear));
+
+    const listHoliday = await db.query(QueryGetHoliday, {
+      replacements: {
+        startYear: uniqYear[0],
+        endYear:
+          uniqYear.length > 1 ? uniqYear[listYear.length - 1] : uniqYear[0],
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    //masukan array holiday
+    const arrHoliday = listHoliday.map((item) => item.calendar_date);
+
+    //ambil list detail id sebelumnya untuk di destroy
+    const getSchDetailBfore = await db.query(qryCutingSchDetailReal, {
+      replacements: {
+        startDate: dateList[0],
+        endDate: dateList[dateList.length - 1],
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    //data list id
+    const arrDetialID = getSchDetailBfore.map((item) => item.CUT_ID_DETAIL);
+    //destroy detail schedule sebelumnya
+    await CutSchDtlReal.destroy({ where: { CUT_ID_DETAIL: arrDetialID } });
+
+    //untuk bypass sabtu dan minggu
+    const dayWeekEnd = ["Saturday", "Sunday"];
+
+    //looping list tanggal dari front end
+    for await (const [i, date] of dateList.entries()) {
+      let schDate = moment(date, "YYYY-MM-DD");
+      let endSchDate = moment(date, "YYYY-MM-DD").add(30, "days"); //ambil 30 hari berikutnya biar aman
+
+      //ambil range date
+      const rangeDate = Array.from(
+        moment.range(schDate, endSchDate).by("days")
+      ).map((day) => day.format("YYYY-MM-DD"));
+      // let currDate = moment(date, "YYYY-MM-DD")
+
+      //hapus weekend dan holiday
+      const dateOutHol = rangeDate.filter(
+        (dt) =>
+          !arrHoliday.includes(dt) &&
+          !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
+      );
+
+      //ambil tanggal ke 8
+      const dateMin8 = dateOutHol[8];
+
+      //ambil data detail dari loading planing
+      const dataFromLoading = await db.query(qryGetFromLoad, {
+        replacements: {
+          schDate: dateMin8,
+          site: site,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      //ubah tanggal dan user id
+      const dataForCutDetail = dataFromLoading.map((items) => ({
+        ...items,
+        CUT_SCH_DATE: date,
+        CUT_ADD_ID: userId,
+      }));
+
+      //tambahkan
+      await CutSchDtlReal.bulkCreate(dataForCutDetail);
+
+      if (dateList.length === i + 1) {
+        return res.status(200).json({ message: "Successfully" });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: true,
+      message: "Error get schd from loading",
+    });
+  }
+};
+
+export const getCuttingSchReal = async (req, res) => {
+  try {
+    const { startDate, endDate, site } = req.params;
+    const weekSchHead = await db.query(queryGetSchCutReal, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const weekSchSize = await db.query(qryGetCutSchSizeReal, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const getSchDetail = await db.query(qryCutingSchDetailReal, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const weekSchDetail =
+      getSchDetail?.map((sch) => ({
+        ...sch,
+        LOAD_STATUS: sch.LOADING_QTY ? true : false,
+      })) || [];
+
+    return res.json({ data: { weekSchHead, weekSchSize, weekSchDetail } });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
     });
   }
 };
