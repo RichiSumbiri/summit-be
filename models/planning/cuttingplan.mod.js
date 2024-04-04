@@ -605,19 +605,17 @@ LEFT JOIN item_siteline e ON e.ID_SITELINE = g.CUT_ID_SITELINE
 LEFT JOIN order_qr_generate h ON  h.BARCODE_SERIAL = a.BARCODE_SERIAL
 WHERE DATE(a.CUT_SCAN_TIME)  = :schDate AND a.CUT_SITE = :site`;
 
-export const queryChkclSupSchIn = `	SELECT a.CUT_LOAD_DATE, a.CUT_SCH_ID SCH_ID, a.CUT_LOAD_DATE, a.CUT_ID,
+export const queryChkclSupSchIn = `SELECT b.CUT_SCH_ID SCH_ID, b.CUT_ID,
 d.ORDER_NO, d.MO_NO, e.ID_SITELINE,  e.SITE_NAME, e.LINE_NAME, d.MANUFACTURING_SITE,
 d.CUSTOMER_NAME, d.PRODUCT_ITEM_CODE, d.ORDER_REFERENCE_PO_NO, d.ITEM_COLOR_CODE, d.ITEM_COLOR_NAME, 
 d.PRODUCT_ITEM_DESCRIPTION, d.ORDER_STYLE_DESCRIPTION, b.CUT_SEW_SIZE_CODE SIZE_CODE, b.CUT_SEW_SCH_QTY SCH_SIZE_QTY, d.PRODUCTION_MONTH, 
 if(d.NEW_PLAN_EXFACTORY_DATE, d.NEW_PLAN_EXFACTORY_DATE, d.PLAN_EXFACTORY_DATE) PLAN_EXFACTORY_DATE
-FROM cuting_loading_sch_detail a 
-LEFT JOIN cuting_loading_sch_size b ON a.CUT_ID_SIZE = b.CUT_ID_SIZE
-LEFT JOIN cuting_loading_schedule c ON a.CUT_ID = c.CUT_ID 
+FROM  cuting_loading_sch_size b 
+LEFT JOIN cuting_loading_schedule c ON b.CUT_ID = c.CUT_ID 
 LEFT JOIN viewcapacity d ON d.ID_CAPACITY = c.CUT_ID_CAPACITY
 LEFT JOIN item_siteline e ON e.ID_SITELINE = c.CUT_ID_SITELINE
-WHERE a.CUT_LOAD_DATE = :plannDate
-AND a.CUT_SCH_QTY <> 0
-AND c.CUT_SITE_NAME = :sitename
+WHERE 
+c.CUT_SITE_NAME = :sitename
 AND e.LINE_NAME = :lineName
 AND d.ORDER_NO = :orderNo
 AND d.ORDER_STYLE_DESCRIPTION = :styleDesc
@@ -627,6 +625,28 @@ AND b.CUT_SEW_SIZE_CODE = :sizeCode
 AND d.PRODUCTION_MONTH = :prodMonth 
 AND d.MANUFACTURING_SITE = :fxSiteName
 `;
+// export const queryChkclSupSchIn = `	SELECT a.CUT_LOAD_DATE, a.CUT_SCH_ID SCH_ID, a.CUT_LOAD_DATE, a.CUT_ID,
+// d.ORDER_NO, d.MO_NO, e.ID_SITELINE,  e.SITE_NAME, e.LINE_NAME, d.MANUFACTURING_SITE,
+// d.CUSTOMER_NAME, d.PRODUCT_ITEM_CODE, d.ORDER_REFERENCE_PO_NO, d.ITEM_COLOR_CODE, d.ITEM_COLOR_NAME,
+// d.PRODUCT_ITEM_DESCRIPTION, d.ORDER_STYLE_DESCRIPTION, b.CUT_SEW_SIZE_CODE SIZE_CODE, b.CUT_SEW_SCH_QTY SCH_SIZE_QTY, d.PRODUCTION_MONTH,
+// if(d.NEW_PLAN_EXFACTORY_DATE, d.NEW_PLAN_EXFACTORY_DATE, d.PLAN_EXFACTORY_DATE) PLAN_EXFACTORY_DATE
+// FROM cuting_loading_sch_detail a
+// LEFT JOIN cuting_loading_sch_size b ON a.CUT_ID_SIZE = b.CUT_ID_SIZE
+// LEFT JOIN cuting_loading_schedule c ON a.CUT_ID = c.CUT_ID
+// LEFT JOIN viewcapacity d ON d.ID_CAPACITY = c.CUT_ID_CAPACITY
+// LEFT JOIN item_siteline e ON e.ID_SITELINE = c.CUT_ID_SITELINE
+// WHERE a.CUT_LOAD_DATE = :plannDate
+// AND a.CUT_SCH_QTY <> 0
+// AND c.CUT_SITE_NAME = :sitename
+// AND e.LINE_NAME = :lineName
+// AND d.ORDER_NO = :orderNo
+// AND d.ORDER_STYLE_DESCRIPTION = :styleDesc
+// AND d.ITEM_COLOR_NAME = :colorCode
+// AND d.ORDER_REFERENCE_PO_NO = :orderRef
+// AND b.CUT_SEW_SIZE_CODE = :sizeCode
+// AND d.PRODUCTION_MONTH = :prodMonth
+// AND d.MANUFACTURING_SITE = :fxSiteName
+// `;
 
 export const CutSchDtlReal = db.define(
   "cuting_schedule_detail",
