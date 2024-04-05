@@ -390,6 +390,11 @@ export const delHeadCutSch = async (req, res) => {
           CUT_SCH_ID: cutSch,
         },
       });
+      await CutSchDtlReal.destroy({
+        where: {
+          CUT_SCH_ID: cutSch,
+        },
+      });
     }
 
     return res.json({ message: "Schedule Telah Di Hapus" });
@@ -440,6 +445,11 @@ export const delHeadCutSchSize = async (req, res) => {
       await CuttingSchDetails.destroy({
         where: {
           CUT_ID_SIZE: listIdSize,
+        },
+      });
+      await CutSchDtlReal.destroy({
+        where: {
+          CUT_SCH_ID: listIdSize,
         },
       });
     }
