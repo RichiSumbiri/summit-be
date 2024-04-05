@@ -26,6 +26,7 @@ import {
   DelQrScanSupIN,
   DelQrScanSupOUT,
   getCutDailySizePlan,
+  getCutSupReport,
   getCuttingSchedule,
   getCuttingSchReal,
   getDailyCutSch,
@@ -98,5 +99,11 @@ router.post(
 
 //cutting loading report
 router.get("/baseReport/:startDate/:endDate/:site", getBaseRepCutLoad);
+
+//cutting supermarket report
+router.get(
+  "/cutting-supermarket-report/:startDate/:endDate/:site",
+  getCutSupReport
+);
 
 export default router;
