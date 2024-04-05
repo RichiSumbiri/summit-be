@@ -25,6 +25,8 @@ import {
   qryGetHeadCutSupRep,
   qrySizeCutSupRep,
   qryCutSupDetailDate,
+  qryExportCutLoadSum,
+  qryExportCutLoadDtl,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -981,7 +983,7 @@ export const postSchCutFromLoad = async (req, res) => {
 
       //ambil tanggal ke 8
       const dateMin8 = dateOutHol[8];
-
+      console.log(dateMin8);
       //ambil data detail dari loading planing
       const dataFromLoading = await db.query(qryGetFromLoad, {
         replacements: {
@@ -1093,6 +1095,38 @@ export const getCutSupReport = async (req, res) => {
     });
 
     return res.json({ dataSchedule, detailDataSize, detailData });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
+export const getExlPlanLoad = async (req, res) => {
+  try {
+    const { startDate, endDate, site } = req.params;
+
+    const dataSchedule = await db.query(qryExportCutLoadSum, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const detailData = await db.query(qryExportCutLoadDtl, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ dataSchedule, detailData });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
