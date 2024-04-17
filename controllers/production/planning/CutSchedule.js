@@ -967,6 +967,7 @@ export const postSchCutFromLoad = async (req, res) => {
 
     //data list id
     const arrDetialID = getSchDetailBfore.map((item) => item.CUT_ID_DETAIL);
+    // console.log(arrDetialID);
     //destroy detail schedule sebelumnya
     await CutSchDtlReal.destroy({ where: { CUT_ID_DETAIL: arrDetialID } });
 
@@ -993,7 +994,7 @@ export const postSchCutFromLoad = async (req, res) => {
 
       //ambil tanggal ke 8
       const dateMin8 = dateOutHol[8];
-      console.log(dateMin8);
+      // console.log(dateMin8);
       //ambil data detail dari loading planing
       const dataFromLoading = await db.query(qryGetFromLoad, {
         replacements: {
@@ -1002,6 +1003,8 @@ export const postSchCutFromLoad = async (req, res) => {
         },
         type: QueryTypes.SELECT,
       });
+      const listIdNew = dataFromLoading.map((items) => items.CUT_ID_DETAIL);
+      console.log(listIdNew);
 
       //ubah tanggal dan user id
       const dataForCutDetail = dataFromLoading.map((items) => ({
