@@ -115,3 +115,5 @@ GET http://localhost:5001/sewdashboard/ytd/monthly?rangeDate=2023-09-01
 GET http://localhost:5001/sewdashboard/sitedash/2023-10-17/SBR_01
 ###
 GET http://localhost:5001/zerodefect/data-header/2023-11-20/2023-11-27
+###
+GET http://192.168.6.177:3315/api/summit/mutasi/eq

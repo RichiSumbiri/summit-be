@@ -3,11 +3,13 @@ import {
   getListMachine,
   getOneMachine,
   postMachine,
+  updateMachine,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
 router.get("/machines", getListMachine);
 router.get("/machines/:code", getOneMachine);
 router.post("/machines", postMachine);
+router.patch("/machines", updateMachine);
 
 export default router;

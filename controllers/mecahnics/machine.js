@@ -83,3 +83,32 @@ export const postMachine = async (req, res) => {
     });
   }
 };
+
+//untuk UPDATE machine
+export const updateMachine = async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data)
+      return res.status(404).json({
+        success: false,
+        message: "error No Data For Post machine",
+      });
+
+    await MecListMachine.update(data, {
+      where: {
+        MACHINE_ID: data.MACHINE_ID,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Data Update Success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      message: "error processing request post list machine",
+    });
+  }
+};
