@@ -35,7 +35,11 @@ import {
 } from "../../../models/production/cutting.mod.js";
 import Moment from "moment";
 import momentRange from "moment-range";
-import { QueryfindQrSewingIn } from "../../../models/planning/dailyPlan.mod.js";
+import {
+  QryFinSprMrktIn,
+  QryFinSprMrktOut,
+  QueryfindQrSewingIn,
+} from "../../../models/planning/dailyPlan.mod.js";
 import { QueryGetHoliday } from "../../../models/setup/holidays.mod.js";
 const moment = momentRange.extendMoment(Moment);
 
@@ -607,7 +611,7 @@ export const QRScanSuperMarketIn = async (req, res) => {
       req.body;
     //check apakah barcode serial ada pada table orders detail
     //find schedule
-    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+    const checkBarcodeSerial = await db.query(QryFinSprMrktIn, {
       replacements: {
         barcodeserial: barcodeserial,
       },
@@ -708,7 +712,7 @@ export const QRScanSuperMarketOut = async (req, res) => {
       req.body;
     //check apakah barcode serial ada pada table orders detail
     //find schedule
-    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+    const checkBarcodeSerial = await db.query(QryFinSprMrktOut, {
       replacements: {
         barcodeserial: barcodeserial,
       },

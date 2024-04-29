@@ -14,6 +14,7 @@ import moment from "moment";
 import {
   FindOnePlanZ,
   FindQrReturn,
+  QryFinSprMrktIn,
   QryListSizeSewIn,
   QueryCheckSchdScan,
   QueryfindQrSewingIn,
@@ -94,7 +95,7 @@ export const QRScanSewingIn = async (req, res) => {
     const { barcodeserial, schDate, sitename, lineName, userId } = req.body;
     //check apakah barcode serial ada pada table orders detail
     //find schedule
-    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+    const checkBarcodeSerial = await db.query(QryFinSprMrktIn, {
       replacements: {
         barcodeserial: barcodeserial,
       },
