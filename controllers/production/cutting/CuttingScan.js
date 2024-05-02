@@ -336,7 +336,7 @@ export const adjustPlanByReturn = async (req, res, next) => {
     }
 
     // check qrcodde
-    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+    const checkBarcodeSerial = await db.query(QryFinSprMrktIn, {
       replacements: {
         barcodeserial: barcodeserial,
       },
