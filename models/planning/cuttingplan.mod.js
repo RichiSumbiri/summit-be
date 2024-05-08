@@ -922,6 +922,11 @@ LEFT JOIN (
 				FROM scan_supermarket_in a 
 				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND :endDate
 				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_supermarket_out a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
 			)
 			GROUP BY a.SCH_ID
 			UNION ALL 
@@ -930,6 +935,11 @@ LEFT JOIN (
 			LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
 			WHERE a.SCH_ID IN (
 				SELECT DISTINCT a.SCH_ID 
+				FROM scan_supermarket_in a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND :endDate
+				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
 				FROM scan_supermarket_out a 
 				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
 				AND a.CUT_SITE = :site
@@ -968,6 +978,11 @@ LEFT JOIN (
 				FROM scan_supermarket_in a 
 				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
 				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_supermarket_out a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
 			)
 			GROUP BY a.SCH_ID, b.ORDER_SIZE
 			UNION ALL 
@@ -975,7 +990,12 @@ LEFT JOIN (
 			FROM scan_supermarket_out a
 			LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
 			WHERE a.SCH_ID IN (
-				SELECT DISTINCT a.SCH_ID 
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_supermarket_in a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
 				FROM scan_supermarket_out a 
 				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
 				AND a.CUT_SITE = :site

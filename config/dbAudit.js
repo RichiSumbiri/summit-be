@@ -15,3 +15,14 @@ export const dbAudit = new Sequelize("audit_trial", "egi", "Sum54321`", {
     timezone: "local",
   },
 });
+
+export const dbSPL = new Sequelize("sumbiri_hrm", "sumbiri", "082234725445", {
+  host: "192.168.0.180",
+  port: 3306,
+  dialect: "mysql",
+  logging: false,
+  timezone: "+07:00",
+  dialectOptions: {
+    timezone: "local",
+  },
+});

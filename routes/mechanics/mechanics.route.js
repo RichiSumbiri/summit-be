@@ -1,11 +1,18 @@
 import express from "express";
 import {
   delMachItemIn,
+  delMachItemOut,
+  getEmploye,
   getListMachine,
   getListTypeMec,
   getMacItemIn,
+  getMacItemOut,
+  getMachineNo,
+  getMecRepSaldoAwl,
   getOneMachForIN,
   getOneMachine,
+  getPartNNeedle,
+  postMacPartOut,
   postMachItemIn,
   postMachine,
   updateMachine,
@@ -22,5 +29,15 @@ router.patch("/machines", updateMachine);
 router.post("/item-in", postMachItemIn);
 router.delete("/item-in/:LOG_ID/:inputDate", delMachItemIn);
 router.get("/item-in/:date", getMacItemIn);
+
+router.get("/sparepart-needle", getPartNNeedle);
+router.post("/item-out", postMacPartOut);
+router.get("/employe/:nik", getEmploye);
+router.get("/machine-no/:macId", getMachineNo);
+router.get("/item-out/:date", getMacItemOut);
+router.delete("/item-out/:LOG_ID/:inputDate", delMachItemOut);
+
+//report
+router.get("/report-saldo-awal/:date", getMecRepSaldoAwl);
 
 export default router;

@@ -107,11 +107,28 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
-a.MACHINE_STATUS
+a.MACHINE_STATUS,
+ROUND(d.BALANCE,2) BALANCE
 FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
-WHERE a.MACHINE_ID = :macId`;
+LEFT JOIN (
+		SELECT 
+		n.MACHINE_ID,
+		SUM(n.PART_IN) PART_IN,
+		SUM(n.PART_OUT) PART_OUT,
+		SUM(n.PART_IN) - SUM(n.PART_OUT) AS BALANCE
+		FROM (
+			SELECT a.MACHINE_ID, SUM(a.MACHINE_QTY) PART_IN, 0 PART_OUT
+			FROM mec_item_in a WHERE a.MACHINE_ID = :macId
+      GROUP BY a.MACHINE_ID
+			UNION ALL 
+			SELECT b.PART_ID MACHINE_ID, 0 PART_IN, SUM(b.PART_QTY) PART_OUT
+			FROM mec_part_used b WHERE b.PART_ID = :macId
+      GROUP BY b.PART_ID
+		) n GROUP BY n.MACHINE_ID
+) d ON d.MACHINE_ID = a.MACHINE_ID
+WHERE  a.MACHINE_ID = :macId`;
 
 export const MacItemIn = db.define(
   "mec_item_in",
@@ -157,3 +174,141 @@ FROM  mec_item_in a
 LEFT JOIN mec_item_master b ON b.MACHINE_ID = a.MACHINE_ID
 LEFT JOIN mec_type_of_machine c ON c.TYPE_ID = b.MACHINE_TYPE
 WHERE DATE(a.createdAt) = :date`;
+
+export const qryListOut = `SELECT a.LOG_ID,
+a.PART_ID, a.MACHINE_ID, a.NIK, a.NAME, a.DEPARTEMEN, a.REASON, a.SCRAP, c.TYPE_DESCRIPTION, b.MACHINE_DESCRIPTION, c.TYPE_ID, ROUND(a.PART_QTY,2) PART_QTY, time(a.createdAt) ADD_TIME
+FROM mec_part_used a 
+LEFT JOIN mec_item_master b ON b.MACHINE_ID = a.PART_ID
+LEFT JOIN mec_type_of_machine c ON c.TYPE_ID = b.MACHINE_TYPE
+WHERE DATE(a.createdAt) = :date`;
+
+export const findEmploye = `SELECT a.Nik, a.NamaLengkap, a.NamaDepartemen FROM sumbiri_employee a WHERE a.Nik = :nik`;
+
+//get machine no without sparepart and needle
+export const qryGetOneMachine = `SELECT a.MACHINE_ID,
+a.MACHINE_TYPE, 
+b.TYPE_DESCRIPTION,
+a.MACHINE_DESCRIPTION,
+a.MACHINE_SERIAL,
+a.MACHINE_UOM,
+a.MACHINE_SECTION,
+c.SECTION_NAME,
+c.SECTION_CATEGORY,
+a.MACHINE_BRAND,
+a.MACHINE_MODEL,
+a.MACHINE_STATUS
+FROM mec_item_master a 
+LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
+LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
+WHERE a.MACHINE_TYPE NOT IN (50, 62) AND a.MACHINE_ID = :macId`;
+
+export const MacPartOut = db.define(
+  "mec_part_used",
+  {
+    LOG_ID: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    PART_ID: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    MACHINE_ID: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    NIK: {
+      type: DataTypes.STRING(255),
+    },
+    NAME: {
+      type: DataTypes.STRING(255),
+    },
+    DEPARTEMEN: {
+      type: DataTypes.STRING(255),
+    },
+    REASON: {
+      type: DataTypes.STRING(255),
+    },
+    SCRAP: {
+      type: DataTypes.STRING(255),
+    },
+    SITELINE: {
+      type: DataTypes.STRING(255),
+    },
+    SCH_ID: {
+      type: DataTypes.STRING(255),
+    },
+    PART_QTY: {
+      type: DataTypes.DECIMAL,
+    },
+    ADD_ID: {
+      type: DataTypes.BIGINT(20),
+      allowNull: true,
+    },
+    MOD_ID: {
+      type: DataTypes.BIGINT(20),
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
+export const qryGetSPartNeedle = `SELECT a.MACHINE_ID,
+a.MACHINE_TYPE, 
+b.TYPE_DESCRIPTION,
+a.MACHINE_DESCRIPTION,
+a.MACHINE_SERIAL,
+a.MACHINE_UOM,
+a.MACHINE_SECTION,
+c.SECTION_NAME,
+c.SECTION_CATEGORY,
+a.MACHINE_BRAND,
+a.MACHINE_MODEL,
+a.MACHINE_STATUS
+FROM mec_item_master a 
+LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
+LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
+WHERE a.MACHINE_TYPE IN (50, 62)
+ORDER BY a.updatedAt DESC`;
+
+// report mechanic stock
+export const qryMecStockMain = `SELECT a.MACHINE_ID,
+a.MACHINE_TYPE, 
+b.TYPE_DESCRIPTION,
+a.MACHINE_DESCRIPTION,
+a.MACHINE_SERIAL,
+a.MACHINE_UOM,
+a.MACHINE_SECTION,
+c.SECTION_NAME,
+c.SECTION_CATEGORY,
+a.MACHINE_BRAND,
+a.MACHINE_MODEL,
+a.MACHINE_STATUS,
+-- d.PART_IN,
+-- d.PART_OUT,
+ROUND(d.BALANCE,2) BALANCE
+FROM mec_item_master a 
+LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
+LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
+LEFT JOIN (
+		SELECT 
+		n.MACHINE_ID,
+		SUM(n.PART_IN) PART_IN,
+		SUM(n.PART_OUT) PART_OUT,
+		SUM(n.PART_IN) - SUM(n.PART_OUT) AS BALANCE
+		FROM (
+			SELECT a.MACHINE_ID, SUM(a.MACHINE_QTY) PART_IN, 0 PART_OUT
+			FROM mec_item_in a WHERE DATE(a.createdAt) <= :date
+			GROUP BY a.MACHINE_ID
+			UNION ALL 
+			SELECT b.PART_ID MACHINE_ID, 0 PART_IN, SUM(b.PART_QTY) PART_OUT
+			FROM mec_part_used b WHERE DATE(b.createdAt) <= :date
+			GROUP BY b.MACHINE_ID
+		) n GROUP BY n.MACHINE_ID
+) d ON d.MACHINE_ID = a.MACHINE_ID
+WHERE  a.MACHINE_TYPE IN (50, 62)
+GROUP BY a.MACHINE_TYPE, a.MACHINE_ID
+`;

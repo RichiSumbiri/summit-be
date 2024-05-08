@@ -1008,7 +1008,7 @@ export const postSchCutFromLoad = async (req, res) => {
         type: QueryTypes.SELECT,
       });
       const listIdNew = dataFromLoading.map((items) => items.CUT_ID_DETAIL);
-      console.log(listIdNew);
+      // console.log(listIdNew);
 
       //ubah tanggal dan user id
       const dataForCutDetail = dataFromLoading.map((items) => ({
