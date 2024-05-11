@@ -6,6 +6,7 @@ import {
   MecListMachine,
   findEmploye,
   qryGetAllMachine,
+  qryGetDtlTransPart,
   qryGetOneItem,
   qryGetOneMachine,
   qryGetSPartNeedle,
@@ -416,12 +417,10 @@ export const getPartNNeedle = async (req, res) => {
 //get report saldo awal mec report
 export const getMecRepSaldoAwl = async (req, res) => {
   try {
-    const { date } = req.params;
+    const { lastDate, startDate, endDate } = req.params;
 
     const listMach = await db.query(qryMecStockMain, {
-      replacements: {
-        date: date,
-      },
+      replacements: { lastDate, startDate, endDate },
       type: QueryTypes.SELECT,
     });
 
@@ -435,6 +434,30 @@ export const getMecRepSaldoAwl = async (req, res) => {
       success: false,
       data: error,
       message: "error processing request get list saldo awal",
+    });
+  }
+};
+
+//get report saldo awal mec report
+export const getDtlMecTrans = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.params;
+
+    const listMach = await db.query(qryGetDtlTransPart, {
+      replacements: { startDate, endDate },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: listMach,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request get list detail",
     });
   }
 };

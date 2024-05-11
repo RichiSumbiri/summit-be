@@ -2,6 +2,7 @@ import express from "express";
 import {
   delMachItemIn,
   delMachItemOut,
+  getDtlMecTrans,
   getEmploye,
   getListMachine,
   getListTypeMec,
@@ -38,6 +39,10 @@ router.get("/item-out/:date", getMacItemOut);
 router.delete("/item-out/:LOG_ID/:inputDate", delMachItemOut);
 
 //report
-router.get("/report-saldo-awal/:date", getMecRepSaldoAwl);
+router.get(
+  "/report-saldo-awal/:startDate/:endDate/:lastDate",
+  getMecRepSaldoAwl
+);
+router.get("/report-detail/:startDate/:endDate", getDtlMecTrans);
 
 export default router;
