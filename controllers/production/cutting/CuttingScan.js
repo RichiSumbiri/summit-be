@@ -3,6 +3,8 @@ import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 
 import {
+  CutSupermarketIn,
+  CutSupermarketOut,
   CuttinScanSewingIn,
   QryCutScanInWithSize,
   QryListBoxReturn,
@@ -95,7 +97,7 @@ export const QRScanSewingIn = async (req, res) => {
     const { barcodeserial, schDate, sitename, lineName, userId } = req.body;
     //check apakah barcode serial ada pada table orders detail
     //find schedule
-    const checkBarcodeSerial = await db.query(QryFinSprMrktIn, {
+    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
       replacements: {
         barcodeserial: barcodeserial,
       },
@@ -129,6 +131,20 @@ export const QRScanSewingIn = async (req, res) => {
         });
       }
 
+      const checkScaOut = await CutSupermarketOut.findOne({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+        raw: true,
+      });
+
+      if (!checkScaOut) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "error",
+          message: "Belum Supermarket Out",
+        });
+      }
       //find schedule
       const checkSchdNsize = await db.query(QueryCheckSchdScan, {
         replacements: {
@@ -175,13 +191,35 @@ export const QRScanSewingIn = async (req, res) => {
           SITE_NAME: sitename,
         };
         const pushQrSewin = await CuttinScanSewingIn.create(dataBarcode);
-        if (pushQrSewin)
+
+        if (pushQrSewin) {
+          if (checkScaOut.SCH_ID !== dataBarcode.SCH_ID) {
+            //update SCH_ID Supermarket In jika tidak sama dengan SCH_ID supermarket out
+            await CutSupermarketIn.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+            await CutSupermarketOut.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+          }
+
           return res.status(200).json({
             success: true,
             qrstatus: "success",
             message: "Scan Success",
             data: returnData,
           });
+        }
       }
 
       return res.status(200).json({

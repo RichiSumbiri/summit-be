@@ -797,7 +797,7 @@ export const QRScanSuperMarketOut = async (req, res) => {
         };
         const pushQrSewin = await CutSupermarketOut.create(dataBarcode);
 
-        if (pushQrSewin)
+        if (pushQrSewin) {
           if (checkScaIn.SCH_ID !== dataBarcode.SCH_ID) {
             //update SCH_ID Supermarket In jika tidak sama dengan SCH_ID supermarket out
             await CutSupermarketIn.update(
@@ -810,12 +810,13 @@ export const QRScanSuperMarketOut = async (req, res) => {
             );
           }
 
-        return res.status(200).json({
-          success: true,
-          qrstatus: "success",
-          message: "Scan Success",
-          data: returnData,
-        });
+          return res.status(200).json({
+            success: true,
+            qrstatus: "success",
+            message: "Scan Success",
+            data: returnData,
+          });
+        }
       }
 
       return res.status(200).json({
