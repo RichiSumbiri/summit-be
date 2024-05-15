@@ -32,6 +32,7 @@ import {
   getDailyCutSch,
   getDailyCutSchSize,
   getExlPlanLoad,
+  getExlPlanSpread,
   getInfoDetailSize,
   getResulSacnSupIN,
   getResulSacnSupOut,
@@ -103,6 +104,10 @@ router.get("/baseReport/:startDate/:endDate/:site", getBaseRepCutLoad);
 
 //export excel loading schedule
 router.get("/excel-loading-schedule/:startDate/:endDate/:site", getExlPlanLoad);
+router.get(
+  "/excel-sprading-schedule/:startDate/:endDate/:site",
+  getExlPlanSpread
+);
 
 //cutting supermarket report
 router.get(

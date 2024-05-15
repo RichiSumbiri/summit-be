@@ -27,6 +27,8 @@ import {
   qryCutSupDetailDate,
   qryExportCutLoadSum,
   qryExportCutLoadDtl,
+  qryExportCutSpredSum,
+  qryExportCutSpredDtl,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -984,10 +986,10 @@ export const postSchCutFromLoad = async (req, res) => {
     });
 
     //data list id
-    const arrDetialID = getSchDetailBfore.map((item) => item.CUT_ID_DETAIL);
+    const arrDetialID = getSchDetailBfore.map((item) => item.CUT_SCH_ID);
     // console.log(arrDetialID);
     //destroy detail schedule sebelumnya
-    await CutSchDtlReal.destroy({ where: { CUT_ID_DETAIL: arrDetialID } });
+    await CutSchDtlReal.destroy({ where: { CUT_SCH_ID: arrDetialID } });
 
     //untuk bypass sabtu dan minggu
     const dayWeekEnd = ["Saturday", "Sunday"];
@@ -1149,6 +1151,38 @@ export const getExlPlanLoad = async (req, res) => {
     });
 
     const detailData = await db.query(qryExportCutLoadDtl, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ dataSchedule, detailData });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
+export const getExlPlanSpread = async (req, res) => {
+  try {
+    const { startDate, endDate, site } = req.params;
+
+    const dataSchedule = await db.query(qryExportCutSpredSum, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const detailData = await db.query(qryExportCutSpredDtl, {
       replacements: {
         startDate: startDate,
         endDate: endDate,
