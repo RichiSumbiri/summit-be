@@ -465,6 +465,16 @@ FROM (
 	GROUP BY a.SCH_ID,  DATE(a.SEWING_SCAN_TIME), b.ORDER_SIZE
 ) n GROUP BY n.CUT_SCH_ID, n.CUT_LOAD_DATE, n.CUT_SEW_SIZE_CODE`;
 
+export const queryInfoSizeDetail = `SELECT 
+a.CUT_SCH_ID,
+a.CUT_ID_SIZE,
+a.CUT_SEW_SIZE_CODE,
+a.CUT_SEW_SCH_QTY,
+a.CUT_ADD_TIME,
+a.CUT_MOD_TIME
+FROM 
+cuting_loading_sch_size a WHERE a.CUT_SCH_ID = :schId AND a.CUT_SEW_SIZE_CODE = :sizeCode`;
+
 //query ambil CUT ID yang kosong
 export const qryGetNoCutId = `-- base query get detail plan loading vs actual
 SELECT 

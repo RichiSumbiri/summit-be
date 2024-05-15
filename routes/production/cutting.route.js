@@ -23,6 +23,7 @@ import { getBaseRepCutLoad } from "../../controllers/production/cutting/CuttingL
 import {
   delHeadCutSch,
   delHeadCutSchSize,
+  delHeadCutSchSizeDtil,
   DelQrScanSupIN,
   DelQrScanSupOUT,
   getCutDailySizePlan,
@@ -57,6 +58,10 @@ router.post("/planing/schedule-detail/", PostDetailCutSch);
 router.post("/planing/get-schedule/", postSchCutFromLoad);
 router.delete("/planing/schedule/:cutSch", delHeadCutSch);
 router.delete("/planing/schedule-size/:cutSch/:sizeCode", delHeadCutSchSize);
+router.delete(
+  "/planing/schedule-size-detail/:cutSch/:sizeCode/:detailIdSize",
+  delHeadCutSchSizeDtil
+);
 router.get(
   "/planing-info-schedule-size/:cutIdSize/:schId/:sizeCode",
   getInfoDetailSize

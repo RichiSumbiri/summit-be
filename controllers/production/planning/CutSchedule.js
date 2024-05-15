@@ -29,6 +29,7 @@ import {
   qryExportCutLoadDtl,
   qryExportCutSpredSum,
   qryExportCutSpredDtl,
+  queryInfoSizeDetail,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -470,6 +471,41 @@ export const delHeadCutSchSize = async (req, res) => {
   }
 };
 
+//untuk hapus jika terdapat dua
+export const delHeadCutSchSizeDtil = async (req, res) => {
+  try {
+    const { cutSch, sizeCode, detailIdSize } = req.params;
+
+    if (!cutSch)
+      return res.status(404).json({ message: "Tidak ada id schedule" });
+
+    const findIdSize = await CutingLoadingSchSize.findAll({
+      where: {
+        CUT_SCH_ID: cutSch,
+        CUT_SEW_SIZE_CODE: sizeCode,
+      },
+      raw: true, // <--- HERE
+    });
+
+    if (findIdSize.length < 2)
+      return res.status(404).json({ message: "Schedule Size hanya 1" });
+
+    await CutingLoadingSchSize.destroy({
+      where: {
+        CUT_ID_SIZE: detailIdSize,
+      },
+    });
+
+    return res.json({ message: "Schedule Telah Di Hapus" });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "Terdapat error ketika Delete schedule",
+      data: error,
+    });
+  }
+};
+
 export const getInfoDetailSize = async (req, res) => {
   try {
     const { cutIdSize, schId, sizeCode } = req.params;
@@ -483,7 +519,15 @@ export const getInfoDetailSize = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    return res.json({ data: detailIdSize });
+    const detailSize = await db.query(queryInfoSizeDetail, {
+      replacements: {
+        schId,
+        sizeCode,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: detailIdSize, detailSize });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -1199,4 +1243,9 @@ export const getExlPlanSpread = async (req, res) => {
       data: error,
     });
   }
+};
+
+export const deleteCutSchSize = (req, res) => {
+  try {
+  } catch (error) {}
 };
