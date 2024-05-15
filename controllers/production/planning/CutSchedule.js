@@ -796,13 +796,26 @@ export const QRScanSuperMarketOut = async (req, res) => {
           SITE_NAME: sitename,
         };
         const pushQrSewin = await CutSupermarketOut.create(dataBarcode);
+
         if (pushQrSewin)
-          return res.status(200).json({
-            success: true,
-            qrstatus: "success",
-            message: "Scan Success",
-            data: returnData,
-          });
+          if (checkScaIn.SCH_ID !== dataBarcode.SCH_ID) {
+            //update SCH_ID Supermarket In jika tidak sama dengan SCH_ID supermarket out
+            await CutSupermarketIn.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+          }
+
+        return res.status(200).json({
+          success: true,
+          qrstatus: "success",
+          message: "Scan Success",
+          data: returnData,
+        });
       }
 
       return res.status(200).json({
