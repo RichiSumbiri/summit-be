@@ -8,6 +8,7 @@ import {
   QueryGetWeekSchPo,
   QueryListlineByStylePo,
   QueryPoByCap,
+  getSizeAlocSize,
 } from "../../../models/planning/poByCapacity.js";
 import { SewingListSite } from "../../../models/production/sewing.mod.js";
 
@@ -172,6 +173,27 @@ export const getPoCapListLineStyle = async (req, res) => {
     res.status(404).json({
       message: "error processing request",
       data: error,
+    });
+  }
+};
+
+export const getSizeAlocPoCap = async (req, res) => {
+  try {
+    const { capId } = req.params;
+    const codeCapId = decodeURIComponent(capId);
+    // console.log(codeCapId);
+    const getPoDelivSize = await db.query(getSizeAlocSize, {
+      replacements: {
+        capId: codeCapId,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    res.status(200).json(getPoDelivSize);
+  } catch (err) {
+    res.status(404).json({
+      message: "something wrong",
+      data: err,
     });
   }
 };

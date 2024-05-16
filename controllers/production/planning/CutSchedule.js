@@ -418,12 +418,13 @@ export const delHeadCutSch = async (req, res) => {
 export const delHeadCutSchSize = async (req, res) => {
   try {
     const { cutSch, sizeCode } = req.params;
+    const deSize = decodeURIComponent(sizeCode);
 
     if (!cutSch)
       return res.status(404).json({ message: "Tidak ada id schedule" });
 
     const checkLoading = await db.query(findOneScanIn, {
-      replacements: { cutSch, sizeCode },
+      replacements: { cutSch, sizeCode: deSize },
       type: QueryTypes.SELECT,
     });
 
@@ -435,7 +436,7 @@ export const delHeadCutSchSize = async (req, res) => {
     const findIdSize = await CutingLoadingSchSize.findAll({
       where: {
         CUT_SCH_ID: cutSch,
-        CUT_SEW_SIZE_CODE: sizeCode,
+        CUT_SEW_SIZE_CODE: deSize,
       },
       raw: true, // <--- HERE
     });
@@ -475,26 +476,38 @@ export const delHeadCutSchSize = async (req, res) => {
 export const delHeadCutSchSizeDtil = async (req, res) => {
   try {
     const { cutSch, sizeCode, detailIdSize } = req.params;
-
+    const deSize = decodeURIComponent(sizeCode);
     if (!cutSch)
       return res.status(404).json({ message: "Tidak ada id schedule" });
 
     const findIdSize = await CutingLoadingSchSize.findAll({
       where: {
         CUT_SCH_ID: cutSch,
-        CUT_SEW_SIZE_CODE: sizeCode,
+        CUT_SEW_SIZE_CODE: deSize,
       },
       raw: true, // <--- HERE
     });
 
     if (findIdSize.length < 2)
       return res.status(404).json({ message: "Schedule Size hanya 1" });
+    const newSizeId = findIdSize.filter(
+      (item) => item.CUT_ID_SIZE !== detailIdSize
+    )[0];
 
     await CutingLoadingSchSize.destroy({
       where: {
         CUT_ID_SIZE: detailIdSize,
       },
     });
+
+    await CuttingSchDetails.update(
+      { CUT_ID_SIZE: newSizeId.CUT_ID_SIZE },
+      {
+        where: {
+          CUT_ID_SIZE: detailIdSize,
+        },
+      }
+    );
 
     return res.json({ message: "Schedule Telah Di Hapus" });
   } catch (error) {
@@ -509,12 +522,13 @@ export const delHeadCutSchSizeDtil = async (req, res) => {
 export const getInfoDetailSize = async (req, res) => {
   try {
     const { cutIdSize, schId, sizeCode } = req.params;
+    const deSize = decodeURIComponent(sizeCode);
 
     const detailIdSize = await db.query(queryInfoSchSize, {
       replacements: {
         cutIdSize,
         schId,
-        sizeCode,
+        sizeCode: deSize,
       },
       type: QueryTypes.SELECT,
     });
@@ -522,7 +536,7 @@ export const getInfoDetailSize = async (req, res) => {
     const detailSize = await db.query(queryInfoSizeDetail, {
       replacements: {
         schId,
-        sizeCode,
+        sizeCode: deSize,
       },
       type: QueryTypes.SELECT,
     });

@@ -5,6 +5,7 @@ import {
   getPoCapListByer,
   getPoCapListLineStyle,
   getPoCapListStyle,
+  getSizeAlocPoCap,
 } from "../../controllers/production/planning/PoByCapacity.js";
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.get(
   "/list-line-style/:startMonth/:endMonth/:siteName",
   getPoCapListLineStyle
 );
+router.get("/po-size-alocation/:capId", getSizeAlocPoCap);
 
 export default router;
