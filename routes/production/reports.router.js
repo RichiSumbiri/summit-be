@@ -11,6 +11,7 @@ import {
   getWorkerDoneRep,
 } from "../../controllers/production/reports/WorkerdoneRep.js";
 import { getSewRepEff } from "../../controllers/production/reports/SewDailyEffRep.js";
+import { getDataQrTrackOne } from "../../controllers/production/reports/QrTrackingOne.js";
 const router = express.Router();
 
 router.get("/workerdone/:startDate/:endDate", getWorkerDoneRep);
@@ -31,5 +32,8 @@ router.get(
 
 //sewin daily eff
 router.get("/sewing-day-eff/:schDate/:sitename", getSewRepEff);
+
+//tracking qr one
+router.get("/tracking-qr-one/:barcodeserial", getDataQrTrackOne);
 
 export default router;

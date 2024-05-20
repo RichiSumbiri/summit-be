@@ -38,6 +38,7 @@ export const newQRCutting = async (req, res) => {
             where: {
               BARCODE_SERIAL: order.BARCODE_SERIAL,
               BUNDLE_SEQUENCE: order.SEQUENCE,
+              UPDATE_BY: order.CREATE_BY,
             },
           }
         );
@@ -46,7 +47,7 @@ export const newQRCutting = async (req, res) => {
           BARCODE_SERIAL: order.BARCODE_SERIAL,
           BUNDLE_SEQUENCE: order.SEQUENCE,
           SITE_LINE: order.SITE_LINE,
-          CREATE_BY: 130,
+          CREATE_BY: order.CREATE_BY,
         });
       }
 
