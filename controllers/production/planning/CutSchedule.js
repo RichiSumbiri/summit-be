@@ -1050,7 +1050,7 @@ export const postSchCutFromLoad = async (req, res) => {
     await CutSchDtlReal.destroy({ where: { CUT_SCH_ID: arrDetialID } });
 
     //untuk bypass sabtu dan minggu
-    const dayWeekEnd = ["Saturday", "Sunday"];
+    const dayWeekEnd = ["Sunday"];
 
     //looping list tanggal dari front end
     for await (const [i, date] of dateList.entries()) {
@@ -1062,17 +1062,16 @@ export const postSchCutFromLoad = async (req, res) => {
         moment.range(schDate, endSchDate).by("days")
       ).map((day) => day.format("YYYY-MM-DD"));
       // let currDate = moment(date, "YYYY-MM-DD")
-
       //hapus weekend dan holiday
       const dateOutHol = rangeDate.filter(
         (dt) =>
           !arrHoliday.includes(dt) &&
           !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
       );
-
+      // console.log(dateOutHol);
       //ambil tanggal ke 8
       const dateMin8 = dateOutHol[8];
-      // console.log(dateMin8);
+      // console.log({ date, dateMin8 });
       //ambil data detail dari loading planing
       const dataFromLoading = await db.query(qryGetFromLoad, {
         replacements: {
