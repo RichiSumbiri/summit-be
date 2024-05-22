@@ -515,7 +515,8 @@ export const getQrySumDetail = async (req, res) => {
   try {
     const { poNum, ppid } = req.params;
     const poNumber = decodeURIComponent(poNum);
-
+    console.log(poNumber);
+    console.log(ppid);
     const sumPODetail = await db.query(qrySumPoDetil, {
       replacements: {
         poNumber,

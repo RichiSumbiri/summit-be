@@ -491,8 +491,9 @@ export const delHeadCutSchSizeDtil = async (req, res) => {
     if (findIdSize.length < 2)
       return res.status(404).json({ message: "Schedule Size hanya 1" });
     const newSizeId = findIdSize.filter(
-      (item) => item.CUT_ID_SIZE !== detailIdSize
+      (item) => item.CUT_ID_SIZE !== parseInt(detailIdSize)
     )[0];
+    // console.log({ detailIdSize, findIdSize, newSizeId });
 
     await CutingLoadingSchSize.destroy({
       where: {
@@ -500,14 +501,16 @@ export const delHeadCutSchSizeDtil = async (req, res) => {
       },
     });
 
-    await CuttingSchDetails.update(
+    const updateDetialSch = await CuttingSchDetails.update(
       { CUT_ID_SIZE: newSizeId.CUT_ID_SIZE },
       {
         where: {
-          CUT_ID_SIZE: detailIdSize,
+          // CUT_ID_SIZE: detailIdSize,
         },
       }
     );
+    //
+    // console.log(updateDetialSch);
 
     return res.json({ message: "Schedule Telah Di Hapus" });
   } catch (error) {
