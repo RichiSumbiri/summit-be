@@ -505,11 +505,11 @@ export const delHeadCutSchSizeDtil = async (req, res) => {
       { CUT_ID_SIZE: newSizeId.CUT_ID_SIZE },
       {
         where: {
-          // CUT_ID_SIZE: detailIdSize,
+          CUT_ID_SIZE: detailIdSize,
         },
       }
     );
-    //
+
     // console.log(updateDetialSch);
 
     return res.json({ message: "Schedule Telah Di Hapus" });
