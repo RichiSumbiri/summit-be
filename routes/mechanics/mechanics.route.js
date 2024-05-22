@@ -2,6 +2,7 @@ import express from "express";
 import {
   delMachItemIn,
   delMachItemOut,
+  deleteMachine,
   getDtlMecTrans,
   getEmploye,
   getListMachine,
@@ -26,6 +27,7 @@ router.get("/machines-inpt/:macId", getOneMachForIN);
 router.get("/type-machines", getListTypeMec);
 router.post("/machines", postMachine);
 router.patch("/machines", updateMachine);
+router.delete("/machines/:macId", deleteMachine);
 
 router.post("/item-in", postMachItemIn);
 router.delete("/item-in/:LOG_ID/:inputDate", delMachItemIn);

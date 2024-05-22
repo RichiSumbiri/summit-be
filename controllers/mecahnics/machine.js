@@ -125,6 +125,62 @@ export const updateMachine = async (req, res) => {
   }
 };
 
+//untuk Delete machine
+export const deleteMachine = async (req, res) => {
+  try {
+    const { macId } = req.params;
+    if (!macId)
+      return res.status(404).json({
+        success: false,
+        message: "Tidak Terdapat NO Mesin",
+      });
+
+    const checkMac = await MecListMachine.findAll({
+      where: {
+        MACHINE_ID: macId,
+      },
+      raw: true,
+    });
+
+    if (checkMac.length === 0)
+      return res.status(404).json({
+        success: false,
+        message: "No Mesin tidak Ditemukan",
+      });
+
+    const checkTransactionIn = await MacItemIn.findAll({
+      where: {
+        MACHINE_ID: macId,
+      },
+      raw: true,
+    });
+
+    if (checkTransactionIn.length !== 0)
+      return res.status(404).json({
+        success: false,
+        message: "Tidak Dapat Di Hapus sudah terdapat Transaksi IN",
+      });
+
+    const deleteMac = await MecListMachine.destroy({
+      where: {
+        MACHINE_ID: macId,
+      },
+    });
+
+    if (deleteMac)
+      return res.status(200).json({
+        success: true,
+        message: "Data Delete Success",
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      message: "error processing request delete list machine",
+    });
+  }
+};
+
 export const getListTypeMec = async (req, res) => {
   try {
     const listType = await db.query(qryGetlistType, {
