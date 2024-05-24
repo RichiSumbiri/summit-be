@@ -35,6 +35,7 @@ import {
   getExlPlanLoad,
   getExlPlanSpread,
   getInfoDetailSize,
+  getRepCutSupSummary,
   getResulSacnSupIN,
   getResulSacnSupOut,
   getSchSewForCut,
@@ -118,6 +119,10 @@ router.get(
 router.get(
   "/cutting-supermarket-report/:startDate/:endDate/:site",
   getCutSupReport
+);
+router.get(
+  "/cutting-supermarket-summary/:startDate/:endDate/:lastDate",
+  getRepCutSupSummary
 );
 
 export default router;

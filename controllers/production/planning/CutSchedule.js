@@ -30,6 +30,8 @@ import {
   qryExportCutSpredSum,
   qryExportCutSpredDtl,
   queryInfoSizeDetail,
+  qrySumRepCutSaldoAwal,
+  qryGetDtlCutSum,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -1261,7 +1263,30 @@ export const getExlPlanSpread = async (req, res) => {
   }
 };
 
-export const deleteCutSchSize = (req, res) => {
+export const getRepCutSupSummary = async (req, res) => {
   try {
-  } catch (error) {}
+    const { lastDate, startDate, endDate } = req.params;
+
+    const mainRepAwal = await db.query(qrySumRepCutSaldoAwal, {
+      replacements: { lastDate, startDate, endDate },
+      type: QueryTypes.SELECT,
+    });
+
+    const dtlEachDate = await db.query(qryGetDtlCutSum, {
+      replacements: { startDate, endDate },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: { mainRepAwal, dtlEachDate },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request get list detail",
+    });
+  }
 };
