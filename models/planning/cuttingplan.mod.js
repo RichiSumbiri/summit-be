@@ -1176,3 +1176,21 @@ FROM (
   GROUP BY DATE(a.CUT_SCAN_TIME), a.CUT_SITE
 ) n 
 GROUP BY n.SCAN_DATE, n.CUT_SITE`;
+
+export const qryCheckTtlSewScanIn = `SELECT a.SEWING_SCAN_LOCATION, b.ORDER_SIZE, SUM(b.ORDER_QTY) TOTAL_SCAN
+FROM scan_sewing_in a 
+LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+WHERE  a.SCH_ID = :schId AND b.ORDER_SIZE = :size
+GROUP BY a.SCH_ID, b.ORDER_SIZE`;
+
+export const qryCheckTtlSupScanIn = `SELECT a.CUT_SITE, b.ORDER_SIZE, SUM(b.ORDER_QTY) TOTAL_SCAN
+FROM scan_supermarket_in a 
+LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+WHERE  a.SCH_ID = :schId AND b.ORDER_SIZE = :size
+GROUP BY a.SCH_ID, b.ORDER_SIZE`;
+
+export const qryCheckTtlSupScanOut = `SELECT a.CUT_SITE, b.ORDER_SIZE, SUM(b.ORDER_QTY) TOTAL_SCAN
+FROM scan_supermarket_out a 
+LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+WHERE  a.SCH_ID = :schId AND b.ORDER_SIZE = :size
+GROUP BY a.SCH_ID, b.ORDER_SIZE`;

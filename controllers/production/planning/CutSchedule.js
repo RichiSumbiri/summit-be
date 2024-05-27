@@ -32,6 +32,8 @@ import {
   queryInfoSizeDetail,
   qrySumRepCutSaldoAwal,
   qryGetDtlCutSum,
+  qryCheckTtlSewScanIn,
+  qryCheckTtlSupScanIn,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -730,7 +732,26 @@ export const QRScanSuperMarketIn = async (req, res) => {
       });
 
       if (checkSchdNsize.length > 0) {
-        const { CUT_ID, SCH_ID } = checkSchdNsize[0];
+        const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
+
+        //check total schedule
+        const ttlScanInQty = await db.query(qryCheckTtlSupScanIn, {
+          replacements: {
+            schId: SCH_ID,
+            size: valueBarcode.ORDER_SIZE,
+          },
+          type: QueryTypes.SELECT,
+        });
+        if (ttlScanInQty.length > 0) {
+          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+
+          if (ttlInQty > SCH_SIZE_QTY)
+            return res.status(200).json({
+              success: true,
+              qrstatus: "error",
+              message: "Melebih Schedule Qty",
+            });
+        }
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCH_ID,
@@ -845,7 +866,26 @@ export const QRScanSuperMarketOut = async (req, res) => {
       });
 
       if (checkSchdNsize.length > 0) {
-        const { CUT_ID, SCH_ID } = checkSchdNsize[0];
+        const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
+
+        //check total schedule
+        const ttlScanInQty = await db.query(qryCheckTtlSupScanIn, {
+          replacements: {
+            schId: SCH_ID,
+            size: valueBarcode.ORDER_SIZE,
+          },
+          type: QueryTypes.SELECT,
+        });
+        if (ttlScanInQty.length > 0) {
+          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+
+          if (ttlInQty > SCH_SIZE_QTY)
+            return res.status(200).json({
+              success: true,
+              qrstatus: "error",
+              message: "Melebih Schedule Qty",
+            });
+        }
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCH_ID,

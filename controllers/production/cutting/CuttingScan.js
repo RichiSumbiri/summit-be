@@ -29,6 +29,10 @@ import {
   PlanSize,
   SewingBdlReturn,
 } from "../../../models/production/quality.mod.js";
+import {
+  qryCheckTtlSewScanIn,
+  qryCheckTtlSupScanIn,
+} from "../../../models/planning/cuttingplan.mod.js";
 
 // CONTROLLER SCAN CUTTING
 export const QRScanCutting = async (req, res) => {
@@ -164,18 +168,29 @@ export const QRScanSewingIn = async (req, res) => {
         type: QueryTypes.SELECT,
       });
 
-      // console.log(checkSchdNsize);
-      // console.log({
-      //   plannDate: schDate,
-      //   sitename: sitename,
-      //   lineName: lineName ? lineName : valueBarcode.LINE_NAME,
-      //   moNo: valueBarcode.MO_NO,
-      //   styleDesc: valueBarcode.ORDER_STYLE,
-      //   colorCode: valueBarcode.ORDER_COLOR,
-      //   sizeCode: valueBarcode.ORDER_SIZE,
-      // });
       if (checkSchdNsize.length > 0) {
-        const { SCHD_ID, SCH_ID } = checkSchdNsize[0];
+        const { SCHD_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
+
+        //check total schedule
+        const ttlScanInQty = await db.query(qryCheckTtlSewScanIn, {
+          replacements: {
+            schId: SCH_ID,
+            size: valueBarcode.ORDER_SIZE,
+          },
+          type: QueryTypes.SELECT,
+        });
+
+        if (ttlScanInQty.length > 0) {
+          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+
+          if (ttlInQty > SCH_SIZE_QTY)
+            return res.status(200).json({
+              success: true,
+              qrstatus: "error",
+              message: "Melebih Schedule Qty",
+            });
+        }
+
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCHD_ID,
