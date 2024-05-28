@@ -738,10 +738,9 @@ na.CUT_ID, c.SCH_ID, na.CUT_SCH_ID, na.CUT_ID_CAPACITY, b.PRODUCTION_MONTH, na.C
 b.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.CUSTOMER_NAME, b.CUSTOMER_PROGRAM, b.PRODUCT_ITEM_CODE, 
 b.ITEM_COLOR_CODE,  b.ITEM_COLOR_NAME, b.ORDER_STYLE_DESCRIPTION, c.SCH_START_PROD, b.MO_QTY,
 na.CUT_SIZE_TYPE, IFNULL(b.NEW_PLAN_EXFACTORY_DATE, b.PLAN_EXFACTORY_DATE) PLAN_EXFACTORY_DATE,
-na.CUT_LOADING_START, na.CUT_LOADING_FINISH, na.CUT_SEW_SCH_QTY, na.LOADING_QTY, na.CUT_SCH_QTY, na.CUT_SEW_SCH_QTY - IFNULL(na.LOADING_QTY, 0) BAL,
-CASE WHEN (IFNULL(na.LOADING_QTY,0) - na.CUT_SEW_SCH_QTY) < 0 THEN "Open"
-     WHEN (IFNULL(na.LOADING_QTY,0) - na.CUT_SEW_SCH_QTY) = 0 THEN "Completed"
-     ELSE "Over" END AS STATUS
+na.CUT_LOADING_START, na.CUT_LOADING_FINISH, na.CUT_SEW_SCH_QTY, na.LOADING_QTY, na.CUT_SCH_QTY, 
+na.CUT_SEW_SCH_QTY - IFNULL(na.LOADING_QTY, 0) BAL,
+na.CUT_SEW_SCH_QTY - IFNULL(na.LOADING_QTY, 0) BAL
 FROM (
     SELECT a.CUT_ID, a.CUT_SCH_ID, a.CUT_ID_CAPACITY, a.CUT_SITE_NAME, a.CUT_ID_SITELINE, c.LINE_NAME, 
       a.CUT_SIZE_TYPE, a.CUT_LOADING_START, a.CUT_LOADING_FINISH,
@@ -787,8 +786,7 @@ FROM (
             --   FROM cuting_loading_schedule chead 
             --  WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
             --  OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
-			) AND 
-			cls.CUT_SCH_DATE NOT BETWEEN :startDate AND :endDate
+			) -- AND 			cls.CUT_SCH_DATE NOT BETWEEN :startDate AND :endDate
 			GROUP BY cls.CUT_ID, cls.CUT_SCH_ID
 	 ) clr ON clr.CUT_SCH_ID = a.CUT_SCH_ID 
     WHERE (a.CUT_SITE_NAME =  :site AND a.CUT_SCH_ID IN (
@@ -809,10 +807,7 @@ export const qryGetCutSchSizeReal = `SELECT
 a.CUT_ID_SIZE, b.SCH_SIZE_ID,  a.CUT_ID, a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE,  a.CUT_ID_SITELINE, a.CUT_SEW_SCH_QTY,
 IFNULL(SUM(s.ORDER_QTY) ,0) LOADING_QTY, IFNULL(clr.CUT_SCH_QTY,0) CUT_SCH_QTY,
 a.CUT_SEW_SCH_QTY - IFNULL(SUM(s.ORDER_QTY) ,0) BAL,
-a.CUT_SEW_SCH_QTY -  IFNULL(clr.CUT_SCH_QTY,0) BAL_SCH_CUT,
-CASE WHEN (IFNULL(SUM(s.ORDER_QTY) ,0) - a.CUT_SEW_SCH_QTY) < 0 THEN "Open"
-	  WHEN (IFNULL(SUM(s.ORDER_QTY) ,0) - a.CUT_SEW_SCH_QTY) = 0 THEN "Completed"
-	  ELSE "Over" END AS STATUS
+a.CUT_SEW_SCH_QTY -  IFNULL(clr.CUT_SCH_QTY,0) BAL_SCH_CUT
 FROM  cuting_loading_sch_size  a
 LEFT JOIN (
 	SELECT  
@@ -824,15 +819,15 @@ LEFT JOIN (
 		FROM (
 			 SELECT DISTINCT
 			 cls.CUT_SCH_ID
-			 FROM cuting_schedule_detail cls 
+			 FROM cuting_loading_sch_detail cls 
 			 LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
-			 WHERE cls.CUT_SCH_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
-       -- UNION ALL 
-       -- SELECT DISTINCT
-       -- chead.CUT_SCH_ID
-       -- FROM cuting_loading_schedule chead 
-       -- LEFT JOIN item_siteline st ON chead.CUT_ID_SITELINE = st.ID_SITELINE 
-       -- WHERE  (st.SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  '')
+			 WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
+			 UNION ALL 
+			 SELECT DISTINCT
+			 chead.CUT_SCH_ID
+			 FROM cuting_loading_schedule chead 
+			 LEFT JOIN item_siteline st ON chead.CUT_ID_SITELINE = st.ID_SITELINE 
+			 WHERE  (st.SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  '')
 		) s GROUP BY s.CUT_SCH_ID  
 	) GROUP BY 	b.SCH_ID, c.ORDER_SIZE
 ) s ON s.SCH_ID = a.CUT_SCH_ID  AND a.CUT_SEW_SIZE_CODE = s.ORDER_SIZE
@@ -843,36 +838,35 @@ LEFT JOIN  (
   b.SCH_ID IN (
     SELECT DISTINCT
     cls.CUT_SCH_ID
-    FROM cuting_schedule_detail cls 
+    FROM cuting_loading_sch_detail cls 
     LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
-    WHERE cls.CUT_SCH_DATE BETWEEN :startDate AND :endDate  AND st.SITE_NAME = :site
-    -- UNION ALL 
-    -- SELECT DISTINCT
-    -- chead.CUT_SCH_ID
-    -- FROM cuting_loading_schedule chead 
-    --  WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
-    -- OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate  AND chead.CUT_SITE_NAME =  :site )
+    WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate  AND st.SITE_NAME = :site
+    UNION ALL 
+    SELECT DISTINCT
+    chead.CUT_SCH_ID
+    FROM cuting_loading_schedule chead 
+    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate  AND chead.CUT_SITE_NAME =  :site )
   ) AND b.SCH_SIZE_QTY <> 0
   GROUP BY b.SCH_ID, b.SIZE_CODE
 ) b ON b.SCH_ID = a.CUT_SCH_ID AND a.CUT_SEW_SIZE_CODE = b.SIZE_CODE 
 LEFT JOIN (
 	SELECT 
 	cls.CUT_ID, cls.CUT_SCH_ID, cls.CUT_ID_SIZE,  IFNULL(SUM(cls.CUT_SCH_QTY),0) CUT_SCH_QTY
-	FROM cuting_schedule_detail cls 
+	FROM cuting_loading_sch_detail cls 
 	WHERE cls.CUT_ID IN (
 			SELECT DISTINCT
 		    cls.CUT_ID
-		    FROM cuting_schedule_detail cls 
+		    FROM cuting_loading_sch_detail cls 
 		    LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
-		    WHERE cls.CUT_SCH_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
-        -- UNION ALL 
-        -- SELECT DISTINCT
-        --  chead.CUT_ID
-        -- FROM cuting_loading_schedule chead 
-        -- WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
-        -- OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
-	) AND 
-	cls.CUT_SCH_DATE NOT BETWEEN :startDate AND :endDate
+		    WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
+		    UNION ALL 
+		    SELECT DISTINCT
+		    chead.CUT_ID
+		    FROM cuting_loading_schedule chead 
+		    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+		    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
+	) -- AND 	cls.CUT_LOAD_DATE  BETWEEN :startDate AND :endDate
 	GROUP BY cls.CUT_ID, cls.CUT_SCH_ID, cls.CUT_ID_SIZE
 ) clr ON clr.CUT_SCH_ID = a.CUT_SCH_ID AND a.CUT_ID_SIZE = clr.CUT_ID_SIZE
 WHERE a.CUT_ID IN (
@@ -880,15 +874,15 @@ WHERE a.CUT_ID IN (
   FROM (
     SELECT DISTINCT
     cls.CUT_ID
-    FROM cuting_schedule_detail cls 
+    FROM cuting_loading_sch_detail cls 
     LEFT JOIN item_siteline st ON cls.CUT_ID_SITELINE = st.ID_SITELINE 
-    WHERE cls.CUT_SCH_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
-    -- UNION ALL 
-    -- SELECT DISTINCT
-    --  chead.CUT_ID
-    --  FROM cuting_loading_schedule chead 
-    -- WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
-    -- OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
+    WHERE cls.CUT_LOAD_DATE BETWEEN :startDate AND :endDate AND st.SITE_NAME = :site
+    UNION ALL 
+    SELECT DISTINCT
+    chead.CUT_ID
+    FROM cuting_loading_schedule chead 
+    WHERE  chead.CUT_SITE_NAME = :site AND IFNULL(chead.CUT_LOADING_START ,'') =  ''
+    OR  (chead.CUT_LOADING_START BETWEEN  :startDate AND :endDate AND chead.CUT_SITE_NAME =  :site )
   ) s GROUP BY s.CUT_ID  
 ) -- AND a.CUT_SCH_ID = '7184'
 GROUP BY a.CUT_SCH_ID, a.CUT_SEW_SIZE_CODE 
