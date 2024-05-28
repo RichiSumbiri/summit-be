@@ -34,6 +34,7 @@ import {
   qryGetDtlCutSum,
   qryCheckTtlSewScanIn,
   qryCheckTtlSupScanIn,
+  qryCheckTtlSupScanOut,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -869,7 +870,7 @@ export const QRScanSuperMarketOut = async (req, res) => {
         const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
 
         //check total schedule
-        const ttlScanInQty = await db.query(qryCheckTtlSupScanIn, {
+        const ttlScanInQty = await db.query(qryCheckTtlSupScanOut, {
           replacements: {
             schId: SCH_ID,
             size: valueBarcode.ORDER_SIZE,
