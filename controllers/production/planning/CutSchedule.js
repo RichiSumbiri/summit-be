@@ -354,8 +354,8 @@ export const funcUpdateDate = async (schdId) => {
     });
 
     let updateDate = {
-      CUT_LOADING_START: firstRow.CUT_LOAD_DATE ? firstRow.CUT_LOAD_DATE : null,
-      CUT_LOADING_FINISH: lastRow.CUT_LOAD_DATE ? lastRow.CUT_LOAD_DATE : null,
+      CUT_LOADING_START: firstRow ? firstRow.CUT_LOAD_DATE : null,
+      CUT_LOADING_FINISH: lastRow ? lastRow.CUT_LOAD_DATE : null,
     };
 
     // console.log(schdId);
@@ -745,6 +745,7 @@ export const QRScanSuperMarketIn = async (req, res) => {
         });
         if (ttlScanInQty.length > 0) {
           const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+          console.log({ ttlInQty, SCH_SIZE_QTY });
 
           if (ttlInQty > SCH_SIZE_QTY)
             return res.status(200).json({
