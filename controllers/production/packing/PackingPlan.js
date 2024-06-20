@@ -5,6 +5,8 @@ import {
   OrderPoBuyer,
   PackBoxStyle,
   PackPlanHeader,
+  PackPlanRowDetail,
+  PackingPlanBoxRow,
   PackingPlanDetail,
   PackingPlanPoSum,
   findPoPlanPack,
@@ -14,14 +16,19 @@ import {
   qryGetCusDivision,
   qryGetCustLoaction,
   qryGetLastPPI,
+  qryGetLisColorPPID,
   qryGetLisPOPPID,
   qryGetLisSizePPID,
   qryGetPackHeader,
   qryGetPackMethod,
-  qryGetSumPoPront,
+  qryGetRowColQty,
+  qryGetRowDtl,
+  // qryGetSumPoPront,
   qryGetlistPo,
   qryPackPoIdPoBuyer,
+  qryQtySizeRowDtl,
   qrySumPoDetil,
+  qrySumQtyPoBox,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
@@ -515,8 +522,7 @@ export const getQrySumDetail = async (req, res) => {
   try {
     const { poNum, ppid } = req.params;
     const poNumber = decodeURIComponent(poNum);
-    console.log(poNumber);
-    console.log(ppid);
+
     const sumPODetail = await db.query(qrySumPoDetil, {
       replacements: {
         poNumber,
@@ -638,7 +644,27 @@ export const getLisPoPPID = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const listPOSum = await db.query(qryGetSumPoPront, {
+    const lisColorPpid = await db.query(qryGetLisColorPPID, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    // const listPOSum = await db.query(qryGetSumPoPront, {
+    //   replacements: { ppid },
+    //   type: QueryTypes.SELECT,
+    // });
+
+    const listRowDtl = await db.query(qryGetRowDtl, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const listRowDtlQty = await db.query(qryQtySizeRowDtl, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const qtyPackRowCol = await db.query(qryGetRowColQty, {
       replacements: { ppid },
       type: QueryTypes.SELECT,
     });
@@ -646,7 +672,153 @@ export const getLisPoPPID = async (req, res) => {
     const datas = {
       listPOppid,
       lisSizePpid,
-      listPOSum,
+      lisColorPpid,
+      listRowDtl,
+      listRowDtlQty,
+      qtyPackRowCol,
+    };
+
+    return res.json({ data: datas });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get list po ppid",
+      data: error,
+    });
+  }
+};
+
+//modal add po tabs buyer box
+export const getPoByrBox = async (req, res) => {
+  try {
+    const { poNum, ppid } = req.params;
+
+    const poNumber = decodeURIComponent(poNum);
+    const sumPODetail = await db.query(qrySumQtyPoBox, {
+      replacements: {
+        poNumber,
+        ppid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: sumPODetail });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi po number",
+      data: error,
+    });
+  }
+};
+
+//post generate row box
+export async function postGenerateRowBox(req, res) {
+  try {
+    const datas = req.body;
+    if (!datas)
+      return res.status(404).json({
+        message: "No Data For Post",
+      });
+
+    const listRowId = datas.map((items) => items.ROWID);
+
+    const dataRows = [];
+    let po = "";
+    let color = "";
+    let idxPo = 0;
+    let idxRow = 0;
+    for (let index = 0; index < datas.length; index++) {
+      const items = datas[index];
+      if (po !== items.BUYER_PO) {
+        po = items.BUYER_PO;
+        idxPo = 0;
+      }
+      idxRow++;
+      if (color !== items.BUYER_COLOR_CODE) {
+        color = items.BUYER_COLOR_CODE;
+        idxRow = 1;
+      }
+
+      const dataWithIdx = {
+        ...items,
+        CTN_START: idxPo + 1,
+        CTN_END:
+          items.TTL_BOX !== 1 ? idxPo + parseInt(items.TTL_BOX) : idxPo + 1,
+        ROW_INDEX: idxRow,
+      };
+      dataRows.push(dataWithIdx);
+
+      idxPo = idxPo + parseInt(items.TTL_BOX);
+    }
+    //delete header row
+    await PackingPlanBoxRow.destroy({
+      where: {
+        ROWID: listRowId,
+      },
+    });
+
+    //delete detail row
+    await PackPlanRowDetail.destroy({
+      where: {
+        ROWID: listRowId,
+      },
+    });
+
+    const detailRow = datas.map((item) => ({
+      ROWID: item.ROWID,
+      PACKPLAN_ID: item.PACKPLAN_ID,
+      SIZE_CODE: item.SIZE_CODE,
+      QTY: item.QTY_PER_BOX,
+      ADD_ID: item.ADD_ID,
+    }));
+
+    const headerPost = await PackingPlanBoxRow.bulkCreate(dataRows);
+
+    const detailPost = await PackPlanRowDetail.bulkCreate(detailRow);
+
+    if (headerPost && detailPost)
+      return res.json({
+        message: "Success Generate",
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post packing box row",
+      data: error,
+    });
+  }
+}
+
+//get list po row detil ppid
+export const getListRowDtlPo = async (req, res) => {
+  try {
+    const { ppid } = req.params;
+
+    // const listPOSum = await db.query(qryGetSumPoPront, {
+    //   replacements: { ppid },
+    //   type: QueryTypes.SELECT,
+    // });
+
+    const listRowDtl = await db.query(qryGetRowDtl, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const listRowDtlQty = await db.query(qryQtySizeRowDtl, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const qtyPackRowCol = await db.query(qryGetRowColQty, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
+    const datas = {
+      listRowDtl,
+      listRowDtlQty,
+      qtyPackRowCol,
     };
 
     return res.json({ data: datas });

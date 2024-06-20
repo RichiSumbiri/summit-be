@@ -22,16 +22,19 @@ import {
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
   getLisPoPPID,
+  getListRowDtlPo,
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
   getPackingPlanHd,
   getPackingPlanId,
+  getPoByrBox,
   getQryListPo,
   getQrySumDetail,
   getRefPackPlanByByr,
   getResltBoxStyle,
   postDataPackPlanHeader,
+  postGenerateRowBox,
   postPackBox,
   postPackBuyerPo,
   postPackPosum,
@@ -80,6 +83,8 @@ router.get("/plann-ref-ponumber/:buyer/:poNum", getQryListPo);
 router.get("/plann-poList-buyer/:poNum", getDataPolistPoBuyer);
 router.get("/plann-podetail-size/:poNum/:ppid", getDataPoSizeForPack);
 router.get("/plann-podetail-summary/:poNum/:ppid", getQrySumDetail);
+router.get("/plann-poboxdetail/:poNum/:ppid", getPoByrBox);
+router.get("/plann-rowDetail/:ppid", getListRowDtlPo);
 
 router.post("/plann-data/", postDataPackPlanHeader);
 router.post("/plann-detail-size/", PosPackPlanDetail);
@@ -87,4 +92,7 @@ router.post("/plann-po-summary/", postPackPosum);
 router.post("/po-buyer-data/", postPackBuyerPo);
 
 router.delete("/plann-po-summary", delPackPosum);
+
+//post data generate row
+router.post("/generate-row-box/", postGenerateRowBox);
 export default router;

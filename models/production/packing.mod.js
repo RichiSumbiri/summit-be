@@ -450,7 +450,8 @@ export const qrySumPoDetil = `SELECT
     CASE WHEN n.SET_PAIR = 1 THEN 0 ELSE n.SET_PAIR END AS  SET_PAIR,
     CASE WHEN n.SET_PAIR = 1 THEN 0 ELSE IFNULL(n.SHIPMENT_QTY,0)/IFNULL(n.SET_PAIR, 0) END AS PAIR_QTY,
     n.AMOUNT,
-    CASE WHEN m.PACKPLAN_ID IS NOT NULL THEN 1 ELSE 0 END AS SAVED 
+    CASE WHEN m.PACKPLAN_ID IS NOT NULL THEN 1 ELSE 0 END AS SAVED,
+    m.COL_INDEX
 FROM (
   SELECT a.PACKPLAN_ID, a.BUYER_PO, b.ORDER_REFERENCE_PO_NO, a.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME, b.PRODUCT_ITEM_ID,
   SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, SUM(a.AMOUNT) AMOUNT, 
@@ -467,6 +468,7 @@ LEFT JOIN packing_plan_po_sum m
 	ON m.PACKPLAN_ID = n.PACKPLAN_ID 
 	AND m.BUYER_PO = n.BUYER_PO
 	AND m.BUYER_COLOR_CODE = n.BUYER_COLOR_CODE
+ORDER BY m.COL_INDEX
 `;
 
 export const PackingPlanPoSum = db.define(
@@ -481,6 +483,8 @@ export const PackingPlanPoSum = db.define(
     BUYER_COLOR_CODE: { type: DataTypes.STRING },
     BUYER_COLOR_NAME: { type: DataTypes.STRING },
     ACT_UNIT_PRICE: { type: DataTypes.DECIMAL },
+    PO_INDEX: { type: DataTypes.INTEGER },
+    COL_INDEX: { type: DataTypes.INTEGER },
     SHIPMENT_QTY: { type: DataTypes.INTEGER },
     SET_PAIR: { type: DataTypes.INTEGER },
     PAIR_QTY: { type: DataTypes.INTEGER },
@@ -499,14 +503,194 @@ export const PackingPlanPoSum = db.define(
 
 PackingPlanPoSum.removeAttribute("id");
 
-export const qryGetLisPOPPID = `SELECT DISTINCT a.BUYER_PO FROM packing_plan_po_sum a WHERE a.PACKPLAN_ID = :ppid`;
+export const qryGetLisPOPPID = `SELECT DISTINCT a.BUYER_PO, a.ORDER_REFERENCE_PO_NO FROM packing_plan_po_sum a WHERE a.PACKPLAN_ID = :ppid`;
 export const qryGetLisSizePPID = `SELECT DISTINCT a.SIZE_CODE FROM packing_plan_detail a WHERE a.PACKPLAN_ID = :ppid`;
+export const qryGetLisColorPPID = `SELECT DISTINCT a.BUYER_PO, a.ORDER_REFERENCE_PO_NO, a.BUYER_COLOR_CODE, a.COL_INDEX, a.SHIPMENT_QTY
+FROM packing_plan_po_sum a WHERE a.PACKPLAN_ID = :ppid
+ORDER BY a.BUYER_PO, a.COL_INDEX`;
 
-export const qryGetSumPoPront = `SELECT DISTINCT
-a.BUYER_PO, b.PRODUCT_ITEM_ID, b.PRODUCT_ITEM_CODE, a.BUYER_COLOR_CODE, a.BUYER_COLOR_NAME, 
-a.SHIPMENT_QTY, a.PAIR_QTY, a.ACT_UNIT_PRICE, a.AMOUNT, 
-CASE WHEN a.ORDER_REFERENCE_PO_NO <> a.BUYER_PO THEN a.ORDER_REFERENCE_PO_NO END AS OLD_PO
-FROM packing_plan_po_sum a 
-LEFT JOIN order_po_listing b ON a.ORDER_REFERENCE_PO_NO = b.ORDER_REFERENCE_PO_NO
+// export const qryGetSumPoPront = `SELECT DISTINCT
+// a.BUYER_PO, b.PRODUCT_ITEM_ID, b.PRODUCT_ITEM_CODE, a.BUYER_COLOR_CODE, a.BUYER_COLOR_NAME,
+// a.SHIPMENT_QTY, a.PAIR_QTY, a.ACT_UNIT_PRICE, a.AMOUNT,
+// CASE WHEN a.ORDER_REFERENCE_PO_NO <> a.BUYER_PO THEN a.ORDER_REFERENCE_PO_NO END AS OLD_PO
+// FROM packing_plan_po_sum a
+// LEFT JOIN order_po_listing b ON a.ORDER_REFERENCE_PO_NO = b.ORDER_REFERENCE_PO_NO
+// WHERE a.PACKPLAN_ID = :ppid
+// GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE`;
+
+export const qrySumQtyPoBox = `SELECT 
+	n.*,
+	m.QTY_PER_BOX,
+	m.TTL_QTY_BOX,
+	m.TTL_BOX,
+	(n.SHIPMENT_QTY - m.TTL_QTY_BOX) AS BALANCE,
+  m.CTN_START,
+  m.CTN_END
+FROM (
+	SELECT 
+	CONCAT(a.PACKPLAN_ID,';',a.BUYER_PO,';',a.BUYER_COLOR_CODE,';',a.SIZE_CODE) AS ROWID, b.COL_INDEX,
+	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, 
+	 a.SIZE_CODE, d.BOX_CODE, SUM(a.SHIPMENT_QTY) SHIPMENT_QTY
+	FROM packing_plan_detail a 
+	LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
+	LEFT JOIN order_po_listing c ON c.ORDER_PO_ID = a.ORDER_PO_ID
+	LEFT JOIN pack_box_style d ON d.PRODUCT_ITEM_ID = c.PRODUCT_ITEM_ID AND a.SIZE_CODE = d.SIZE_CODE
+	WHERE a.PACKPLAN_ID = :ppid AND  b.ORDER_REFERENCE_PO_NO = :poNumber
+	GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE 
+	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE, a.SIZE_CODE
+) n 
+LEFT JOIN packing_plan_box_row m ON m.ROWID = n.ROWID`;
+
+// Definisikan model Anda
+export const PackingPlanBoxRow = db.define(
+  "packing_plan_box_row",
+  {
+    ROWID: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      primaryKey: true,
+    },
+    PACKPLAN_ID: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    ROW_INDEX: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    PRODUCT_ITEM_ID: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    PRODUCT_ITEM_CODE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    PO_INDEX: { type: DataTypes.INTEGER },
+    CTN_START: { type: DataTypes.INTEGER },
+    CTN_END: { type: DataTypes.INTEGER },
+    COL_INDEX: { type: DataTypes.INTEGER },
+    ROW_INDEX: { type: DataTypes.INTEGER },
+    BUYER_PO: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    BUYER_COLOR_CODE: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    BUYER_COLOR_NAME: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    BOX_CODE: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    SIZE_CODE: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    SHIPMENT_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    QTY_PER_BOX: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    TTL_QTY_BOX: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    TTL_BOX: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ADD_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    MOD_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ADD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    MOD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: "MOD_TIME",
+  }
+);
+
+export const PackPlanRowDetail = db.define(
+  "pack_plan_row_detail",
+  {
+    ROWID: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      primaryKey: true,
+    },
+    PACKPLAN_ID: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    SIZE_CODE: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    ADD_ID: {
+      type: DataTypes.BIGINT(20),
+      allowNull: true,
+    },
+    MOD_ID: {
+      type: DataTypes.BIGINT(20),
+      allowNull: true,
+    },
+    ADD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    MOD_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: "MOD_TIME",
+  }
+);
+
+export const qryGetRowDtl = `SELECT a.* FROM 
+packing_plan_box_row a 
+LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
+		AND a.BUYER_PO = b.BUYER_PO 
+		AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
 WHERE a.PACKPLAN_ID = :ppid
-GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE`;
+ORDER BY b.ADD_TIME, a.BUYER_PO, a.COL_INDEX, a.CTN_START
+`;
+
+export const qryQtySizeRowDtl = `SELECT a.ROWID, a.PACKPLAN_ID, a.SIZE_CODE, a.QTY FROM  
+pack_plan_row_detail a 
+WHERE a.PACKPLAN_ID = :ppid`;
+
+export const qryGetRowColQty = `SELECT 
+a.PACKPLAN_ID,  a.BUYER_PO, 	a.BUYER_COLOR_CODE,
+ a.SIZE_CODE,SUM(a.SHIPMENT_QTY) SHIPMENT_QTY
+FROM packing_plan_detail a 
+WHERE a.PACKPLAN_ID = :ppid -- AND  b.ORDER_REFERENCE_PO_NO = :poNumber
+GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE `;
