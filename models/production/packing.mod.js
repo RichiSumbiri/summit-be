@@ -444,7 +444,7 @@ export const PackingPlanDetail = db.define(
 PackingPlanDetail.removeAttribute("id");
 
 export const qrySumPoDetil = `SELECT 
-    n.PACKPLAN_ID, n.BUYER_PO, n.ORDER_REFERENCE_PO_NO, n.BUYER_COLOR_CODE, n.BUYER_COLOR_NAME,  n.PRODUCT_ITEM_ID,
+    n.PACKPLAN_ID, n.BUYER_PO, n.ORDER_REFERENCE_PO_NO, n.BUYER_COLOR_CODE, n.BUYER_COLOR_NAME,  n.PRODUCT_ITEM_ID, n.PRODUCT_ITEM_CODE,
     n.SHIPMENT_QTY, 
     n.ACT_UNIT_PRICE,
     CASE WHEN n.SET_PAIR = 1 THEN 0 ELSE n.SET_PAIR END AS  SET_PAIR,
@@ -453,7 +453,7 @@ export const qrySumPoDetil = `SELECT
     CASE WHEN m.PACKPLAN_ID IS NOT NULL THEN 1 ELSE 0 END AS SAVED,
     m.COL_INDEX
 FROM (
-  SELECT a.PACKPLAN_ID, a.BUYER_PO, b.ORDER_REFERENCE_PO_NO, a.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME, b.PRODUCT_ITEM_ID,
+  SELECT a.PACKPLAN_ID, a.BUYER_PO, b.ORDER_REFERENCE_PO_NO, a.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME, b.PRODUCT_ITEM_ID, b.PRODUCT_ITEM_CODE,
   SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, SUM(a.AMOUNT) AMOUNT, 
   AVG(DISTINCT a.ACT_UNIT_PRICE) ACT_UNIT_PRICE,
   COUNT(DISTINCT b.ITEM_COLOR_CODE) SET_PAIR
@@ -480,6 +480,8 @@ export const PackingPlanPoSum = db.define(
     },
     ORDER_REFERENCE_PO_NO: { type: DataTypes.STRING },
     BUYER_PO: { type: DataTypes.STRING },
+    PRODUCT_ITEM_ID: { type: DataTypes.STRING },
+    PRODUCT_ITEM_CODE: { type: DataTypes.STRING },
     BUYER_COLOR_CODE: { type: DataTypes.STRING },
     BUYER_COLOR_NAME: { type: DataTypes.STRING },
     ACT_UNIT_PRICE: { type: DataTypes.DECIMAL },
@@ -523,14 +525,16 @@ export const qrySumQtyPoBox = `SELECT
 	m.QTY_PER_BOX,
 	m.TTL_QTY_BOX,
 	m.TTL_BOX,
-	(n.SHIPMENT_QTY - m.TTL_QTY_BOX) AS BALANCE,
-  m.CTN_START,
-  m.CTN_END
+	(n.AFTER_SET_QTY - m.TTL_QTY_BOX) AS BALANCE,
+   m.CTN_START,
+   m.CTN_END
 FROM (
 	SELECT 
 	CONCAT(a.PACKPLAN_ID,';',a.BUYER_PO,';',a.BUYER_COLOR_CODE,';',a.SIZE_CODE) AS ROWID, b.COL_INDEX,
 	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, 
-	 a.SIZE_CODE, d.BOX_CODE, SUM(a.SHIPMENT_QTY) SHIPMENT_QTY
+	 a.SIZE_CODE, d.BOX_CODE, b.SET_PAIR,  
+  SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, -- tanpa set
+	CASE WHEN b.SET_PAIR <> 0 THEN SUM(a.SHIPMENT_QTY)/b.SET_PAIR ELSE  SUM(a.SHIPMENT_QTY) END AS AFTER_SET_QTY -- set qty
 	FROM packing_plan_detail a 
 	LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
 	LEFT JOIN order_po_listing c ON c.ORDER_PO_ID = a.ORDER_PO_ID
@@ -540,6 +544,28 @@ FROM (
 	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE, a.SIZE_CODE
 ) n 
 LEFT JOIN packing_plan_box_row m ON m.ROWID = n.ROWID`;
+// export const qrySumQtyPoBox = `SELECT
+// 	n.*,
+// 	m.QTY_PER_BOX,
+// 	m.TTL_QTY_BOX,
+// 	m.TTL_BOX,
+// 	(n.SHIPMENT_QTY - m.TTL_QTY_BOX) AS BALANCE,
+//   m.CTN_START,
+//   m.CTN_END
+// FROM (
+// 	SELECT
+// 	CONCAT(a.PACKPLAN_ID,';',a.BUYER_PO,';',a.BUYER_COLOR_CODE,';',a.SIZE_CODE) AS ROWID, b.COL_INDEX,
+// 	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME,
+// 	 a.SIZE_CODE, d.BOX_CODE, SUM(a.SHIPMENT_QTY) SHIPMENT_QTY
+// 	FROM packing_plan_detail a
+// 	LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
+// 	LEFT JOIN order_po_listing c ON c.ORDER_PO_ID = a.ORDER_PO_ID
+// 	LEFT JOIN pack_box_style d ON d.PRODUCT_ITEM_ID = c.PRODUCT_ITEM_ID AND a.SIZE_CODE = d.SIZE_CODE
+// 	WHERE a.PACKPLAN_ID = :ppid AND  b.ORDER_REFERENCE_PO_NO = :poNumber
+// 	GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE
+// 	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE, a.SIZE_CODE
+// ) n
+// LEFT JOIN packing_plan_box_row m ON m.ROWID = n.ROWID`;
 
 // Definisikan model Anda
 export const PackingPlanBoxRow = db.define(
@@ -558,14 +584,14 @@ export const PackingPlanBoxRow = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    PRODUCT_ITEM_ID: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    PRODUCT_ITEM_CODE: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
+    // PRODUCT_ITEM_ID: {
+    //   type: DataTypes.STRING(50),
+    //   allowNull: true,
+    // },
+    // PRODUCT_ITEM_CODE: {
+    //   type: DataTypes.STRING(100),
+    //   allowNull: true,
+    // },
     PO_INDEX: { type: DataTypes.INTEGER },
     CTN_START: { type: DataTypes.INTEGER },
     CTN_END: { type: DataTypes.INTEGER },
@@ -579,10 +605,10 @@ export const PackingPlanBoxRow = db.define(
       type: DataTypes.STRING(150),
       allowNull: true,
     },
-    BUYER_COLOR_NAME: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-    },
+    // BUYER_COLOR_NAME: {
+    //   type: DataTypes.STRING(150),
+    //   allowNull: true,
+    // },
     BOX_CODE: {
       type: DataTypes.STRING(150),
       allowNull: true,
@@ -592,6 +618,10 @@ export const PackingPlanBoxRow = db.define(
       allowNull: true,
     },
     SHIPMENT_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    AFTER_SET_QTY: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
@@ -675,7 +705,7 @@ export const PackPlanRowDetail = db.define(
   }
 );
 
-export const qryGetRowDtl = `SELECT a.* FROM 
+export const qryGetRowDtl = `SELECT a.*, b.PRODUCT_ITEM_CODE FROM 
 packing_plan_box_row a 
 LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
 		AND a.BUYER_PO = b.BUYER_PO 
@@ -684,13 +714,16 @@ WHERE a.PACKPLAN_ID = :ppid
 ORDER BY b.ADD_TIME, a.BUYER_PO, a.COL_INDEX, a.CTN_START
 `;
 
-export const qryQtySizeRowDtl = `SELECT a.ROWID, a.PACKPLAN_ID, a.SIZE_CODE, a.QTY FROM  
-pack_plan_row_detail a 
+export const qryQtySizeRowDtl = `SELECT a.ROWID, a.PACKPLAN_ID, a.SIZE_CODE, a.QTY , (a.QTY*b.TTL_BOX) TTL_QTY
+FROM pack_plan_row_detail a 
+LEFT JOIN packing_plan_box_row  b ON a.ROWID = b.ROWID
 WHERE a.PACKPLAN_ID = :ppid`;
 
 export const qryGetRowColQty = `SELECT 
-a.PACKPLAN_ID,  a.BUYER_PO, 	a.BUYER_COLOR_CODE,
- a.SIZE_CODE,SUM(a.SHIPMENT_QTY) SHIPMENT_QTY
+a.PACKPLAN_ID,  a.BUYER_PO, 	a.BUYER_COLOR_CODE, 
+ a.SIZE_CODE,
+ CASE WHEN b.SET_PAIR <> 0 THEN SUM(a.SHIPMENT_QTY)/b.SET_PAIR ELSE  SUM(a.SHIPMENT_QTY) END AS AFTER_SET_QTY -- set qty
 FROM packing_plan_detail a 
+LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
 WHERE a.PACKPLAN_ID = :ppid -- AND  b.ORDER_REFERENCE_PO_NO = :poNumber
 GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE `;

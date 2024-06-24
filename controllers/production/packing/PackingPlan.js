@@ -715,21 +715,23 @@ export const getPoByrBox = async (req, res) => {
 //post generate row box
 export async function postGenerateRowBox(req, res) {
   try {
-    const datas = req.body;
-    if (!datas)
+    const { arrRow, arrRowDetail } = req.body;
+
+    if (!arrRow)
       return res.status(404).json({
         message: "No Data For Post",
       });
 
-    const listRowId = datas.map((items) => items.ROWID);
+    const listRowId = arrRow.map((items) => items.ROWID);
 
     const dataRows = [];
     let po = "";
     let color = "";
     let idxPo = 0;
     let idxRow = 0;
-    for (let index = 0; index < datas.length; index++) {
-      const items = datas[index];
+
+    for (let index = 0; index < arrRow.length; index++) {
+      const items = arrRow[index];
       if (po !== items.BUYER_PO) {
         po = items.BUYER_PO;
         idxPo = 0;
@@ -765,17 +767,17 @@ export async function postGenerateRowBox(req, res) {
       },
     });
 
-    const detailRow = datas.map((item) => ({
-      ROWID: item.ROWID,
-      PACKPLAN_ID: item.PACKPLAN_ID,
-      SIZE_CODE: item.SIZE_CODE,
-      QTY: item.QTY_PER_BOX,
-      ADD_ID: item.ADD_ID,
-    }));
+    // const detailRow = arrRow.map((item) => ({
+    //   ROWID: item.ROWID,
+    //   PACKPLAN_ID: item.PACKPLAN_ID,
+    //   SIZE_CODE: item.SIZE_CODE,
+    //   QTY: item.QTY_PER_BOX,
+    //   ADD_ID: item.ADD_ID,
+    // }));
 
     const headerPost = await PackingPlanBoxRow.bulkCreate(dataRows);
 
-    const detailPost = await PackPlanRowDetail.bulkCreate(detailRow);
+    const detailPost = await PackPlanRowDetail.bulkCreate(arrRowDetail);
 
     if (headerPost && detailPost)
       return res.json({
