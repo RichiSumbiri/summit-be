@@ -606,9 +606,13 @@ export const delPackPosum = async (req, res) => {
       BUYER_PO: poNumber,
     };
 
+    let rowId = `${ppid};${poNumber}`;
+
     if (colorCode) {
       paramWhere.BUYER_COLOR_CODE = clrCode;
+      rowId = rowId + `;${clrCode}`;
     }
+    rowId + "%";
 
     await PackingPlanDetail.destroy({
       where: paramWhere,
@@ -621,7 +625,7 @@ export const delPackPosum = async (req, res) => {
     await PackingPlanBoxRow.destroy({
       where: {
         ROWID: {
-          [Op.like]: `${ppid};${[poNumber]}%`,
+          [Op.like]: rowId,
         },
       },
     });
@@ -629,7 +633,7 @@ export const delPackPosum = async (req, res) => {
     await PackPlanRowDetail.destroy({
       where: {
         ROWID: {
-          [Op.like]: `${ppid};${[poNumber]}%`,
+          [Op.like]: rowId,
         },
       },
     });

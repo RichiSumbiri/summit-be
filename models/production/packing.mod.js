@@ -714,7 +714,7 @@ export const PackPlanRowDetail = db.define(
   }
 );
 
-export const qryGetRowDtl = `SELECT a.*, b.PRODUCT_ITEM_CODE FROM 
+export const qryGetRowDtl = `SELECT a.*, b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME FROM 
 packing_plan_box_row a 
 LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
 		AND a.BUYER_PO = b.BUYER_PO 
@@ -723,7 +723,7 @@ WHERE a.PACKPLAN_ID = :ppid
 ORDER BY b.ADD_TIME, a.BUYER_PO, a.COL_INDEX, a.CTN_START
 `;
 
-export const qryGetRowDtlOne = `SELECT a.*, b.PRODUCT_ITEM_CODE FROM 
+export const qryGetRowDtlOne = `SELECT a.*, b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME FROM 
 packing_plan_box_row a 
 LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
 		AND a.BUYER_PO = b.BUYER_PO 
