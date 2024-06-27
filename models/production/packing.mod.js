@@ -527,12 +527,13 @@ export const qrySumQtyPoBox = `SELECT
 	m.TTL_BOX,
 	(n.AFTER_SET_QTY - m.TTL_QTY_BOX) AS BALANCE,
    m.CTN_START,
-   m.CTN_END
+   m.CTN_END,
+   IFNULL(m.ROW_TYPE,'GEN') AS ROW_TYPE
 FROM (
 	SELECT 
 	CONCAT(a.PACKPLAN_ID,';',a.BUYER_PO,';',a.BUYER_COLOR_CODE,';',a.SIZE_CODE) AS ROWID, b.COL_INDEX,
 	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, 
-	 a.SIZE_CODE, d.BOX_CODE, b.SET_PAIR,  
+	 a.SIZE_CODE, d.BOX_ID, d.BOX_CODE, b.SET_PAIR,  
   SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, -- tanpa set
 	CASE WHEN b.SET_PAIR <> 0 THEN SUM(a.SHIPMENT_QTY)/b.SET_PAIR ELSE  SUM(a.SHIPMENT_QTY) END AS AFTER_SET_QTY -- set qty
 	FROM packing_plan_detail a 
@@ -578,6 +579,14 @@ export const PackingPlanBoxRow = db.define(
     },
     PACKPLAN_ID: {
       type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    ROW_TYPE: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    BOX_ID: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     ROW_INDEX: {
@@ -714,6 +723,15 @@ WHERE a.PACKPLAN_ID = :ppid
 ORDER BY b.ADD_TIME, a.BUYER_PO, a.COL_INDEX, a.CTN_START
 `;
 
+export const qryGetRowDtlOne = `SELECT a.*, b.PRODUCT_ITEM_CODE FROM 
+packing_plan_box_row a 
+LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
+		AND a.BUYER_PO = b.BUYER_PO 
+		AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
+WHERE a.ROWID = :rowId
+ORDER BY b.ADD_TIME, a.BUYER_PO, a.COL_INDEX, a.CTN_START
+`;
+
 export const qryQtySizeRowDtl = `SELECT a.ROWID, a.PACKPLAN_ID, a.SIZE_CODE, a.QTY , (a.QTY*b.TTL_BOX) TTL_QTY
 FROM pack_plan_row_detail a 
 LEFT JOIN packing_plan_box_row  b ON a.ROWID = b.ROWID
@@ -727,3 +745,5 @@ FROM packing_plan_detail a
 LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
 WHERE a.PACKPLAN_ID = :ppid -- AND  b.ORDER_REFERENCE_PO_NO = :poNumber
 GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE `;
+
+export const qrySumNewQtyRow = `SELECT SUM(a.QTY) QTY FROM pack_plan_row_detail a WHERE a.ROWID = :rowId`;

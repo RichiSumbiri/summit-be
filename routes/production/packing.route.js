@@ -18,6 +18,8 @@ import {
 } from "../../controllers/production/packing/PackingQrSplit.js";
 import {
   PosPackPlanDetail,
+  PostOneDtlRowPpid,
+  delOneDetailPpid,
   delPackPosum,
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
@@ -40,6 +42,7 @@ import {
   postPackPosum,
   postSetCartonStyle,
   postSetCtnPrepack,
+  updateOneRowPpid,
 } from "../../controllers/production/packing/PackingPlan.js";
 const router = express.Router();
 
@@ -91,7 +94,13 @@ router.post("/plann-detail-size/", PosPackPlanDetail);
 router.post("/plann-po-summary/", postPackPosum);
 router.post("/po-buyer-data/", postPackBuyerPo);
 
+router.patch("/update-one-rows-ppid/", updateOneRowPpid);
+
 router.delete("/plann-po-summary", delPackPosum);
+
+// detail row manual add and delete
+router.post("/packing-add-detail-one", PostOneDtlRowPpid);
+router.delete("/packing-delete-detail-one/:rowId/:size", delOneDetailPpid);
 
 //post data generate row
 router.post("/generate-row-box/", postGenerateRowBox);

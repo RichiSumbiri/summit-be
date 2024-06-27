@@ -1,4 +1,4 @@
-import { QueryTypes, where } from "sequelize";
+import { Op, QueryTypes, where } from "sequelize";
 import db from "../../../config/database.js";
 import {
   CartonBox,
@@ -23,10 +23,12 @@ import {
   qryGetPackMethod,
   qryGetRowColQty,
   qryGetRowDtl,
+  qryGetRowDtlOne,
   // qryGetSumPoPront,
   qryGetlistPo,
   qryPackPoIdPoBuyer,
   qryQtySizeRowDtl,
+  qrySumNewQtyRow,
   qrySumPoDetil,
   qrySumQtyPoBox,
   queryGetSytleByBuyer,
@@ -616,6 +618,22 @@ export const delPackPosum = async (req, res) => {
       where: paramWhere,
     });
 
+    await PackingPlanBoxRow.destroy({
+      where: {
+        ROWID: {
+          [Op.like]: `${ppid};${[poNumber]}%`,
+        },
+      },
+    });
+
+    await PackPlanRowDetail.destroy({
+      where: {
+        ROWID: {
+          [Op.like]: `${ppid};${[poNumber]}%`,
+        },
+      },
+    });
+
     return res.json({
       status: "success",
       message: "Success Post Packing detail",
@@ -828,6 +846,160 @@ export const getListRowDtlPo = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get list po ppid",
+      data: error,
+    });
+  }
+};
+
+//update one rows
+export const updateOneRowPpid = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data)
+      return res.status(404).json({
+        message: "No Data For Update",
+      });
+
+    const updateROw = await PackingPlanBoxRow.update(data, {
+      where: {
+        ROWID: data.ROWID,
+      },
+    });
+    if (updateROw) {
+      return res.json({ status: true, message: "Success update row" });
+    } else {
+      return res.json({ status: false });
+    }
+  } catch (error) {
+    return res.status(404).json({
+      message: "error patsch rowid",
+      data: error,
+    });
+  }
+};
+
+//delete one detail row
+export const delOneDetailPpid = async (req, res) => {
+  try {
+    const { size, rowId } = req.params;
+
+    if (!size || !rowId)
+      return res.status(404).json({
+        message: "No Data For Update",
+      });
+    const endCodRowId = decodeURIComponent(rowId);
+    const deleteDetail = await PackPlanRowDetail.destroy({
+      where: {
+        ROWID: endCodRowId,
+        SIZE_CODE: size,
+      },
+    });
+
+    if (!deleteDetail)
+      return res.status(404).json({ status: false, message: "Gagal Update" });
+
+    const findNewQty = await db.query(qrySumNewQtyRow, {
+      replacements: { rowId: endCodRowId },
+      type: QueryTypes.SELECT,
+    });
+    const newvalue = findNewQty[0] ? findNewQty[0].QTY : 0;
+    const valUpdate = {
+      SHIPMENT_QTY: newvalue,
+      AFTER_SET_QTY: newvalue,
+      QTY_PER_BOX: newvalue,
+      TTL_QTY_BOX: newvalue,
+    };
+
+    const updateROw = await PackingPlanBoxRow.update(valUpdate, {
+      where: {
+        ROWID: endCodRowId,
+      },
+    });
+
+    const findResult = await db.query(qryGetRowDtlOne, {
+      replacements: { rowId: endCodRowId },
+      type: QueryTypes.SELECT,
+    });
+
+    if (updateROw) {
+      return res.json({
+        status: true,
+        data: findResult[0],
+        message: "Success update row",
+      });
+    } else {
+      return res.json({ status: false });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error patsch rowid",
+      data: error,
+    });
+  }
+};
+
+//post one detail row
+export const PostOneDtlRowPpid = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data)
+      return res.status(404).json({
+        message: "No Data For Update",
+      });
+
+    const postDetail = await PackPlanRowDetail.create(data, {
+      raw: true,
+    });
+
+    if (!postDetail)
+      return res.status(404).json({ status: false, message: "Gagal Update" });
+
+    const findNewQty = await db.query(qrySumNewQtyRow, {
+      replacements: { rowId: data.ROWID },
+      type: QueryTypes.SELECT,
+    });
+
+    const newvalue = findNewQty[0] ? findNewQty[0].QTY : 0;
+    const valUpdate = {
+      SHIPMENT_QTY: newvalue,
+      AFTER_SET_QTY: newvalue,
+      QTY_PER_BOX: newvalue,
+      TTL_QTY_BOX: newvalue,
+    };
+
+    const updateROw = await PackingPlanBoxRow.update(valUpdate, {
+      where: {
+        ROWID: data.ROWID,
+      },
+    });
+
+    const findResult = await db.query(qryGetRowDtlOne, {
+      replacements: { rowId: data.ROWID },
+      type: QueryTypes.SELECT,
+    });
+
+    const plainPostDetail = postDetail.get({ plain: true });
+    const newDetails = {
+      ...plainPostDetail,
+      TTL_QTY: plainPostDetail.QTY * findResult[0].TTL_BOX,
+    };
+
+    if (updateROw) {
+      return res.json({
+        status: true,
+        data: { rowData: findResult[0], detailData: newDetails },
+        message: "Success update row",
+      });
+    } else {
+      return res.json({ status: false });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error patsch rowid",
       data: error,
     });
   }
