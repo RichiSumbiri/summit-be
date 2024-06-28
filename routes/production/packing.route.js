@@ -42,6 +42,7 @@ import {
   postPackPosum,
   postSetCartonStyle,
   postSetCtnPrepack,
+  updateDataPackPlanHeader,
   updateOneRowPpid,
 } from "../../controllers/production/packing/PackingPlan.js";
 const router = express.Router();
@@ -90,6 +91,7 @@ router.get("/plann-poboxdetail/:poNum/:ppid", getPoByrBox);
 router.get("/plann-rowDetail/:ppid", getListRowDtlPo);
 
 router.post("/plann-data/", postDataPackPlanHeader);
+router.patch("/plann-data/", updateDataPackPlanHeader);
 router.post("/plann-detail-size/", PosPackPlanDetail);
 router.post("/plann-po-summary/", postPackPosum);
 router.post("/po-buyer-data/", postPackBuyerPo);

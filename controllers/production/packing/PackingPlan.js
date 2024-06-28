@@ -361,6 +361,26 @@ export const postDataPackPlanHeader = async (req, res) => {
   }
 };
 
+export const updateDataPackPlanHeader = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data) res.status(400).json({ message: "no data provided" });
+
+    const updateData = PackPlanHeader.update(data, {
+      where: { PACKPLAN_ID: data.PACKPLAN_ID },
+    });
+    if (updateData)
+      return res.status(200).json({ message: "Success UPdate Header Post" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi by buyer",
+      data: error,
+    });
+  }
+};
+
 //get list po
 export const getQryListPo = async (req, res) => {
   try {
