@@ -506,7 +506,10 @@ export const PackingPlanPoSum = db.define(
 PackingPlanPoSum.removeAttribute("id");
 
 export const qryGetLisPOPPID = `SELECT DISTINCT a.BUYER_PO, a.ORDER_REFERENCE_PO_NO FROM packing_plan_po_sum a WHERE a.PACKPLAN_ID = :ppid`;
-export const qryGetLisSizePPID = `SELECT DISTINCT a.SIZE_CODE FROM packing_plan_detail a WHERE a.PACKPLAN_ID = :ppid`;
+export const qryGetLisSizePPID = `SELECT DISTINCT a.SIZE_CODE, c.SORT_TYPE FROM packing_plan_detail a 
+	LEFT JOIN packing_plan_header b ON b.PACKPLAN_ID = a.PACKPLAN_ID
+	LEFT JOIN item_buyer_size_sort c ON b.PACKPLAN_BUYER = c.BUYER
+WHERE a.PACKPLAN_ID = :ppid`;
 export const qryGetLisColorPPID = `SELECT DISTINCT a.BUYER_PO, a.ORDER_REFERENCE_PO_NO, a.BUYER_COLOR_CODE, a.COL_INDEX, a.SHIPMENT_QTY
 FROM packing_plan_po_sum a WHERE a.PACKPLAN_ID = :ppid
 ORDER BY a.BUYER_PO, a.COL_INDEX`;
@@ -533,13 +536,15 @@ FROM (
 	SELECT 
 	CONCAT(a.PACKPLAN_ID,';',a.BUYER_PO,';',a.BUYER_COLOR_CODE,';',a.SIZE_CODE) AS ROWID, b.COL_INDEX,
 	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, 
-	 a.SIZE_CODE, d.BOX_ID, d.BOX_CODE, b.SET_PAIR,  
+	 a.SIZE_CODE, d.BOX_ID, d.BOX_CODE, b.SET_PAIR, f.SORT_TYPE,
   SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, -- tanpa set
 	CASE WHEN b.SET_PAIR <> 0 THEN SUM(a.SHIPMENT_QTY)/b.SET_PAIR ELSE  SUM(a.SHIPMENT_QTY) END AS AFTER_SET_QTY -- set qty
 	FROM packing_plan_detail a 
 	LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
 	LEFT JOIN order_po_listing c ON c.ORDER_PO_ID = a.ORDER_PO_ID
 	LEFT JOIN pack_box_style d ON d.PRODUCT_ITEM_ID = c.PRODUCT_ITEM_ID AND a.SIZE_CODE = d.SIZE_CODE
+	LEFT JOIN packing_plan_header e ON e.PACKPLAN_ID = a.PACKPLAN_ID
+	LEFT JOIN item_buyer_size_sort f ON e.PACKPLAN_BUYER = f.BUYER
 	WHERE a.PACKPLAN_ID = :ppid AND  b.ORDER_REFERENCE_PO_NO = :poNumber
 	GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE 
 	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE, a.SIZE_CODE

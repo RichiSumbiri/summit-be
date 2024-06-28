@@ -168,3 +168,65 @@ export function getRangeDate(newDate) {
     day.format("YYYY-MM-DD")
   );
 }
+
+export function customSortByLetterFirst(arrOfObj, key) {
+  return arrOfObj.sort((a, b) => {
+    const [numA, letterA] = a[key].match(/(\d+)(\D+)/).slice(1);
+    const [numB, letterB] = b[key].match(/(\d+)(\D+)/).slice(1);
+
+    if (letterA < letterB) return -1;
+    if (letterA > letterB) return 1;
+
+    return numA - numB;
+  });
+}
+
+export function customSortByNumberFirst(arrOfObj, key) {
+  return arrOfObj.sort((a, b) => {
+    const [numA, letterA] = a[key].match(/(\d+)(\D+)/).slice(1);
+    const [numB, letterB] = b[key].match(/(\d+)(\D+)/).slice(1);
+
+    if (numA !== numB) {
+      return numA - numB;
+    }
+
+    if (letterA < letterB) return -1;
+    if (letterA > letterB) return 1;
+
+    return 0; // Angka dan huruf sama
+  });
+}
+
+export function cstmArrSortSizeByLetter(arr) {
+  return arr.sort((a, b) => {
+    // Pisahkan angka dan huruf
+    const [numA, letterA] = a.match(/(\d+)(\D+)/).slice(1);
+    const [numB, letterB] = b.match(/(\d+)(\D+)/).slice(1);
+
+    // Bandingkan huruf dulu
+    if (letterA < letterB) return -1;
+    if (letterA > letterB) return 1;
+
+    // Jika huruf sama, bandingkan angka
+    return numA - numB;
+  });
+}
+
+export function cstArrSortByNumberFirst(arr) {
+  return arr.sort((a, b) => {
+    // Pisahkan angka dan huruf
+    const [numA, letterA] = a.match(/(\d+)(\D+)/).slice(1);
+    const [numB, letterB] = b.match(/(\d+)(\D+)/).slice(1);
+
+    // Bandingkan angka dulu
+    if (numA !== numB) {
+      return numA - numB;
+    }
+
+    // Jika angka sama, bandingkan huruf
+    if (letterA < letterB) return -1;
+    if (letterA > letterB) return 1;
+
+    return 0; // Angka dan huruf sama
+  });
+}

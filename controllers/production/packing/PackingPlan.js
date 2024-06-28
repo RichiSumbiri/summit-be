@@ -34,6 +34,10 @@ import {
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
+import {
+  customSortByLetterFirst,
+  customSortByNumberFirst,
+} from "../../util/Utility.js";
 
 export const getListStylePack = async (req, res) => {
   try {
@@ -493,7 +497,7 @@ export const PosPackPlanDetail = async (req, res) => {
         });
       }
       if (checkExist && !ppDetail.SHIPMENT_QTY) {
-        console.log("execute delete");
+        // console.log("execute delete");
         await PackingPlanDetail.destroy({
           where: {
             UNIKID: ppDetail.UNIKID,
@@ -661,10 +665,17 @@ export const getLisPoPPID = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const lisSizePpid = await db.query(qryGetLisSizePPID, {
+    const lisSizePpidHd = await db.query(qryGetLisSizePPID, {
       replacements: { ppid },
       type: QueryTypes.SELECT,
     });
+
+    let lisSizePpid = lisSizePpidHd;
+    if (lisSizePpidHd.length !== 0 && lisSizePpidHd[0].SORT_TYPE === "letter") {
+      lisSizePpid = customSortByLetterFirst(lisSizePpidHd, "SIZE_CODE");
+    } else {
+      lisSizePpid = customSortByNumberFirst(lisSizePpidHd, "SIZE_CODE");
+    }
 
     const lisColorPpid = await db.query(qryGetLisColorPPID, {
       replacements: { ppid },
@@ -724,7 +735,14 @@ export const getPoByrBox = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    return res.json({ data: sumPODetail });
+    let sortSizeCode = sumPODetail;
+    if (sumPODetail.length !== 0 && sumPODetail[0].SORT_TYPE === "letter") {
+      sortSizeCode = customSortByLetterFirst(sumPODetail, "SIZE_CODE");
+    } else {
+      sortSizeCode = customSortByNumberFirst(sumPODetail, "SIZE_CODE");
+    }
+
+    return res.json({ data: sortSizeCode });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
