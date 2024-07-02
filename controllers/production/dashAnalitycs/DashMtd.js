@@ -38,7 +38,7 @@ export const getDataMtd = async (req, res) => {
     const theYear = moment(dates[0]).format("YYYY");
     const listWeekOneYear = await getListWe(theYear);
 
-    let queryString = `MONTH(a.SCHD_PROD_DATE) = MONTH('${dates[0]}')`;
+    let queryString = `MONTH(a.SCHD_PROD_DATE) = MONTH('${dates[0]}') AND YEAR(a.SCHD_PROD_DATE) =  YEAR('${dates[0]}') `;
 
     if (site) {
       const sites = site
@@ -78,6 +78,7 @@ export const getDataMtd = async (req, res) => {
     // console.log(queryString);
 
     const whereQuery = QueryMonthRep(queryString);
+
     const monthlyDatas = await db.query(whereQuery, {
       // replacements: {
       //   capId: capData.ID_CAPACITY,
