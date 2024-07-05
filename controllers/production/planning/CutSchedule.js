@@ -747,7 +747,7 @@ export const QRScanSuperMarketIn = async (req, res) => {
         });
         if (ttlScanInQty.length > 0) {
           const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
-          console.log({ ttlInQty, SCH_SIZE_QTY });
+          // console.log({ ttlInQty, SCH_SIZE_QTY });
 
           if (ttlInQty > SCH_SIZE_QTY)
             return res.status(200).json({
