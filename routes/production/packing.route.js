@@ -19,8 +19,11 @@ import {
 import {
   PosPackPlanDetail,
   PostOneDtlRowPpid,
+  chgCtnStartNo,
   delOneDetailPpid,
   delPackPosum,
+  deletePPIDEntire,
+  deletePackBox,
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
   getLisPoPPID,
@@ -28,6 +31,7 @@ import {
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
+  getPackPlanMethod,
   getPackingPlanHd,
   getPackingPlanId,
   getPoByrBox,
@@ -36,6 +40,7 @@ import {
   getRefPackPlanByByr,
   getResltBoxStyle,
   postDataPackPlanHeader,
+  postGenPrePack,
   postGenerateRowBox,
   postPackBox,
   postPackBuyerPo,
@@ -74,10 +79,12 @@ router.get("/getresult-box-style/:prodItemCode", getResltBoxStyle);
 router.post("/list-box-buyer", postPackBox);
 router.post("/set-box-style-size/:prodItemCode", postSetCartonStyle);
 router.post("/set-box-style-size-prepack/:prodItemCode", postSetCtnPrepack);
+router.delete("/list-box-buyer/:BOX_ID/:BUYER_CODE", deletePackBox);
 
 // packing plan
 
 router.get("/plann/id", getPackingPlanId);
+router.get("/plann-pack-methode", getPackPlanMethod);
 router.get(`/plann-header/:customer/:startDate/:endDate`, getPackingPlanHd);
 router.get("/plann-polist-for-ppid/:ppid", getLisPoPPID);
 
@@ -85,9 +92,9 @@ router.get("/plann-polist-for-ppid/:ppid", getLisPoPPID);
 router.get("/plann-referensi/:customer", getRefPackPlanByByr);
 router.get("/plann-ref-ponumber/:buyer/:poNum", getQryListPo);
 router.get("/plann-poList-buyer/:poNum", getDataPolistPoBuyer);
-router.get("/plann-podetail-size/:poNum/:ppid", getDataPoSizeForPack);
-router.get("/plann-podetail-summary/:poNum/:ppid", getQrySumDetail);
-router.get("/plann-poboxdetail/:poNum/:ppid", getPoByrBox);
+router.get("/plann-podetail-size/:poNum/:ppidSeqId", getDataPoSizeForPack);
+router.get("/plann-podetail-summary/:poNum/:ppidSeqId", getQrySumDetail);
+router.get("/plann-poboxdetail/:seqPoPpid", getPoByrBox);
 router.get("/plann-rowDetail/:ppid", getListRowDtlPo);
 
 router.post("/plann-data/", postDataPackPlanHeader);
@@ -99,6 +106,7 @@ router.post("/po-buyer-data/", postPackBuyerPo);
 router.patch("/update-one-rows-ppid/", updateOneRowPpid);
 
 router.delete("/plann-po-summary", delPackPosum);
+router.delete("/plann-data/:PPID", deletePPIDEntire);
 
 // detail row manual add and delete
 router.post("/packing-add-detail-one", PostOneDtlRowPpid);
@@ -106,4 +114,6 @@ router.delete("/packing-delete-detail-one/:rowId/:size", delOneDetailPpid);
 
 //post data generate row
 router.post("/generate-row-box/", postGenerateRowBox);
+router.post("/generate-row-box-prepack/", postGenPrePack);
+router.post("/change-row-box-prepack/", chgCtnStartNo);
 export default router;

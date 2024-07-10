@@ -4,6 +4,7 @@ import {
   CartonBox,
   OrderPoBuyer,
   PackBoxStyle,
+  PackMethodeList,
   PackPlanHeader,
   PackPlanRowDetail,
   PackingPlanBoxRow,
@@ -15,6 +16,8 @@ import {
   qryDeliveryMode,
   qryGetCusDivision,
   qryGetCustLoaction,
+  qryGetDistcPoBuyer,
+  qryGetDistcPoRef,
   qryGetLastPPI,
   qryGetLisColorPPID,
   qryGetLisPOPPID,
@@ -31,6 +34,7 @@ import {
   qrySumNewQtyRow,
   qrySumPoDetil,
   qrySumQtyPoBox,
+  qrySumQtyPoBoxPrepack,
   queryGetSytleByBuyer,
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
@@ -87,8 +91,12 @@ export const getPackBox = async (req, res) => {
 export const postPackBox = async (req, res) => {
   try {
     const dataPost = req.body;
+    const { update } = req.query;
+    const { BOX_ID } = dataPost;
 
-    const postBox = await CartonBox.create(dataPost);
+    const postBox = update
+      ? await CartonBox.update(dataPost, { where: { BOX_ID: BOX_ID } })
+      : await CartonBox.create(dataPost);
 
     if (postBox) {
       const listBoxSpec = await CartonBox.findAll({
@@ -98,9 +106,10 @@ export const postPackBox = async (req, res) => {
         raw: true,
       });
 
-      return res
-        .status(200)
-        .json({ message: "Success Add", data: listBoxSpec });
+      return res.status(200).json({
+        message: `Success ${update ? "update" : "create"} box`,
+        data: listBoxSpec,
+      });
     } else {
       return res.status(500).json({ message: "Faild to add" });
     }
@@ -108,6 +117,49 @@ export const postPackBox = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get post box",
+      data: error,
+    });
+  }
+};
+
+export const deletePackBox = async (req, res) => {
+  try {
+    const { BOX_ID, BUYER_CODE } = req.params;
+
+    if (!BOX_ID) return res.status(202).json({ message: "No data Box Id" });
+
+    const checkUsed = await PackingPlanBoxRow.findAll({
+      where: { BOX_ID: BOX_ID },
+    });
+
+    if (checkUsed.length > 0) {
+      return res
+        .status(202)
+        .json({ message: "The box is already in use, it cannot be deleted" });
+    }
+
+    const deleteBox = await CartonBox.destroy({ where: { BOX_ID: BOX_ID } });
+
+    if (deleteBox) {
+      const buyerCode = decodeURIComponent(BUYER_CODE);
+      const listBoxSpec = await CartonBox.findAll({
+        where: {
+          BUYER_CODE: buyerCode,
+        },
+        raw: true,
+      });
+
+      return res.status(200).json({
+        message: `Success deleted box`,
+        data: listBoxSpec,
+      });
+    } else {
+      return res.status(500).json({ message: "Faild to deleted" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get deleted box",
       data: error,
     });
   }
@@ -275,7 +327,55 @@ export const getPackingPlanHd = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    return res.status(200).json({ data: listDataHeader });
+    const listPoBuyer = await db.query(qryGetDistcPoBuyer, {
+      replacements: {
+        customer: buyer,
+        startDate,
+        endDate,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const listPoRef = await db.query(qryGetDistcPoRef, {
+      replacements: {
+        customer: buyer,
+        startDate,
+        endDate,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (listDataHeader.length > 0) {
+      const joinDataPPIDdanPO = listDataHeader?.map((item) => {
+        const filterPObuy = listPoBuyer.filter(
+          (po) => po.PACKPLAN_ID === item.PACKPLAN_ID
+        );
+        const filterPOref = listPoRef.filter(
+          (po) => po.PACKPLAN_ID === item.PACKPLAN_ID
+        );
+
+        const stringPoBuy =
+          filterPObuy.length > 0
+            ? filterPObuy.map((po) => po.BUYER_PO).join(" , ")
+            : "";
+        const stringPoRef =
+          filterPOref.length > 0
+            ? filterPOref.map((po) => po.ORDER_REFERENCE_PO_NO).join(" , ")
+            : "";
+
+        const dataReturn = {
+          ...item,
+          BUYER_PO: stringPoBuy,
+          ORDER_REFERENCE_PO_NO: stringPoRef,
+        };
+
+        return dataReturn;
+      });
+
+      return res.status(200).json({ data: joinDataPPIDdanPO });
+    } else {
+      return res.status(200).json({ data: listDataHeader });
+    }
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -331,6 +431,20 @@ export const getRefPackPlanByByr = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing referensi by buyer",
+      data: error,
+    });
+  }
+};
+
+export const getPackPlanMethod = async (req, res) => {
+  try {
+    const listPackMethod = await PackMethodeList.findAll({});
+
+    return res.status(200).json({ data: listPackMethod });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing Plan data header",
       data: error,
     });
   }
@@ -435,14 +549,15 @@ export const getDataPolistPoBuyer = async (req, res) => {
 //get po for packing plan
 export const getDataPoSizeForPack = async (req, res) => {
   try {
-    const { poNum, ppid } = req.params;
+    const { poNum, ppidSeqId } = req.params;
 
     const poNumber = decodeURIComponent(poNum);
+    const ppidSeqDec = decodeURIComponent(ppidSeqId);
 
     const listPO = await db.query(findPoPlanPack, {
       replacements: {
         poNumber,
-        ppid,
+        ppidSeqId: ppidSeqDec,
       },
       type: QueryTypes.SELECT,
     });
@@ -502,6 +617,7 @@ export const PosPackPlanDetail = async (req, res) => {
     for (const [i, ppDetail] of data.entries()) {
       const checkExist = await PackingPlanDetail.findOne({
         where: {
+          PLAN_SEQUANCE_ID: ppDetail.PLAN_SEQUANCE_ID,
           UNIKID: ppDetail.UNIKID,
           PACKPLAN_ID: ppDetail.PACKPLAN_ID,
         },
@@ -511,6 +627,7 @@ export const PosPackPlanDetail = async (req, res) => {
         ppDetail.ADD_ID = null;
         await PackingPlanDetail.update(ppDetail, {
           where: {
+            PLAN_SEQUANCE_ID: ppDetail.PLAN_SEQUANCE_ID,
             UNIKID: ppDetail.UNIKID,
             PACKPLAN_ID: ppDetail.PACKPLAN_ID,
           },
@@ -520,6 +637,7 @@ export const PosPackPlanDetail = async (req, res) => {
         // console.log("execute delete");
         await PackingPlanDetail.destroy({
           where: {
+            PLAN_SEQUANCE_ID: ppDetail.PLAN_SEQUANCE_ID,
             UNIKID: ppDetail.UNIKID,
             PACKPLAN_ID: ppDetail.PACKPLAN_ID,
           },
@@ -546,13 +664,14 @@ export const PosPackPlanDetail = async (req, res) => {
 //get list po detail sum
 export const getQrySumDetail = async (req, res) => {
   try {
-    const { poNum, ppid } = req.params;
+    const { poNum, ppidSeqId } = req.params;
     const poNumber = decodeURIComponent(poNum);
+    const ppidSeq = decodeURIComponent(ppidSeqId);
 
     const sumPODetail = await db.query(qrySumPoDetil, {
       replacements: {
         poNumber,
-        ppid,
+        ppidSeqId: ppidSeq,
       },
       type: QueryTypes.SELECT,
     });
@@ -620,23 +739,23 @@ export const postPackPosum = async (req, res) => {
 //Delete DataPackSum
 export const delPackPosum = async (req, res) => {
   try {
-    const { poNum, ppid, colorCode } = req.query;
+    const { seqPpid, colorCode } = req.query;
 
-    const poNumber = decodeURIComponent(poNum);
+    const seqPpids = decodeURIComponent(seqPpid);
+    // const poNumber = decodeURIComponent(poNum);
     const clrCode = decodeURIComponent(colorCode);
 
     const paramWhere = {
-      PACKPLAN_ID: ppid,
-      BUYER_PO: poNumber,
+      PLAN_SEQUANCE_ID: seqPpids,
     };
 
-    let rowId = `${ppid};${poNumber}`;
+    let rowId = `${seqPpids}`;
 
     if (colorCode) {
       paramWhere.BUYER_COLOR_CODE = clrCode;
-      rowId = rowId + `;${clrCode}`;
+      rowId = rowId + `|${clrCode}`;
     }
-    rowId + "%";
+    rowId = rowId + "%";
 
     await PackingPlanDetail.destroy({
       where: paramWhere,
@@ -744,17 +863,15 @@ export const getLisPoPPID = async (req, res) => {
 //modal add po tabs buyer box
 export const getPoByrBox = async (req, res) => {
   try {
-    const { poNum, ppid } = req.params;
+    const { seqPoPpid } = req.params;
 
-    const poNumber = decodeURIComponent(poNum);
+    const seqPpid = decodeURIComponent(seqPoPpid);
     const sumPODetail = await db.query(qrySumQtyPoBox, {
       replacements: {
-        poNumber,
-        ppid,
+        seqPpid,
       },
       type: QueryTypes.SELECT,
     });
-
     let sortSizeCode = sumPODetail;
     if (sumPODetail.length !== 0 && sumPODetail[0].SORT_TYPE === "letter") {
       sortSizeCode = customSortByLetterFirst(sumPODetail, "SIZE_CODE");
@@ -836,6 +953,89 @@ export async function postGenerateRowBox(req, res) {
     // }));
 
     const headerPost = await PackingPlanBoxRow.bulkCreate(dataRows);
+
+    const detailPost = await PackPlanRowDetail.bulkCreate(arrRowDetail);
+
+    if (headerPost && detailPost)
+      return res.json({
+        message: "Success Generate",
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post packing box row",
+      data: error,
+    });
+  }
+}
+
+//post generate row box prepack
+export async function postGenPrePack(req, res) {
+  try {
+    const { seqPoPpid, userId } = req.body;
+
+    if (!seqPoPpid)
+      return res.status(404).json({
+        message: "No Data For Post",
+      });
+    const seqPpid = decodeURIComponent(seqPoPpid);
+
+    //row color
+    const sumPODetailCol = await db.query(qrySumQtyPoBoxPrepack, {
+      replacements: {
+        seqPpid,
+      },
+      type: QueryTypes.SELECT,
+    });
+    const listRowId = sumPODetailCol.map((items) => items.ROWID);
+
+    //row detail
+    const sumPODetail = await db.query(qrySumQtyPoBox, {
+      replacements: {
+        seqPpid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    let arrRow = [];
+    let arrRowDetail = [];
+
+    for (let index = 0; index < sumPODetailCol.length; index++) {
+      let rowCol = sumPODetailCol[index];
+
+      const ctnStart = index === 0 ? 1 : sumPODetailCol[index - 1].CTN_END + 1;
+      const ctnEnd = index === 0 ? rowCol.TTL_BOX : ctnStart + rowCol.TTL_BOX;
+      rowCol.CTN_START = ctnStart;
+      rowCol.CTN_END = ctnEnd;
+      arrRow.push(rowCol);
+
+      const detailRow = sumPODetail
+        .filter((clr) => clr.BUYER_COLOR_CODE === rowCol.BUYER_COLOR_CODE)
+        .map((items) => ({
+          ROWID: rowCol.ROWID,
+          PACKPLAN_ID: items.PACKPLAN_ID,
+          SIZE_CODE: items.SIZE_CODE,
+          QTY: items.AFTER_SET_QTY / rowCol.MIN_QTY,
+          ADD_ID: userId,
+        }));
+      arrRowDetail.push(...detailRow);
+    }
+
+    //delete header row
+    await PackingPlanBoxRow.destroy({
+      where: {
+        ROWID: listRowId,
+      },
+    });
+
+    //delete detail row
+    await PackPlanRowDetail.destroy({
+      where: {
+        ROWID: listRowId,
+      },
+    });
+
+    const headerPost = await PackingPlanBoxRow.bulkCreate(arrRow);
 
     const detailPost = await PackPlanRowDetail.bulkCreate(arrRowDetail);
 
@@ -1042,6 +1242,111 @@ export const PostOneDtlRowPpid = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error patsch rowid",
+      data: error,
+    });
+  }
+};
+
+//ganti start no karton nya
+export async function chgCtnStartNo(req, res) {
+  try {
+    const { seqPoPpid, noStart, userId } = req.body;
+
+    if (!seqPoPpid || !noStart)
+      return res.status(404).json({
+        message: "No Data For Post",
+      });
+    const seqPpid = decodeURIComponent(seqPoPpid);
+    const rowId = seqPpid + "%";
+
+    const findRowData = await PackingPlanBoxRow.findAll({
+      where: {
+        ROWID: {
+          [Op.like]: rowId,
+        },
+      },
+      raw: true,
+    });
+
+    const startNumber = parseInt(noStart);
+
+    let arrRow = [];
+    for (let index = 0; index < findRowData.length; index++) {
+      let rowCol = findRowData[index];
+
+      const ctnStart =
+        index === 0 ? startNumber : findRowData[index - 1].CTN_END + 1;
+      const ctnEnd =
+        rowCol.TTL_BOX === 1
+          ? ctnStart
+          : findRowData[index - 1].CTN_END + rowCol.TTL_BOX;
+      rowCol.CTN_START = ctnStart;
+      rowCol.CTN_END = ctnEnd;
+      rowCol.MOD_ID = userId;
+      arrRow.push(rowCol);
+    }
+
+    //delete header row
+    await PackingPlanBoxRow.destroy({
+      where: {
+        ROWID: {
+          [Op.like]: rowId,
+        },
+      },
+    });
+
+    const headerPost = await PackingPlanBoxRow.bulkCreate(arrRow);
+
+    if (headerPost)
+      return res.json({
+        message: "Success update",
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error update",
+      data: error,
+    });
+  }
+}
+
+//Delete satu PPID tidak perduli mana saja
+export const deletePPIDEntire = async (req, res) => {
+  try {
+    const { PPID } = req.params;
+
+    const paramWhere = {
+      PACKPLAN_ID: PPID,
+    };
+
+    await PackPlanRowDetail.destroy({
+      where: paramWhere,
+    });
+
+    await PackingPlanBoxRow.destroy({
+      where: paramWhere,
+    });
+
+    await PackingPlanDetail.destroy({
+      where: paramWhere,
+    });
+
+    await PackingPlanPoSum.destroy({
+      where: paramWhere,
+    });
+
+    await PackPlanHeader.destroy({
+      where: paramWhere,
+    });
+
+    return res.json({
+      status: "success",
+      message: "Success Delete Packing PLAN",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error delete when DELTE packing PLAN",
       data: error,
     });
   }

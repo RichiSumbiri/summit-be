@@ -24,6 +24,7 @@ import sewDashboard from "./production/sewDashAnytic.router.js";
 import zerodefectRoute from "./production/qcZeroD.route.js";
 import auditRoute from "./audit/auditTracking.js";
 import mechanicsRoute from "./mechanics/mechanics.route.js";
+import listRoute from "./list/list.route.js";
 
 const router = express.Router();
 
@@ -53,6 +54,7 @@ router.use("/sewdashboard", sewDashboard);
 router.use("/zerodefect", zerodefectRoute);
 router.use("/audit", auditRoute);
 router.use("/mechanics", mechanicsRoute);
+router.use("/list", listRoute);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
