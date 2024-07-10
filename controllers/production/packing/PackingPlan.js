@@ -697,19 +697,13 @@ export const postPackPosum = async (req, res) => {
     for (const [i, poSUm] of data.entries()) {
       const checkExist = await PackingPlanPoSum.findOne({
         where: {
-          PACKPLAN_ID: poSUm.PACKPLAN_ID,
-          BUYER_PO: poSUm.BUYER_PO,
-          BUYER_COLOR_CODE: poSUm.BUYER_COLOR_CODE,
+          PLAN_SEQUANCE_ID: poSUm.PLAN_SEQUANCE_ID,
         },
         raw: true,
       });
       if (checkExist && poSUm.SHIPMENT_QTY) {
         await PackingPlanPoSum.update(poSUm, {
-          where: {
-            PACKPLAN_ID: poSUm.PACKPLAN_ID,
-            BUYER_PO: poSUm.BUYER_PO,
-            BUYER_COLOR_CODE: poSUm.BUYER_COLOR_CODE,
-          },
+          where: { PLAN_SEQUANCE_ID: poSUm.PLAN_SEQUANCE_ID },
         });
       } else {
         await PackingPlanPoSum.create(poSUm);

@@ -850,7 +850,8 @@ export const PackPlanRowDetail = db.define(
   }
 );
 
-export const qryGetRowDtl = `SELECT a.*, b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME FROM 
+export const qryGetRowDtl = `SELECT a.*, b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME , SUBSTRING_INDEX(a.ROWID, '|', 4) AS PLAN_SEQUANCE_ID
+ FROM 
 packing_plan_box_row a 
 LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
 		AND a.BUYER_PO = b.BUYER_PO 
