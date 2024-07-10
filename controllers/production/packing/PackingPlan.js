@@ -693,17 +693,21 @@ export const postPackPosum = async (req, res) => {
 
     if (!data || data.length === 0)
       return res.status(400).json({ message: "no data provided" });
-
+    // console.log(data);
     for (const [i, poSUm] of data.entries()) {
       const checkExist = await PackingPlanPoSum.findOne({
         where: {
           PLAN_SEQUANCE_ID: poSUm.PLAN_SEQUANCE_ID,
+          BUYER_COLOR_CODE: poSUm.BUYER_COLOR_CODE,
         },
         raw: true,
       });
       if (checkExist && poSUm.SHIPMENT_QTY) {
         await PackingPlanPoSum.update(poSUm, {
-          where: { PLAN_SEQUANCE_ID: poSUm.PLAN_SEQUANCE_ID },
+          where: {
+            PLAN_SEQUANCE_ID: poSUm.PLAN_SEQUANCE_ID,
+            BUYER_COLOR_CODE: poSUm.BUYER_COLOR_CODE,
+          },
         });
       } else {
         await PackingPlanPoSum.create(poSUm);
