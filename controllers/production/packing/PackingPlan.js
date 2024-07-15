@@ -748,7 +748,7 @@ export const getQrySumDetail = async (req, res) => {
 
     const arrPoId = orderPOid.map((item) => item.ORDER_PO_ID);
     // console.log(arrPoId);
-
+    // console.log({ ppidSeq, arrPoId });
     const sumPODetail = await db.query(qrySumPoDetil, {
       replacements: {
         ppidSeqId: ppidSeq,
@@ -1034,6 +1034,7 @@ export async function postGenerateRowBox(req, res) {
 
       idxPo = idxPo + parseInt(items.TTL_BOX);
     }
+
     //delete header row
     await PackingPlanBoxRow.destroy({
       where: {
@@ -1055,8 +1056,9 @@ export async function postGenerateRowBox(req, res) {
     //   QTY: item.QTY_PER_BOX,
     //   ADD_ID: item.ADD_ID,
     // }));
-
-    const headerPost = await PackingPlanBoxRow.bulkCreate(dataRows);
+    const rowByPassZero = dataRows.filter((item) => item.QTY_PER_BOX);
+    // console.log(dataRows);
+    const headerPost = await PackingPlanBoxRow.bulkCreate(rowByPassZero);
 
     const detailPost = await PackPlanRowDetail.bulkCreate(arrRowDetail);
 
@@ -1355,57 +1357,74 @@ export const PostOneDtlRowPpid = async (req, res) => {
 //ganti start no karton nya
 export async function chgCtnStartNo(req, res) {
   try {
-    const { seqPoPpid, noStart, userId } = req.body;
+    const { rowData, noStart, userId, cntnus } = req.body;
 
-    if (!seqPoPpid || !noStart)
+    if (!rowData || !noStart)
       return res.status(404).json({
         message: "No Data For Post",
       });
-    const seqPpid = decodeURIComponent(seqPoPpid);
-    const rowId = seqPpid + "%";
 
-    const findRowData = await PackingPlanBoxRow.findAll({
-      where: {
-        ROWID: {
-          [Op.like]: rowId,
+    const { ROW_INDEX, PLAN_SEQUANCE_ID, ROWID, BUYER_COLOR_CODE, CTN_END } =
+      rowData;
+
+    const ctnEndRow = noStart + rowData.TTL_BOX - 1;
+    const updateRow = await PackingPlanBoxRow.update(
+      { CTN_START: noStart, CTN_END: ctnEndRow },
+      {
+        where: {
+          ROWID,
         },
-      },
-      raw: true,
-    });
+      }
+    );
 
-    const startNumber = parseInt(noStart);
-
-    let arrRow = [];
-    for (let index = 0; index < findRowData.length; index++) {
-      let rowCol = findRowData[index];
-
-      const ctnStart =
-        index === 0 ? startNumber : findRowData[index - 1].CTN_END + 1;
-      const ctnEnd =
-        rowCol.TTL_BOX === 1
-          ? ctnStart
-          : findRowData[index - 1].CTN_END + rowCol.TTL_BOX;
-      rowCol.CTN_START = ctnStart;
-      rowCol.CTN_END = ctnEnd;
-      rowCol.MOD_ID = userId;
-      arrRow.push(rowCol);
-    }
-
-    //delete header row
-    await PackingPlanBoxRow.destroy({
-      where: {
-        ROWID: {
-          [Op.like]: rowId,
-        },
-      },
-    });
-
-    const headerPost = await PackingPlanBoxRow.bulkCreate(arrRow);
-
-    if (headerPost)
+    if (!cntnus && updateRow) {
       return res.json({
         message: "Success update",
       });
+    } else {
+      const rowIds = PLAN_SEQUANCE_ID + "%";
+
+      const getAfterRow = await PackingPlanBoxRow.findAll({
+        where: {
+          ROWID: {
+            [Op.like]: rowIds,
+          },
+          ROW_INDEX: {
+            [Op.gt]: ROW_INDEX, // ROW_INDEX lebih besar dari
+          },
+          BUYER_COLOR_CODE: BUYER_COLOR_CODE,
+        },
+        raw: true,
+      });
+
+      const startNumber = parseInt(ctnEndRow) + 1;
+
+      if (getAfterRow.length > 0) {
+        let arrRow = [];
+        for (let index = 0; index < getAfterRow.length; index++) {
+          let rowCol = getAfterRow[index];
+
+          const ctnStart =
+            index === 0 ? startNumber : getAfterRow[index - 1].CTN_END + 1;
+          const ctnEnd = ctnStart - 1 + rowCol.TTL_BOX;
+
+          rowCol.CTN_START = ctnStart;
+          rowCol.CTN_END = ctnEnd;
+          arrRow.push(rowCol);
+        }
+
+        await PackingPlanBoxRow.bulkCreate(arrRow, {
+          updateOnDuplicate: ["CTN_START", "CTN_END"],
+          where: {
+            ROWID: ["ROWID"],
+          },
+        });
+      }
+
+      return res.json({
+        message: "Success update",
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -1527,6 +1546,42 @@ export async function updatePpackRowNdetail(req, res) {
     return res.json({
       message: "Success update",
     });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error update",
+      data: error,
+    });
+  }
+}
+
+// for rubah GEN to Manual agar bisa di update
+export async function switchGenToMnl(req, res) {
+  try {
+    const { rowsId } = req.params;
+
+    if (!rowsId)
+      return res.status(404).json({
+        message: "No Data For update",
+      });
+
+    const ROWID = decodeURIComponent(rowsId);
+
+    const updateRow = await PackingPlanBoxRow.update(
+      { ROW_TYPE: "MNL" },
+      {
+        where: {
+          ROWID: ROWID,
+        },
+        raw: true,
+      }
+    );
+
+    if (updateRow) {
+      return res.json({
+        message: "Allow Input",
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.status(404).json({

@@ -49,6 +49,7 @@ import {
   postPackPosum,
   postSetCartonStyle,
   postSetCtnPrepack,
+  switchGenToMnl,
   updateDataPackPlanHeader,
   updateOneRowPpid,
   updatePpackRowNdetail,
@@ -109,6 +110,7 @@ router.post("/plann-po-summary/", postPackPosum);
 router.post("/po-buyer-data/", postPackBuyerPo);
 
 router.patch("/update-one-rows-ppid/", updateOneRowPpid);
+router.patch("/update-one-rows-manual/:rowsId", switchGenToMnl);
 
 router.delete("/plann-po-summary", delPackPosum);
 router.delete("/plann-data/:PPID", deletePPIDEntire);
