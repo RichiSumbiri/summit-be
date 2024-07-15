@@ -336,10 +336,45 @@ export const PackPlanHeader = db.define(
   }
 );
 
+export const PackPlanChild = db.define(
+  "packing_plan_child",
+  {
+    ADDING_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    PACKPLAN_ID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    BUYER_PO: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    SEQ_NO: { type: DataTypes.INTEGER },
+    PACKING_METHODE: { type: DataTypes.STRING },
+    COUNTRY_ID: { type: DataTypes.INTEGER },
+    USER_MOD_ID: { type: DataTypes.INTEGER },
+    USER_ADD_ID: { type: DataTypes.INTEGER },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
 export const qryGetLastPPI = `SELECT CAST(SUBSTRING(a.PACKPLAN_ID,9) AS INTEGER)+1 LAST_ID, YEAR(a.createdAt) LAST_YEAR 
 FROM packing_plan_header a 
 WHERE YEAR(a.createdAt) = YEAR(CURDATE())
 ORDER BY a.createdAt DESC
+LIMIT 1`;
+
+export const qryGetSeqChild = `SELECT 
+a.SEQ_NO
+FROM packing_plan_child a WHERE a.PACKPLAN_ID = :ppid
+ORDER BY a.SEQ_NO DESC
 LIMIT 1`;
 
 export const qryGetCusDivision = `SELECT DISTINCT a.CUSTOMER_NAME, a.CUSTOMER_DIVISION
@@ -382,36 +417,18 @@ WHERE a.PACKPLAN_ID IN (
 	SELECT a.PACKPLAN_ID FROM packing_plan_header c	WHERE c.PACKPLAN_BUYER = :customer AND c.PACKPLAN_EX_FACTORY BETWEEN :startDate AND :endDate 
 )`;
 
-export const findPoPlanPack = `SELECT n.UNIKID,
-n.PRODUCT_ITEM_CODE,
-n.ORDER_REFERENCE_PO_NO, n.PO_REF_CODE,
-n.ORDER_PO_ID,
-n.ITEM_COLOR_CODE,  n.SIZE_CODE,  
-n.BUYER_PO, n.BUYER_COLOR_CODE, n.BUYER_COLOR_NAME, 
-n.ORDER_QTY, n.MO_QTY,
-n.PLAN_EXFACTORY_DATE, n.UNIT_PRICE, n.AMOUNT,
-n.ACT_UNIT_PRICE, SUM(n.PLANED_QTY) PLANED_QTY, n.ORDER_QTY-IFNULL(SUM(n.PLANED_QTY),0) BALANCE,  n.SHIPMENT_QTY
-FROM (
-  SELECT CONCAT(a.ORDER_PO_ID,'.',a.ITEM_COLOR_CODE,'.',a.SIZE_CODE) AS UNIKID, 
-  a.PRODUCT_ITEM_CODE,
-  a.ORDER_REFERENCE_PO_NO, a.ORDER_PO_ID, a.PO_REF_CODE,
-  a.ITEM_COLOR_CODE, a.SIZE_CODE, a.ORDER_QTY, a.MO_QTY,
-  c.BUYER_PO, c.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME,
-  a.PLAN_EXFACTORY_DATE, b.UNIT_PRICE,
-  e.ACT_UNIT_PRICE, e.AMOUNT, d.SHIPMENT_QTY PLANED_QTY, e.SHIPMENT_QTY
-  FROM order_po_listing_size a 
-  LEFT JOIN order_po_listing b ON a.ORDER_PO_ID = b.ORDER_PO_ID
-  LEFT JOIN order_po_buyer c ON a.ORDER_PO_ID = c.ORDER_PO_ID
-  LEFT JOIN packing_plan_detail d ON 
-  		d.UNIKID = CONCAT(a.ORDER_PO_ID,'.',a.ITEM_COLOR_CODE,'.',a.SIZE_CODE)
-		  AND d.PLAN_SEQUANCE_ID <> :ppidSeqId
-  LEFT JOIN packing_plan_detail e ON 
-  		e.UNIKID = CONCAT(a.ORDER_PO_ID,'.',a.ITEM_COLOR_CODE,'.',a.SIZE_CODE)
-  		AND e.PLAN_SEQUANCE_ID =  :ppidSeqId
-  WHERE a.ORDER_REFERENCE_PO_NO = :poNumber
-) n
-WHERE n.BUYER_COLOR_CODE IS NOT NULL
-GROUP BY n.UNIKID`;
+export const findPoPlanPack = `SELECT 
+	a.PACKPLAN_ID, a.PLAN_SEQUANCE_ID, a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, a.SIZE_CODE, MAX(a.ACT_UNIT_PRICE) ACT_UNIT_PRICE, 
+	SUM(a.SHIPMENT_QTY)  AS SHIPMENT_QTY, 
+	SUM(a.AMOUNT) AS AMOUNT
+FROM packing_plan_detail a 
+LEFT JOIN (
+		SELECT c.PLAN_SEQUANCE_ID,  c.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME FROM packing_plan_po_buyer c 
+		WHERE c.PLAN_SEQUANCE_ID = :ppidSeqId
+		GROUP BY c.PLAN_SEQUANCE_ID,  c.BUYER_COLOR_CODE
+) b ON b.PLAN_SEQUANCE_ID = a.PLAN_SEQUANCE_ID AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE
+WHERE a.PLAN_SEQUANCE_ID = :ppidSeqId
+GROUP BY a.PACKPLAN_ID, a.PLAN_SEQUANCE_ID, a.BUYER_COLOR_CODE,  a.SIZE_CODE`;
 // export const findPoPlanPack = ` SELECT n.UNIKID,
 // n.PRODUCT_ITEM_CODE,
 // n.ORDER_REFERENCE_PO_NO, n.PO_REF_CODE,
@@ -451,16 +468,24 @@ export const qryPackPoIdPoBuyer = `SELECT
   a.PACKING_METHOD,
   b.BUYER_PO, b.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME
 FROM order_po_listing a 
-LEFT JOIN order_po_buyer b ON a.ORDER_PO_ID = b.ORDER_PO_ID
+LEFT JOIN packing_plan_po_buyer b ON a.ORDER_PO_ID = b.ORDER_PO_ID AND b.PLAN_SEQUANCE_ID = :planSeqId
 WHERE a.ORDER_REFERENCE_PO_NO = :poNumber`;
 
 export const OrderPoBuyer = db.define(
-  "order_po_buyer",
+  "packing_plan_po_buyer",
   {
-    ORDER_PO_ID: {
+    PLAN_SEQUANCE_ID: {
       type: DataTypes.STRING,
       primaryKey: true,
-      autoIncrement: true,
+    },
+    PACKPLAN_ID: {
+      type: DataTypes.STRING,
+    },
+    SEQ_NO: {
+      type: DataTypes.INTEGER,
+    },
+    ORDER_PO_ID: {
+      type: DataTypes.STRING,
     },
     BUYER_PO: { type: DataTypes.STRING },
     BUYER_COLOR_CODE: { type: DataTypes.STRING },
@@ -476,6 +501,41 @@ export const OrderPoBuyer = db.define(
     updatedAt: "MOD_TIME",
   }
 );
+
+export const qryGetPackPlanDtlPo = `SELECT n.UNIKID,
+n.PLAN_SEQUANCE_ID,
+-- n.PRODUCT_ITEM_CODE,
+-- n.ORDER_REFERENCE_PO_NO, 
+n.PO_REF_CODE,
+n.ORDER_PO_ID,
+n.ITEM_COLOR_CODE,  n.SIZE_CODE,  
+n.BUYER_PO, n.BUYER_COLOR_CODE, n.BUYER_COLOR_NAME, 
+n.ORDER_QTY, n.MO_QTY,
+n.PLAN_EXFACTORY_DATE, n.UNIT_PRICE, n.AMOUNT,
+n.ACT_UNIT_PRICE, SUM(n.PLANED_QTY) PLANED_QTY, n.ORDER_QTY-IFNULL(SUM(n.PLANED_QTY),0) BALANCE,  n.SHIPMENT_QTY
+FROM (
+  SELECT CONCAT(a.ORDER_PO_ID,'.',a.ITEM_COLOR_CODE,'.',a.SIZE_CODE) AS UNIKID, 
+  c.PLAN_SEQUANCE_ID,
+  a.PRODUCT_ITEM_CODE,
+  -- a.ORDER_REFERENCE_PO_NO,
+  a.ORDER_PO_ID, a.PO_REF_CODE,
+  a.ITEM_COLOR_CODE, a.SIZE_CODE, a.ORDER_QTY, a.MO_QTY,
+  c.BUYER_PO, c.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME,
+  a.PLAN_EXFACTORY_DATE, b.UNIT_PRICE,
+  e.ACT_UNIT_PRICE, e.AMOUNT, d.SHIPMENT_QTY PLANED_QTY, e.SHIPMENT_QTY
+  FROM order_po_listing_size a 
+  LEFT JOIN order_po_listing b ON a.ORDER_PO_ID = b.ORDER_PO_ID
+  LEFT JOIN packing_plan_po_buyer c ON a.ORDER_PO_ID = c.ORDER_PO_ID AND c.PLAN_SEQUANCE_ID = :seqId
+  LEFT JOIN packing_plan_detail d ON 
+  		d.UNIKID = CONCAT(a.ORDER_PO_ID,'.',a.ITEM_COLOR_CODE,'.',a.SIZE_CODE)
+		  AND d.PLAN_SEQUANCE_ID <> :seqId
+  LEFT JOIN packing_plan_detail e ON 
+  		e.UNIKID = CONCAT(a.ORDER_PO_ID,'.',a.ITEM_COLOR_CODE,'.',a.SIZE_CODE)
+  		AND e.PLAN_SEQUANCE_ID =  :seqId
+  WHERE a.ORDER_PO_ID IN (:orderPoId)
+) n
+-- WHERE n.BUYER_COLOR_CODE IS NOT NULL
+GROUP BY n.UNIKID`;
 
 export const PackingPlanDetail = db.define(
   "packing_plan_detail",
@@ -532,9 +592,9 @@ FROM (
   COUNT(DISTINCT b.ITEM_COLOR_CODE) SET_PAIR
   FROM packing_plan_detail a
   LEFT JOIN order_po_listing b ON b.ORDER_PO_ID = a.ORDER_PO_ID
-  LEFT JOIN order_po_buyer c ON c.ORDER_PO_ID = a.ORDER_PO_ID
+  LEFT JOIN packing_plan_po_buyer c ON c.ORDER_PO_ID = a.ORDER_PO_ID
   WHERE a.PLAN_SEQUANCE_ID = :ppidSeqId
-  AND b.ORDER_REFERENCE_PO_NO = :poNumber
+  AND b.ORDER_PO_ID IN (:orderPoId)
   GROUP BY a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.BUYER_COLOR_CODE
 ) n
 LEFT JOIN packing_plan_po_sum m 
@@ -543,6 +603,32 @@ LEFT JOIN packing_plan_po_sum m
 	AND m.BUYER_COLOR_CODE = n.BUYER_COLOR_CODE
 ORDER BY m.COL_INDEX`;
 
+export const qryListSumPo = `SELECT 
+    n.PACKPLAN_ID, n.PLAN_SEQUANCE_ID, n.BUYER_PO, n.ORDER_REFERENCE_PO_NO, n.BUYER_COLOR_CODE, n.BUYER_COLOR_NAME,  n.PRODUCT_ITEM_ID, n.PRODUCT_ITEM_CODE,
+    n.SHIPMENT_QTY, 
+    n.ACT_UNIT_PRICE,
+    CASE WHEN n.SET_PAIR = 1 THEN 0 ELSE n.SET_PAIR END AS  SET_PAIR,
+    CASE WHEN n.SET_PAIR = 1 THEN 0 ELSE IFNULL(n.SHIPMENT_QTY,0)/IFNULL(n.SET_PAIR, 0) END AS PAIR_QTY,
+    n.AMOUNT,
+    CASE WHEN m.PLAN_SEQUANCE_ID IS NOT NULL THEN 1 ELSE 0 END AS SAVED,
+    m.COL_INDEX
+FROM (
+  SELECT a.PACKPLAN_ID, a.PLAN_SEQUANCE_ID, a.BUYER_PO, b.ORDER_REFERENCE_PO_NO, 
+  a.BUYER_COLOR_CODE, c.BUYER_COLOR_NAME, b.PRODUCT_ITEM_ID, b.PRODUCT_ITEM_CODE,
+  SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, SUM(a.AMOUNT) AMOUNT, 
+  AVG(DISTINCT a.ACT_UNIT_PRICE) ACT_UNIT_PRICE,
+  COUNT(DISTINCT b.ITEM_COLOR_CODE) SET_PAIR
+  FROM packing_plan_detail a
+  LEFT JOIN order_po_listing b ON b.ORDER_PO_ID = a.ORDER_PO_ID
+  LEFT JOIN packing_plan_po_buyer c ON c.ORDER_PO_ID = a.ORDER_PO_ID
+  WHERE a.PACKPLAN_ID = :ppid
+  GROUP BY a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.BUYER_COLOR_CODE
+) n
+LEFT JOIN packing_plan_po_sum m 
+	ON m.PLAN_SEQUANCE_ID = n.PLAN_SEQUANCE_ID 
+	AND m.BUYER_PO = n.BUYER_PO
+	AND m.BUYER_COLOR_CODE = n.BUYER_COLOR_CODE
+ORDER BY m.COL_INDEX`;
 // SELECT
 //     n.PACKPLAN_ID, n.BUYER_PO, n.ORDER_REFERENCE_PO_NO, n.BUYER_COLOR_CODE, n.BUYER_COLOR_NAME,  n.PRODUCT_ITEM_ID, n.PRODUCT_ITEM_CODE,
 //     n.SHIPMENT_QTY,
@@ -607,11 +693,13 @@ export const PackingPlanPoSum = db.define(
 
 PackingPlanPoSum.removeAttribute("id");
 
-export const qryGetLisPOPPID = `SELECT DISTINCT a.BUYER_PO, a.ORDER_REFERENCE_PO_NO, a.PLAN_SEQUANCE_ID, b.COUNTRY_ID, b.COUNTRY_CODE, a.PACKING_METHODE
-FROM packing_plan_po_sum a 
+export const qryGetLisPOPPID = `SELECT a.PACKPLAN_ID, a.BUYER_PO, a.SEQ_NO, a.COUNTRY_ID, a.PACKING_METHODE, b.COUNTRY_CODE, b.COUNTRY_NAME,
+CONCAT(a.PACKPLAN_ID, '|', a.SEQ_NO,  '|',   b.COUNTRY_ID, '|', a.PACKING_METHODE ) AS PLAN_SEQUANCE_ID
+FROM packing_plan_child a 
 LEFT JOIN item_country b ON a.COUNTRY_ID = b.COUNTRY_ID
 WHERE a.PACKPLAN_ID = :ppid
-GROUP BY  a.PLAN_SEQUANCE_ID`;
+ORDER BY a.SEQ_NO`;
+
 export const qryGetLisSizePPID = `SELECT DISTINCT a.SIZE_CODE, c.SORT_TYPE FROM packing_plan_detail a 
 	LEFT JOIN packing_plan_header b ON b.PACKPLAN_ID = a.PACKPLAN_ID
 	LEFT JOIN item_buyer_size_sort c ON b.PACKPLAN_BUYER = c.BUYER
@@ -860,7 +948,7 @@ WHERE a.PACKPLAN_ID = :ppid
 ORDER BY b.ADD_TIME, a.BUYER_PO, a.COL_INDEX, a.CTN_START
 `;
 
-export const qryGetRowDtlOne = `SELECT a.*, b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME FROM 
+export const qryGetRowDtlOne = `SELECT a.*, b.PLAN_SEQUANCE_ID, b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME FROM 
 packing_plan_box_row a 
 LEFT JOIN packing_plan_po_sum b ON b.PACKPLAN_ID = a.PACKPLAN_ID 
 		AND a.BUYER_PO = b.BUYER_PO 

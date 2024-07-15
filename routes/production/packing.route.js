@@ -39,6 +39,8 @@ import {
   getQrySumDetail,
   getRefPackPlanByByr,
   getResltBoxStyle,
+  getSequanceId,
+  postDataPackPlanChild,
   postDataPackPlanHeader,
   postGenPrePack,
   postGenerateRowBox,
@@ -49,6 +51,7 @@ import {
   postSetCtnPrepack,
   updateDataPackPlanHeader,
   updateOneRowPpid,
+  updatePpackRowNdetail,
 } from "../../controllers/production/packing/PackingPlan.js";
 const router = express.Router();
 
@@ -84,6 +87,7 @@ router.delete("/list-box-buyer/:BOX_ID/:BUYER_CODE", deletePackBox);
 // packing plan
 
 router.get("/plann/id", getPackingPlanId);
+router.get("/plann-seq-no/:ppid", getSequanceId);
 router.get("/plann-pack-methode", getPackPlanMethod);
 router.get(`/plann-header/:customer/:startDate/:endDate`, getPackingPlanHd);
 router.get("/plann-polist-for-ppid/:ppid", getLisPoPPID);
@@ -91,13 +95,14 @@ router.get("/plann-polist-for-ppid/:ppid", getLisPoPPID);
 //list ref packing plan modal
 router.get("/plann-referensi/:customer", getRefPackPlanByByr);
 router.get("/plann-ref-ponumber/:buyer/:poNum", getQryListPo);
-router.get("/plann-poList-buyer/:poNum", getDataPolistPoBuyer);
-router.get("/plann-podetail-size/:poNum/:ppidSeqId", getDataPoSizeForPack);
-router.get("/plann-podetail-summary/:poNum/:ppidSeqId", getQrySumDetail);
+router.get("/plann-poList-buyer/:poNum/:seqID", getDataPolistPoBuyer);
+router.get("/plann-podetail-size/:ppidSeqId", getDataPoSizeForPack);
+router.get("/plann-podetail-summary/:ppidSeqId", getQrySumDetail);
 router.get("/plann-poboxdetail/:seqPoPpid", getPoByrBox);
 router.get("/plann-rowDetail/:ppid", getListRowDtlPo);
 
 router.post("/plann-data/", postDataPackPlanHeader);
+router.post("/plan-data-child/", postDataPackPlanChild);
 router.patch("/plann-data/", updateDataPackPlanHeader);
 router.post("/plann-detail-size/", PosPackPlanDetail);
 router.post("/plann-po-summary/", postPackPosum);
@@ -116,4 +121,5 @@ router.delete("/packing-delete-detail-one/:rowId/:size", delOneDetailPpid);
 router.post("/generate-row-box/", postGenerateRowBox);
 router.post("/generate-row-box-prepack/", postGenPrePack);
 router.post("/change-row-box-prepack/", chgCtnStartNo);
+router.post("/update-prepack-row/", updatePpackRowNdetail);
 export default router;

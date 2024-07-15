@@ -5,6 +5,7 @@ import {
   OrderPoBuyer,
   PackBoxStyle,
   PackMethodeList,
+  PackPlanChild,
   PackPlanHeader,
   PackPlanRowDetail,
   PackingPlanBoxRow,
@@ -24,11 +25,14 @@ import {
   qryGetLisSizePPID,
   qryGetPackHeader,
   qryGetPackMethod,
+  qryGetPackPlanDtlPo,
   qryGetRowColQty,
   qryGetRowDtl,
   qryGetRowDtlOne,
+  qryGetSeqChild,
   // qryGetSumPoPront,
   qryGetlistPo,
+  qryListSumPo,
   qryPackPoIdPoBuyer,
   qryQtySizeRowDtl,
   qrySumNewQtyRow,
@@ -312,6 +316,34 @@ export const getPackingPlanId = async (req, res) => {
   }
 };
 
+// get sequanceId
+export const getSequanceId = async (req, res) => {
+  try {
+    const { ppid } = req.params;
+    let newSeqNo = 1;
+
+    const getseqNo = await db.query(qryGetSeqChild, {
+      replacements: {
+        ppid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (getseqNo.length > 0) {
+      const lastNo = getseqNo[0].SEQ_NO;
+      newSeqNo = lastNo + 1;
+    }
+
+    return res.status(200).json({ data: newSeqNo });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Seq No",
+      data: error,
+    });
+  }
+};
+
 export const getPackingPlanHd = async (req, res) => {
   try {
     const { customer, startDate, endDate } = req.params;
@@ -463,13 +495,40 @@ export const postDataPackPlanHeader = async (req, res) => {
     if (checkIdExist)
       return res.status(400).json({ message: "ID Already Exist" });
 
-    const postDataHeader = PackPlanHeader.create(data);
+    const postDataHeader = await PackPlanHeader.create(data);
     if (postDataHeader)
       return res.status(200).json({ message: "Success Create Header Post" });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing referensi by buyer",
+      data: error,
+    });
+  }
+};
+
+export const postDataPackPlanChild = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data) res.status(400).json({ message: "no data provided" });
+
+    //check duplicate packplan code
+    let checkIdExist = await PackPlanChild.findOne({
+      where: {
+        PACKPLAN_ID: data.PACKPLAN_ID,
+        SEQ_NO: data.SEQ_NO,
+      },
+    });
+    if (checkIdExist) return res.status(400).json({ message: "SEQ Exist" });
+
+    const postDataHeader = await PackPlanChild.create(data);
+    if (postDataHeader)
+      return res.status(200).json({ message: "Success Create Child Post" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post Packing Child",
       data: error,
     });
   }
@@ -525,13 +584,15 @@ export const getQryListPo = async (req, res) => {
 //get po for packing plan
 export const getDataPolistPoBuyer = async (req, res) => {
   try {
-    const { poNum } = req.params;
+    const { poNum, seqID } = req.params;
 
     const poNumber = decodeURIComponent(poNum);
+    const planSeqId = decodeURIComponent(seqID);
 
     const listPO = await db.query(qryPackPoIdPoBuyer, {
       replacements: {
         poNumber,
+        planSeqId,
       },
       type: QueryTypes.SELECT,
     });
@@ -549,14 +610,13 @@ export const getDataPolistPoBuyer = async (req, res) => {
 //get po for packing plan
 export const getDataPoSizeForPack = async (req, res) => {
   try {
-    const { poNum, ppidSeqId } = req.params;
+    const { ppidSeqId } = req.params;
 
-    const poNumber = decodeURIComponent(poNum);
+    // const poNumber = decodeURIComponent(poNum);
     const ppidSeqDec = decodeURIComponent(ppidSeqId);
 
     const listPO = await db.query(findPoPlanPack, {
       replacements: {
-        poNumber,
         ppidSeqId: ppidSeqDec,
       },
       type: QueryTypes.SELECT,
@@ -579,21 +639,32 @@ export const postPackBuyerPo = async (req, res) => {
     if (!data || data.length === 0)
       res.status(400).json({ message: "no data provided" });
 
+    //array po id
+    const arrPoId = data.map((item) => item.ORDER_PO_ID);
+
+    await OrderPoBuyer.destroy({
+      where: {
+        PLAN_SEQUANCE_ID: data[0].PLAN_SEQUANCE_ID,
+        ORDER_PO_ID: arrPoId,
+      },
+    });
     //create or update
-    let createOrUpdate = await OrderPoBuyer.bulkCreate(data, {
-      updateOnDuplicate: [
-        "BUYER_PO",
-        "BUYER_COLOR_CODE",
-        "BUYER_COLOR_NAME",
-        "MOD_ID",
-      ],
-      where: { ORDER_PO_ID: ["ORDER_PO_ID"] },
+    let createOrUpdate = await OrderPoBuyer.bulkCreate(data);
+
+    const findPoDetail = await db.query(qryGetPackPlanDtlPo, {
+      replacements: {
+        seqId: data[0].PLAN_SEQUANCE_ID,
+        orderPoId: arrPoId,
+      },
+      type: QueryTypes.SELECT,
     });
 
     if (createOrUpdate)
-      return res
-        .status(200)
-        .json({ status: "success", message: "Success Post PO Buyer" });
+      return res.status(200).json({
+        status: "success",
+        message: "Success Post PO Buyer",
+        data: findPoDetail,
+      });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -664,14 +735,24 @@ export const PosPackPlanDetail = async (req, res) => {
 //get list po detail sum
 export const getQrySumDetail = async (req, res) => {
   try {
-    const { poNum, ppidSeqId } = req.params;
-    const poNumber = decodeURIComponent(poNum);
+    const { ppidSeqId } = req.params;
+    // const poNumber = decodeURIComponent(poNum);
     const ppidSeq = decodeURIComponent(ppidSeqId);
+
+    const orderPOid = await OrderPoBuyer.findAll({
+      where: {
+        PLAN_SEQUANCE_ID: ppidSeq,
+      },
+      raw: true,
+    });
+
+    const arrPoId = orderPOid.map((item) => item.ORDER_PO_ID);
+    // console.log(arrPoId);
 
     const sumPODetail = await db.query(qrySumPoDetil, {
       replacements: {
-        poNumber,
         ppidSeqId: ppidSeq,
+        orderPoId: arrPoId,
       },
       type: QueryTypes.SELECT,
     });
@@ -734,7 +815,7 @@ export const postPackPosum = async (req, res) => {
   }
 };
 
-//Delete DataPackSum
+//Delete delete sequence ppid
 export const delPackPosum = async (req, res) => {
   try {
     const { seqPpid, colorCode } = req.query;
@@ -745,6 +826,12 @@ export const delPackPosum = async (req, res) => {
 
     const paramWhere = {
       PLAN_SEQUANCE_ID: seqPpids,
+    };
+
+    const arrPlanSeq = seqPpids.split("|");
+    const objSeq = {
+      PPID: arrPlanSeq[0],
+      SEQ_NO: arrPlanSeq[1],
     };
 
     let rowId = `${seqPpids}`;
@@ -779,9 +866,22 @@ export const delPackPosum = async (req, res) => {
       },
     });
 
+    await PackPlanChild.destroy({
+      where: {
+        PACKPLAN_ID: objSeq.PPID,
+        SEQ_NO: parseInt(objSeq.SEQ_NO),
+      },
+    });
+
+    await OrderPoBuyer.destroy({
+      where: {
+        PLAN_SEQUANCE_ID: seqPpids,
+      },
+    });
+
     return res.json({
       status: "success",
-      message: "Success Post Packing detail",
+      message: "Success Delete Packing Sequance",
     });
   } catch (error) {
     console.log(error);
@@ -839,12 +939,18 @@ export const getLisPoPPID = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const listSumPo = await db.query(qryListSumPo, {
+      replacements: { ppid },
+      type: QueryTypes.SELECT,
+    });
+
     const datas = {
       listPOppid,
       lisSizePpid,
       lisColorPpid,
       listRowDtl,
       listRowDtlQty,
+      listSumPo,
       qtyPackRowCol,
     };
 
@@ -1005,6 +1111,7 @@ export async function postGenPrePack(req, res) {
       const ctnEnd = index === 0 ? rowCol.TTL_BOX : ctnStart + rowCol.TTL_BOX;
       rowCol.CTN_START = ctnStart;
       rowCol.CTN_END = ctnEnd;
+      rowCol.ROW_INDEX = index;
       arrRow.push(rowCol);
 
       const detailRow = sumPODetail
@@ -1349,3 +1456,82 @@ export const deletePPIDEntire = async (req, res) => {
     });
   }
 };
+
+//update data qty row prepack dan detail kolom
+
+export async function updatePpackRowNdetail(req, res) {
+  try {
+    const { objRow, arrDetail } = req.body;
+
+    if (!objRow || !arrDetail)
+      return res.status(404).json({
+        message: "No Data For update",
+      });
+
+    const { ROW_INDEX, PLAN_SEQUANCE_ID, ROWID, CTN_END } = objRow;
+    // console.log({ ROW_INDEX, PLAN_SEQUANCE_ID, ROWID });
+
+    const updateRow = await PackingPlanBoxRow.update(objRow, {
+      where: {
+        ROWID: ROWID,
+      },
+      raw: true,
+    });
+
+    if (updateRow) {
+      const deleteDetail = await PackPlanRowDetail.destroy({
+        where: {
+          ROWID: ROWID,
+        },
+      });
+
+      if (deleteDetail) {
+        await PackPlanRowDetail.bulkCreate(arrDetail);
+      }
+    }
+    const rowId = PLAN_SEQUANCE_ID + "%";
+
+    const getAfterRow = await PackingPlanBoxRow.findAll({
+      where: {
+        ROWID: {
+          [Op.like]: rowId,
+        },
+        ROW_INDEX: {
+          [Op.gt]: ROW_INDEX, // ROW_INDEX lebih besar dari
+        },
+      },
+      raw: true,
+    });
+
+    if (getAfterRow.length > 0) {
+      let arrRow = [];
+      for (let index = 0; index < getAfterRow.length; index++) {
+        let rowCol = getAfterRow[index];
+
+        const ctnStart =
+          index === 0 ? CTN_END + 1 : getAfterRow[index].CTN_END + 1;
+        const ctnEnd = ctnStart - 1 + rowCol.TTL_BOX;
+        rowCol.CTN_START = ctnStart;
+        rowCol.CTN_END = ctnEnd;
+        arrRow.push(rowCol);
+      }
+
+      await PackingPlanBoxRow.bulkCreate(arrRow, {
+        updateOnDuplicate: ["CTN_START", "CTN_END"],
+        where: {
+          ROWID: ["ROWID"],
+        },
+      });
+    }
+
+    return res.json({
+      message: "Success update",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error update",
+      data: error,
+    });
+  }
+}
