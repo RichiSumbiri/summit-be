@@ -611,7 +611,7 @@ export const getDataPolistPoBuyer = async (req, res) => {
 export const getDataPoSizeForPack = async (req, res) => {
   try {
     const { ppidSeqId } = req.params;
-
+    console.log(ppidSeqId);
     // const poNumber = decodeURIComponent(poNum);
     const ppidSeqDec = decodeURIComponent(ppidSeqId);
 
@@ -650,7 +650,7 @@ export const postPackBuyerPo = async (req, res) => {
     });
     //create or update
     let createOrUpdate = await OrderPoBuyer.bulkCreate(data);
-
+    // console.log({ PLAN_SEQUANCE_ID: data[0].PLAN_SEQUANCE_ID, arrPoId });
     const findPoDetail = await db.query(qryGetPackPlanDtlPo, {
       replacements: {
         seqId: data[0].PLAN_SEQUANCE_ID,
