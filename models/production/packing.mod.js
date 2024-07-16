@@ -717,7 +717,8 @@ ORDER BY a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.COL_INDEX`;
 // WHERE a.PACKPLAN_ID = :ppid
 // GROUP BY a.PACKPLAN_ID, a.BUYER_PO, a.BUYER_COLOR_CODE`;
 
-export const qrySumQtyPoBox = `SELECT 
+export const qrySumQtyPoBox = (stringQUery) => {
+  return `SELECT 
 	n.*,
 	m.QTY_PER_BOX,
 	m.TTL_QTY_BOX,
@@ -739,11 +740,12 @@ FROM (
 	LEFT JOIN pack_box_style d ON d.PRODUCT_ITEM_ID = c.PRODUCT_ITEM_ID AND a.SIZE_CODE = d.SIZE_CODE
 	LEFT JOIN packing_plan_header e ON e.PACKPLAN_ID = a.PACKPLAN_ID
 	LEFT JOIN item_buyer_size_sort f ON e.PACKPLAN_BUYER = f.BUYER
-	WHERE a.PLAN_SEQUANCE_ID = :seqPpid
+	WHERE ${stringQUery}
 	GROUP BY a.PACKPLAN_ID, a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE 
 	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE, a.SIZE_CODE
 ) n 
 LEFT JOIN packing_plan_box_row m ON m.ROWID = n.ROWID`;
+};
 
 export const qrySumQtyPoBoxPrepack = `SELECT
 	n.*,

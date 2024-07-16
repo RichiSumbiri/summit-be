@@ -611,7 +611,7 @@ export const getDataPolistPoBuyer = async (req, res) => {
 export const getDataPoSizeForPack = async (req, res) => {
   try {
     const { ppidSeqId } = req.params;
-    console.log(ppidSeqId);
+    // console.log(ppidSeqId);
     // const poNumber = decodeURIComponent(poNum);
     const ppidSeqDec = decodeURIComponent(ppidSeqId);
 
@@ -824,7 +824,7 @@ export const delPackPosum = async (req, res) => {
     // const poNumber = decodeURIComponent(poNum);
     const clrCode = decodeURIComponent(colorCode);
 
-    const paramWhere = {
+    let paramWhere = {
       PLAN_SEQUANCE_ID: seqPpids,
     };
 
@@ -833,8 +833,8 @@ export const delPackPosum = async (req, res) => {
       PPID: arrPlanSeq[0],
       SEQ_NO: arrPlanSeq[1],
     };
-
-    let rowId = `${seqPpids}`;
+    console.log(objSeq);
+    let rowId = seqPpids;
 
     if (colorCode) {
       paramWhere.BUYER_COLOR_CODE = clrCode;
@@ -865,18 +865,18 @@ export const delPackPosum = async (req, res) => {
         },
       },
     });
-
-    await PackPlanChild.destroy({
-      where: {
-        PACKPLAN_ID: objSeq.PPID,
-        SEQ_NO: parseInt(objSeq.SEQ_NO),
-      },
-    });
+    //kalo tidak ada color code berarti ini juga delete
+    if (!colorCode) {
+      await PackPlanChild.destroy({
+        where: {
+          PACKPLAN_ID: objSeq.PPID,
+          SEQ_NO: parseInt(objSeq.SEQ_NO),
+        },
+      });
+    }
 
     await OrderPoBuyer.destroy({
-      where: {
-        PLAN_SEQUANCE_ID: seqPpids,
-      },
+      where: paramWhere,
     });
 
     return res.json({
@@ -968,9 +968,16 @@ export const getLisPoPPID = async (req, res) => {
 export const getPoByrBox = async (req, res) => {
   try {
     const { seqPoPpid } = req.params;
+    const { color } = req.query;
 
+    let stringQuery = `a.PLAN_SEQUANCE_ID = '${seqPoPpid}'`;
+    if (color) {
+      stringQuery += ` AND a.BUYER_COLOR_CODE = '${color}'`;
+    }
+
+    const querySumQty = qrySumQtyPoBox(stringQuery);
     const seqPpid = decodeURIComponent(seqPoPpid);
-    const sumPODetail = await db.query(qrySumQtyPoBox, {
+    const sumPODetail = await db.query(querySumQty, {
       replacements: {
         seqPpid,
       },
@@ -1078,7 +1085,7 @@ export async function postGenerateRowBox(req, res) {
 //post generate row box prepack
 export async function postGenPrePack(req, res) {
   try {
-    const { seqPoPpid, userId } = req.body;
+    const { seqPoPpid, userId, color } = req.body;
 
     if (!seqPoPpid)
       return res.status(404).json({
@@ -1095,8 +1102,14 @@ export async function postGenPrePack(req, res) {
     });
     const listRowId = sumPODetailCol.map((items) => items.ROWID);
 
+    let stringQuery = `a.PLAN_SEQUANCE_ID = '${seqPoPpid}'`;
+    if (color) {
+      stringQuery += ` AND a.BUYER_COLOR_CODE = '${color}'`;
+    }
+
+    const querySumQty = qrySumQtyPoBox(stringQuery);
     //row detail
-    const sumPODetail = await db.query(qrySumQtyPoBox, {
+    const sumPODetail = await db.query(querySumQty, {
       replacements: {
         seqPpid,
       },
