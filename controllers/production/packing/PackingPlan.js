@@ -1070,10 +1070,15 @@ export async function postGenerateRowBox(req, res) {
         item.QTY_PER_BOX && !isNaN(item.CTN_START) && !isNaN(item.CTN_END)
     );
 
+    const listNewRowId = rowByPassZero.map((items) => items.ROWID);
+    const listArrDetailInclude = arrRowDetail.filter((items) =>
+      listNewRowId.includes(items.ROWID)
+    );
+
     // console.log(dataRows);
     const headerPost = await PackingPlanBoxRow.bulkCreate(rowByPassZero);
 
-    const detailPost = await PackPlanRowDetail.bulkCreate(arrRowDetail);
+    const detailPost = await PackPlanRowDetail.bulkCreate(listArrDetailInclude);
 
     if (headerPost && detailPost)
       return res.json({
