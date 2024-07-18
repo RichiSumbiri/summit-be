@@ -1065,7 +1065,11 @@ export async function postGenerateRowBox(req, res) {
     //   QTY: item.QTY_PER_BOX,
     //   ADD_ID: item.ADD_ID,
     // }));
-    const rowByPassZero = dataRows.filter((item) => item.QTY_PER_BOX);
+    const rowByPassZero = dataRows.filter(
+      (item) =>
+        item.QTY_PER_BOX && !isNaN(item.CTN_START) && !isNaN(item.CTN_END)
+    );
+
     // console.log(dataRows);
     const headerPost = await PackingPlanBoxRow.bulkCreate(rowByPassZero);
 
