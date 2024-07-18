@@ -29,6 +29,7 @@ import {
   qryGetRowColQty,
   qryGetRowDtl,
   qryGetRowDtlOne,
+  qryGetRowIdAndIndex,
   qryGetSeqChild,
   // qryGetSumPoPront,
   qryGetlistPo,
@@ -43,6 +44,7 @@ import {
 } from "../../../models/production/packing.mod.js";
 import moment from "moment";
 import {
+  CheckNilai,
   customSortByLetterFirst,
   customSortByNumberFirst,
 } from "../../util/Utility.js";
@@ -833,7 +835,7 @@ export const delPackPosum = async (req, res) => {
       PPID: arrPlanSeq[0],
       SEQ_NO: arrPlanSeq[1],
     };
-    console.log(objSeq);
+
     let rowId = seqPpids;
 
     if (colorCode) {
@@ -1251,6 +1253,7 @@ export const delOneDetailPpid = async (req, res) => {
         message: "No Data For Update",
       });
     const endCodRowId = decodeURIComponent(rowId);
+
     const deleteDetail = await PackPlanRowDetail.destroy({
       where: {
         ROWID: endCodRowId,
@@ -1306,15 +1309,29 @@ export const delOneDetailPpid = async (req, res) => {
 export const PostOneDtlRowPpid = async (req, res) => {
   try {
     const data = req.body;
-
     if (!data)
       return res.status(404).json({
         message: "No Data For Update",
       });
 
-    const postDetail = await PackPlanRowDetail.create(data, {
-      raw: true,
+    const findOneDetail = await PackPlanRowDetail.findOne({
+      where: { ROWID: data.ROWID, SIZE_CODE: data.SIZE_CODE },
     });
+
+    let postDetail = {};
+    if (findOneDetail) {
+      const updateDetail = await PackPlanRowDetail.update(data, {
+        where: { ROWID: data.ROWID, SIZE_CODE: data.SIZE_CODE },
+        raw: true,
+      });
+      if (updateDetail) {
+        postDetail = data;
+      }
+    } else {
+      postDetail = await PackPlanRowDetail.create(data, {
+        raw: true,
+      });
+    }
 
     if (!postDetail)
       return res.status(404).json({ status: false, message: "Gagal Update" });
@@ -1324,12 +1341,20 @@ export const PostOneDtlRowPpid = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const findOne = await PackingPlanBoxRow.findOne({
+      where: {
+        ROWID: data.ROWID,
+      },
+      raw: true,
+    });
+
     const newvalue = findNewQty[0] ? findNewQty[0].QTY : 0;
+    const TTL_QTY_BOX = CheckNilai(findOne.TTL_BOX * newvalue);
     const valUpdate = {
-      SHIPMENT_QTY: newvalue,
+      SHIPMENT_QTY: TTL_QTY_BOX,
       AFTER_SET_QTY: newvalue,
       QTY_PER_BOX: newvalue,
-      TTL_QTY_BOX: newvalue,
+      TTL_QTY_BOX: TTL_QTY_BOX,
     };
 
     const updateROw = await PackingPlanBoxRow.update(valUpdate, {
@@ -1343,7 +1368,10 @@ export const PostOneDtlRowPpid = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const plainPostDetail = postDetail.get({ plain: true });
+    const plainPostDetail = findOneDetail
+      ? postDetail
+      : postDetail.get({ plain: true });
+
     const newDetails = {
       ...plainPostDetail,
       TTL_QTY: plainPostDetail.QTY * findResult[0].TTL_BOX,
@@ -1603,3 +1631,109 @@ export async function switchGenToMnl(req, res) {
     });
   }
 }
+
+export const getRowIdAndIndex = async (req, res) => {
+  try {
+    const { seqIds, colorCodes } = req.params;
+    const seqId = decodeURIComponent(seqIds);
+    const colorCode = decodeURIComponent(colorCodes);
+
+    const rowColor = seqId + "|" + colorCode + "%";
+
+    const findRowId = await db.query(qryGetRowIdAndIndex, {
+      replacements: { seqId, colorCode, rowColor },
+      type: QueryTypes.SELECT,
+    });
+
+    if (findRowId.length === 0)
+      return res.status(404).json({ message: "Data Tidak Ditemukan" });
+
+    const balance = findRowId[0].BALANCE;
+    if (balance <= 0)
+      return res
+        .status(200)
+        .json({ status: false, message: "Nilali Balance 0" });
+
+    return res.status(200).json({ status: true, data: findRowId[0] });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error update",
+      data: error,
+    });
+  }
+};
+
+export const addNewRowSolid = async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data)
+      return res.status(404).json({ message: "Data Tidak Boleh kosong" });
+
+    const dataNewRow = await PackingPlanBoxRow.create(data);
+
+    if (dataNewRow) return res.json({ message: "Success Add new row" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "error add new row", data: error });
+  }
+};
+
+///delete by selected row
+export const deleteRowSolid = async (req, res) => {
+  try {
+    const { arrROw } = req.body;
+    if (!arrROw)
+      return res.status(404).json({ message: "Data Tidak Boleh kosong" });
+
+    const deleteDetail = await PackPlanRowDetail.destroy({
+      where: {
+        ROWID: arrROw,
+      },
+    });
+    if (deleteDetail) {
+      const delteRow = await PackingPlanBoxRow.destroy({
+        where: { ROWID: arrROw },
+      });
+      if (delteRow) return res.json({ message: "Success Delete row" });
+    } else {
+      return res.status(404).json({ message: "Gagal Delete row detail" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "error delete row", data: error });
+  }
+};
+
+export const setStartCtnSatu = async (req, res) => {
+  try {
+    const { arrROw } = req.body;
+    if (!arrROw)
+      return res.status(404).json({ message: "Data Tidak Boleh kosong" });
+
+    const findRow = await PackingPlanBoxRow.findAll({
+      where: { ROWID: arrROw },
+      raw: true,
+    });
+    if (findRow.length === 0)
+      return res.status(404).json({ message: "Data tidak ditemukan" });
+
+    const newRows = findRow.map((item) => ({
+      ...item,
+      CTN_START: 1,
+      CTN_END: item.TTL_BOX,
+    }));
+
+    const updateRows = await PackingPlanBoxRow.bulkCreate(newRows, {
+      updateOnDuplicate: ["CTN_START", "CTN_END"],
+      where: {
+        ROWID: ["ROWID"],
+      },
+    });
+
+    if (updateRows) res.json({ message: "Success update row" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "error delete row", data: error });
+  }
+};

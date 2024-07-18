@@ -19,11 +19,13 @@ import {
 import {
   PosPackPlanDetail,
   PostOneDtlRowPpid,
+  addNewRowSolid,
   chgCtnStartNo,
   delOneDetailPpid,
   delPackPosum,
   deletePPIDEntire,
   deletePackBox,
+  deleteRowSolid,
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
   getLisPoPPID,
@@ -39,6 +41,7 @@ import {
   getQrySumDetail,
   getRefPackPlanByByr,
   getResltBoxStyle,
+  getRowIdAndIndex,
   getSequanceId,
   postDataPackPlanChild,
   postDataPackPlanHeader,
@@ -49,6 +52,7 @@ import {
   postPackPosum,
   postSetCartonStyle,
   postSetCtnPrepack,
+  setStartCtnSatu,
   switchGenToMnl,
   updateDataPackPlanHeader,
   updateOneRowPpid,
@@ -91,6 +95,7 @@ router.get("/plann/id", getPackingPlanId);
 router.get("/plann-seq-no/:ppid", getSequanceId);
 router.get("/plann-pack-methode", getPackPlanMethod);
 router.get(`/plann-header/:customer/:startDate/:endDate`, getPackingPlanHd);
+// data utama tiap render page packing plan input detail
 router.get("/plann-polist-for-ppid/:ppid", getLisPoPPID);
 
 //list ref packing plan modal
@@ -124,4 +129,13 @@ router.post("/generate-row-box/", postGenerateRowBox);
 router.post("/generate-row-box-prepack/", postGenPrePack);
 router.post("/change-row-box-prepack/", chgCtnStartNo);
 router.post("/update-prepack-row/", updatePpackRowNdetail);
+
+//get new row manua;
+router.get("/get-row-id-data/:seqIds/:colorCodes", getRowIdAndIndex);
+router.post("/new-row-data", addNewRowSolid);
+
+//action by selected
+router.post("/plann-row-array-delete/", deleteRowSolid);
+router.post("/plann-row-array-update-start-ctn/", setStartCtnSatu);
+
 export default router;
