@@ -460,3 +460,76 @@ FROM order_po_listing_size a
 LEFT JOIN view_order_detail b ON a.ORDER_PO_ID = b.BUYER_PO AND a.SIZE_CODE = b.ORDER_SIZE  
 WHERE a.ORDER_PO_ID = :poId AND a.ITEM_COLOR_CODE = :colorCode AND a.SIZE_CODE = :sizeCode
 AND SUBSTRING(b.BARCODE_SERIAL,1,3) ='SSC' `;
+
+export const OrderPoBuyer = db.define("order_po_buyer", {
+  VENDOR: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  PO_NUMBER: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  PO_ITEM: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  SEGMENT: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  SLOC: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  ARTICEL_TYPE: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  ARTICEL_GENERIC: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  ARTICEL_ID: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  QTY: {
+    type: DataTypes.INTEGER(11),
+    allowNull: true,
+  },
+  COLOR_CODE: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  COLOR_DESCRIPTION: {
+    type: DataTypes.STRING(150),
+    allowNull: true,
+  },
+  SIZE_CODE: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  UPC_CODE: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  MRSP: {
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+  },
+  DPC: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  ITEM: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+  },
+});

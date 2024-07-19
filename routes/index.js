@@ -25,6 +25,7 @@ import zerodefectRoute from "./production/qcZeroD.route.js";
 import auditRoute from "./audit/auditTracking.js";
 import mechanicsRoute from "./mechanics/mechanics.route.js";
 import listRoute from "./list/list.route.js";
+import hrRoute from "./hr/employe.route.js";
 
 const router = express.Router();
 
@@ -55,6 +56,7 @@ router.use("/zerodefect", zerodefectRoute);
 router.use("/audit", auditRoute);
 router.use("/mechanics", mechanicsRoute);
 router.use("/list", listRoute);
+router.use("/hr", hrRoute);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));

@@ -616,6 +616,7 @@ FROM (
       n.AMOUNT,
       o.TTL_BOX,
       n.PACKING_METHODE,
+      t.COUNTRY_NAME,
       n.SEQ_NO,
       m.COL_INDEX
   FROM (
@@ -635,6 +636,7 @@ FROM (
     ON m.PLAN_SEQUANCE_ID = n.PLAN_SEQUANCE_ID 
     AND m.BUYER_PO = n.BUYER_PO
     AND m.BUYER_COLOR_CODE = n.BUYER_COLOR_CODE
+  LEFT JOIN item_country t ON t.COUNTRY_ID = m.COUNTRY_ID
   LEFT JOIN (
       SELECT 
         r.PLAN_SEQUANCE_ID,
