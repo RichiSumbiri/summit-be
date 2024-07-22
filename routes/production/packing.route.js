@@ -58,6 +58,12 @@ import {
   updateOneRowPpid,
   updatePpackRowNdetail,
 } from "../../controllers/production/packing/PackingPlan.js";
+import {
+  getContainerList,
+  getListShipPlanScan,
+  getQryListShipId,
+  scanShipmentBox,
+} from "../../controllers/production/packing/PackShipScan.js";
 const router = express.Router();
 
 router.get(
@@ -137,5 +143,12 @@ router.post("/new-row-data", addNewRowSolid);
 //action by selected
 router.post("/plann-row-array-delete/", deleteRowSolid);
 router.post("/plann-row-array-update-start-ctn/", setStartCtnSatu);
+
+//shipment
+router.get("/shipment-scan/container-ship/:sid", getContainerList);
+router.get("/shipment-scan/base-data/:sid/:conId", getListShipPlanScan);
+router.get("/shipment-scan/ref-list/:sidKey", getQryListShipId);
+
+router.post("/shipment-scan/box-scan", scanShipmentBox);
 
 export default router;

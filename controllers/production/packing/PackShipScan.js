@@ -1,0 +1,185 @@
+import { QueryTypes } from "sequelize";
+import db from "../../../config/database.js";
+import {
+  checkBlcShipScan,
+  PackingShipScan,
+  qryCheckPoItem,
+  querRefSid,
+  queryContainerList,
+  queryShipPlanScan,
+  queryShipPlanScanResult,
+} from "../../../models/production/packing.mod.js";
+
+//get list container list
+export const getContainerList = async (req, res) => {
+  try {
+    const { sid } = req.params;
+    //   const MES_STYLE = decodeURIComponent(style).toString();
+
+    const containerList = await db.query(queryContainerList, {
+      replacements: {
+        sid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (containerList.length === 0) {
+      return res.status(201).json({ message: "Belum ada data" });
+    }
+
+    return res.status(200).json({ data: { containerList } });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data container list",
+      data: error,
+    });
+  }
+};
+export const getListShipPlanScan = async (req, res) => {
+  try {
+    const { sid, conId } = req.params;
+    //   const MES_STYLE = decodeURIComponent(style).toString();
+
+    const shipPlan = await db.query(queryShipPlanScan, {
+      replacements: {
+        sid,
+        conId,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const shipPlanResult = await db.query(queryShipPlanScanResult, {
+      replacements: {
+        sid,
+        conId,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const containerList = await db.query(queryContainerList, {
+      replacements: {
+        sid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (shipPlan.length === 0) {
+      return res.status(201).json({ message: "Belum ada data" });
+    }
+
+    return res
+      .status(200)
+      .json({ data: { shipPlan, shipPlanResult, containerList } });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data shipment plan",
+      data: error,
+    });
+  }
+};
+
+//get list ref shimpent id
+export const getQryListShipId = async (req, res) => {
+  try {
+    const { sidKey } = req.params;
+
+    const sid = `%${sidKey}%`;
+
+    const listPO = await db.query(querRefSid, {
+      replacements: {
+        sid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listPO });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi po number",
+      data: error,
+    });
+  }
+};
+
+export const scanShipmentBox = async (req, res) => {
+  try {
+    const dataBox = req.body;
+
+    //check item sekalian check upc
+    const checkPoItem = await db.query(qryCheckPoItem, {
+      replacements: {
+        upc: dataBox.UPC,
+        conId: dataBox.CONTAINER_ID,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (checkPoItem.length === 0) {
+      return res.json({
+        status: "error",
+        message: "UPC Tidak Ditemukan",
+      });
+    }
+
+    // if (checkPoItem.length === 2) {
+    //   return res.json({
+    //     status: "pending",
+    //     data: checkPoItem,
+    //     message: "Terdapat 2 PO Item",
+    //   });
+    // }
+
+    //compare saldo container dengan planing
+    const checkBlc = await db.query(checkBlcShipScan, {
+      replacements: {
+        upc: dataBox.UPC,
+        sid: dataBox.SHIPMENT_ID,
+        conId: dataBox.CONTAINER_ID,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    let idxPo = 0;
+    //di looping jika terdapat PO item lebih dari satu maka akan diambil sesuai index terlebih dahulu
+    if (checkBlc.length > 1) {
+      for (let index = 0; index < checkBlc.length; index++) {
+        const element = checkBlc[index];
+        // console.log(element);
+        if (element.BALANCE_SCAN > 0) {
+          idxPo = index;
+          index = checkBlc.length;
+        }
+      }
+    }
+    // console.log({ idxPo, checkBlc: checkBlc[idxPo] });
+
+    if (checkBlc[idxPo].BALANCE_SCAN === 0) {
+      return res.json({
+        status: "error",
+        message: "Melebihi Planning",
+      });
+    }
+
+    const poItem = checkPoItem[idxPo].PO_ITEM;
+    const dataPush = {
+      ...dataBox,
+      PO_ITEM: poItem,
+    };
+
+    const postScan = await PackingShipScan.create(dataPush);
+    if (postScan) {
+      return res.json({ status: "success", message: "Success Scan" });
+    } else {
+      return res.json({ status: "error", message: "Gagal Scan" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat scan",
+      data: error,
+    });
+  }
+};

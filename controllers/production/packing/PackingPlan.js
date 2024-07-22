@@ -1113,7 +1113,7 @@ export async function postGenPrePack(req, res) {
     });
     const listRowId = sumPODetailCol.map((items) => items.ROWID);
 
-    let stringQuery = `a.PLAN_SEQUANCE_ID = '${seqPoPpid}'`;
+    let stringQuery = `a.PLAN_SEQUANCE_ID = '${seqPpid}'`;
     if (color) {
       stringQuery += ` AND a.BUYER_COLOR_CODE = '${color}'`;
     }
@@ -1700,6 +1700,8 @@ export const deleteRowSolid = async (req, res) => {
         ROWID: arrROw,
       },
     });
+    // console.log(arrROw);
+    // console.log(deleteDetail);
     if (deleteDetail) {
       const delteRow = await PackingPlanBoxRow.destroy({
         where: { ROWID: arrROw },

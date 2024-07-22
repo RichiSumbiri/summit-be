@@ -1055,3 +1055,87 @@ FROM (
 	WHERE N.PLAN_SEQUANCE_ID  = :seqId
 	AND N.BUYER_COLOR_CODE  = :colorCode
 ) J`;
+
+//shipment scan
+export const queryShipPlanScan = `SELECT
+ a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE, a.COLOR_NAME,
+ a.TTL_CTN, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+FROM packing_shipment_plan a 
+LEFT JOIN (
+	SELECT 
+		c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
+	FROM packing_shipment_scan c WHERE c.SHIPMENT_ID = :sid AND c.CONTAINER_ID = :conId
+	GROUP BY c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC
+) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
+	AND a.PACK_UPC = b.UPC 
+	AND a.PO_ITEM = b.PO_ITEM
+	AND a.CONTAINER_ID = b.CONTAINER_ID
+  AND a.PO_ITEM =  b.PO_ITEM
+WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
+
+//shipment scan detail result
+export const queryShipPlanScanResult = `SELECT 
+	a.*, b.PACK_METHODE, b.PO_BUYER, b.STYLE, b.COLOR_NAME, b.SIZE, b.CONTAINER_ID, d.CONTAINER_SEQ,  c.USER_NAME
+FROM packing_shipment_scan a 
+LEFT JOIN packing_shipment_plan b 
+	ON b.SHIPMENT_ID = a.SHIPMENT_ID 
+	AND b.PACK_UPC = a.UPC 
+	AND a.PO_ITEM = b.PO_ITEM 
+	AND a.CONTAINER_ID = b.CONTAINER_ID
+LEFT JOIN xref_user_web c ON c.USER_ID = a.USER_ADD 
+LEFT JOIN packing_ship_container d ON d.CONTAINER_ID = a.CONTAINER_ID
+WHERE a.SHIPMENT_ID =  :sid AND a.CONTAINER_ID = :conId
+ORDER BY a.ADD_TIME DESC LIMIT 2`;
+
+export const querRefSid = `SELECT DISTINCT a.SHIPMENT_ID
+FROM packing_shipment_plan a WHERE a.SHIPMENT_ID LIKE :sid `;
+
+export const queryContainerList = `SELECT DISTINCT a.SHIPMENT_ID, a.CONTAINER_ID, a.CONTAINER_NO, a.CONTAINER_SEQ, a.CONTAINER_TYPE
+FROM packing_ship_container a WHERE a.SHIPMENT_ID = :sid `;
+
+export const PackingShipScan = db.define(
+  "packing_shipment_scan",
+  {
+    SHIPMENT_ID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    UPC: { type: DataTypes.STRING },
+    PO_ITEM: { type: DataTypes.STRING },
+    CONTAINER_ID: { type: DataTypes.INTEGER },
+    USER_ADD: { type: DataTypes.STRING },
+    ADD_TIME: { type: DataTypes.DATE },
+    MOD_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: false,
+  }
+);
+
+PackingShipScan.removeAttribute("id");
+
+export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId`;
+
+export const checkBlcShipScan = `SELECT
+ a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE, 
+ a.TTL_CTN, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+FROM packing_shipment_plan a 
+LEFT JOIN (
+	SELECT 
+		c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
+	FROM packing_shipment_scan c 
+	WHERE c.SHIPMENT_ID = :sid  
+    AND c.UPC = :upc 
+    AND c.CONTAINER_ID = :conId
+  -- ADN  c.PO_ITEM = :poItem
+	GROUP BY c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  c.PO_ITEM
+) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
+	AND a.PACK_UPC = b.UPC 
+	AND a.PO_ITEM = b.PO_ITEM
+	AND a.CONTAINER_ID = b.CONTAINER_ID
+WHERE a.SHIPMENT_ID = :sid 
+  AND a.PACK_UPC = :upc 
+  AND a.CONTAINER_ID = :conId 
+  -- AND PO_ITEM = :poItem`;
