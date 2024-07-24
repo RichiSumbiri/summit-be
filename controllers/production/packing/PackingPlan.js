@@ -1239,8 +1239,18 @@ export const updateOneRowPpid = async (req, res) => {
         ROWID: data.ROWID,
       },
     });
+
+    const findResult = await db.query(qryGetRowDtlOne, {
+      replacements: { rowId: data.ROWID },
+      type: QueryTypes.SELECT,
+    });
+
     if (updateROw) {
-      return res.json({ status: true, message: "Success update row" });
+      return res.json({
+        status: true,
+        data: findResult[0],
+        message: "Success update row",
+      });
     } else {
       return res.json({ status: false });
     }
