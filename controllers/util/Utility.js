@@ -171,8 +171,24 @@ export function getRangeDate(newDate) {
 
 export function customSortByLetterFirst(arrOfObj, key) {
   return arrOfObj.sort((a, b) => {
-    const [numA, letterA] = a[key].match(/(\d+)(\D+)/).slice(1);
-    const [numB, letterB] = b[key].match(/(\d+)(\D+)/).slice(1);
+    const matchA = a[key].match(/(\d+)(\D+)/);
+    const matchB = b[key].match(/(\d+)(\D+)/);
+
+    // Handle cases where there is no match (only letters)
+    if (!matchA && !matchB) {
+      // Return default order (unchanged)
+      return 0;
+    } else if (!matchA) {
+      // A has only letters, should come after B
+      return 1;
+    } else if (!matchB) {
+      // B has only letters, should come after A
+      return -1;
+    }
+
+    // Both have the pattern with numbers and letters
+    const [numA, letterA] = matchA.slice(1);
+    const [numB, letterB] = matchB.slice(1);
 
     if (letterA < letterB) return -1;
     if (letterA > letterB) return 1;
@@ -180,6 +196,18 @@ export function customSortByLetterFirst(arrOfObj, key) {
     return numA - numB;
   });
 }
+
+// export function customSortByLetterFirst(arrOfObj, key) {
+//   return arrOfObj.sort((a, b) => {
+//     const [numA, letterA] = a[key].match(/(\d+)(\D+)/).slice(1);
+//     const [numB, letterB] = b[key].match(/(\d+)(\D+)/).slice(1);
+
+//     if (letterA < letterB) return -1;
+//     if (letterA > letterB) return 1;
+
+//     return numA - numB;
+//   });
+// }
 
 export function customSortByNumberFirst(arrOfObj, key) {
   return arrOfObj.sort((a, b) => {
