@@ -26,6 +26,7 @@ import {
   deletePPIDEntire,
   deletePackBox,
   deleteRowSolid,
+  editDataPackPlanChild,
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
   getLisPoPPID,
@@ -52,6 +53,7 @@ import {
   postPackPosum,
   postSetCartonStyle,
   postSetCtnPrepack,
+  setBoxIdRow,
   setStartCtnSatu,
   switchGenToMnl,
   updateDataPackPlanHeader,
@@ -115,6 +117,7 @@ router.get("/plann-rowDetail/:ppid", getListRowDtlPo);
 
 router.post("/plann-data/", postDataPackPlanHeader);
 router.post("/plan-data-child/", postDataPackPlanChild);
+router.post("/plan-data-child-edit/", editDataPackPlanChild);
 router.patch("/plann-data/", updateDataPackPlanHeader);
 router.post("/plann-detail-size/", PosPackPlanDetail);
 router.post("/plann-po-summary/", postPackPosum);
@@ -143,6 +146,7 @@ router.post("/new-row-data", addNewRowSolid);
 //action by selected
 router.post("/plann-row-array-delete/", deleteRowSolid);
 router.post("/plann-row-array-update-start-ctn/", setStartCtnSatu);
+router.post("/plann-row-array-update-box-row/", setBoxIdRow);
 
 //shipment
 router.get("/shipment-scan/container-ship/:sid", getContainerList);

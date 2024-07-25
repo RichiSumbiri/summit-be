@@ -536,6 +536,121 @@ export const postDataPackPlanChild = async (req, res) => {
   }
 };
 
+export const editDataPackPlanChild = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data) res.status(400).json({ message: "no data provided" });
+
+    //check duplicate packplan code
+    let checkIdExist = await PackPlanChild.findOne({
+      where: {
+        PACKPLAN_ID: data.PACKPLAN_ID,
+        SEQ_NO: data.SEQ_NO,
+      },
+    });
+
+    if (!checkIdExist)
+      return res.status(400).json({ message: "SEQ Not Exist" });
+
+    const oldStringSeq = `${checkIdExist.PACKPLAN_ID}|${checkIdExist.SEQ_NO}|${checkIdExist.COUNTRY_ID}|${checkIdExist.PACKING_METHODE}`;
+    const newStringSeq = `${data.PACKPLAN_ID}|${data.SEQ_NO}|${data.COUNTRY_ID}|${data.PACKING_METHODE}`;
+    // console.log({ oldStringSeq, newStringSeq });
+    await PackPlanChild.update(data, {
+      where: {
+        PACKPLAN_ID: data.PACKPLAN_ID,
+        SEQ_NO: data.SEQ_NO,
+      },
+    });
+
+    await OrderPoBuyer.update(
+      {
+        PLAN_SEQUANCE_ID: newStringSeq,
+      },
+      {
+        where: {
+          PLAN_SEQUANCE_ID: oldStringSeq,
+        },
+      }
+    );
+
+    await PackingPlanPoSum.update(
+      {
+        PLAN_SEQUANCE_ID: newStringSeq,
+      },
+      {
+        where: {
+          PLAN_SEQUANCE_ID: oldStringSeq,
+        },
+      }
+    );
+
+    await PackingPlanDetail.update(
+      {
+        PLAN_SEQUANCE_ID: newStringSeq,
+      },
+      {
+        where: {
+          PLAN_SEQUANCE_ID: oldStringSeq,
+        },
+      }
+    );
+
+    const findRow = await PackingPlanBoxRow.findAll({
+      where: {
+        ROWID: {
+          [Op.like]: oldStringSeq + "%",
+        },
+      },
+      raw: true,
+    });
+
+    if (findRow.length > 0) {
+      for (let index = 0; index < findRow.length; index++) {
+        const element = findRow[index];
+        const oldRowId = element.ROWID;
+        const arrString = oldRowId.split("|");
+
+        let newRowId = newStringSeq + "|" + arrString[4];
+        if (arrString[5]) {
+          newRowId = newRowId + "|" + arrString[5];
+        }
+        // console.log({ oldRowId, newRowId });
+
+        await PackingPlanBoxRow.update(
+          {
+            ROWID: newRowId,
+          },
+          {
+            where: {
+              ROWID: oldRowId,
+            },
+          }
+        );
+
+        await PackPlanRowDetail.update(
+          {
+            ROWID: newRowId,
+          },
+          {
+            where: {
+              ROWID: oldRowId,
+            },
+          }
+        );
+      }
+    }
+
+    return res.status(200).json({ message: "Success Edited Seq" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post Packing Seq",
+      data: error,
+    });
+  }
+};
+
 export const updateDataPackPlanHeader = async (req, res) => {
   try {
     const data = req.body;
@@ -1104,19 +1219,20 @@ export async function postGenPrePack(req, res) {
       });
     const seqPpid = decodeURIComponent(seqPoPpid);
 
+    let stringQuery = `a.PLAN_SEQUANCE_ID = '${seqPpid}'`;
+    if (color) {
+      stringQuery += ` AND a.BUYER_COLOR_CODE = '${color}'`;
+    }
+
+    const querySumPrepack = qrySumQtyPoBoxPrepack(stringQuery);
     //row color
-    const sumPODetailCol = await db.query(qrySumQtyPoBoxPrepack, {
+    const sumPODetailCol = await db.query(querySumPrepack, {
       replacements: {
         seqPpid,
       },
       type: QueryTypes.SELECT,
     });
     const listRowId = sumPODetailCol.map((items) => items.ROWID);
-
-    let stringQuery = `a.PLAN_SEQUANCE_ID = '${seqPpid}'`;
-    if (color) {
-      stringQuery += ` AND a.BUYER_COLOR_CODE = '${color}'`;
-    }
 
     const querySumQty = qrySumQtyPoBox(stringQuery);
     //row detail
@@ -1705,18 +1821,19 @@ export const deleteRowSolid = async (req, res) => {
     if (!arrROw)
       return res.status(404).json({ message: "Data Tidak Boleh kosong" });
 
-    const deleteDetail = await PackPlanRowDetail.destroy({
+    await PackPlanRowDetail.destroy({
       where: {
         ROWID: arrROw,
       },
     });
     // console.log(arrROw);
     // console.log(deleteDetail);
-    if (deleteDetail) {
-      const delteRow = await PackingPlanBoxRow.destroy({
-        where: { ROWID: arrROw },
-      });
-      if (delteRow) return res.json({ message: "Success Delete row" });
+    const delteRow = await PackingPlanBoxRow.destroy({
+      where: { ROWID: arrROw },
+    });
+    if (delteRow) {
+      return res.json({ message: "Success Delete row" });
+      // if (deleteDetail) {
     } else {
       return res.status(404).json({ message: "Gagal Delete row detail" });
     }
@@ -1747,6 +1864,26 @@ export const setStartCtnSatu = async (req, res) => {
 
     const updateRows = await PackingPlanBoxRow.bulkCreate(newRows, {
       updateOnDuplicate: ["CTN_START", "CTN_END"],
+      where: {
+        ROWID: ["ROWID"],
+      },
+    });
+
+    if (updateRows) res.json({ message: "Success update row" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "error delete row", data: error });
+  }
+};
+
+export const setBoxIdRow = async (req, res) => {
+  try {
+    const { arrROw } = req.body;
+    if (!arrROw)
+      return res.status(404).json({ message: "Data Tidak Boleh kosong" });
+
+    const updateRows = await PackingPlanBoxRow.bulkCreate(arrROw, {
+      updateOnDuplicate: ["BOX_ID", "BOX_CODE"],
       where: {
         ROWID: ["ROWID"],
       },
