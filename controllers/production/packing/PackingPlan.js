@@ -1580,6 +1580,7 @@ export async function chgCtnStartNo(req, res) {
           },
           BUYER_COLOR_CODE: BUYER_COLOR_CODE,
         },
+        order: [["ROW_INDEX", "ASC"]],
         raw: true,
       });
 
