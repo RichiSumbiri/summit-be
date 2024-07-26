@@ -1046,6 +1046,16 @@ export const getLisPoPPID = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    if (lisSizePpidHd[0].SORT_TYPE === "letter" && listRowDtl.length > 0) {
+      listRowDtl.sort((a, b) => {
+        if (a.BUYER_PO < b.BUYER_PO) return -1;
+        if (a.BUYER_PO > b.BUYER_PO) return 1;
+        if (a.CTN_START < b.CTN_START) return -1;
+        if (a.CTN_START > b.CTN_START) return 1;
+        return 0;
+      });
+    }
+
     const listRowDtlQty = await db.query(qryQtySizeRowDtl, {
       replacements: { ppid },
       type: QueryTypes.SELECT,
