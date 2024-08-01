@@ -697,7 +697,7 @@ export const QRScanSuperMarketIn = async (req, res) => {
 
     //jika ada maka bandingkan dengan
     if (checkBarcodeSerial) {
-      console.log(checkBarcodeSerial);
+      // console.log(checkBarcodeSerial);
       const valueBarcode = checkBarcodeSerial[0];
 
       const checkScan = await CutSupermarketIn.findAll({
