@@ -21,16 +21,20 @@ import {
   PostOneDtlRowPpid,
   addNewRowSolid,
   chgCtnStartNo,
+  copyFromStyle,
   delOneDetailPpid,
   delPackPosum,
   deletePPIDEntire,
   deletePackBox,
   deleteRowSolid,
+  deleteSetCartonStyle,
+  deleteSetCtnStyleDetail,
   editDataPackPlanChild,
   getDataPoSizeForPack,
   getDataPolistPoBuyer,
   getLisPoPPID,
   getListRowDtlPo,
+  getListSetCtnStyle,
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
@@ -44,6 +48,7 @@ import {
   getResltBoxStyle,
   getRowIdAndIndex,
   getSequanceId,
+  postCstmSetSortSize,
   postDataPackPlanChild,
   postDataPackPlanHeader,
   postGenPrePack,
@@ -56,11 +61,13 @@ import {
   setBoxIdRow,
   setStartCtnSatu,
   switchGenToMnl,
+  updateBoxCtnStylDetail,
   updateDataPackPlanHeader,
   updateOneRowPpid,
   updatePpackRowNdetail,
 } from "../../controllers/production/packing/PackingPlan.js";
 import {
+  genShipLabelCtn,
   getContainerList,
   getListShipPlanScan,
   getQryListShipId,
@@ -90,10 +97,15 @@ router.get("/daily/scaninRepSizePo/:scanDate", PackInScanInDaySizePo);
 //packing style
 router.get("/list-style-setup/:buyer", getListStylePack);
 router.get("/list-box-buyer/:buyer", getPackBox);
-router.get("/list-size-code/:prodItemCode", getListSizeCodeByProdId);
+router.get("/list-size-code/:styleOrder", getListSizeCodeByProdId);
+router.get("/list-set-ctn-result/:styleOrder", getListSetCtnStyle);
 router.get("/getresult-box-style/:prodItemCode", getResltBoxStyle);
 router.post("/list-box-buyer", postPackBox);
-router.post("/set-box-style-size/:prodItemCode", postSetCartonStyle);
+router.post("/set-box-style-size", postSetCartonStyle);
+router.post("/copy-setbox-from", copyFromStyle);
+router.patch("/set-box-style-size", updateBoxCtnStylDetail);
+router.post("/set-box-style-delete", deleteSetCartonStyle); //untuk delete pake array
+router.post("/set-box-style-delete-detail", deleteSetCtnStyleDetail); //untuk delete pake array detail
 router.post("/set-box-style-size-prepack/:prodItemCode", postSetCtnPrepack);
 router.delete("/list-box-buyer/:BOX_ID/:BUYER_CODE", deletePackBox);
 
@@ -121,7 +133,8 @@ router.post("/plan-data-child-edit/", editDataPackPlanChild);
 router.patch("/plann-data/", updateDataPackPlanHeader);
 router.post("/plann-detail-size/", PosPackPlanDetail);
 router.post("/plann-po-summary/", postPackPosum);
-router.post("/po-buyer-data/", postPackBuyerPo);
+router.post("/plann-po-summary/", postPackPosum);
+router.post("/custom-sort-size/", postCstmSetSortSize);
 
 router.patch("/update-one-rows-ppid/", updateOneRowPpid);
 router.patch("/update-one-rows-manual/:rowsId", switchGenToMnl);
@@ -152,6 +165,8 @@ router.post("/plann-row-array-update-box-row/", setBoxIdRow);
 router.get("/shipment-scan/container-ship/:sid", getContainerList);
 router.get("/shipment-scan/base-data/:sid/:conId", getListShipPlanScan);
 router.get("/shipment-scan/ref-list/:sidKey", getQryListShipId);
+
+router.post("/shipment-scan/generate-label/", genShipLabelCtn);
 
 router.post("/shipment-scan/box-scan", scanShipmentBox);
 

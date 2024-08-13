@@ -8,6 +8,10 @@ import {
   queryContainerList,
   queryShipPlanScan,
   queryShipPlanScanResult,
+  queryGetTlOfCtn,
+  PackCtnLabel,
+  qryLabelResult,
+  PackShipPlan,
 } from "../../../models/production/packing.mod.js";
 
 //get list container list
@@ -102,6 +106,84 @@ export const getQryListShipId = async (req, res) => {
       data: error,
     });
   }
+};
+
+export const genShipLabelCtn = async (req, res) => {
+  try {
+    const data = req.body;
+    const {
+      SHIPMENT_ID,
+      CONTAINER_ID,
+      // PO_ITEM,
+      PO_BUYER,
+      COLOR_CODE,
+      ROWID,
+    } = req.body;
+
+    if (!ROWID)
+      return res.status(404).json({ message: "Tidak Terdapat ROWID" });
+
+    const sumOfCtn = await db.query(queryGetTlOfCtn, {
+      replacements: {
+        SHIPMENT_ID,
+        CONTAINER_ID,
+        PO_BUYER,
+        COLOR_CODE,
+      },
+      type: QueryTypes.SELECT,
+      raw: true,
+    });
+    // console.log(sumOfCtn);
+
+    const noOfCtn = sumOfCtn[0].NO_OF_CTN;
+    const arrLabel = generateCartonObjects(data, noOfCtn);
+
+    const generateLabels = await PackCtnLabel.bulkCreate(arrLabel);
+    if (generateLabels) {
+      const findResult = await db.query(qryLabelResult, {
+        replacements: {
+          rowId: ROWID,
+        },
+        type: QueryTypes.SELECT,
+        raw: true,
+      });
+
+      await PackShipPlan.update(
+        { PRINTED_STATUS: "1" },
+        {
+          where: {
+            ROWID: ROWID,
+          },
+        }
+      );
+
+      return res.json({ message: "success", data: findResult });
+    } else {
+      return res.status(404).json({ message: "Error saat generate label" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi po number",
+      data: error,
+    });
+  }
+};
+
+const generateCartonObjects = (shipment, noOF) => {
+  const cartons = [];
+  for (let i = shipment.CTN_START; i <= shipment.CTN_END; i++) {
+    const carton = {
+      ROWID: shipment.ROWID,
+      // SHIPMENT_ID: shipment.SHIPMENT_ID,
+      // PACK_UPC : shipment.PACK_UPC,
+      CTN_NO: i,
+      CTN_OF: noOF,
+      UNIK_CODE: `${shipment.ROWID}|${i}`,
+    };
+    cartons.push(carton);
+  }
+  return cartons;
 };
 
 export const scanShipmentBox = async (req, res) => {

@@ -224,11 +224,11 @@ LEFT JOIN item_siteline f ON f.ID_SITELINE = d.SCH_ID_SITELINE
 WHERE a.BARCODE_MAIN = :qrCode
 `;
 
-export const queryGetSytleByBuyer = `	SELECT DISTINCT a.CUSTOMER_NAME, a.CUSTOMER_DIVISION, a.PRODUCT_ITEM_ID, a.PRODUCT_TYPE,
-a.PRODUCT_ITEM_CODE, a.PRODUCT_ITEM_DESCRIPTION
+export const queryGetSytleByBuyer = `SELECT DISTINCT a.CUSTOMER_NAME, a.CUSTOMER_DIVISION, a.PRODUCT_ITEM_ID, a.PRODUCT_TYPE,
+a.PRODUCT_ITEM_CODE, a.ORDER_STYLE_DESCRIPTION, a.PRODUCT_ITEM_DESCRIPTION
 FROM order_po_listing a
-WHERE a.CUSTOMER_NAME = :byr 
-GROUP BY  a.PRODUCT_ITEM_ID`;
+WHERE a.CUSTOMER_NAME = :byr
+GROUP BY  a.PRODUCT_ITEM_ID, a.ORDER_STYLE_DESCRIPTION`;
 
 export const CartonBox = db.define(
   "item_carton_list",
@@ -257,10 +257,12 @@ export const CartonBox = db.define(
   }
 );
 
-export const getSizeCodeByStyleId = `SELECT DISTINCT a.SIZE_CODE
+export const getSizeCodeByStyleId = `SELECT DISTINCT a.SIZE_CODE, b.SORT_NO
 FROM order_po_listing_size a
-WHERE a.PRODUCT_ITEM_ID = :prodItemCode
-GROUP BY a.PRODUCT_ITEM_ID,  a.SIZE_CODE`;
+LEFT JOIN item_list_size b ON a.CUSTOMER_NAME = b.CUSTOMER_NAME AND a.SIZE_CODE = b.SIZE_CODE
+WHERE a.ORDER_STYLE_DESCRIPTION = :styleOrder
+GROUP BY a.ORDER_STYLE_DESCRIPTION,  a.SIZE_CODE
+ORDER BY b.SORT_NO`;
 
 export const PackBoxStyle = db.define(
   "pack_box_style",
@@ -286,6 +288,34 @@ export const PackBoxStyle = db.define(
   }
 );
 
+export const PackCartonStyle = db.define(
+  "pack_carton_style",
+  {
+    ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    BOX_ID: {
+      type: DataTypes.INTEGER,
+    },
+    COUNTRY_ID: {
+      type: DataTypes.INTEGER,
+    },
+    BUYER_CODE: { type: DataTypes.STRING },
+    BOX_CODE: { type: DataTypes.STRING },
+    PRODUCT_ITEM_ID: { type: DataTypes.STRING },
+    ORDER_STYLE_DESCRIPTION: { type: DataTypes.STRING },
+    SIZE_CODE: { type: DataTypes.STRING },
+    PACKING_METHODE: { type: DataTypes.STRING },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
 export const PackMethodeList = db.define(
   "item_packing_method",
   {
@@ -299,6 +329,35 @@ export const PackMethodeList = db.define(
     updatedAt: false,
   }
 );
+
+export const getCtnStyleCode = `SELECT 
+  a.ORDER_STYLE_DESCRIPTION,
+	a.COUNTRY_ID,
+	b.COUNTRY_CODE,
+	b.COUNTRY_NAME,
+	a.PACKING_METHODE
+FROM pack_carton_style a 
+LEFT JOIN item_country b ON b.COUNTRY_ID = a.COUNTRY_ID
+WHERE a.ORDER_STYLE_DESCRIPTION = :orderStyle
+GROUP BY a.ORDER_STYLE_DESCRIPTION, a.COUNTRY_ID, a.PACKING_METHODE 
+ORDER BY a.PACKING_METHODE, a.COUNTRY_ID`;
+
+export const getCtnStyleCodeDetail = `SELECT 
+  a.ID,
+  a.ORDER_STYLE_DESCRIPTION,
+	a.COUNTRY_ID,
+	b.COUNTRY_CODE,
+	b.COUNTRY_NAME,
+	a.PACKING_METHODE,
+	a.SIZE_CODE,
+	c.BOX_NAME,
+	c.BOX_CODE
+FROM pack_carton_style a 
+LEFT JOIN item_country b ON b.COUNTRY_ID = a.COUNTRY_ID
+LEFT JOIN item_carton_list c ON c.BOX_ID = a.BOX_ID
+LEFT JOIN item_list_size d ON a.BUYER_CODE = d.CUSTOMER_NAME AND a.SIZE_CODE = d.SIZE_CODE
+WHERE a.ORDER_STYLE_DESCRIPTION = :orderStyle
+ORDER BY a.COUNTRY_ID, a.PACKING_METHODE, d.SORT_NO`;
 
 export const getBoxStyleCode = `SELECT 
 pbs.BOX_ID, pbs.BUYER_CODE, pbs.BOX_CODE, pbs.PRODUCT_ITEM_ID, pbs.SIZE_CODE, pbs.TYPE_PACK 
@@ -728,10 +787,16 @@ LEFT JOIN item_country b ON a.COUNTRY_ID = b.COUNTRY_ID
 WHERE a.PACKPLAN_ID = :ppid
 ORDER BY a.SEQ_NO`;
 
-export const qryGetLisSizePPID = `SELECT DISTINCT a.SIZE_CODE, c.SORT_TYPE FROM packing_plan_detail a 
-	LEFT JOIN packing_plan_header b ON b.PACKPLAN_ID = a.PACKPLAN_ID
-	LEFT JOIN item_buyer_size_sort c ON b.PACKPLAN_BUYER = c.BUYER
-WHERE a.PACKPLAN_ID = :ppid`;
+export const qryGetLisSizePPID = `SELECT n.SIZE_CODE, SORT_NO
+FROM (
+	SELECT DISTINCT a.SIZE_CODE, IFNULL(d.SORT_NO, c.SORT_NO) SORT_NO FROM packing_plan_detail a 
+		LEFT JOIN packing_plan_header b ON b.PACKPLAN_ID = a.PACKPLAN_ID
+		LEFT JOIN item_list_size c ON b.PACKPLAN_BUYER = c.CUSTOMER_NAME AND a.SIZE_CODE = c.SIZE_CODE
+		LEFT JOIN packing_plan_sort_size d ON d.PACKPLAN_ID = a.PACKPLAN_ID AND d.SIZE_CODE = a.SIZE_CODE
+	WHERE a.PACKPLAN_ID = :ppid
+) n
+ORDER BY n.SORT_NO`;
+
 export const qryGetLisColorPPID = `SELECT DISTINCT a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.ORDER_REFERENCE_PO_NO, a.BUYER_COLOR_CODE, a.COL_INDEX, a.SHIPMENT_QTY
 FROM packing_plan_po_sum a WHERE a.PACKPLAN_ID = :ppid
 ORDER BY a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.COL_INDEX`;
@@ -758,21 +823,25 @@ export const qrySumQtyPoBox = (stringQUery) => {
 FROM (
 	SELECT 
 	CONCAT(a.PLAN_SEQUANCE_ID,'|',a.BUYER_COLOR_CODE,'|',a.SIZE_CODE) AS ROWID, b.COL_INDEX,
-	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, 
-	 a.SIZE_CODE, d.BOX_ID, d.BOX_CODE, b.SET_PAIR, f.SORT_TYPE,
+	a.PACKPLAN_ID, c.PRODUCT_ITEM_ID, c.ORDER_STYLE_DESCRIPTION, c.PRODUCT_ITEM_CODE, a.BUYER_PO, 	a.BUYER_COLOR_CODE, b.BUYER_COLOR_NAME, 
+	 a.SIZE_CODE, d.BOX_ID, d.BOX_CODE, b.SET_PAIR, IFNULL(g.SORT_NO, f.SORT_NO) SORT_NO,
   SUM(a.SHIPMENT_QTY) SHIPMENT_QTY, -- tanpa set
 	CASE WHEN b.SET_PAIR <> 0 THEN SUM(a.SHIPMENT_QTY)/b.SET_PAIR ELSE  SUM(a.SHIPMENT_QTY) END AS AFTER_SET_QTY -- set qty
 	FROM packing_plan_detail a 
 	LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE AND a.PLAN_SEQUANCE_ID = b.PLAN_SEQUANCE_ID
 	LEFT JOIN order_po_listing c ON c.ORDER_PO_ID = a.ORDER_PO_ID
-	LEFT JOIN pack_box_style d ON d.PRODUCT_ITEM_ID = c.PRODUCT_ITEM_ID AND a.SIZE_CODE = d.SIZE_CODE
+	LEFT JOIN pack_carton_style d ON d.ORDER_STYLE_DESCRIPTION = c.ORDER_STYLE_DESCRIPTION 
+											AND d.COUNTRY_ID = b.COUNTRY_ID
+											AND a.SIZE_CODE = d.SIZE_CODE 
+                      AND a.PACKING_METHODE = d.PACKING_METHODE
 	LEFT JOIN packing_plan_header e ON e.PACKPLAN_ID = a.PACKPLAN_ID
-	LEFT JOIN item_buyer_size_sort f ON e.PACKPLAN_BUYER = f.BUYER
-	WHERE ${stringQUery}
+	LEFT JOIN item_list_size f ON e.PACKPLAN_BUYER = f.CUSTOMER_NAME AND a.SIZE_CODE = f.SIZE_CODE 
+	LEFT JOIN packing_plan_sort_size g ON g.PACKPLAN_ID = a.PACKPLAN_ID AND g.SIZE_CODE = a.SIZE_CODE
+	WHERE  ${stringQUery}
 	GROUP BY a.PACKPLAN_ID, a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.BUYER_COLOR_CODE, a.SIZE_CODE 
-	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE, a.SIZE_CODE
 ) n 
-LEFT JOIN packing_plan_box_row m ON m.ROWID = n.ROWID`;
+LEFT JOIN packing_plan_box_row m ON m.ROWID = n.ROWID
+ORDER BY n.COL_INDEX, n.BUYER_COLOR_CODE, n.SORT_NO`;
 };
 
 export const qrySumQtyPoBoxPrepack = (stringQUery) => {
@@ -793,13 +862,15 @@ FROM (
 	FROM packing_plan_detail a 
 	LEFT JOIN packing_plan_po_sum b ON b.BUYER_PO = a.BUYER_PO AND a.BUYER_COLOR_CODE = b.BUYER_COLOR_CODE AND a.PLAN_SEQUANCE_ID = b.PLAN_SEQUANCE_ID
 	LEFT JOIN order_po_listing c ON c.ORDER_PO_ID = a.ORDER_PO_ID
-	LEFT JOIN pack_box_style d ON d.PRODUCT_ITEM_ID = c.PRODUCT_ITEM_ID AND d.TYPE_PACK = 'PREPACK'
+	LEFT JOIN pack_carton_style d ON d.ORDER_STYLE_DESCRIPTION = c.ORDER_STYLE_DESCRIPTION 
+											AND d.COUNTRY_ID = b.COUNTRY_ID
+                      AND a.PACKING_METHODE = d.PACKING_METHODE
 	LEFT JOIN packing_plan_header e ON e.PACKPLAN_ID = a.PACKPLAN_ID
 	LEFT JOIN item_buyer_size_sort f ON e.PACKPLAN_BUYER = f.BUYER
 	WHERE ${stringQUery}
 	GROUP BY a.PACKPLAN_ID, a.PLAN_SEQUANCE_ID, a.BUYER_PO, a.BUYER_COLOR_CODE
 	ORDER BY b.COL_INDEX, a.BUYER_COLOR_CODE
-) n `;
+) n`;
 };
 // export const qrySumQtyPoBox = `SELECT
 // 	n.*,
@@ -970,6 +1041,91 @@ export const PackPlanRowDetail = db.define(
   }
 );
 
+export const PackShipPlan = db.define(
+  "packing_shipment_plan",
+  {
+    SHIPMENT_ID: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      primaryKey: true,
+    },
+    SHIPMENT_DATE: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    PACKPLAN_ID: {
+      type: DataTypes.STRING(50),
+    },
+    ROWID: {
+      type: DataTypes.STRING,
+    },
+    CONTAINER_ID: {
+      type: DataTypes.INTEGER(20),
+    },
+    PACK_METHODE: {
+      type: DataTypes.STRING,
+    },
+    TTL_CTN: {
+      type: DataTypes.INTEGER,
+    },
+    CTN_START: {
+      type: DataTypes.INTEGER,
+    },
+    CTN_END: {
+      type: DataTypes.INTEGER,
+    },
+    CTN_MEAS: {
+      type: DataTypes.STRING,
+    },
+    L: {
+      type: DataTypes.STRING,
+    },
+    W: {
+      type: DataTypes.STRING,
+    },
+    H: {
+      type: DataTypes.STRING,
+    },
+    STYLE: {
+      type: DataTypes.STRING,
+    },
+    PO_BUYER: {
+      type: DataTypes.STRING,
+    },
+    PACK_UPC: {
+      type: DataTypes.STRING,
+    },
+    ARTICLE: {
+      type: DataTypes.STRING,
+    },
+    PO_ITEM: {
+      type: DataTypes.STRING,
+    },
+    COLOR_CODE: {
+      type: DataTypes.STRING,
+    },
+    COLOR_NAME: {
+      type: DataTypes.STRING,
+    },
+    SIZE: {
+      type: DataTypes.STRING,
+    },
+    QTY: {
+      type: DataTypes.DATE,
+    },
+    PRINTED_STATUS: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    freezeTableName: true,
+    createdAt: false,
+    updatedAt: false,
+  }
+);
+
+PackShipPlan.removeAttribute("id");
+
 export const qryGetRowDtl = `SELECT a.*,
  c.LENGTH_CM, c.WIDTH_CM, c.HEIGHT_CM, c.WEIGHT,
  b.PRODUCT_ITEM_CODE, b.BUYER_COLOR_NAME , SUBSTRING_INDEX(a.ROWID, '|', 4) AS PLAN_SEQUANCE_ID,
@@ -1091,8 +1247,7 @@ FROM (
 
 //shipment scan
 export const queryShipPlanScan = `SELECT
- a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE, a.COLOR_NAME, a.SIZE, 
- a.TTL_CTN, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+ a.*, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
 FROM packing_shipment_plan a 
 LEFT JOIN (
 	SELECT 
@@ -1123,6 +1278,33 @@ ORDER BY a.ADD_TIME DESC LIMIT 2`;
 export const querRefSid = `SELECT DISTINCT a.SHIPMENT_ID
 FROM packing_shipment_plan a WHERE a.SHIPMENT_ID LIKE :sid `;
 
+export const qryLabelResult = `SELECT a.UNIK_CODE, a.ROWID, a.CTN_NO, a.CTN_OF,
+b.SHIPMENT_ID,
+b.SHIPMENT_DATE,
+b.PACKPLAN_ID,
+b.PACK_METHODE,
+b.CONTAINER_ID,
+b.L, b.W, b.H,
+b.STYLE,
+b.PO_BUYER,
+b.PO_ITEM,
+b.PACK_UPC,
+b.ARTICLE,
+b.COLOR_CODE,
+b.COLOR_NAME,
+b.SIZE,
+b.QTY,
+b.TTL_CTN,
+b.QTY/b.TTL_CTN PCS_PER_CTN
+FROM packing_ship_carton_label a 
+LEFT JOIN packing_shipment_plan b ON b.ROWID = a.ROWID
+WHERE a.ROWID = :rowId`;
+
+export const queryGetTlOfCtn = `SELECT
+ SUM(a.TTL_CTN) NO_OF_CTN
+FROM packing_shipment_plan a 
+WHERE a.SHIPMENT_ID = :SHIPMENT_ID AND a.PO_BUYER = :PO_BUYER AND a.COLOR_CODE = :COLOR_CODE AND a.CONTAINER_ID = :CONTAINER_ID`;
+
 export const queryContainerList = `SELECT DISTINCT a.SHIPMENT_ID, a.CONTAINER_ID, a.CONTAINER_NO, a.CONTAINER_SEQ, a.CONTAINER_TYPE
 FROM packing_ship_container a WHERE a.SHIPMENT_ID = :sid `;
 
@@ -1148,6 +1330,46 @@ export const PackingShipScan = db.define(
 );
 
 PackingShipScan.removeAttribute("id");
+
+export const PackCtnLabel = db.define(
+  "packing_ship_carton_label",
+  {
+    ROWID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    UNIK_CODE: { type: DataTypes.STRING },
+    CTN_NO: { type: DataTypes.INTEGER },
+    CTN_OF: { type: DataTypes.INTEGER },
+  },
+  {
+    freezeTableName: true,
+    createdAt: false,
+    updatedAt: false,
+  }
+);
+
+PackCtnLabel.removeAttribute("id");
+
+export const PackSortSize = db.define(
+  "packing_plan_sort_size",
+  {
+    PACKPLAN_ID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    SIZE_CODE: { type: DataTypes.STRING },
+    TYPE: { type: DataTypes.STRING },
+    SORT_NO: { type: DataTypes.INTEGER },
+  },
+  {
+    freezeTableName: true,
+    createdAt: false,
+    updatedAt: false,
+  }
+);
+
+PackSortSize.removeAttribute("id");
 
 export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId`;
 

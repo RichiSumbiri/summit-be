@@ -4,15 +4,19 @@ import {
   CartonBox,
   OrderPoBuyer,
   PackBoxStyle,
+  PackCartonStyle,
   PackMethodeList,
   PackPlanChild,
   PackPlanHeader,
   PackPlanRowDetail,
+  PackSortSize,
   PackingPlanBoxRow,
   PackingPlanDetail,
   PackingPlanPoSum,
   findPoPlanPack,
   getBoxStyleCode,
+  getCtnStyleCode,
+  getCtnStyleCodeDetail,
   getSizeCodeByStyleId,
   qryDeliveryMode,
   qryGetCusDivision,
@@ -84,7 +88,16 @@ export const getPackBox = async (req, res) => {
       raw: true,
     });
 
-    return res.status(200).json({ data: listBoxSpec });
+    let boxList = listBoxSpec;
+
+    if (listBoxSpec.length) {
+      boxList = listBoxSpec.map((items) => ({
+        ...items,
+        LABEL_BOX: `${items.BOX_NAME} (${items.BOX_CODE})`,
+      }));
+    }
+
+    return res.status(200).json({ data: boxList });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -119,6 +132,47 @@ export const postPackBox = async (req, res) => {
     } else {
       return res.status(500).json({ message: "Faild to add" });
     }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get post box",
+      data: error,
+    });
+  }
+};
+
+export const copyFromStyle = async (req, res) => {
+  try {
+    const dataPost = req.body;
+    const { styleSelect, styleSource } = dataPost;
+
+    const listSetBoxSource = await PackCartonStyle.findAll({
+      where: {
+        ORDER_STYLE_DESCRIPTION: styleSource,
+      },
+      raw: true,
+    });
+
+    if (listSetBoxSource.length === 0) {
+      return res.status(202).json({ message: "Not Found Set Style" });
+    }
+
+    await PackCartonStyle.destroy({
+      where: {
+        ORDER_STYLE_DESCRIPTION: styleSelect,
+      },
+    });
+
+    const setStyleToSource = listSetBoxSource.map(({ ID, ...items }) => ({
+      ...items,
+      ORDER_STYLE_DESCRIPTION: styleSelect,
+    }));
+
+    // const listGmt = dataPost.map((items) => items.PRODUCT_ITEM_ID);
+
+    await PackCartonStyle.bulkCreate(setStyleToSource);
+
+    return res.status(200).json({ message: "Success Save" });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -173,12 +227,12 @@ export const deletePackBox = async (req, res) => {
 
 export const getListSizeCodeByProdId = async (req, res) => {
   try {
-    const { prodItemCode } = req.params;
+    const { styleOrder } = req.params;
     //   const MES_STYLE = decodeURIComponent(style).toString();
-
+    const decodeStyle = decodeURIComponent(styleOrder);
     const listSizeCode = await db.query(getSizeCodeByStyleId, {
       replacements: {
-        prodItemCode,
+        styleOrder: decodeStyle,
       },
       type: QueryTypes.SELECT,
     });
@@ -193,26 +247,58 @@ export const getListSizeCodeByProdId = async (req, res) => {
   }
 };
 
+export const getListSetCtnStyle = async (req, res) => {
+  try {
+    const { styleOrder } = req.params;
+    //   const MES_STYLE = decodeURIComponent(style).toString();
+    const decodeStyle = decodeURIComponent(styleOrder);
+    const listCtnStyle = await db.query(getCtnStyleCode, {
+      replacements: {
+        orderStyle: decodeStyle,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const listCtnStyleDetail = await db.query(getCtnStyleCodeDetail, {
+      replacements: {
+        orderStyle: decodeStyle,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({ data: { listCtnStyle, listCtnStyleDetail } });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data list set result",
+      data: error,
+    });
+  }
+};
+
 export const postSetCartonStyle = async (req, res) => {
   try {
     const dataPost = req.body;
-    const { prodItemCode } = req.params;
 
-    const destroyBox = await PackBoxStyle.destroy({
+    if (!dataPost) return res.status(404).json({ message: "Tidak ada data" });
+
+    const ORDER_STYLE_DESCRIPTION = dataPost[0].ORDER_STYLE_DESCRIPTION;
+    const PACKING_METHODE = dataPost[0].PACKING_METHODE;
+    const arrCountry = dataPost.map((items) => items.COUNTRY_ID);
+
+    await PackCartonStyle.destroy({
       where: {
-        PRODUCT_ITEM_ID: prodItemCode,
-        TYPE_PACK: "SOLID",
+        ORDER_STYLE_DESCRIPTION: ORDER_STYLE_DESCRIPTION,
+        PACKING_METHODE: PACKING_METHODE,
+        COUNTRY_ID: {
+          [Op.in]: arrCountry,
+        },
       },
     });
 
-    if (!dataPost && destroyBox)
-      return res.status(200).json({
-        message: "Berhasil Clear Data Carton Prodct ID " + prodItemCode,
-      });
-
     // const listGmt = dataPost.map((items) => items.PRODUCT_ITEM_ID);
 
-    await PackBoxStyle.bulkCreate(dataPost);
+    await PackCartonStyle.bulkCreate(dataPost);
 
     return res.status(200).json({ message: "Success Save" });
     // if (destroyBox) {
@@ -228,6 +314,116 @@ export const postSetCartonStyle = async (req, res) => {
   }
 };
 
+export const deleteSetCartonStyle = async (req, res) => {
+  try {
+    const dataPost = req.body;
+
+    if (!dataPost) return res.status(404).json({ message: "Tidak ada data" });
+
+    const ORDER_STYLE_DESCRIPTION = dataPost[0].ORDER_STYLE_DESCRIPTION;
+    const arrPackMethode = dataPost.map((items) => items.PACKING_METHODE);
+    const arrCountry = dataPost.map((items) => items.COUNTRY_ID);
+
+    const destroydata = await PackCartonStyle.destroy({
+      where: {
+        ORDER_STYLE_DESCRIPTION: ORDER_STYLE_DESCRIPTION,
+        PACKING_METHODE: {
+          [Op.in]: arrPackMethode,
+        },
+        COUNTRY_ID: {
+          [Op.in]: arrCountry,
+        },
+      },
+    });
+
+    // const listGmt = dataPost.map((items) => items.PRODUCT_ITEM_ID);
+    if (destroydata) return res.status(200).json({ message: "Success Delete" });
+    // if (destroyBox) {
+    // } else {
+    //   return res.status(500).json({ message: "Faild to Save" });
+    // }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error delete box style",
+      data: error,
+    });
+  }
+};
+
+export const deleteSetCtnStyleDetail = async (req, res) => {
+  try {
+    const dataPost = req.body;
+
+    if (!dataPost) return res.status(404).json({ message: "Tidak ada data" });
+
+    const ORDER_STYLE_DESCRIPTION = dataPost[0].ORDER_STYLE_DESCRIPTION;
+    const arrPackMethode = dataPost.map((items) => items.PACKING_METHODE);
+    const arrCountry = dataPost.map((items) => items.COUNTRY_ID);
+    const arrSize = dataPost.map((items) => items.SIZE_CODE);
+
+    const destroydata = await PackCartonStyle.destroy({
+      where: {
+        ORDER_STYLE_DESCRIPTION: ORDER_STYLE_DESCRIPTION,
+        PACKING_METHODE: {
+          [Op.in]: arrPackMethode,
+        },
+        COUNTRY_ID: {
+          [Op.in]: arrCountry,
+        },
+        SIZE_CODE: {
+          [Op.in]: arrSize,
+        },
+      },
+    });
+
+    // const listGmt = dataPost.map((items) => items.PRODUCT_ITEM_ID);
+    if (destroydata) return res.status(200).json({ message: "Success Delete" });
+    // if (destroyBox) {
+    // } else {
+    //   return res.status(500).json({ message: "Faild to Save" });
+    // }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error delete box style",
+      data: error,
+    });
+  }
+};
+
+export const updateBoxCtnStylDetail = async (req, res) => {
+  try {
+    const dataUpdate = req.body;
+
+    if (!dataUpdate) return res.status(404).json({ message: "Tidak ada data" });
+    const { arrId, boxSelect } = dataUpdate;
+
+    const { BOX_ID, BOX_NAME, BOX_CODE } = boxSelect;
+
+    const updateBox = await PackCartonStyle.update(
+      { BOX_ID, BOX_NAME, BOX_CODE },
+      {
+        where: {
+          ID: {
+            [Op.in]: arrId,
+          },
+        },
+      }
+    );
+
+    if (updateBox)
+      return res.status(200).json({
+        message: "Success update",
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post box style",
+      data: error,
+    });
+  }
+};
 export const postSetCtnPrepack = async (req, res) => {
   try {
     const dataPost = req.body;
@@ -1009,6 +1205,20 @@ export const delPackPosum = async (req, res) => {
   }
 };
 
+//function untuk cari sort no
+function findSortNo(row, customSort) {
+  // console.log(row);
+
+  const sortNo = customSort.find((sz) => sz.SIZE_CODE === row.SIZE_CODE);
+  // console.log(sortNo);
+
+  if (sortNo) {
+    return sortNo.SORT_NO;
+  } else {
+    return row.SORT_NO;
+  }
+}
+
 //get list po ppid
 export const getLisPoPPID = async (req, res) => {
   try {
@@ -1024,11 +1234,22 @@ export const getLisPoPPID = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const customSizeSor = await PackSortSize.findAll({
+      where: { PACKPLAN_ID: ppid },
+      raw: true,
+    });
+    // console.log(customSizeSor);
+
     let lisSizePpid = lisSizePpidHd;
-    if (lisSizePpidHd.length !== 0 && lisSizePpidHd[0].SORT_TYPE === "letter") {
-      lisSizePpid = customSortByLetterFirst(lisSizePpidHd, "SIZE_CODE");
-    } else {
-      lisSizePpid = customSortByNumberFirst(lisSizePpidHd, "SIZE_CODE");
+    if (lisSizePpidHd.length !== 0 && customSizeSor.length !== 0) {
+      const setSortNo = lisSizePpidHd.map((items) => ({
+        ...items,
+        SORT_NO: findSortNo(items, customSizeSor),
+      }));
+      lisSizePpid = setSortNo.sort((a, b) => {
+        return a.SORT_NO - b.SORT_NO;
+      });
+      // console.log(lisSizePpid);
     }
 
     const lisColorPpid = await db.query(qryGetLisColorPPID, {
@@ -1046,15 +1267,15 @@ export const getLisPoPPID = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    if (lisSizePpidHd[0].SORT_TYPE === "letter" && listRowDtl.length > 0) {
-      listRowDtl.sort((a, b) => {
-        if (a.BUYER_PO < b.BUYER_PO) return -1;
-        if (a.BUYER_PO > b.BUYER_PO) return 1;
-        if (a.CTN_START < b.CTN_START) return -1;
-        if (a.CTN_START > b.CTN_START) return 1;
-        return 0;
-      });
-    }
+    // if (lisSizePpidHd[0].SORT_TYPE === "letter" && listRowDtl.length > 0) {
+    //   listRowDtl.sort((a, b) => {
+    //     if (a.BUYER_PO < b.BUYER_PO) return -1;
+    //     if (a.BUYER_PO > b.BUYER_PO) return 1;
+    //     if (a.CTN_START < b.CTN_START) return -1;
+    //     if (a.CTN_START > b.CTN_START) return 1;
+    //     return 0;
+    //   });
+    // }
 
     const listRowDtlQty = await db.query(qryQtySizeRowDtl, {
       replacements: { ppid },
@@ -1074,6 +1295,7 @@ export const getLisPoPPID = async (req, res) => {
     const datas = {
       listPOppid,
       lisSizePpid,
+      // lisSizePpidHd,
       lisColorPpid,
       listRowDtl,
       listRowDtlQty,
@@ -1103,6 +1325,7 @@ export const getPoByrBox = async (req, res) => {
     }
 
     const querySumQty = qrySumQtyPoBox(stringQuery);
+
     const seqPpid = decodeURIComponent(seqPoPpid);
     const sumPODetail = await db.query(querySumQty, {
       replacements: {
@@ -1110,12 +1333,13 @@ export const getPoByrBox = async (req, res) => {
       },
       type: QueryTypes.SELECT,
     });
+
     let sortSizeCode = sumPODetail;
-    if (sumPODetail.length !== 0 && sumPODetail[0].SORT_TYPE === "letter") {
-      sortSizeCode = customSortByLetterFirst(sumPODetail, "SIZE_CODE");
-    } else {
-      sortSizeCode = customSortByNumberFirst(sumPODetail, "SIZE_CODE");
-    }
+    // if (sumPODetail.length !== 0 && sumPODetail[0].SORT_TYPE === "letter") {
+    //   sortSizeCode = customSortByLetterFirst(sumPODetail, "SIZE_CODE");
+    // } else {
+    //   sortSizeCode = customSortByNumberFirst(sumPODetail, "SIZE_CODE");
+    // }
 
     return res.json({ data: sortSizeCode });
   } catch (error) {
@@ -1904,5 +2128,38 @@ export const setBoxIdRow = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(404).json({ message: "error delete row", data: error });
+  }
+};
+
+//post data custom sort size
+export const postCstmSetSortSize = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data || data.length === 0)
+      return res.status(400).json({ message: "no data provided" });
+    // console.log(data);
+
+    await PackSortSize.destroy({
+      where: {
+        PACKPLAN_ID: data[0].PACKPLAN_ID,
+        TYPE: data[0].TYPE,
+      },
+    });
+
+    const postSortSizes = await PackSortSize.bulkCreate(data);
+
+    if (postSortSizes) {
+      return res.json({
+        status: "success",
+        message: "Success Post set sort size",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post when Post set sort size",
+      data: error,
+    });
   }
 };
