@@ -132,7 +132,7 @@ router.post("/plan-data-child/", postDataPackPlanChild);
 router.post("/plan-data-child-edit/", editDataPackPlanChild);
 router.patch("/plann-data/", updateDataPackPlanHeader);
 router.post("/plann-detail-size/", PosPackPlanDetail);
-router.post("/plann-po-summary/", postPackPosum);
+router.post("/po-buyer-data/", postPackBuyerPo);
 router.post("/plann-po-summary/", postPackPosum);
 router.post("/custom-sort-size/", postCstmSetSortSize);
 
