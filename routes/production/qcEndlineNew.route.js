@@ -25,7 +25,7 @@ router.get(
 );
 router.get("/schedule-size/:schDate/:sitename/:linename", getEndlineSchSize);
 router.get("/schedule-size-qr/:schDate/:sitename/:linename", getQrListActive);
-// router.get("/qr-pendding/:schDate/:sitename/:linename", getQrListPenddingNew);
+router.get("/qr-pendding/:schDate/:sitename/:linename", getQrListPenddingNew);
 router.get("/qr-selected/:barcodeSerial", getQrSelected);
 router.get("/qr-selected-defect/:barcodeSerial", getQrDefectList);
 router.get("/count-undo/:barcodeSerial/:userQc", getUndoCount);
