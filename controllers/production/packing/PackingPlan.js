@@ -1605,6 +1605,8 @@ export const updateOneRowPpid = async (req, res) => {
       return res.json({ status: false });
     }
   } catch (error) {
+    console.log(error);
+
     return res.status(404).json({
       message: "error patsch rowid",
       data: error,
