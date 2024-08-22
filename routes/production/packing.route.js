@@ -73,6 +73,11 @@ import {
   getQryListShipId,
   scanShipmentBox,
 } from "../../controllers/production/packing/PackShipScan.js";
+import {
+  getQryListPoBuyer,
+  getQryListRowByPoByr,
+  postItemScanRow,
+} from "../../controllers/production/packing/PackingCutItmScan.js";
 const router = express.Router();
 
 router.get(
@@ -169,5 +174,11 @@ router.get("/shipment-scan/ref-list/:sidKey", getQryListShipId);
 router.post("/shipment-scan/generate-label/", genShipLabelCtn);
 
 router.post("/shipment-scan/box-scan", scanShipmentBox);
+
+//pacing pack item scan
+router.get("/pack-scan-item/ref-pobuyer/:poBuyer", getQryListPoBuyer);
+router.get("/pack-scan-item/list-row/:poBuyer", getQryListRowByPoByr);
+
+router.post("/pack-scan-item/item-scan", postItemScanRow);
 
 export default router;
