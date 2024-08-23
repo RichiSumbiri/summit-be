@@ -972,7 +972,7 @@ export const PackingPlanBoxRow = db.define(
     ROW_INDEX: { type: DataTypes.INTEGER },
     SIZE_CODE: {
       type: DataTypes.STRING(50),
-      allowNull: false,
+      // allowNull: false,
     },
     BUYER_PO: {
       type: DataTypes.STRING(150),
