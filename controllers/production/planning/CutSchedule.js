@@ -260,7 +260,7 @@ export const PostDetailCutSch = async (req, res) => {
 
     // jika terdapat data schdid size
     if (findDataAll.length > 0) {
-      if (dataPost.CUT_SCH_QTY === "" && findData.CUT_ID_DETAIL) {
+      if (dataPost.CUT_SCH_QTY === "" && findData) {
         if (schDate.isBefore(currentDate))
           return res.status(404).json({
             message: "Tidak Bisa Delete Schedule ditanggal sebelum hari ini",
@@ -1119,7 +1119,7 @@ export const postSchCutFromLoad = async (req, res) => {
       );
       // console.log(dateOutHol);
       //ambil tanggal ke 8
-      const dateMin8 = dateOutHol[8];
+      const dateMin8 = dateOutHol[7];
       // console.log({ date, dateMin8 });
       //ambil data detail dari loading planing
       const dataFromLoading = await db.query(qryGetFromLoad, {
