@@ -115,24 +115,43 @@ export const postItemScanRow = async (req, res) => {
       },
       type: QueryTypes.SELECT,
     });
-    console.log(getLastIndex);
-
-    const lastIndex = getLastIndex[0]
-      ? getLastIndex[0].LAST_INDEX.toString().padStart(6, "0")
-      : "000001";
 
     const noNoUnix = data.PACKPLAN_ID + lastUnix;
 
+    const lastIndex = getLastIndex[0] ? getLastIndex[0].LAST_INDEX : 1;
     const newData = { ...data, UNIX_BOX_NO: noNoUnix, INDEX_CTN: lastIndex };
 
     const postScan = await PackItemScan.create(newData);
+
     if (postScan) {
-      res.json({ status: "success" });
+      res.json({ status: "success", data: postScan.dataValues });
     }
   } catch (error) {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing list row po buyer",
+      data: error,
+    });
+  }
+};
+
+export const getRowScanResult = async (req, res) => {
+  try {
+    const { rowID } = req.params;
+    const rowId = decodeURIComponent(rowID);
+
+    const getResultScanrow = await PackItemScan.findAll({
+      where: {
+        ROWID: rowId,
+      },
+      order: [["INDEX_CTN", "ASC"]],
+    });
+
+    return res.json({ data: getResultScanrow });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get result scan",
       data: error,
     });
   }

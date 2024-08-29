@@ -76,6 +76,7 @@ import {
 import {
   getQryListPoBuyer,
   getQryListRowByPoByr,
+  getRowScanResult,
   postItemScanRow,
 } from "../../controllers/production/packing/PackingCutItmScan.js";
 const router = express.Router();
@@ -178,6 +179,7 @@ router.post("/shipment-scan/box-scan", scanShipmentBox);
 //pacing pack item scan
 router.get("/pack-scan-item/ref-pobuyer/:poBuyer", getQryListPoBuyer);
 router.get("/pack-scan-item/list-row/:poBuyer", getQryListRowByPoByr);
+router.get("/pack-scan-item/list-row-result/:rowID", getRowScanResult);
 
 router.post("/pack-scan-item/item-scan", postItemScanRow);
 
