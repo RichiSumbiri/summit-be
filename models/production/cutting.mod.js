@@ -221,7 +221,15 @@ export const CutSupermarketOut = db.define(
   }
 );
 
-export const qryGetCutPOStatus = `SELECT 
+export const qryGetCutPOStatus = `
+SELECT 
+n.*,
+n.QR_QTY-n.CUT_GENERATE BALANCE_GENERATE,
+n.CUT_GENERATE-n.SUP_IN BALANCE_SUP_IN,
+n.SUP_IN-n.SUP_OUT BALANCE_SUP_OUT,
+n.SUP_OUT-n.SEWING_IN BALANCE_SEWING_IN
+FROM (
+SELECT 
     a.ORDER_NO,
 	 f.ORDER_REFERENCE_PO_NO, 
 	 f.ORDER_PO_ID,
@@ -251,7 +259,7 @@ WHERE
     f.ORDER_REFERENCE_PO_NO = :poNo
 GROUP BY 
     a.ORDER_NO, a.MO_NO, a.ORDER_COLOR, a.ORDER_SIZE
-
+) n
 `;
 // export const qryGetCutPOStatus = `SELECT
 //    n.ORDER_REFERENCE_PO_NO, n.ORDER_NO, n.MO_NO, n.ORDER_PO_ID, n.ORDER_COLOR,  n.ITEM_COLOR_NAME, n.ORDER_STYLE_DESCRIPTION,  n.ORDER_SIZE,
