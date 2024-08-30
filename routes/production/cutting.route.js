@@ -19,7 +19,11 @@ import {
   getCuttingOrder,
   getOrderByBLK,
 } from "../../controllers/production/cutting/CuttingGetOrder.js";
-import { getBaseRepCutLoad } from "../../controllers/production/cutting/CuttingLoadinRep.js";
+import {
+  getBaseRepCutLoad,
+  getCuttingPOStatdtl,
+  getCuttingPOstatus,
+} from "../../controllers/production/cutting/CuttingLoadinRep.js";
 import {
   delHeadCutSch,
   delHeadCutSchSize,
@@ -124,5 +128,9 @@ router.get(
   "/cutting-supermarket-summary/:startDate/:endDate/:lastDate",
   getRepCutSupSummary
 );
+
+//cutting po status report
+router.get("/cutting-po-status/:poNum", getCuttingPOstatus);
+router.get("/cutting-po-status-detail/:poId/:size", getCuttingPOStatdtl);
 
 export default router;

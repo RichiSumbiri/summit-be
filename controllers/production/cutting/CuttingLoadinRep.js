@@ -1,6 +1,8 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import {
+  getDetailQuery,
+  qryGetCutPOStatus,
   QueryRepCutLoadDateSize,
   QueryRepCutLoading,
 } from "../../../models/production/cutting.mod.js";
@@ -86,6 +88,68 @@ export const getBaseRepCutLoad = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    res.status(404).json({
+      success: false,
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+export const getCuttingPOstatus = async (req, res) => {
+  try {
+    const { poNum } = req.params;
+
+    const poNo = decodeURIComponent(poNum);
+    const orders = await db.query(qryGetCutPOStatus, {
+      replacements: {
+        poNo,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (orders.length === 0)
+      return res.status(200).json({
+        success: true,
+        message: "data Order not found",
+        data: [],
+      });
+
+    return res.status(200).json({
+      data: orders,
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+export const getCuttingPOStatdtl = async (req, res) => {
+  try {
+    const { poId, size } = req.params;
+
+    const orders = await db.query(getDetailQuery, {
+      replacements: {
+        poId,
+        size,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (orders.length === 0)
+      return res.status(200).json({
+        success: true,
+        message: "data Order not found",
+        data: [],
+      });
+
+    return res.status(200).json({
+      data: orders,
+    });
+  } catch (error) {
     res.status(404).json({
       success: false,
       message: "error processing request",
