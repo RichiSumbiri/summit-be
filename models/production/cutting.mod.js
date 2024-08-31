@@ -221,156 +221,156 @@ export const CutSupermarketOut = db.define(
   }
 );
 
-export const qryGetCutPOStatus = `
-SELECT 
-n.*,
-n.QR_QTY-n.CUT_GENERATE BALANCE_GENERATE,
-n.CUT_GENERATE-n.SUP_IN BALANCE_SUP_IN,
-n.SUP_IN-n.SUP_OUT BALANCE_SUP_OUT,
-n.SUP_OUT-n.SEWING_IN BALANCE_SEWING_IN
-FROM (
-SELECT 
-    a.ORDER_NO,
-	 f.ORDER_REFERENCE_PO_NO, 
-	 f.ORDER_PO_ID,
-    a.MO_NO, 
-    a.ORDER_COLOR,
-    f.ITEM_COLOR_NAME,
-    f.ORDER_STYLE_DESCRIPTION,
-    a.ORDER_SIZE, 
-    SUM(a.ORDER_QTY) AS QR_QTY,
-    SUM(CASE WHEN b.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS CUT_GENERATE,
-    SUM(CASE WHEN c.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS SUP_IN,
-    SUM(CASE WHEN d.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS SUP_OUT,
-    SUM(CASE WHEN e.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS SEWING_IN
-FROM 
-    view_order_detail a
-LEFT JOIN 
-    order_qr_generate b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-LEFT JOIN 
-    scan_supermarket_in c ON a.BARCODE_SERIAL = c.BARCODE_SERIAL
-LEFT JOIN 
-    scan_supermarket_out d ON a.BARCODE_SERIAL = d.BARCODE_SERIAL
-LEFT JOIN 
-    scan_sewing_in e ON a.BARCODE_SERIAL = e.BARCODE_SERIAL
-JOIN 
-    order_po_listing f ON a.MO_NO = f.MO_NO
-WHERE 
-    f.ORDER_REFERENCE_PO_NO = :poNo
-GROUP BY 
-    a.ORDER_NO, a.MO_NO, a.ORDER_COLOR, a.ORDER_SIZE
-) n
-`;
-// export const qryGetCutPOStatus = `SELECT
-//    n.ORDER_REFERENCE_PO_NO, n.ORDER_NO, n.MO_NO, n.ORDER_PO_ID, n.ORDER_COLOR,  n.ITEM_COLOR_NAME, n.ORDER_STYLE_DESCRIPTION,  n.ORDER_SIZE,
-//     SUM(n.QR_QTY) AS QR_QTY,
-//     SUM(n.CUT_GENERATE) AS CUT_GENERATE,
-//     SUM(n.QR_QTY)-SUM(n.CUT_GENERATE) BALANCE_GENERATE,
-//     SUM(n.SUP_IN) AS SUP_IN,
-//     SUM(n.CUT_GENERATE)-SUM(n.SUP_IN) BALANCE_SUP_IN,
-//     SUM(n.SUP_OUT) AS SUP_OUT,
-//     SUM(n.SUP_IN)-SUM(n.SUP_OUT) BALANCE_SUP_OUT,
-//     SUM(n.SEWING_IN) AS SEWING_IN,
-//     SUM(n.SUP_OUT)-SUM(n.SEWING_IN) BALANCE_SEWING_IN
+// export const qryGetCutPOStatus = `
+// SELECT
+// n.*,
+// n.QR_QTY-n.CUT_GENERATE BALANCE_GENERATE,
+// n.CUT_GENERATE-n.SUP_IN BALANCE_SUP_IN,
+// n.SUP_IN-n.SUP_OUT BALANCE_SUP_OUT,
+// n.SUP_OUT-n.SEWING_IN BALANCE_SEWING_IN
 // FROM (
-// 	  SELECT
-//         b.ORDER_REFERENCE_PO_NO, a.ORDER_NO,  a.MO_NO, b.ORDER_PO_ID, a.ORDER_COLOR,  b.ITEM_COLOR_NAME, b.ORDER_STYLE_DESCRIPTION, a.ORDER_SIZE,
-//         SUM(a.ORDER_QTY) AS QR_QTY,
-//         0 AS CUT_GENERATE,
-//         0 AS SUP_IN,
-//         0 AS SUP_OUT,
-//         0 AS SEWING_IN
-//     FROM
-//         order_detail a
-//     JOIN
-//         order_po_listing b ON substring_index(a.BUYER_PO,',',-1) = b.ORDER_PO_ID
-//     WHERE
-//         b.ORDER_REFERENCE_PO_NO = :poNo
-//     GROUP BY
-//         a.ORDER_NO, a.MO_NO, a.ORDER_COLOR,  a.ORDER_SIZE
-//      UNION ALL
-
-//     SELECT
-//        c.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR,  c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
-//         0 AS QR_QTY,
-//         SUM(b.ORDER_QTY) AS CUT_GENERATE,
-//         0 AS SUP_IN,
-//         0 AS SUP_OUT,
-//         0 AS SEWING_IN
-//     FROM
-//         order_qr_generate a
-//     JOIN
-//         order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-//     JOIN
-//         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
-//     WHERE
-//         c.ORDER_REFERENCE_PO_NO = :poNo
-//     GROUP BY
-//         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
-
-//              UNION ALL
-
-//     SELECT
-//       c.ORDER_REFERENCE_PO_NO,  b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR,  c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
-//         0 AS QR_QTY,
-//         0 AS  CUT_GENERATE,
-//         SUM(b.ORDER_QTY) AS SUP_IN,
-//         0 AS SUP_OUT,
-//         0 AS SEWING_IN
-//     FROM
-//         scan_supermarket_in a
-//     JOIN
-//         order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-//     JOIN
-//         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
-//     WHERE
-//         c.ORDER_REFERENCE_PO_NO = :poNo
-//     GROUP BY
-//         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
-
-//    UNION ALL
-
-//     SELECT
-//        c.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR, c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
-//         0 AS QR_QTY,
-//         0 AS  CUT_GENERATE,
-//         0 AS SUP_IN,
-//         SUM(b.ORDER_QTY) AS SUP_OUT,
-//         0 AS SEWING_IN
-//     FROM
-//         scan_supermarket_out a
-//     JOIN
-//         order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-//     JOIN
-//         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
-//     WHERE
-//         c.ORDER_REFERENCE_PO_NO = :poNo
-//     GROUP BY
-//         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
-
-// 	UNION ALL
-
-//     SELECT
-//         c.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR, c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
-//         0 AS QR_QTY,
-//         0 AS  CUT_GENERATE,
-//         0 AS SUP_IN,
-//         0 AS SUP_OUT,
-//         SUM(b.ORDER_QTY) AS SEWING_IN
-//     FROM
-//         scan_sewing_in a
-//     JOIN
-//         order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
-//     JOIN
-//         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
-//     WHERE
-//         c.ORDER_REFERENCE_PO_NO = :poNo
-//     GROUP BY
-//         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
-// ) n
+// SELECT
+//     a.ORDER_NO,
+// 	 f.ORDER_REFERENCE_PO_NO,
+// 	 f.ORDER_PO_ID,
+//     a.MO_NO,
+//     a.ORDER_COLOR,
+//     f.ITEM_COLOR_NAME,
+//     f.ORDER_STYLE_DESCRIPTION,
+//     a.ORDER_SIZE,
+//     SUM(a.ORDER_QTY) AS QR_QTY,
+//     SUM(CASE WHEN b.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS CUT_GENERATE,
+//     SUM(CASE WHEN c.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS SUP_IN,
+//     SUM(CASE WHEN d.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS SUP_OUT,
+//     SUM(CASE WHEN e.BARCODE_SERIAL IS NOT NULL THEN a.ORDER_QTY ELSE 0 END) AS SEWING_IN
+// FROM
+//     view_order_detail a
+// LEFT JOIN
+//     order_qr_generate b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+// LEFT JOIN
+//     scan_supermarket_in c ON a.BARCODE_SERIAL = c.BARCODE_SERIAL
+// LEFT JOIN
+//     scan_supermarket_out d ON a.BARCODE_SERIAL = d.BARCODE_SERIAL
+// LEFT JOIN
+//     scan_sewing_in e ON a.BARCODE_SERIAL = e.BARCODE_SERIAL
+// JOIN
+//     order_po_listing f ON a.MO_NO = f.MO_NO
+// WHERE
+//     f.ORDER_REFERENCE_PO_NO = :poNo
 // GROUP BY
-//     n.ORDER_REFERENCE_PO_NO, n.ORDER_NO, n.MO_NO, n.ORDER_COLOR, n.ORDER_SIZE;
+//     a.ORDER_NO, a.MO_NO, a.ORDER_COLOR, a.ORDER_SIZE
+// ) n
 // `;
+export const qryGetCutPOStatus = `SELECT
+   n.ORDER_REFERENCE_PO_NO, n.ORDER_NO, n.MO_NO, n.ORDER_PO_ID, n.ORDER_COLOR,  n.ITEM_COLOR_NAME, n.ORDER_STYLE_DESCRIPTION,  n.ORDER_SIZE,
+    SUM(n.QR_QTY) AS QR_QTY,
+    SUM(n.CUT_GENERATE) AS CUT_GENERATE,
+    SUM(n.QR_QTY)-SUM(n.CUT_GENERATE) BALANCE_GENERATE,
+    SUM(n.SUP_IN) AS SUP_IN,
+    SUM(n.CUT_GENERATE)-SUM(n.SUP_IN) BALANCE_SUP_IN,
+    SUM(n.SUP_OUT) AS SUP_OUT,
+    SUM(n.SUP_IN)-SUM(n.SUP_OUT) BALANCE_SUP_OUT,
+    SUM(n.SEWING_IN) AS SEWING_IN,
+    SUM(n.SUP_OUT)-SUM(n.SEWING_IN) BALANCE_SEWING_IN
+FROM (
+	  SELECT
+        b.ORDER_REFERENCE_PO_NO, a.ORDER_NO,  a.MO_NO, b.ORDER_PO_ID, a.ORDER_COLOR,  b.ITEM_COLOR_NAME, b.ORDER_STYLE_DESCRIPTION, a.ORDER_SIZE,
+        SUM(a.ORDER_QTY) AS QR_QTY,
+        0 AS CUT_GENERATE,
+        0 AS SUP_IN,
+        0 AS SUP_OUT,
+        0 AS SEWING_IN
+    FROM
+        order_detail a
+    JOIN
+        order_po_listing b ON substring_index(a.BUYER_PO,',',-1) = b.ORDER_PO_ID
+    WHERE
+        b.ORDER_REFERENCE_PO_NO = :poNo
+    GROUP BY
+        a.ORDER_NO, a.MO_NO, a.ORDER_COLOR,  a.ORDER_SIZE
+     UNION ALL
+
+    SELECT
+       c.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR,  c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
+        0 AS QR_QTY,
+        SUM(b.ORDER_QTY) AS CUT_GENERATE,
+        0 AS SUP_IN,
+        0 AS SUP_OUT,
+        0 AS SEWING_IN
+    FROM
+        order_qr_generate a
+    JOIN
+        order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+    JOIN
+        order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
+    WHERE
+        c.ORDER_REFERENCE_PO_NO = :poNo
+    GROUP BY
+        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+
+             UNION ALL
+
+    SELECT
+      c.ORDER_REFERENCE_PO_NO,  b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR,  c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
+        0 AS QR_QTY,
+        0 AS  CUT_GENERATE,
+        SUM(b.ORDER_QTY) AS SUP_IN,
+        0 AS SUP_OUT,
+        0 AS SEWING_IN
+    FROM
+        scan_supermarket_in a
+    JOIN
+        order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+    JOIN
+        order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
+    WHERE
+        c.ORDER_REFERENCE_PO_NO = :poNo
+    GROUP BY
+        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+
+   UNION ALL
+
+    SELECT
+       c.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR, c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
+        0 AS QR_QTY,
+        0 AS  CUT_GENERATE,
+        0 AS SUP_IN,
+        SUM(b.ORDER_QTY) AS SUP_OUT,
+        0 AS SEWING_IN
+    FROM
+        scan_supermarket_out a
+    JOIN
+        order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+    JOIN
+        order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
+    WHERE
+        c.ORDER_REFERENCE_PO_NO = :poNo
+    GROUP BY
+        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+
+	UNION ALL
+
+    SELECT
+        c.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR, c.ITEM_COLOR_NAME, c.ORDER_STYLE_DESCRIPTION, b.ORDER_SIZE,
+        0 AS QR_QTY,
+        0 AS  CUT_GENERATE,
+        0 AS SUP_IN,
+        0 AS SUP_OUT,
+        SUM(b.ORDER_QTY) AS SEWING_IN
+    FROM
+        scan_sewing_in a
+    JOIN
+        order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+    JOIN
+        order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
+    WHERE
+        c.ORDER_REFERENCE_PO_NO = :poNo
+    GROUP BY
+        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+) n
+GROUP BY
+    n.ORDER_REFERENCE_PO_NO, n.ORDER_NO, n.MO_NO, n.ORDER_COLOR, n.ORDER_SIZE;
+`;
 
 export const getDetailQuery = `SELECT 
     a.BARCODE_SERIAL,
