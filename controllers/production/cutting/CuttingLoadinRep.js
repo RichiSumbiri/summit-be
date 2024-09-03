@@ -98,12 +98,13 @@ export const getBaseRepCutLoad = async (req, res) => {
 
 export const getCuttingPOstatus = async (req, res) => {
   try {
-    const { poNum } = req.params;
+    const { poNum, date } = req.params;
 
     const poNo = decodeURIComponent(poNum);
     const orders = await db.query(qryGetCutPOStatus, {
       replacements: {
         poNo,
+        date,
       },
       type: QueryTypes.SELECT,
     });

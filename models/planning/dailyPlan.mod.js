@@ -72,6 +72,7 @@ export const QueryCheckSchdScan = `	SELECT * FROM (
 	AND f.SIZE_CODE = :sizeCode 
 	AND b.PRODUCTION_MONTH = :prodMonth 
 	AND b.MANUFACTURING_SITE = :fxSiteName
+	GROUP BY  a.SCHD_CAPACITY_ID
 ) N WHERE N.PLAN_EXFACTORY_DATE = :planExFty AND N.SCH_SIZE_QTY <> 0
  GROUP BY N.SCH_ID, N.SCHD_ID, N.SIZE_CODE`;
 // export const QueryCheckSchdScan = `SELECT a.SCHD_ID, a.SCH_ID, g.PDM_ID, a.SCHD_PROD_DATE, b.CUSTOMER_NAME,

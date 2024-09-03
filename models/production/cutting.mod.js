@@ -304,7 +304,7 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo
+        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CREATE_TIME) <= :date
     GROUP BY
         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
 
@@ -324,7 +324,7 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo
+        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CUT_SCAN_TIME) <= :date
     GROUP BY
         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
 
@@ -344,7 +344,7 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo
+        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CUT_SCAN_TIME) <= :date
     GROUP BY
         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
 
@@ -364,7 +364,7 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo
+        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.SEWING_SCAN_TIME) <= :date
     GROUP BY
         b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
 ) n
@@ -380,7 +380,11 @@ export const getDetailQuery = `SELECT
     SUM(CASE WHEN b.BARCODE_SERIAL IS NOT NULL THEN 1 ELSE 0 END) AS GENERATE_STATUS, 
     SUM(CASE WHEN c.BARCODE_SERIAL IS NOT NULL THEN 1 ELSE 0 END) AS SUP_IN_STATUS, 
     SUM(CASE WHEN d.BARCODE_SERIAL IS NOT NULL THEN 1 ELSE 0 END) AS SUP_OUT_STATUS, 
-    SUM(CASE WHEN e.BARCODE_SERIAL IS NOT NULL THEN 1 ELSE 0 END) AS SEW_IN_STATUS
+    SUM(CASE WHEN e.BARCODE_SERIAL IS NOT NULL THEN 1 ELSE 0 END) AS SEW_IN_STATUS, 
+    b.CREATE_TIME DATE_GENERATE,
+    c.CUT_SCAN_TIME DATE_SUP_IN,
+    d.CUT_SCAN_TIME DATE_SUP_OUT,
+    e.SEWING_SCAN_TIME
 FROM 
     order_detail a
 LEFT JOIN 
@@ -395,5 +399,5 @@ WHERE
     SUBSTRING_INDEX(a.BUYER_PO,',',-1) = :poId
     AND a.ORDER_SIZE = :size
 GROUP BY 
-    a.BARCODE_SERIAL;
+    a.BARCODE_SERIAL
 `;

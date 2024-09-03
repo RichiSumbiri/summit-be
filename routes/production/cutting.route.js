@@ -130,7 +130,7 @@ router.get(
 );
 
 //cutting po status report
-router.get("/cutting-po-status/:poNum", getCuttingPOstatus);
+router.get("/cutting-po-status/:poNum/:date", getCuttingPOstatus);
 router.get("/cutting-po-status-detail/:poId/:size", getCuttingPOStatdtl);
 
 export default router;
