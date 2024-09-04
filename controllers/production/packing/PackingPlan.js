@@ -720,13 +720,47 @@ export const postDataPackPlanChild = async (req, res) => {
     });
     if (checkIdExist) return res.status(400).json({ message: "SEQ Exist" });
 
-    const postDataHeader = await PackPlanChild.create(data);
+    let checkAll = await PackPlanChild.findAll({
+      where: {
+        PACKPLAN_ID: data.PACKPLAN_ID,
+        SEQ_NO: data.SEQ_NO,
+      },
+    });
+
+    const dataAddIndex = { ...data, INDEX_NO: checkAll.length || 1 };
+
+    const postDataHeader = await PackPlanChild.create(dataAddIndex);
     if (postDataHeader)
       return res.status(200).json({ message: "Success Create Child Post" });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
       message: "error post Packing Child",
+      data: error,
+    });
+  }
+};
+
+export const pachtSortPoId = async (req, res) => {
+  try {
+    const { dataSort } = req.body;
+
+    if (!dataSort) res.status(400).json({ message: "no data provided" });
+
+    //check duplicate packplan code
+    let updateIndex = await PackPlanChild.bulkCreate(dataSort, {
+      updateOnDuplicate: ["INDEX_NO"],
+      where: {
+        ADDING_ID: ["ADDING_ID"],
+      },
+    });
+
+    if (updateIndex)
+      return res.status(200).json({ message: "Success Short Index Po" });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error post sort index po",
       data: error,
     });
   }

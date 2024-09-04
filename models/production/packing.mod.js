@@ -414,6 +414,7 @@ export const PackPlanChild = db.define(
     SEQ_NO: { type: DataTypes.INTEGER },
     PACKING_METHODE: { type: DataTypes.STRING },
     COUNTRY_ID: { type: DataTypes.INTEGER },
+    INDEX_NO: { type: DataTypes.INTEGER },
     USER_MOD_ID: { type: DataTypes.INTEGER },
     USER_ADD_ID: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },
@@ -817,12 +818,12 @@ export const PackingPlanPoSum = db.define(
 
 PackingPlanPoSum.removeAttribute("id");
 
-export const qryGetLisPOPPID = `SELECT a.PACKPLAN_ID, a.BUYER_PO, a.SEQ_NO, a.COUNTRY_ID, a.PACKING_METHODE, b.COUNTRY_CODE, b.COUNTRY_NAME,
+export const qryGetLisPOPPID = `SELECT a.ADDING_ID, a.PACKPLAN_ID, a.BUYER_PO, a.INDEX_NO, a.SEQ_NO, a.COUNTRY_ID, a.PACKING_METHODE, b.COUNTRY_CODE, b.COUNTRY_NAME,
 CONCAT(a.PACKPLAN_ID, '|', a.SEQ_NO,  '|',   b.COUNTRY_ID, '|', a.PACKING_METHODE ) AS PLAN_SEQUANCE_ID
 FROM packing_plan_child a 
 LEFT JOIN item_country b ON a.COUNTRY_ID = b.COUNTRY_ID
 WHERE a.PACKPLAN_ID = :ppid
-ORDER BY a.SEQ_NO`;
+ORDER BY a.INDEX_NO, a.SEQ_NO`;
 
 export const qryGetLisSizePPID = `SELECT n.SIZE_CODE, SORT_NO
 FROM (

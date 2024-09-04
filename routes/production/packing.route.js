@@ -48,6 +48,7 @@ import {
   getResltBoxStyle,
   getRowIdAndIndex,
   getSequanceId,
+  pachtSortPoId,
   postCstmSetSortSize,
   postDataPackPlanChild,
   postDataPackPlanHeader,
@@ -144,6 +145,7 @@ router.post("/custom-sort-size/", postCstmSetSortSize);
 
 router.patch("/update-one-rows-ppid/", updateOneRowPpid);
 router.patch("/update-one-rows-manual/:rowsId", switchGenToMnl);
+router.patch("/update-short-po-index", pachtSortPoId);
 
 router.delete("/plann-po-summary", delPackPosum);
 router.delete("/plann-data/:PPID", deletePPIDEntire);
