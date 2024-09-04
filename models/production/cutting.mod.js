@@ -221,6 +221,46 @@ export const CutSupermarketOut = db.define(
   }
 );
 
+export const MoldingIn = db.define(
+  "scan_molding_in",
+  {
+    BARCODE_SERIAL: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    SCH_ID: { type: DataTypes.BIGINT },
+    CUT_ID: { type: DataTypes.BIGINT },
+    CUT_SCAN_BY: { type: DataTypes.BIGINT },
+    CUT_SITE: { type: DataTypes.STRING },
+    CUT_SCAN_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "CUT_SCAN_TIME",
+    updatedAt: false,
+  }
+);
+
+export const MoldingOut = db.define(
+  "scan_molding_out",
+  {
+    BARCODE_SERIAL: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    SCH_ID: { type: DataTypes.BIGINT },
+    CUT_ID: { type: DataTypes.BIGINT },
+    CUT_SCAN_BY: { type: DataTypes.BIGINT },
+    CUT_SITE: { type: DataTypes.STRING },
+    CUT_SCAN_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "CUT_SCAN_TIME",
+    updatedAt: false,
+  }
+);
+
 // export const qryGetCutPOStatus = `
 // SELECT
 // n.*,
