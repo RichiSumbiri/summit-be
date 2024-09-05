@@ -27,7 +27,10 @@ import {
   getOrderStatusMo,
   getOrderStatusSize,
 } from "../../controllers/production/order/OrderRepStatus.js";
-import { uploadOrderPOBuyer } from "../../controllers/production/order/OrderPOBuyer.js";
+import {
+  uploadOrderPOBuyer,
+  uploadOrderPOBuyerDetail,
+} from "../../controllers/production/order/OrderPOBuyer.js";
 
 router.get("/detail", getOrder);
 router.get("/detail/barcodeserial/:barcodeserial", getOrderByBarcodeSerial);
@@ -64,5 +67,6 @@ router.get("/order-status-capacity-size/:schId", getDetailOneCapSize);
 
 //new order po buyer asli
 router.post("/order-po-buyer", uploadOrderPOBuyer);
+router.post("/order-po-buyer-detail", uploadOrderPOBuyerDetail);
 
 export default router;

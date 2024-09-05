@@ -516,21 +516,55 @@ export const OrderPoBuyersAsli = db.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    MRSP: {
+    PO_PRICE: {
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
-    DPC: {
+    // DPC: {
+    //   type: DataTypes.STRING(100),
+    //   allowNull: true,
+    // },
+    // ITEM: {
+    //   type: DataTypes.STRING(100),
+    //   allowNull: true,
+    // },
+    FACTORY_NUMBER: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    ITEM: {
+    FACTORY_NAME: {
       type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    DESCRIPTION: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    CHAIN_ID: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    FIBER_CONTENT: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    PO_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    PC_PER_CTN: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     ADD_ID: {
       type: DataTypes.INTEGER,
       allowNull: true,
+    },
+    PO_DATE: {
+      type: DataTypes.DATE,
+    },
+    EX_FACTORY: {
+      type: DataTypes.DATE,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -545,3 +579,87 @@ export const OrderPoBuyersAsli = db.define(
 );
 
 OrderPoBuyersAsli.removeAttribute("id");
+
+export const OrderPoBuyersDetail = db.define(
+  "order_po_buyer_detail",
+  {
+    VENDOR: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    PO_NUMBER: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    PO_ITEM: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    SEGMENT: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    SLOC: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    ARTICLE_TYPE: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    ARTICLE_GENERIC: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    ARTICLE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    QTY: {
+      type: DataTypes.INTEGER(11),
+      allowNull: true,
+    },
+    COLOR_CODE: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    COLOR_DESCRIPTION: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    SIZE_CODE: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    UPC_CODE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    PO_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    PC_PER_CTN: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ADD_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    PO_DATE: {
+      type: DataTypes.DATE,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
+OrderPoBuyersDetail.removeAttribute("id");
