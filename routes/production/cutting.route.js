@@ -41,6 +41,7 @@ import {
   getExlPlanLoad,
   getExlPlanSpread,
   getInfoDetailSize,
+  getMolReport,
   getRepCutSupSummary,
   getResulSacnMolIN,
   getResulSacnMolOut,
@@ -140,6 +141,9 @@ router.get(
   "/cutting-supermarket-summary/:startDate/:endDate/:lastDate",
   getRepCutSupSummary
 );
+
+//cutting molding in out
+router.get("/molding-report/:startDate/:endDate/:site", getMolReport);
 
 //cutting po status report
 router.get("/cutting-po-status/:poNum/:date", getCuttingPOstatus);

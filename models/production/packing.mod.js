@@ -958,6 +958,14 @@ export const PackingPlanBoxRow = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    GW: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    NW: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     // PRODUCT_ITEM_ID: {
     //   type: DataTypes.STRING(50),
     //   allowNull: true,

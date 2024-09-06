@@ -79,6 +79,7 @@ import {
   getQryListRowByPoByr,
   getRowScanResult,
   postItemScanRow,
+  updateOneRowGwNw,
 } from "../../controllers/production/packing/PackingCutItmScan.js";
 const router = express.Router();
 
@@ -184,5 +185,6 @@ router.get("/pack-scan-item/list-row/:poBuyer", getQryListRowByPoByr);
 router.get("/pack-scan-item/list-row-result/:rowID", getRowScanResult);
 
 router.post("/pack-scan-item/item-scan", postItemScanRow);
+router.patch("/pack-scan-item/pack-update-gw-nw", updateOneRowGwNw);
 
 export default router;

@@ -8,6 +8,7 @@ import {
   qryGetListPoBuyer,
   qryGetRowByPoBuyer,
 } from "../../../models/production/PacScanItem.mod.js";
+import { PackingPlanBoxRow } from "../../../models/production/packing.mod.js";
 
 //get list po
 export const getQryListPoBuyer = async (req, res) => {
@@ -152,6 +153,40 @@ export const getRowScanResult = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get result scan",
+      data: error,
+    });
+  }
+};
+
+//update one rows
+export const updateOneRowGwNw = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data)
+      return res.status(404).json({
+        message: "No Data For Update",
+      });
+
+    const updateROw = await PackingPlanBoxRow.update(data, {
+      where: {
+        ROWID: data.ROWID,
+      },
+    });
+
+    if (updateROw) {
+      return res.json({
+        status: true,
+        message: "Success update row",
+      });
+    } else {
+      return res.json({ status: false });
+    }
+  } catch (error) {
+    console.log(error);
+
+    return res.status(404).json({
+      message: "error patsch rowid",
       data: error,
     });
   }

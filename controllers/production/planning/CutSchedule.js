@@ -39,6 +39,9 @@ import {
   qryCheckTtlMolScanOut,
   qryRsltMolOut,
   qryRsltMolIN,
+  qryGetHeadMolRep,
+  qryGetSizeMolRep,
+  qryGetDtlMolRep,
 } from "../../../models/planning/cuttingplan.mod.js";
 import {
   CutSupermarketIn,
@@ -1660,6 +1663,47 @@ export const getCutSupReport = async (req, res) => {
     });
 
     const detailDataSize = await db.query(qryCutSupDetailDate, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ dataSchedule, detailDataSize, detailData });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error saat mengambil schedule cutting loading",
+      data: error,
+    });
+  }
+};
+
+export const getMolReport = async (req, res) => {
+  try {
+    const { startDate, endDate, site } = req.params;
+
+    const dataSchedule = await db.query(qryGetHeadMolRep, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const detailData = await db.query(qryGetSizeMolRep, {
+      replacements: {
+        startDate: startDate,
+        endDate: endDate,
+        site: site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const detailDataSize = await db.query(qryGetDtlMolRep, {
       replacements: {
         startDate: startDate,
         endDate: endDate,

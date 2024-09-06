@@ -970,6 +970,12 @@ LEFT JOIN (
 				FROM scan_supermarket_out a 
 				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
 				AND a.CUT_SITE = :site
+        UNION ALL 
+        SELECT DISTINCT c.CUT_SCH_ID
+        FROM cuting_loading_sch_detail c 
+        LEFT JOIN item_siteline e ON e.ID_SITELINE = c.CUT_ID_SITELINE
+        WHERE c.CUT_LOAD_DATE BETWEEN :startDate AND  :endDate 
+        AND e.SITE_NAME = :site
 			)
 			GROUP BY a.SCH_ID
 		) n 
@@ -1043,6 +1049,12 @@ WHERE a.CUT_SCH_ID IN (
 		FROM scan_supermarket_out b 
 		WHERE DATE(b.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
 		AND b.CUT_SITE = :site
+    		UNION ALL 
+		SELECT DISTINCT c.CUT_SCH_ID
+		FROM cuting_loading_sch_detail c 
+		LEFT JOIN item_siteline e ON e.ID_SITELINE = c.CUT_ID_SITELINE
+		WHERE c.CUT_LOAD_DATE BETWEEN :startDate AND  :endDate 
+		AND e.SITE_NAME = :site
 ) ORDER BY a.CUT_ID_SITELINE`;
 
 export const qryCutSupDetailDate = `SELECT 
@@ -1057,6 +1069,153 @@ FROM (
   UNION ALL 
   SELECT a.SCH_ID, DATE(a.CUT_SCAN_TIME) SCAN_DATE,  b.ORDER_SIZE, 0 CUTTING_IN, SUM(b.ORDER_QTY) CUTTING_OUT
   FROM scan_supermarket_out a
+  LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+  WHERE DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+  AND a.CUT_SITE = :site
+  GROUP BY a.SCH_ID, DATE(a.CUT_SCAN_TIME), b.ORDER_SIZE
+) n 
+GROUP BY 
+n.SCH_ID, n.SCAN_DATE, n.ORDER_SIZE`;
+
+export const qryGetHeadMolRep = `SELECT a.CUT_ID, a.CUT_SCH_ID SCH_ID,  a.CUT_SITE_NAME SCH_SITE, a.CUT_ID_SITELINE SCH_ID_SITELINE, d.LINE_NAME, 
+a.CUT_SIZE_TYPE, 
+a.CUT_SEW_SCH_QTY, c.CUTTING_IN, c.CUTTING_OUT, (c.CUTTING_IN-c.CUTTING_OUT) AS WIP,
+b.ORDER_REFERENCE_PO_NO, b.ORDER_NO, b.CUSTOMER_NAME, b.MO_NO,  b.PRODUCT_ITEM_CODE, 
+b.ITEM_COLOR_CODE,  b.ITEM_COLOR_NAME, b.ORDER_STYLE_DESCRIPTION
+FROM cuting_loading_schedule a 
+LEFT JOIN viewcapacity b ON a.CUT_ID_CAPACITY = b.ID_CAPACITY
+LEFT JOIN (
+		SELECT 
+			n.SCH_ID,  SUM(n.CUTTING_IN) CUTTING_IN, SUM(n.CUTTING_OUT) CUTTING_OUT
+		FROM (
+			SELECT a.SCH_ID, SUM(b.ORDER_QTY) CUTTING_IN, 0 CUTTING_OUT
+			FROM scan_molding_in a
+			LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+			WHERE a.SCH_ID IN (
+				SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_in a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND :endDate
+				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_out a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+			)
+			GROUP BY a.SCH_ID
+			UNION ALL 
+			SELECT a.SCH_ID,  0 CUTTING_IN, SUM(b.ORDER_QTY) CUTTING_OUT
+			FROM scan_molding_out a
+			LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+			WHERE a.SCH_ID IN (
+				SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_in a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND :endDate
+				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_out a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+			)
+			GROUP BY a.SCH_ID
+		) n 
+		GROUP BY 
+		n.SCH_ID
+) c ON c.SCH_ID = a.CUT_SCH_ID
+LEFT JOIN item_siteline d ON d.ID_SITELINE = a.CUT_ID_SITELINE
+WHERE a.CUT_SCH_ID IN (
+		SELECT DISTINCT a.SCH_ID 
+		FROM scan_molding_in a 
+		WHERE DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+		AND a.CUT_SITE = :site
+		UNION ALL 
+		SELECT DISTINCT b.SCH_ID 
+		FROM scan_molding_out b 
+		WHERE DATE(b.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+		AND b.CUT_SITE = :site
+    		UNION ALL 
+		SELECT DISTINCT c.CUT_SCH_ID
+		FROM cuting_loading_sch_detail c 
+		LEFT JOIN item_siteline e ON e.ID_SITELINE = c.CUT_ID_SITELINE
+		WHERE c.CUT_LOAD_DATE BETWEEN :startDate AND  :endDate 
+		AND e.SITE_NAME = :site
+) ORDER BY a.CUT_ID_SITELINE`;
+
+export const qryGetSizeMolRep = `SELECT a.CUT_ID, a.CUT_SCH_ID SCH_ID,  d.SITE_NAME SCH_SITE, a.CUT_ID_SITELINE SCH_ID_SITELINE, d.LINE_NAME, 
+a.CUT_SEW_SIZE_CODE SIZE_CODE, 
+a.CUT_SEW_SCH_QTY, IFNULL(c.CUTTING_IN,0) CUTTING_IN, IFNULL(c.CUTTING_OUT,0) CUTTING_OUT, (IFNULL(c.CUTTING_IN,0)-IFNULL(c.CUTTING_OUT,0)) WIP 
+FROM cuting_loading_sch_size a 
+LEFT JOIN (
+		SELECT 
+			n.SCH_ID, n.ORDER_SIZE, SUM(n.CUTTING_IN) CUTTING_IN, SUM(n.CUTTING_OUT) CUTTING_OUT
+		FROM (
+			SELECT a.SCH_ID, b.ORDER_SIZE, SUM(b.ORDER_QTY) CUTTING_IN, 0 CUTTING_OUT
+			FROM scan_molding_in a
+			LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+			WHERE a.SCH_ID IN (
+				SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_in a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_out a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+			)
+			GROUP BY a.SCH_ID, b.ORDER_SIZE
+			UNION ALL 
+			SELECT a.SCH_ID, b.ORDER_SIZE, 0 CUTTING_IN, SUM(b.ORDER_QTY) CUTTING_OUT
+			FROM scan_molding_out a
+			LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+			WHERE a.SCH_ID IN (
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_in a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+        UNION ALL
+        SELECT DISTINCT a.SCH_ID 
+				FROM scan_molding_out a 
+				WHERE  DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+				AND a.CUT_SITE = :site
+			)
+			GROUP BY a.SCH_ID, b.ORDER_SIZE
+		) n 
+		GROUP BY 
+		n.SCH_ID,  n.ORDER_SIZE
+) c ON c.SCH_ID = a.CUT_SCH_ID AND a.CUT_SEW_SIZE_CODE =  c.ORDER_SIZE
+LEFT JOIN item_siteline d ON d.ID_SITELINE = a.CUT_ID_SITELINE
+WHERE a.CUT_SCH_ID IN (
+		SELECT DISTINCT a.SCH_ID 
+		FROM scan_molding_in a 
+		WHERE DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+		AND a.CUT_SITE = :site
+		UNION ALL 
+		SELECT DISTINCT b.SCH_ID 
+		FROM scan_molding_out b 
+		WHERE DATE(b.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+		AND b.CUT_SITE = :site
+    		UNION ALL 
+		SELECT DISTINCT c.CUT_SCH_ID
+		FROM cuting_loading_sch_detail c 
+		LEFT JOIN item_siteline e ON e.ID_SITELINE = c.CUT_ID_SITELINE
+		WHERE c.CUT_LOAD_DATE BETWEEN :startDate AND  :endDate 
+		AND e.SITE_NAME = :site
+) ORDER BY a.CUT_ID_SITELINE`;
+
+export const qryGetDtlMolRep = `SELECT 
+n.SCH_ID, n.SCAN_DATE, n.ORDER_SIZE, SUM(n.CUTTING_IN) CUTTING_IN, SUM(n.CUTTING_OUT) CUTTING_OUT
+FROM (
+  SELECT a.SCH_ID, DATE(a.CUT_SCAN_TIME) SCAN_DATE,  b.ORDER_SIZE, SUM(b.ORDER_QTY) CUTTING_IN, 0 CUTTING_OUT
+  FROM scan_molding_in a
+  LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+  WHERE DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
+  AND a.CUT_SITE = :site
+  GROUP BY a.SCH_ID, DATE(a.CUT_SCAN_TIME), b.ORDER_SIZE
+  UNION ALL 
+  SELECT a.SCH_ID, DATE(a.CUT_SCAN_TIME) SCAN_DATE,  b.ORDER_SIZE, 0 CUTTING_IN, SUM(b.ORDER_QTY) CUTTING_OUT
+  FROM scan_molding_out a
   LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
   WHERE DATE(a.CUT_SCAN_TIME) BETWEEN :startDate AND  :endDate
   AND a.CUT_SITE = :site
