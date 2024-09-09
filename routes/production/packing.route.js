@@ -21,6 +21,7 @@ import {
   PostOneDtlRowPpid,
   addNewRowSolid,
   chgCtnStartNo,
+  commitPackingPlan,
   copyFromStyle,
   delOneDetailPpid,
   delPackPosum,
@@ -147,6 +148,9 @@ router.post("/custom-sort-size/", postCstmSetSortSize);
 router.patch("/update-one-rows-ppid/", updateOneRowPpid);
 router.patch("/update-one-rows-manual/:rowsId", switchGenToMnl);
 router.patch("/update-short-po-index", pachtSortPoId);
+
+//comit
+router.post("/commit-packing-plan/:ppid", commitPackingPlan);
 
 router.delete("/plann-po-summary", delPackPosum);
 router.delete("/plann-data/:PPID", deletePPIDEntire);

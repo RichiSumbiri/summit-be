@@ -2199,3 +2199,52 @@ export const postCstmSetSortSize = async (req, res) => {
     });
   }
 };
+
+// commit packing plann
+export const commitPackingPlan = async (req, res) => {
+  try {
+    const { ppid } = req.params;
+
+    const updateHeader = await PackPlanHeader.update(
+      { PACKPLAN_COMMIT: "Y" },
+      {
+        where: {
+          PACKPLAN_ID: ppid,
+        },
+      }
+    );
+
+    if (updateHeader) {
+      const listRowDtl = await db.query(qryGetRowDtl, {
+        replacements: { ppid },
+        type: QueryTypes.SELECT,
+      });
+
+      const postItemUpcArticle = listRowDtl.map((item) => ({
+        ...item,
+        COMMIT_STATUS: "Y",
+      }));
+
+      await PackingPlanBoxRow.bulkCreate(postItemUpcArticle, {
+        updateOnDuplicate: ["COMMIT_STATUS", "PO_ITEM", "ARTICLE", "UPC_CODE"],
+        where: {
+          ROWID: ["ROWID"],
+        },
+      })
+        .then((response) => {
+          return res.json({ message: "Success update" });
+        })
+        .catch((err) => {
+          return res
+            .status(404)
+            .json({ message: "Error when update row", data: err });
+        });
+    } else {
+      return res
+        .status(404)
+        .json({ message: "Error when update header", data: update });
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "Error update", data: ERR });
+  }
+};

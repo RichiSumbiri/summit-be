@@ -385,6 +385,7 @@ export const PackPlanHeader = db.define(
     PACKPLAN_EX_FACTORY: { type: DataTypes.DATE },
     PACKPLAN_ACD: { type: DataTypes.DATE },
     PACKPLAN_SBD: { type: DataTypes.DATE },
+    PACKPLAN_COMMIT: { type: DataTypes.STRING },
     PACKPLAN_ADD_ID: { type: DataTypes.INTEGER },
     PACKPLAN_MOD_ID: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },
@@ -453,7 +454,7 @@ WHERE d.CUSTOMER_NAME = :customer
 ORDER BY d.DELIVERY_LOCATION_ID`;
 
 export const qryGetPackHeader = `SELECT a.PACKPLAN_ID, a.PACKPLAN_BUYER, a.PACKPLAN_BUYER_DIVISION, a.PACK_METOD_ID, c.PACK_MTD_NAME AS PACKPLAN_METHOD, c.PACK_MTD_BASE, a.PACKPLAN_LOCATION,
-a.PACKPLAN_EX_FACTORY, a.PACKPLAN_ACD, a.PACKPLAN_SBD, a.PACKPLAN_ADD_ID, b.USER_INISIAL, a.PACKPLAN_COUNTRY, a.PACKPLAN_DELIVERY_MODE
+a.PACKPLAN_EX_FACTORY, a.PACKPLAN_ACD, a.PACKPLAN_SBD, a.PACKPLAN_ADD_ID, b.USER_INISIAL, a.PACKPLAN_COUNTRY, a.PACKPLAN_DELIVERY_MODE, a.PACKPLAN_COMMIT
 FROM packing_plan_header a 
 LEFT JOIN xref_user_web b ON a.PACKPLAN_ADD_ID = b.USER_ID
 LEFT JOIN item_packing_method c ON c.PACK_METOD_ID = a.PACK_METOD_ID
@@ -1022,6 +1023,10 @@ export const PackingPlanBoxRow = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    COMMIT_STATUS: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     ADD_ID: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -1194,7 +1199,7 @@ LEFT JOIN (
 		FROM order_po_buyer f
 		WHERE f.PO_NUMBER IN (
 				SELECT DISTINCT c.BUYER_PO FROM  packing_plan_box_row c WHERE c.PACKPLAN_ID =  :ppid
-		) GROUP BY f.PO_NUMBER, f.ARTICLE_GENERIC, f.PO_ITEM, f.COLOR_CODE, f.SIZE_CODE
+		) GROUP BY f.PO_NUMBER, f.ARTICLE_GENERIC,  f.COLOR_CODE, f.SIZE_CODE
 ) d ON d.PO_NUMBER = a.BUYER_PO AND a.BUYER_COLOR_CODE = d.COLOR_CODE AND a.SIZE_CODE = d.SIZE_CODE AND 
 FIND_IN_SET( LEFT(d.ARTICLE_GENERIC,6), LEFT(b.PRODUCT_ITEM_CODE, 6)) > 0
 WHERE a.PACKPLAN_ID = :ppid
