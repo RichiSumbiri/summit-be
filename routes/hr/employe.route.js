@@ -1,7 +1,7 @@
 import express from "express";
 import { getDeptAll, getEmployeAktif, getSubDeptAll, postNewEmploye } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
-import { CheckPassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterProv, postLamaran } from "../../controllers/hr/recruitment.js";
+import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterProv, postLamaran } from "../../controllers/hr/recruitment.js";
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ router.get("/master-address-kecamatan", getMasterKecamatan);
 
 
 // recruitment
+router.get("/generate-passkey", GeneratePassKey);
 router.post("/check-passkey", CheckPassKey);
 router.post("/submit-lamaran", postLamaran);
 router.get("/get-lamaran/:tanggal", getLamaranByDate);

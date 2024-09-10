@@ -1,6 +1,6 @@
 import { QueryTypes, Op, fn, col, Sequelize } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { findLamaranByDate, SumbiriPelamar } from "../../models/hr/recruitment.mod.js";
+import { findLamaranByDate, SumbiriPelamar, SumbiriRecruitmentPassKey } from "../../models/hr/recruitment.mod.js";
 
 export const checkLokerLanding = async(req,res) => {
     try {
@@ -17,6 +17,41 @@ export const checkLokerLanding = async(req,res) => {
     }
 }
 
+
+export const GeneratePassKey = async(req,res) => {
+    try {
+        function generateRandomString(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            const charactersLength = characters.length;
+            
+            for (let i = 0; i < length; i++) {
+              result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            }
+          
+            return result;
+          }
+          
+          const randomString = generateRandomString(6).toUpperCase();
+          
+          const postPassKey = await SumbiriRecruitmentPassKey.create({
+            PassKey: randomString,
+            CreateBy: 'system'
+          });
+          
+          res.status(200).json({
+            success: true,
+            message: "success generate passkey loker",
+            data: randomString
+        });
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error generate passkey",
+          });
+    }
+}
 
 export const CheckPassKey= async(req,res) => {
     try {
@@ -156,7 +191,7 @@ export const postLamaran = async(req,res) => {
     try {
         const dataLamaran = req.body.dataLamaran;
         
-        const newLamaran = SumbiriPelamar.create(dataLamaran);
+        const newLamaran = SumbiriPelamar.upsert(dataLamaran);
         if(newLamaran){
             res.status(200).json({
                 success: true,
