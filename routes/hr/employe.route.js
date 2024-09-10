@@ -1,12 +1,23 @@
 import express from "express";
 import { getDeptAll, getEmployeAktif, getSubDeptAll, postNewEmploye } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
+import { CheckPassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterProv, postLamaran } from "../../controllers/hr/recruitment.js";
 
 const router = express.Router();
 
 // departemen management
 router.get("/master-dept", getDeptAll);
 router.get("/master-subdept", getSubDeptAll);
+router.get("/master-address", getMasterAlamat);
+router.get("/master-address-provinsi", getMasterProv);
+router.get("/master-address-kabkota", getMasterKabkota);
+router.get("/master-address-kecamatan", getMasterKecamatan);
+
+
+// recruitment
+router.post("/check-passkey", CheckPassKey);
+router.post("/submit-lamaran", postLamaran);
+router.get("/get-lamaran/:tanggal", getLamaranByDate);
 
 
 // employee management
@@ -16,6 +27,7 @@ router.post("/new-employee", postNewEmploye);
 
 // event
 router.get("/event/:year", getEventList);
+
 
 //ref query for typehead
 router.get("/event/query-guest/:strQuery", getRefGuest);
