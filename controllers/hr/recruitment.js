@@ -56,8 +56,8 @@ export const GeneratePassKey = async(req,res) => {
 export const CheckPassKey= async(req,res) => {
     try {
         const { PassKey } = req.body;
-        console.log(PassKey);
-        if(parseInt(PassKey) === 123456){
+        const checkOnDB = await SumbiriRecruitmentPassKey.findOne({where: {PassKey: PassKey}});
+        if(checkOnDB.length !== 0){
             res.status(200).json({
                 success: true,
                 message: "success check passkey",
