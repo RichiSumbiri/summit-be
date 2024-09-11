@@ -639,7 +639,7 @@ export const OrderPoBuyersDetail = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    PC_PER_CTN: {
+    PC_PER_PACK: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
