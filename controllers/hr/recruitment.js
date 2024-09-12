@@ -56,8 +56,8 @@ export const GeneratePassKey = async(req,res) => {
 export const CheckPassKey= async(req,res) => {
     try {
         const { PassKey } = req.body;
-        console.log(PassKey);
-        if(parseInt(PassKey) === 123456){
+        const checkOnDB = await SumbiriRecruitmentPassKey.findOne({where: {PassKey: PassKey}});
+        if(checkOnDB.length !== 0){
             res.status(200).json({
                 success: true,
                 message: "success check passkey",
@@ -131,6 +131,25 @@ export const getMasterKecamatan = async(req,res) => {
         });
     }
 }
+
+export const getMasterKelurahan = async(req,res) => {
+    try {
+        const query     = ` SELECT * FROM master_alamat_kelurahan `;
+        const result    = await dbSPL.query(query, { type: QueryTypes.SELECT });
+        res.status(200).json({
+            success: true,
+            message: "success get master kelurahan",
+            data: result
+        });
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error get master kelurahan",
+        });
+    }
+}
+
 
 export const getMasterAlamat = async(req,res) => {
     try {
