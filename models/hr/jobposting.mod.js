@@ -12,6 +12,10 @@ export const jobPosting = dbSPL.define('SumbiriJobPosting', {
       type: DataTypes.STRING(200),
       allowNull: true
     },
+    Kualifikasi: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     TenggatWaktu: {
       type: DataTypes.DATE,
       allowNull: true

@@ -19,6 +19,10 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     type: DataTypes.STRING(50),
     allowNull: true
   },
+  Position2: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
   BirthPlace: {
     type: DataTypes.STRING(50),
     allowNull: true
@@ -47,6 +51,10 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     type: DataTypes.STRING(10),
     allowNull: true
   },
+  AddressIdKelurahan: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   AddressKTPRT: {
     type: DataTypes.STRING(10),
     allowNull: true
@@ -73,6 +81,10 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
   },
   AddressIdKecamatanTgl: {
     type: DataTypes.STRING(10),
+    allowNull: true
+  },
+  AddressIdKelurahanTgl: {
+    type: DataTypes.TEXT,
     allowNull: true
   },
   AddressCurrentRT: {
