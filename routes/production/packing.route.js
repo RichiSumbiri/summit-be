@@ -75,6 +75,8 @@ import {
   getContainerList,
   getListShipPlanScan,
   getQryListShipId,
+  getShipMntrResult,
+  getTtlScanClp,
   scanShipmentBox,
 } from "../../controllers/production/packing/PackShipScan.js";
 import {
@@ -181,11 +183,15 @@ router.post("/plann-row-array-update-box-row/", setBoxIdRow);
 //shipment
 router.get("/shipment-scan/container-ship/:sid", getContainerList);
 router.get("/shipment-scan/base-data/:sid/:conId", getListShipPlanScan);
+router.get("/shipment-scan-ttl-clp/:sid/:conId", getTtlScanClp);
 router.get("/shipment-scan/ref-list/:sidKey", getQryListShipId);
 
 router.post("/shipment-scan/generate-label/", genShipLabelCtn);
 
 router.post("/shipment-scan/box-scan", scanShipmentBox);
+
+//shipment scan monitoring
+router.get("/shipment-scan-monitoring/:shipDate", getShipMntrResult);
 
 //pacing pack item scan
 router.get("/pack-scan-item/ref-pobuyer/:poBuyer", getQryListPoBuyer);

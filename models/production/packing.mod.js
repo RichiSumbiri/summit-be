@@ -1316,15 +1316,18 @@ export const queryShipPlanScan = `SELECT
 FROM packing_shipment_plan a 
 LEFT JOIN (
 	SELECT 
-		c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
+		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
 	FROM packing_shipment_scan c WHERE c.SHIPMENT_ID = :sid AND c.CONTAINER_ID = :conId
-	GROUP BY c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC
+	GROUP BY c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC
 ) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
 	AND a.PACK_UPC = b.UPC 
 	AND a.PO_ITEM = b.PO_ITEM
 	AND a.CONTAINER_ID = b.CONTAINER_ID
   AND a.PO_ITEM =  b.PO_ITEM
+  AND a.ID =  b.SHIPMENT_PLAN_ID
 WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
+
+export const qryTtlCtnClp = `SELECT COUNT(*) AS TTL_SCAN FROM packing_shipment_scan a WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
 
 //shipment scan detail result
 export const queryShipPlanScanResult = `SELECT 
@@ -1380,8 +1383,10 @@ export const PackingShipScan = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    SHIPMENT_PLAN_ID: { type: DataTypes.INTEGER },
     UPC: { type: DataTypes.STRING },
     PO_ITEM: { type: DataTypes.STRING },
+    PO_NUMBER: { type: DataTypes.STRING },
     CONTAINER_ID: { type: DataTypes.INTEGER },
     USER_ADD: { type: DataTypes.STRING },
     ADD_TIME: { type: DataTypes.DATE },
@@ -1436,32 +1441,48 @@ export const PackSortSize = db.define(
 
 PackSortSize.removeAttribute("id");
 
-export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId`;
+export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId AND a.ID = :id`;
 
 export const checkBlcShipScan = `SELECT
  a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE, 
- a.TTL_CTN, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+ a.TTL_CTN, IFNULL(b.SCAN_RESULT, 0) SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
 FROM packing_shipment_plan a 
 LEFT JOIN (
 	SELECT 
-		c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
+		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID,  c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
 	FROM packing_shipment_scan c 
-	WHERE c.SHIPMENT_ID = :sid  
+	WHERE c.SHIPMENT_PLAN_ID = :id
     AND c.UPC = :upc 
-    AND c.CONTAINER_ID = :conId
   -- ADN  c.PO_ITEM = :poItem
 	GROUP BY c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  c.PO_ITEM
 ) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
 	AND a.PACK_UPC = b.UPC 
 	AND a.PO_ITEM = b.PO_ITEM
 	AND a.CONTAINER_ID = b.CONTAINER_ID
-WHERE a.SHIPMENT_ID = :sid 
-  AND a.PACK_UPC = :upc 
-  AND a.CONTAINER_ID = :conId 
-  -- AND PO_ITEM = :poItem`;
+	AND a.ID = b.SHIPMENT_PLAN_ID
+WHERE a.ID = :id
+  AND a.PACK_UPC = :upc `;
 
 export const qryGetLisCtnStylBoxByr = `SELECT DISTINCT a.BOX_ID, b.BOX_NAME, b.BOX_CODE, b.LWH_UOM, b.LENGTH, b.WIDTH, b.HEIGHT, a.ORDER_STYLE_DESCRIPTION, a.PACKING_METHODE
 FROM pack_carton_style a
 LEFT JOIN item_carton_list b ON b.BOX_ID = a.BOX_ID  
 WHERE a.BUYER_CODE = :buyer
 GROUP BY a.BOX_ID, b.BOX_NAME, b.BOX_CODE, b.LWH_UOM, b.LENGTH, b.WIDTH, b.HEIGHT, a.ORDER_STYLE_DESCRIPTION, a.PACKING_METHODE`;
+
+///report monitoring shipment my date
+export const qryShipmentMonitoring = `SELECT n.*, n.TTL_CTN-TTL_RESULT BALANCE, ROUND(n.TTL_RESULT/n.TTL_CTN*100,2) AS PERCENT_RESULT
+FROM (
+	SELECT a.SHIPMENT_ID, a.CONTAINER_ID, b.CONTAINER_NO, b.CONTAINER_TYPE, SUM(a.TTL_CTN) TTL_CTN, IFNULL(d.TTL_RESULT,0) TTL_RESULT
+	FROM  packing_shipment_plan  a 
+	LEFT JOIN packing_ship_container b ON b.CONTAINER_ID = a.CONTAINER_ID
+	LEFT JOIN (
+		SELECT a.SHIPMENT_ID, a.CONTAINER_ID, COUNT(*) TTL_RESULT
+		FROM packing_shipment_scan a 
+		WHERE a.SHIPMENT_ID IN (
+				SELECT DISTINCT c.SHIPMENT_ID FROM  packing_shipment_plan  c WHERE c.SHIPMENT_DATE = :shipDate 
+			)
+		GROUP BY a.SHIPMENT_ID, a.CONTAINER_ID
+	) d ON d.SHIPMENT_ID = a.SHIPMENT_ID AND a.CONTAINER_ID = d.CONTAINER_ID
+	WHERE a.SHIPMENT_DATE = :shipDate
+	GROUP BY a.SHIPMENT_ID, a.CONTAINER_ID
+) n`;

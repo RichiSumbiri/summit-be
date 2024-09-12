@@ -12,6 +12,8 @@ import {
   PackCtnLabel,
   qryLabelResult,
   PackShipPlan,
+  qryTtlCtnClp,
+  qryShipmentMonitoring,
 } from "../../../models/production/packing.mod.js";
 
 //get list container list
@@ -53,6 +55,14 @@ export const getListShipPlanScan = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const ttlCtn = await db.query(qryTtlCtnClp, {
+      replacements: {
+        sid,
+        conId,
+      },
+      type: QueryTypes.SELECT,
+    });
+
     const shipPlanResult = await db.query(queryShipPlanScanResult, {
       replacements: {
         sid,
@@ -72,9 +82,36 @@ export const getListShipPlanScan = async (req, res) => {
       return res.status(201).json({ message: "Belum ada data" });
     }
 
-    return res
-      .status(200)
-      .json({ data: { shipPlan, shipPlanResult, containerList } });
+    return res.status(200).json({
+      data: {
+        shipPlan,
+        shipPlanResult,
+        containerList,
+        ttlCtn: ttlCtn[0].TTL_SCAN,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data shipment plan",
+      data: error,
+    });
+  }
+};
+
+export const getTtlScanClp = async (req, res) => {
+  try {
+    const { sid, conId } = req.params;
+
+    const ttlCtn = await db.query(qryTtlCtnClp, {
+      replacements: {
+        sid,
+        conId,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({ data: ttlCtn });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -193,6 +230,7 @@ export const scanShipmentBox = async (req, res) => {
     //check item sekalian check upc
     const checkPoItem = await db.query(qryCheckPoItem, {
       replacements: {
+        id: dataBox.SHIPMENT_PLAN_ID,
         upc: dataBox.UPC,
         conId: dataBox.CONTAINER_ID,
       },
@@ -217,43 +255,34 @@ export const scanShipmentBox = async (req, res) => {
     //compare saldo container dengan planing
     const checkBlc = await db.query(checkBlcShipScan, {
       replacements: {
+        id: dataBox.SHIPMENT_PLAN_ID,
         upc: dataBox.UPC,
-        sid: dataBox.SHIPMENT_ID,
-        conId: dataBox.CONTAINER_ID,
+        // sid: dataBox.SHIPMENT_ID,
+        // conId: dataBox.CONTAINER_ID,
       },
       type: QueryTypes.SELECT,
     });
 
-    let idxPo = 0;
-    //di looping jika terdapat PO item lebih dari satu maka akan diambil sesuai index terlebih dahulu
-    if (checkBlc.length > 1) {
-      for (let index = 0; index < checkBlc.length; index++) {
-        const element = checkBlc[index];
-        // console.log(element);
-        if (element.BALANCE_SCAN > 0) {
-          idxPo = index;
-          index = checkBlc.length;
-        }
-      }
-    }
-    // console.log({ idxPo, checkBlc: checkBlc[idxPo] });
-
-    if (checkBlc[idxPo].BALANCE_SCAN === 0) {
+    if (checkBlc[0].BALANCE_SCAN === 0) {
       return res.json({
         status: "error",
         message: "Melebihi Planning",
       });
     }
 
-    const poItem = checkPoItem[idxPo].PO_ITEM;
-    const dataPush = {
-      ...dataBox,
-      PO_ITEM: poItem,
-    };
+    // const poItem = checkPoItem[idxPo].PO_ITEM;
+    // const dataPush = {
+    //   ...dataBox,
+    //   PO_ITEM: poItem,
+    // };
 
-    const postScan = await PackingShipScan.create(dataPush);
+    const postScan = await PackingShipScan.create(dataBox);
     if (postScan) {
-      return res.json({ status: "success", message: "Success Scan" });
+      return res.json({
+        status: "success",
+        message: "Success Scan",
+        scanResult: checkBlc[0].SCAN_RESULT + 1,
+      });
     } else {
       return res.json({ status: "error", message: "Gagal Scan" });
     }
@@ -261,6 +290,31 @@ export const scanShipmentBox = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error saat scan",
+      data: error,
+    });
+  }
+};
+
+// shipment monitoring
+export const getShipMntrResult = async (req, res) => {
+  try {
+    const { shipDate } = req.params;
+
+    if (!shipDate)
+      return res.status(404).json({ message: "Tidak ada tanggal" });
+
+    const listResult = await db.query(qryShipmentMonitoring, {
+      replacements: {
+        shipDate,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listResult });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get result",
       data: error,
     });
   }
