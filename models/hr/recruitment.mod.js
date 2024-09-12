@@ -487,6 +487,7 @@ SELECT
 	sp.PassKey,
 	sp.FullName,
 	sp.Position,
+	sp.Position2,
 	sp.BirthPlace,
 	sp.BirthDate,
 	sp.Phone,
@@ -494,12 +495,12 @@ SELECT
 	map2.nama_prov AS KTPProvinsi,
 	mak.nama_kabkota AS AlamatKTPKabKota,
 	mak2.nama_kecamatan AS AlamatKTPKecamatan,
-  sp.AddressKTPKelurahan,
+  	mak5.nama_kelurahan AS AddressKTPKelurahan,
 	CONCAT(sp.AddressKTPRT,'/',sp.AddressKTPRW) AS AlamatKTPRTRW,
   	sp.AddressKTPDetail AS AlamatKTPDetail,
 	CASE
-    	WHEN sp.isKTPCurrent = 0 THEN CONCAT(sp.AddressKTPDetail, ', RT', sp.AddressKTPRT ,' RW', sp.AddressKTPRW , ', ' , mak2.nama_kecamatan, ', ', mak.nama_kabkota)
-    	WHEN sp.isKTPCurrent = 1 THEN CONCAT(sp.AddressCurrentDetail, ', RT ',sp.AddressCurrentRT,' RW ', sp.AddressCurrentRW,', ',sp.AddressCurrentKelurahan, ', ',mak4.nama_kecamatan,', ',mak3.nama_kabkota)
+    	WHEN sp.isKTPCurrent = 0 THEN CONCAT(sp.AddressKTPDetail, ', RT', sp.AddressKTPRT ,' RW', sp.AddressKTPRW , ', ' , mak5.nama_kelurahan, '', mak2.nama_kecamatan, ', ', mak.nama_kabkota)
+    	WHEN sp.isKTPCurrent = 1 THEN CONCAT(sp.AddressCurrentDetail, ', RT ',sp.AddressCurrentRT,' RW ', sp.AddressCurrentRW,', ',mak6.nama_kelurahan, ', ',mak4.nama_kecamatan,', ',mak3.nama_kabkota)
     	ELSE ''
   END AS AlamatDomisili,
   sp.BloodType,
@@ -625,9 +626,11 @@ FROM
 LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = sp.AddressIdProv 
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = sp.AddressIdKabKota 
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = sp.AddressIdKecamatan 
+LEFT JOIN master_alamat_kelurahan mak5 ON mak5.id_kelurahan = sp.AddressIdKelurahan 
 LEFT JOIN master_alamat_provinsi map3 ON map3.id_prov = sp.AddressIdProvTgl
 LEFT JOIN master_alamat_kabkota mak3 ON mak3.id_kabkota = sp.AddressIdKabKotaTgl 
 LEFT JOIN master_alamat_kecamatan mak4 ON mak4.id_kecamatan = sp.AddressIdKecamatanTgl 
+LEFT JOIN master_alamat_kelurahan mak6 ON mak6.id_kelurahan = sp.AddressIdKelurahanTgl 
 WHERE DATE(sp.CreateDate) = :tglLamaran
 `;
 
