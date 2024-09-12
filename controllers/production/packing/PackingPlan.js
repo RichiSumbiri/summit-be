@@ -25,11 +25,13 @@ import {
   qryGetDistcPoRef,
   qryGetLastPPI,
   qryGetLisColorPPID,
+  qryGetLisCtnStylBoxByr,
   qryGetLisPOPPID,
   qryGetLisSizePPID,
   qryGetPackHeader,
   qryGetPackMethod,
   qryGetPackPlanDtlPo,
+  qryGetReflistPoBuyer,
   qryGetRowColQty,
   qryGetRowDtl,
   qryGetRowDtlOne,
@@ -98,6 +100,28 @@ export const getPackBox = async (req, res) => {
     }
 
     return res.status(200).json({ data: boxList });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data box",
+      data: error,
+    });
+  }
+};
+
+export const getPackBoxWithStyle = async (req, res) => {
+  try {
+    const { buyer } = req.params;
+    const BUYER_CODE = decodeURIComponent(buyer).toString();
+
+    const listBoxStyel = await db.query(qryGetLisCtnStylBoxByr, {
+      replacements: {
+        buyer: BUYER_CODE,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({ data: listBoxStyel });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -2246,5 +2270,31 @@ export const commitPackingPlan = async (req, res) => {
     }
   } catch (error) {
     return res.status(404).json({ message: "Error update", data: ERR });
+  }
+};
+
+export const getRefListPoBuyer = async (req, res) => {
+  try {
+    const { poNum } = req.params;
+    // const customer = decodeURIComponent(buyer);
+    const texpO = decodeURIComponent(poNum);
+
+    const qryPO = `%${texpO}%`;
+
+    const listPO = await db.query(qryGetReflistPoBuyer, {
+      replacements: {
+        // customer,
+        qryPO,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listPO });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing referensi po number",
+      data: error,
+    });
   }
 };

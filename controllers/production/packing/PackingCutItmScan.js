@@ -7,6 +7,7 @@ import {
   qryGetLastIndex,
   qryGetListPoBuyer,
   qryGetRowByPoBuyer,
+  qryLisPoByrWthOutput,
 } from "../../../models/production/PacScanItem.mod.js";
 import { PackingPlanBoxRow } from "../../../models/production/packing.mod.js";
 
@@ -187,6 +188,31 @@ export const updateOneRowGwNw = async (req, res) => {
 
     return res.status(404).json({
       message: "error patsch rowid",
+      data: error,
+    });
+  }
+};
+
+export const getPoByrWthOutput = async (req, res) => {
+  try {
+    const { start, end } = req.params;
+    // const rowId = decodeURIComponent(rowID);
+    if (!start || !end)
+      return res.status(404).json({ message: "No Start Date Or End Date" });
+
+    const getDataPoBuyeRep = await db.query(qryLisPoByrWthOutput, {
+      replacements: {
+        start,
+        end,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: getDataPoBuyeRep });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get result scan",
       data: error,
     });
   }

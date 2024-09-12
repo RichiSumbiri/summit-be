@@ -39,12 +39,14 @@ import {
   getListSizeCodeByProdId,
   getListStylePack,
   getPackBox,
+  getPackBoxWithStyle,
   getPackPlanMethod,
   getPackingPlanHd,
   getPackingPlanId,
   getPoByrBox,
   getQryListPo,
   getQrySumDetail,
+  getRefListPoBuyer,
   getRefPackPlanByByr,
   getResltBoxStyle,
   getRowIdAndIndex,
@@ -76,6 +78,7 @@ import {
   scanShipmentBox,
 } from "../../controllers/production/packing/PackShipScan.js";
 import {
+  getPoByrWthOutput,
   getQryListPoBuyer,
   getQryListRowByPoByr,
   getRowScanResult,
@@ -106,6 +109,7 @@ router.get("/daily/scaninRepSizePo/:scanDate", PackInScanInDaySizePo);
 //packing style
 router.get("/list-style-setup/:buyer", getListStylePack);
 router.get("/list-box-buyer/:buyer", getPackBox);
+router.get("/list-box-buyer-with-style/:buyer", getPackBoxWithStyle);
 router.get("/list-size-code/:styleOrder", getListSizeCodeByProdId);
 router.get("/list-set-ctn-result/:styleOrder", getListSetCtnStyle);
 router.get("/getresult-box-style/:prodItemCode", getResltBoxStyle);
@@ -191,4 +195,6 @@ router.get("/pack-scan-item/list-row-result/:rowID", getRowScanResult);
 router.post("/pack-scan-item/item-scan", postItemScanRow);
 router.patch("/pack-scan-item/pack-update-gw-nw", updateOneRowGwNw);
 
+router.get("/plann-ref-ponumberbuyer/:poNum", getRefListPoBuyer);
+router.get("/po-buyer-with-result/:start/:end", getPoByrWthOutput);
 export default router;
