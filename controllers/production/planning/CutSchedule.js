@@ -782,7 +782,7 @@ export const QRScanSuperMarketIn = async (req, res) => {
           colorCode: valueBarcode.ORDER_COLOR,
           sizeCode: valueBarcode.ORDER_SIZE,
           prodMonth: valueBarcode.PRODUCTION_MONTH,
-          planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
+          // planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
           fxSiteName: valueBarcode.MANUFACTURING_SITE,
         },
         type: QueryTypes.SELECT,
