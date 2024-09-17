@@ -34,3 +34,14 @@ export const jobPosting = dbSPL.define('SumbiriJobPosting', {
 
 
 export const getJobPostingActive = `SELECT * FROM sumbiri_job_posting WHERE TenggatWaktu >= DATE(NOW())`;
+export const getJobPostingById = `SELECT * FROM sumbiri_job_posting WHERE idPost = :idPost`;
+export const putJobById = `
+UPDATE 
+  sumbiri_job_posting
+SET 
+  Posisi=:postPosisi,
+  Kualifikasi=:postKualifikasi,
+  TenggatWaktu=:postTenggatWaktu
+WHERE 
+  idPost = :idPost
+`;

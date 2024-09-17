@@ -2,7 +2,7 @@ import express from "express";
 import { getDeptAll, getEmployeAktif, getSubDeptAll, postNewEmploye } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterKelurahan, getMasterProv, postLamaran } from "../../controllers/hr/recruitment.js";
-import { getJobPosting, postJobActive } from "../../controllers/hr/jobposting.js";
+import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } from "../../controllers/hr/jobposting.js";
 
 const router = express.Router();
 
@@ -18,7 +18,8 @@ router.get("/master-address-kelurahan", getMasterKelurahan);
 // job posting
 router.post("/post-active-job", postJobActive);
 router.get("/get-active-job", getJobPosting);
-
+router.get("/get-job-by-id/:id", getJobPostingByID);
+router.post("/put-job-by-id", updateJobPosting)
 
 // recruitment
 router.get("/generate-passkey", GeneratePassKey);
