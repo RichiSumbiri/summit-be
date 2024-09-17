@@ -1072,24 +1072,24 @@ export const QRScanMolIn = async (req, res) => {
         const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
 
         //check total schedule
-        const ttlScanInQty = await db.query(qryCheckTtlMolScanIn, {
-          replacements: {
-            schId: SCH_ID,
-            size: valueBarcode.ORDER_SIZE,
-          },
-          type: QueryTypes.SELECT,
-        });
-        if (ttlScanInQty.length > 0) {
-          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
-          // console.log({ ttlInQty, SCH_SIZE_QTY });
+        // const ttlScanInQty = await db.query(qryCheckTtlMolScanIn, {
+        //   replacements: {
+        //     schId: SCH_ID,
+        //     size: valueBarcode.ORDER_SIZE,
+        //   },
+        //   type: QueryTypes.SELECT,
+        // });
+        // if (ttlScanInQty.length > 0) {
+        //   const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+        //   // console.log({ ttlInQty, SCH_SIZE_QTY });
 
-          if (ttlInQty > SCH_SIZE_QTY)
-            return res.status(200).json({
-              success: true,
-              qrstatus: "error",
-              message: "Melebih Schedule Qty",
-            });
-        }
+        //   if (ttlInQty > SCH_SIZE_QTY)
+        //     return res.status(200).json({
+        //       success: true,
+        //       qrstatus: "error",
+        //       message: "Melebih Schedule Qty",
+        //     });
+        // }
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCH_ID,
@@ -1207,23 +1207,23 @@ export const QRScanMolOut = async (req, res) => {
         const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
 
         //check total schedule
-        const ttlScanInQty = await db.query(qryCheckTtlMolScanOut, {
-          replacements: {
-            schId: SCH_ID,
-            size: valueBarcode.ORDER_SIZE,
-          },
-          type: QueryTypes.SELECT,
-        });
-        if (ttlScanInQty.length > 0) {
-          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+        // const ttlScanInQty = await db.query(qryCheckTtlMolScanOut, {
+        //   replacements: {
+        //     schId: SCH_ID,
+        //     size: valueBarcode.ORDER_SIZE,
+        //   },
+        //   type: QueryTypes.SELECT,
+        // });
+        // if (ttlScanInQty.length > 0) {
+        //   const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
 
-          if (ttlInQty > SCH_SIZE_QTY)
-            return res.status(200).json({
-              success: true,
-              qrstatus: "error",
-              message: "Melebih Schedule Qty",
-            });
-        }
+        //   if (ttlInQty > SCH_SIZE_QTY)
+        //     return res.status(200).json({
+        //       success: true,
+        //       qrstatus: "error",
+        //       message: "Melebih Schedule Qty",
+        //     });
+        // }
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCH_ID,
