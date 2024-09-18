@@ -202,5 +202,5 @@ router.post("/pack-scan-item/item-scan", postItemScanRow);
 router.patch("/pack-scan-item/pack-update-gw-nw", updateOneRowGwNw);
 
 router.get("/plann-ref-ponumberbuyer/:poNum", getRefListPoBuyer);
-router.get("/po-buyer-with-result/:start/:end", getPoByrWthOutput);
+router.get("/po-buyer-with-result/:poNo", getPoByrWthOutput);
 export default router;

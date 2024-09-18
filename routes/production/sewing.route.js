@@ -64,10 +64,10 @@ router.get(
   "/wip-monitoring-size/:startDate/:endDate/:sitename",
   getMasterWipMonSize
 );
-// router.get(
-//   "/wip-monitoring-tracking/:schId/:orderSize",
-//   trackingByWipMontioring
-// );
+router.get(
+  "/wip-monitoring-tracking/:schId/:orderSize",
+  trackingByWipMontioring
+);
 
 router.post("/clear-double/", clearFixDouble);
 

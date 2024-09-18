@@ -10,6 +10,7 @@ import {
   qryLisPoByrWthOutput,
 } from "../../../models/production/PacScanItem.mod.js";
 import { PackingPlanBoxRow } from "../../../models/production/packing.mod.js";
+// import { CheckNilai } from "../../util/Utility.js";
 
 //get list po
 export const getQryListPoBuyer = async (req, res) => {
@@ -193,22 +194,57 @@ export const updateOneRowGwNw = async (req, res) => {
   }
 };
 
+function sumQtyByAttributes(data) {
+  return Object.values(
+    data.reduce((acc, item) => {
+      const key = `${item.VENDOR}-${item.EX_FACTORY}-${item.SEGMENT}-${item.ARTICLE}-${item.COLOR_CODE}`;
+
+      // Jika key belum ada di accumulator, buat entri baru
+      if (!acc[key]) {
+        const { UPC_CODE, SIZE_CODE, PO_ITEM, ...rest } = item;
+        acc[key] = { ...rest, QTY: 0, BOOKING_QTY: 0, SCAN_QTY: 0 }; // Copy semua properti dan set qty ke 0
+      }
+
+      // Gunakan parseFloat untuk memastikan konversi angka dari string ke number
+      const qtyToAdd = !isNaN(parseFloat(item.QTY)) ? parseFloat(item.QTY) : 0;
+      const qtyToBook = !isNaN(parseFloat(item.BOOKING_QTY))
+        ? parseFloat(item.BOOKING_QTY)
+        : 0;
+      const qtyToScan = !isNaN(parseFloat(item.SCAN_QTY))
+        ? parseFloat(item.SCAN_QTY)
+        : 0;
+
+      // Tambah qty
+      acc[key].QTY += qtyToAdd;
+      acc[key].BOOKING_QTY += qtyToBook;
+      acc[key].SCAN_QTY += qtyToScan;
+
+      return acc;
+    }, {})
+  );
+}
+
 export const getPoByrWthOutput = async (req, res) => {
   try {
-    const { start, end } = req.params;
+    const { poNo } = req.params;
     // const rowId = decodeURIComponent(rowID);
-    if (!start || !end)
+    if (!poNo)
       return res.status(404).json({ message: "No Start Date Or End Date" });
 
+    const poNum = decodeURIComponent(poNo);
     const getDataPoBuyeRep = await db.query(qryLisPoByrWthOutput, {
       replacements: {
-        start,
-        end,
+        poNum,
       },
       type: QueryTypes.SELECT,
     });
 
-    return res.json({ data: getDataPoBuyeRep });
+    let summaryies = [];
+    if (getDataPoBuyeRep.length > 0) {
+      summaryies = sumQtyByAttributes(getDataPoBuyeRep);
+    }
+
+    return res.json({ data: { getDataPoBuyeRep, summaryies } });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
