@@ -486,14 +486,20 @@ SELECT
 	IFNULL(mak.nama_kabkota, '-') AS AlamatKTPKabKota,
 	IFNULL(mak2.nama_kecamatan, '-') AS AlamatKTPKecamatan,
 	IFNULL(sp.AddressKTPKelurahanID, '-') AS AlamatKTPKelurahan,
-	IFNULL(CONCAT(sp.AddressKTPRT, '/', sp.AddressKTPRW), '-') AS AlamatKTPRTRW,
+	IFNULL(CONCAT('RT', sp.AddressKTPRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatKTPRTRW,
 	IFNULL(sp.AddressKTPDetail, '-') AS AlamatKTPDetail,
 	CASE
     	WHEN sp.isKTPCurrent = 0 THEN CONCAT(IFNULL(sp.AddressKTPDetail, '-'), ', RT', IFNULL(sp.AddressKTPRT, '-'), ' RW', IFNULL(sp.AddressKTPRW, '-'), ', ', IFNULL(sp.AddressKTPKelurahanID, '-'), ', ', IFNULL(mak2.nama_kecamatan, '-'), ', ', IFNULL(mak.nama_kabkota, '-'))
     	WHEN sp.isKTPCurrent = 1 THEN CONCAT(IFNULL(sp.AddressDOMDetail, '-'), ', RT ', IFNULL(sp.AddressDOMRT, '-'), ' RW ', IFNULL(sp.AddressDOMRW, '-'), ', ', IFNULL(sp.AddressDOMKelurahanID, '-'), ', ', IFNULL(mak4.nama_kecamatan, '-'), ', ', IFNULL(mak3.nama_kabkota, '-'))
     	ELSE '-'
 	END AS AlamatDomisili,
-	IFNULL(sp.BloodType, '-') AS BloodType,
+	IFNULL(map3.nama_prov, '-') AS DOMProvinsi,
+	IFNULL(mak3.nama_kabkota, '-') AS AlamatDOMKabKota,
+	IFNULL(mak4.nama_kecamatan, '-') AS AlamatDOMKecamatan,
+	IFNULL(sp.AddressDOMKelurahanID, '-') AS AlamatDOMKelurahan,
+	IFNULL(CONCAT('RT', sp.AddressDOMRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatDOMRTRW,
+	IFNULL(sp.AddressDOMDetail, '-') AS AlamatDOMDetail,
+  IFNULL(sp.BloodType, '-') AS BloodType,
 	IFNULL(sp.FatherName, '-') AS FatherName,
 	IFNULL(sp.FatherJob, '-') AS FatherJob,
 	IFNULL(sp.MotherName, '-') AS MotherName,
@@ -657,7 +663,7 @@ LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = sp.AddressKTPKecam
 LEFT JOIN master_alamat_provinsi map3 ON map3.id_prov = sp.AddressDOMProvID 
 LEFT JOIN master_alamat_kabkota mak3 ON mak3.id_kabkota = sp.AddressDOMKabKotaID 
 LEFT JOIN master_alamat_kecamatan mak4 ON mak4.id_kecamatan = sp.AddressDOMKecamatanID 
-WHERE DATE(sp.CreateDate) = :tglLamaran;
+WHERE DATE(sp.CreateDate) BETWEEN :startDate AND :endDate ;
 
 `;
 
