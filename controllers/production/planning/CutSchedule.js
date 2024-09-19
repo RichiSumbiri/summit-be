@@ -791,26 +791,25 @@ export const QRScanSuperMarketIn = async (req, res) => {
       // console.log(checkSchdNsize);
       if (checkSchdNsize.length > 0) {
         const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
-
         //check total schedule
-        const ttlScanInQty = await db.query(qryCheckTtlSupScanIn, {
-          replacements: {
-            schId: SCH_ID,
-            size: valueBarcode.ORDER_SIZE,
-          },
-          type: QueryTypes.SELECT,
-        });
-        if (ttlScanInQty.length > 0) {
-          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
-          // console.log({ ttlInQty, SCH_SIZE_QTY });
+        // const ttlScanInQty = await db.query(qryCheckTtlSupScanIn, {
+        //   replacements: {
+        //     schId: SCH_ID,
+        //     size: valueBarcode.ORDER_SIZE,
+        //   },
+        //   type: QueryTypes.SELECT,
+        // });
+        // if (ttlScanInQty.length > 0) {
+        //   const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+        //   // console.log({ ttlInQty, SCH_SIZE_QTY });
 
-          if (ttlInQty > SCH_SIZE_QTY)
-            return res.status(200).json({
-              success: true,
-              qrstatus: "error",
-              message: "Melebih Schedule Qty",
-            });
-        }
+        //   if (ttlInQty > SCH_SIZE_QTY)
+        //     return res.status(200).json({
+        //       success: true,
+        //       qrstatus: "error",
+        //       message: "Melebih Schedule Qty",
+        //     });
+        // }
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCH_ID,
@@ -928,23 +927,23 @@ export const QRScanSuperMarketOut = async (req, res) => {
         const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
 
         //check total schedule
-        const ttlScanInQty = await db.query(qryCheckTtlSupScanOut, {
-          replacements: {
-            schId: SCH_ID,
-            size: valueBarcode.ORDER_SIZE,
-          },
-          type: QueryTypes.SELECT,
-        });
-        if (ttlScanInQty.length > 0) {
-          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+        // const ttlScanInQty = await db.query(qryCheckTtlSupScanOut, {
+        //   replacements: {
+        //     schId: SCH_ID,
+        //     size: valueBarcode.ORDER_SIZE,
+        //   },
+        //   type: QueryTypes.SELECT,
+        // });
+        // if (ttlScanInQty.length > 0) {
+        //   const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
 
-          if (ttlInQty > SCH_SIZE_QTY)
-            return res.status(200).json({
-              success: true,
-              qrstatus: "error",
-              message: "Melebih Schedule Qty",
-            });
-        }
+        //   if (ttlInQty > SCH_SIZE_QTY)
+        //     return res.status(200).json({
+        //       success: true,
+        //       qrstatus: "error",
+        //       message: "Melebih Schedule Qty",
+        //     });
+        // }
         const dataBarcode = {
           BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
           SCH_ID,
@@ -1002,8 +1001,7 @@ export const QRScanSuperMarketOut = async (req, res) => {
 // molding In
 export const QRScanMolIn = async (req, res) => {
   try {
-    const { barcodeserial, schDate, sitename, lineName, userId, idCapacity } =
-      req.body;
+    const { barcodeserial, userId } = req.body;
     //check apakah barcode serial ada pada table orders detail
     //find schedule
     const checkBarcodeSerial = await db.query(QryFinSprMrktIn, {
@@ -1048,76 +1046,25 @@ export const QRScanMolIn = async (req, res) => {
         });
       }
 
-      //find schedule
-      const checkSchdNsize = await db.query(queryChkclSupSchIn, {
-        replacements: {
-          plannDate: schDate,
-          sitename: sitename,
-          lineName: lineName ? lineName : valueBarcode.LINE_NAME,
-          // moNo: valueBarcode.MO_NO,
-          orderNo: valueBarcode.ORDER_NO,
-          orderRef: valueBarcode.ORDER_REF,
-          styleDesc: valueBarcode.ORDER_STYLE,
-          colorCode: valueBarcode.ORDER_COLOR,
-          sizeCode: valueBarcode.ORDER_SIZE,
-          prodMonth: valueBarcode.PRODUCTION_MONTH,
-          planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
-          fxSiteName: valueBarcode.MANUFACTURING_SITE,
-        },
-        type: QueryTypes.SELECT,
-      });
-
-      // console.log(checkSchdNsize);
-      if (checkSchdNsize.length > 0) {
-        const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
-
-        //check total schedule
-        // const ttlScanInQty = await db.query(qryCheckTtlMolScanIn, {
-        //   replacements: {
-        //     schId: SCH_ID,
-        //     size: valueBarcode.ORDER_SIZE,
-        //   },
-        //   type: QueryTypes.SELECT,
-        // });
-        // if (ttlScanInQty.length > 0) {
-        //   const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
-        //   // console.log({ ttlInQty, SCH_SIZE_QTY });
-
-        //   if (ttlInQty > SCH_SIZE_QTY)
-        //     return res.status(200).json({
-        //       success: true,
-        //       qrstatus: "error",
-        //       message: "Melebih Schedule Qty",
-        //     });
-        // }
-        const dataBarcode = {
-          BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
-          SCH_ID,
-          CUT_ID,
-          CUT_SCAN_BY: userId,
-          CUT_SITE: sitename,
-        };
-        const returnData = {
-          ...valueBarcode,
-          LINE_NAME: lineName ? lineName : valueBarcode.LINE_NAME,
-          CUT_ID,
-          SCH_ID,
-          SITE_NAME: sitename,
-        };
-        const pushQrSewin = await MoldingIn.create(dataBarcode);
-        if (pushQrSewin)
-          return res.status(200).json({
-            success: true,
-            qrstatus: "success",
-            message: "Scan Success",
-            data: returnData,
-          });
+      const dataBarcode = {
+        BARCODE_SERIAL: barcodeserial,
+        CUT_SCAN_BY: userId,
+        CUT_SITE: checkBarcodeSerial[0].SITE_NAME,
+      };
+      const pushQrSewin = await MoldingIn.create(dataBarcode);
+      if (pushQrSewin) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "success",
+          message: "Scan Success",
+          data: checkBarcodeSerial[0],
+        });
+      } else {
       }
-
       return res.status(200).json({
         success: true,
         qrstatus: "error",
-        message: "No Schedule",
+        message: "Gagal Scan",
       });
     }
   } catch (error) {
