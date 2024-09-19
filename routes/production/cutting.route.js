@@ -85,8 +85,8 @@ router.get("/planning-supermarket/:schDate/:site", getDailyCutSch);
 router.get("/planning-supermarket-size/:schDate/:site", getDailyCutSchSize);
 router.get("/result-supermarket-in/:schDate/:site", getResulSacnSupIN);
 router.get("/result-supermarket-out/:schDate/:site", getResulSacnSupOut);
-router.get("/result-molding-in/:schDate/:site", getResulSacnMolIN);
-router.get("/result-molding-out/:schDate/:site", getResulSacnMolOut);
+router.get("/result-molding-in/", getResulSacnMolIN);
+router.get("/result-molding-out/", getResulSacnMolOut);
 
 router.get("/order/list/:startDate/:endDate", getCuttingOrder);
 router.get("/order/bundle/:orderNo", getOrderByBLK);

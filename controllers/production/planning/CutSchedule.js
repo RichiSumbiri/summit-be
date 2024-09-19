@@ -662,12 +662,11 @@ export const getResulSacnSupIN = async (req, res) => {
 
 export const getResulSacnMolIN = async (req, res) => {
   try {
-    const { schDate, site } = req.params;
-
+    // const {scanDate } = req.params;
+    const scanDate = moment().format("YYYY-MM-DD");
     const resulScanSupIN = await db.query(qryRsltMolIN, {
       replacements: {
-        schDate,
-        site,
+        scanDate,
       },
       type: QueryTypes.SELECT,
     });
@@ -707,12 +706,10 @@ export const getResulSacnSupOut = async (req, res) => {
 
 export const getResulSacnMolOut = async (req, res) => {
   try {
-    const { schDate, site } = req.params;
-
+    const scanDate = moment().format("YYYY-MM-DD");
     const resulScanSupout = await db.query(qryRsltMolOut, {
       replacements: {
-        schDate,
-        site,
+        scanDate,
       },
       type: QueryTypes.SELECT,
     });
@@ -1030,7 +1027,7 @@ export const QRScanMolIn = async (req, res) => {
     //jika ada maka bandingkan dengan
     if (checkBarcodeSerial) {
       // console.log(checkBarcodeSerial);
-      const valueBarcode = checkBarcodeSerial[0];
+      // const valueBarcode = checkBarcodeSerial[0];
 
       const checkScan = await MoldingIn.findAll({
         where: {
@@ -1101,7 +1098,7 @@ export const QRScanMolOut = async (req, res) => {
 
     //jika ada maka bandingkan dengan
     if (checkBarcodeSerial) {
-      const valueBarcode = checkBarcodeSerial[0];
+      // const valueBarcode = checkBarcodeSerial[0];
 
       const checkScan = await MoldingOut.findAll({
         where: {
@@ -1131,89 +1128,27 @@ export const QRScanMolOut = async (req, res) => {
           message: "Belum Scan In",
         });
       }
-      //find schedule
-      const checkSchdNsize = await db.query(queryChkclSupSchIn, {
-        replacements: {
-          plannDate: schDate,
-          sitename: sitename,
-          lineName: lineName ? lineName : valueBarcode.LINE_NAME,
-          // moNo: valueBarcode.MO_NO,
-          orderNo: valueBarcode.ORDER_NO,
-          orderRef: valueBarcode.ORDER_REF,
-          styleDesc: valueBarcode.ORDER_STYLE,
-          colorCode: valueBarcode.ORDER_COLOR,
-          sizeCode: valueBarcode.ORDER_SIZE,
-          prodMonth: valueBarcode.PRODUCTION_MONTH,
-          planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
-          fxSiteName: valueBarcode.MANUFACTURING_SITE,
-        },
-        type: QueryTypes.SELECT,
-      });
 
-      if (checkSchdNsize.length > 0) {
-        const { CUT_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
-
-        //check total schedule
-        // const ttlScanInQty = await db.query(qryCheckTtlMolScanOut, {
-        //   replacements: {
-        //     schId: SCH_ID,
-        //     size: valueBarcode.ORDER_SIZE,
-        //   },
-        //   type: QueryTypes.SELECT,
-        // });
-        // if (ttlScanInQty.length > 0) {
-        //   const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
-
-        //   if (ttlInQty > SCH_SIZE_QTY)
-        //     return res.status(200).json({
-        //       success: true,
-        //       qrstatus: "error",
-        //       message: "Melebih Schedule Qty",
-        //     });
-        // }
-        const dataBarcode = {
-          BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
-          SCH_ID,
-          CUT_ID,
-          CUT_SCAN_BY: userId,
-          CUT_SITE: sitename,
-        };
-        const returnData = {
-          ...valueBarcode,
-          LINE_NAME: lineName ? lineName : valueBarcode.LINE_NAME,
-          CUT_ID,
-          SCH_ID,
-          SITE_NAME: sitename,
-        };
-        const pushQrSewin = await MoldingOut.create(dataBarcode);
-
-        if (pushQrSewin) {
-          if (checkScaIn.SCH_ID !== dataBarcode.SCH_ID) {
-            //update SCH_ID Supermarket In jika tidak sama dengan SCH_ID supermarket out
-            await CutSupermarketIn.update(
-              { SCH_ID: dataBarcode.SCH_ID },
-              {
-                where: {
-                  BARCODE_SERIAL: barcodeserial,
-                },
-              }
-            );
-          }
-
-          return res.status(200).json({
-            success: true,
-            qrstatus: "success",
-            message: "Scan Success",
-            data: returnData,
-          });
-        }
+      const dataBarcode = {
+        BARCODE_SERIAL: barcodeserial,
+        CUT_SCAN_BY: userId,
+        CUT_SITE: checkBarcodeSerial[0].SITE_NAME,
+      };
+      const pushQrSewin = await MoldingOut.create(dataBarcode);
+      if (pushQrSewin) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "success",
+          message: "Scan Success",
+          data: checkBarcodeSerial[0],
+        });
+      } else {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "error",
+          message: "Gagal Scan",
+        });
       }
-
-      return res.status(200).json({
-        success: true,
-        qrstatus: "error",
-        message: "No Schedule",
-      });
     }
   } catch (error) {
     console.log(error);
