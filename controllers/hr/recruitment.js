@@ -214,7 +214,8 @@ export const postLamaran = async(req,res) => {
     try {
         const dataLamaran = req.body.dataLamaran;
         
-        const newLamaran = SumbiriPelamar.upsert(dataLamaran);
+        const newLamaran = await SumbiriPelamar.upsert(dataLamaran);
+        
         if(newLamaran){
             res.status(200).json({
                 success: true,
@@ -233,6 +234,31 @@ export const postLamaran = async(req,res) => {
             success: false,
             data: err,
             message: "error post lamaran",
+        });
+    }
+}
+
+export const postApproveLamaran = async(req,res) => {
+    try {
+        const dataLamaran   = req.body.dataLamaran;
+        console.log(dataLamaran);
+        const newLamaran    = await SumbiriPelamar.upsert(dataLamaran);
+        if(newLamaran){
+            res.status(200).json({
+                success: true,
+                message: "success approve lamaran"
+            });
+        } else {
+            res.status(400).json({
+                success: true,
+                message: "fail approve lamaran"
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error approve lamaran",
         });
     }
 }
