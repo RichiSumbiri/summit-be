@@ -3,6 +3,7 @@ import { getDeptAll, getEmployeAktif, getSubDeptAll, postNewEmploye } from "../.
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterKelurahan, getMasterProv, postApproveLamaran, postLamaran } from "../../controllers/hr/recruitment.js";
 import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } from "../../controllers/hr/jobposting.js";
+import { getApprovedPelamar } from "../../controllers/hr/acceptance.js";
 
 const router = express.Router();
 
@@ -27,6 +28,9 @@ router.post("/check-passkey", CheckPassKey);
 router.post("/submit-lamaran", postLamaran);
 router.post("/approval-recruitment", postApproveLamaran);
 router.get("/get-lamaran/:startDate/:endDate", getLamaranByDate);
+
+// acceptance
+router.get("/get-approved-pelamar/:startDate/:endDate", getApprovedPelamar);
 
 
 // employee management

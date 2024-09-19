@@ -241,7 +241,6 @@ export const postLamaran = async(req,res) => {
 export const postApproveLamaran = async(req,res) => {
     try {
         const dataLamaran   = req.body.dataLamaran;
-        console.log(dataLamaran);
         const newLamaran    = await SumbiriPelamar.upsert(dataLamaran);
         if(newLamaran){
             res.status(200).json({
