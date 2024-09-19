@@ -25,7 +25,7 @@ router.post("/put-job-by-id", updateJobPosting)
 router.get("/generate-passkey", GeneratePassKey);
 router.post("/check-passkey", CheckPassKey);
 router.post("/submit-lamaran", postLamaran);
-router.get("/get-lamaran/:tanggal", getLamaranByDate);
+router.get("/get-lamaran/:startDate/:endDate", getLamaranByDate);
 
 // employee management
 router.get("/all-employe", getEmployeAktif);

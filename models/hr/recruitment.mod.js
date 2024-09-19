@@ -3,7 +3,7 @@ import { dbSPL } from "../../config/dbAudit.js";
 
 export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
   NikKTP: {
-    type: DataTypes.STRING(16),
+    type: DataTypes.STRING(20),
     allowNull: false,
     primaryKey: true
   },
@@ -39,64 +39,64 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     type: DataTypes.STRING(100),
     allowNull: true
   },
-  AddressIdProv: {
-    type: DataTypes.STRING(10),
+  AddressKTPProvID: {
+    type: DataTypes.INTEGER(20),
     allowNull: true
   },
-  AddressIdKabKota: {
-    type: DataTypes.STRING(10),
+  AddressKTPKabKotaID: {
+    type: DataTypes.INTEGER(20),
     allowNull: true
   },
-  AddressIdKecamatan: {
-    type: DataTypes.STRING(10),
+  AddressKTPKecamatanID: {
+    type: DataTypes.INTEGER(20),
     allowNull: true
   },
-  AddressIdKelurahan: {
-    type: DataTypes.TEXT,
+  AddressKTPKelurahanID: {
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   AddressKTPRT: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.INTEGER(3),
     allowNull: true
   },
   AddressKTPRW: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.INTEGER(3),
     allowNull: true
   },
   AddressKTPDetail: {
-    type: DataTypes.TEXT,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   isKTPCurrent: {
-    type: DataTypes.BOOLEAN,
+    type: DataTypes.TINYINT(1),
     allowNull: true
   },
-  AddressIdProvTgl: {
-    type: DataTypes.STRING(10),
+  AddressDOMProvID: {
+    type: DataTypes.INTEGER(20),
     allowNull: true
   },
-  AddressIdKabKotaTgl: {
-    type: DataTypes.STRING(10),
+  AddressDOMKabKotaID: {
+    type: DataTypes.INTEGER(20),
     allowNull: true
   },
-  AddressIdKecamatanTgl: {
-    type: DataTypes.STRING(10),
+  AddressDOMKecamatanID: {
+    type: DataTypes.INTEGER(20),
     allowNull: true
   },
-  AddressIdKelurahanTgl: {
-    type: DataTypes.TEXT,
+  AddressDOMKelurahanID: {
+    type: DataTypes.STRING(100),
     allowNull: true
   },
-  AddressCurrentRT: {
-    type: DataTypes.STRING(10),
+  AddressDOMRT: {
+    type: DataTypes.INTEGER(3),
     allowNull: true
   },
-  AddressCurrentRW: {
-    type: DataTypes.STRING(10),
+  AddressDOMRW: {
+    type: DataTypes.INTEGER(3),
     allowNull: true
   },
-  AddressCurrentDetail: {
-    type: DataTypes.TEXT,
+  AddressDOMDetail: {
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   BloodType: {
@@ -108,7 +108,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   FatherJob: {
-    type: DataTypes.TEXT,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   MotherName: {
@@ -116,7 +116,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   MotherJob: {
-    type: DataTypes.TEXT,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   ParentAddress: {
@@ -132,10 +132,6 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   EduSDCity: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  EduSDPlace: {
     type: DataTypes.TEXT,
     allowNull: true
   },
@@ -155,10 +151,6 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  EduSMPPlace: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
   EduSMPType: {
     type: DataTypes.STRING(50),
     allowNull: true
@@ -172,10 +164,6 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   EduSMACity: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  EduSMAPlace: {
     type: DataTypes.TEXT,
     allowNull: true
   },
@@ -228,7 +216,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Kursus1Periode: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   Kursus1Place: {
@@ -244,7 +232,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Kursus2Periode: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   Kursus2Place: {
@@ -396,7 +384,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Child1Age: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER(11),
     allowNull: true
   },
   Child2Name: {
@@ -404,7 +392,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Child2Age: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER(11),
     allowNull: true
   },
   Child3Name: {
@@ -412,7 +400,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Child3Age: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER(11),
     allowNull: true
   },
   Child4Name: {
@@ -420,15 +408,15 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Child4Age: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER(11),
     allowNull: true
   },
   CountFamily: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER(11),
     allowNull: true
   },
   SeqFamily: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER(11),
     allowNull: true
   },
   PsikotestPlace: {
@@ -452,7 +440,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   ExpectedSalary: {
-    type: DataTypes.DECIMAL(15, 2),
+    type: DataTypes.TEXT,
     allowNull: true
   },
   ExpectedTMB: {
@@ -464,174 +452,219 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   isDocValid: {
-    type: DataTypes.BOOLEAN,
+    type: DataTypes.TINYINT(4),
     allowNull: true
   },
   isReadyPlacement: {
-    type: DataTypes.BOOLEAN,
+    type: DataTypes.TINYINT(4),
     allowNull: true
   },
   CreateDate: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: true
+    allowNull: true,
+    defaultValue: DataTypes.NOW
   }
-  }, {
-    tableName: 'sumbiri_pelamar',
-    timestamps: false,
-  });
+}, {
+  tableName: 'sumbiri_pelamar',
+  timestamps: false
+});
+
+
+
 
 export const findLamaranByDate = `
 SELECT
-	sp.NikKTP,
-	sp.PassKey,
-	sp.FullName,
-	sp.Position,
-	sp.Position2,
-	sp.BirthPlace,
-	sp.BirthDate,
-	sp.Phone,
-	sp.Email,
-	map2.nama_prov AS KTPProvinsi,
-	mak.nama_kabkota AS AlamatKTPKabKota,
-	mak2.nama_kecamatan AS AlamatKTPKecamatan,
-  	mak5.nama_kelurahan AS AddressKTPKelurahan,
-	CONCAT(sp.AddressKTPRT,'/',sp.AddressKTPRW) AS AlamatKTPRTRW,
-  	sp.AddressKTPDetail AS AlamatKTPDetail,
+	IFNULL(sp.NikKTP, '-') AS NikKTP,
+	IFNULL(sp.PassKey, '-') AS PassKey,
+	IFNULL(sp.FullName, '-') AS FullName,
+	IFNULL(sp.Position, '-') AS Position,
+	IFNULL(mak5.nama_kabkota, '-') AS BirthPlace,
+	IFNULL(sp.BirthDate, '-') AS BirthDate,
+	IFNULL(sp.Phone, '-') AS Phone,
+	IFNULL(sp.Email, '-') AS Email,
+	IFNULL(map2.nama_prov, '-') AS KTPProvinsi,
+	IFNULL(mak.nama_kabkota, '-') AS AlamatKTPKabKota,
+	IFNULL(mak2.nama_kecamatan, '-') AS AlamatKTPKecamatan,
+	IFNULL(sp.AddressKTPKelurahanID, '-') AS AlamatKTPKelurahan,
+	IFNULL(CONCAT('RT', sp.AddressKTPRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatKTPRTRW,
+	IFNULL(sp.AddressKTPDetail, '-') AS AlamatKTPDetail,
 	CASE
-    	WHEN sp.isKTPCurrent = 0 THEN CONCAT(sp.AddressKTPDetail, ', RT', sp.AddressKTPRT ,' RW', sp.AddressKTPRW , ', ' , mak5.nama_kelurahan, '', mak2.nama_kecamatan, ', ', mak.nama_kabkota)
-    	WHEN sp.isKTPCurrent = 1 THEN CONCAT(sp.AddressCurrentDetail, ', RT ',sp.AddressCurrentRT,' RW ', sp.AddressCurrentRW,', ',mak6.nama_kelurahan, ', ',mak4.nama_kecamatan,', ',mak3.nama_kabkota)
-    	ELSE ''
-  END AS AlamatDomisili,
-  sp.BloodType,
-	sp.FatherName,
-	sp.FatherJob,
-	sp.MotherName,
-	sp.MotherJob,
-	sp.ParentAddress,
-	sp.ParentPhone,
-	sp.EduSDName,
-  sp.EduSDCity,
-	sp.EduSDYear,
-	sp.EduSDType,
-	sp.EduSMPName,
-  sp.EduSMPCity,
-	sp.EduSMPType,
-	sp.EduSMPYear,
-	sp.EduSMAName,
-  sp.EduSMACity,
-	sp.EduSMAType,
-	sp.EduSMAYear,
-	sp.EduD3Name,
-  sp.EduD3City,
-	sp.EduD3Type,
-	sp.EduD3Year,
-	sp.EduS1Name,
-  sp.EduS1City,
-	sp.EduS1Type,
-	sp.EduS1Year,
+    	WHEN sp.isKTPCurrent = 0 THEN CONCAT(IFNULL(sp.AddressKTPDetail, '-'), ', RT', IFNULL(sp.AddressKTPRT, '-'), ' RW', IFNULL(sp.AddressKTPRW, '-'), ', ', IFNULL(sp.AddressKTPKelurahanID, '-'), ', ', IFNULL(mak2.nama_kecamatan, '-'), ', ', IFNULL(mak.nama_kabkota, '-'))
+    	WHEN sp.isKTPCurrent = 1 THEN CONCAT(IFNULL(sp.AddressDOMDetail, '-'), ', RT ', IFNULL(sp.AddressDOMRT, '-'), ' RW ', IFNULL(sp.AddressDOMRW, '-'), ', ', IFNULL(sp.AddressDOMKelurahanID, '-'), ', ', IFNULL(mak4.nama_kecamatan, '-'), ', ', IFNULL(mak3.nama_kabkota, '-'))
+    	ELSE '-'
+	END AS AlamatDomisili,
+	IFNULL(map3.nama_prov, '-') AS DOMProvinsi,
+	IFNULL(mak3.nama_kabkota, '-') AS AlamatDOMKabKota,
+	IFNULL(mak4.nama_kecamatan, '-') AS AlamatDOMKecamatan,
+	IFNULL(sp.AddressDOMKelurahanID, '-') AS AlamatDOMKelurahan,
+	IFNULL(CONCAT('RT', sp.AddressDOMRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatDOMRTRW,
+	IFNULL(sp.AddressDOMDetail, '-') AS AlamatDOMDetail,
+  IFNULL(sp.BloodType, '-') AS BloodType,
+	IFNULL(sp.FatherName, '-') AS FatherName,
+	IFNULL(sp.FatherJob, '-') AS FatherJob,
+	IFNULL(sp.MotherName, '-') AS MotherName,
+	IFNULL(sp.MotherJob, '-') AS MotherJob,
+	IFNULL(sp.ParentAddress, '-') AS ParentAddress,
+	IFNULL(sp.ParentPhone, '-') AS ParentPhone,
+	CASE 
+		WHEN sp.EduSDName != '' THEN 'SD'
+		WHEN sp.EduSMPName != '' THEN 'SMP'
+		WHEN sp.EduSMAName != '' THEN 'SMA'
+		WHEN sp.EduD3Name != '' THEN 'D3'
+		WHEN sp.EduS1Name != '' THEN 'S1'
+		ELSE '-'
+	END AS EduLastLevel,
+	CASE 
+		WHEN sp.EduSDName != '' THEN sp.EduSDName
+		WHEN sp.EduSMPName != '' THEN sp.EduSMPName
+		WHEN sp.EduSMAName != '' THEN sp.EduSMAName
+		WHEN sp.EduD3Name != '' THEN sp.EduD3Name
+		WHEN sp.EduS1Name != '' THEN sp.EduS1Name
+		ELSE '-'
+	END AS EduLastName,
+	CASE 
+		WHEN sp.EduSDCity != '' THEN sp.EduSDCity
+		WHEN sp.EduSMPCity != '' THEN sp.EduSMPCity
+		WHEN sp.EduSMACity != '' THEN sp.EduSMACity
+		WHEN sp.EduD3City != '' THEN sp.EduD3City
+		WHEN sp.EduS1City != '' THEN sp.EduS1City
+		ELSE '-'
+	END AS EduLastCity,
+	CASE 
+		WHEN sp.EduSDYear != '' THEN sp.EduSDYear
+		WHEN sp.EduSMPYear != '' THEN sp.EduSMPYear
+		WHEN sp.EduSMAYear != '' THEN sp.EduSMAYear
+		WHEN sp.EduD3Year != '' THEN sp.EduD3Year
+		WHEN sp.EduS1Year != '' THEN sp.EduS1Year
+		ELSE '-'
+	END AS EduLastYear,
+	CASE 
+		WHEN sp.EduSDType != '' THEN sp.EduSDType
+		WHEN sp.EduSMPType != '' THEN sp.EduSMPType
+		WHEN sp.EduSMAType != '' THEN sp.EduSMAType
+		WHEN sp.EduD3Type != '' THEN sp.EduD3Type
+		WHEN sp.EduS1Type != '' THEN sp.EduS1Type
+		ELSE '-'
+	END AS EduLastType,
+	IFNULL(sp.EduSDName, '-') AS EduSDName,
+	IFNULL(sp.EduSDCity, '-') AS EduSDCity,
+	IFNULL(sp.EduSDYear, '-') AS EduSDYear,
+	IFNULL(sp.EduSDType, '-') AS EduSDType,
+	IFNULL(sp.EduSMPName, '-') AS EduSMPName,
+	IFNULL(sp.EduSMPCity, '-') AS EduSMPCity,
+	IFNULL(sp.EduSMPType, '-') AS EduSMPType,
+	IFNULL(sp.EduSMPYear, '-') AS EduSMPYear,
+	IFNULL(sp.EduSMAName, '-') AS EduSMAName,
+	IFNULL(sp.EduSMACity, '-') AS EduSMACity,
+	IFNULL(sp.EduSMAType, '-') AS EduSMAType,
+	IFNULL(sp.EduSMAYear, '-') AS EduSMAYear,
+	IFNULL(sp.EduD3Name, '-') AS EduD3Name,
+	IFNULL(sp.EduD3City, '-') AS EduD3City,
+	IFNULL(sp.EduD3Type, '-') AS EduD3Type,
+	IFNULL(sp.EduD3Year, '-') AS EduD3Year,
+	IFNULL(sp.EduS1Name, '-') AS EduS1Name,
+	IFNULL(sp.EduS1City, '-') AS EduS1City,
+	IFNULL(sp.EduS1Type, '-') AS EduS1Type,
+	IFNULL(sp.EduS1Year, '-') AS EduS1Year,
 	CASE
-    	WHEN sp.Kursus1Topic != '' OR sp.Kursus2Topic != '' THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS isKursus,
-  sp.Kursus1Topic,
-	sp.Kursus1Location,
-	sp.Kursus1Periode,
-  sp.Kursus1Place,
-	sp.Kursus2Topic,
-	sp.Kursus2Location,
-	sp.Kursus2Periode,
-  sp.Kursus2Place,
-	sp.Work1Name,
-	sp.Work1Position,
-	sp.Work1Place,
-	sp.Work1Periode,
-	sp.Work1Salary,
-  sp.Work1Reason,
-	sp.Work2Name,
-	sp.Work2Position,
-	sp.Work2Place,
-	sp.Work2Periode,
-	sp.Work2Salary,
-  sp.Work2Reason,
-	sp.Work3Name,
-	sp.Work3Position,
-	sp.Work3Place,
-	sp.Work3Periode,
-	sp.Work3Salary,
-  sp.Work3Reason,
+		WHEN sp.Kursus1Topic != '' OR sp.Kursus2Topic != '' THEN 'YA'
+		ELSE 'TIDAK'
+	END AS isKursus,
+	IFNULL(sp.Kursus1Topic, '-') AS Kursus1Topic,
+	IFNULL(sp.Kursus1Location, '-') AS Kursus1Location,
+	IFNULL(sp.Kursus1Periode, '-') AS Kursus1Periode,
+	IFNULL(sp.Kursus1Place, '-') AS Kursus1Place,
+	IFNULL(sp.Kursus2Topic, '-') AS Kursus2Topic,
+	IFNULL(sp.Kursus2Location, '-') AS Kursus2Location,
+	IFNULL(sp.Kursus2Periode, '-') AS Kursus2Periode,
+	IFNULL(sp.Kursus2Place, '-') AS Kursus2Place,
+	IFNULL(sp.Work1Name, '-') AS Work1Name,
+	IFNULL(sp.Work1Position, '-') AS Work1Position,
+	IFNULL(sp.Work1Place, '-') AS Work1Place,
+	IFNULL(sp.Work1Periode, '-') AS Work1Periode,
+	IFNULL(sp.Work1Salary, '-') AS Work1Salary,
+	IFNULL(sp.Work1Reason, '-') AS Work1Reason,
+	IFNULL(sp.Work2Name, '-') AS Work2Name,
+	IFNULL(sp.Work2Position, '-') AS Work2Position,
+	IFNULL(sp.Work2Place, '-') AS Work2Place,
+	IFNULL(sp.Work2Periode, '-') AS Work2Periode,
+	IFNULL(sp.Work2Salary, '-') AS Work2Salary,
+	IFNULL(sp.Work2Reason, '-') AS Work2Reason,
+	IFNULL(sp.Work3Name, '-') AS Work3Name,
+	IFNULL(sp.Work3Position, '-') AS Work3Position,
+	IFNULL(sp.Work3Place, '-') AS Work3Place,
+	IFNULL(sp.Work3Periode, '-') AS Work3Periode,
+	IFNULL(sp.Work3Salary, '-') AS Work3Salary,
+	IFNULL(sp.Work3Reason, '-') AS Work3Reason,
 	CASE
-    	WHEN sp.Org1Name != '' OR sp.Org2Name != '' OR sp.Org3Name != '' THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS isOrganisation,
-  sp.Org1Name,
-	sp.Org1Position,
-	sp.Org1Periode,
-	sp.Org1Place,
-	sp.Org2Name,
-	sp.Org2Position,
-	sp.Org2Periode,
-	sp.Org2Place,
-	sp.Org3Name,
-	sp.Org3Position,
-	sp.Org3Periode,
-	sp.Org3Place,
-	sp.LikeSports,
-	sp.LikeArts,
-	sp.LikeHobby,
-	sp.LikeVision,
-	sp.SpouseName,
-	sp.Child1Name,
-	sp.Child1Age,
-	sp.Child2Name,
-	sp.Child2Age,
-	sp.Child3Name,
-	sp.Child3Age,
-	sp.Child4Name,
-	sp.Child4Age,
-	sp.CountFamily,
-	sp.SeqFamily,
-  CASE
-    	WHEN sp.PsikotestPlace != '' THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS isPsikotest,
-	sp.PsikotestPlace,
-	sp.PsikotestTime,
+		WHEN sp.Org1Name != '' OR sp.Org2Name != '' OR sp.Org3Name != '' THEN 'YA'
+		ELSE 'TIDAK'
+	END AS isOrganisation,
+	IFNULL(sp.Org1Name, '-') AS Org1Name,
+	IFNULL(sp.Org1Position, '-') AS Org1Position,
+	IFNULL(sp.Org1Periode, '-') AS Org1Periode,
+	IFNULL(sp.Org1Place, '-') AS Org1Place,
+	IFNULL(sp.Org2Name, '-') AS Org2Name,
+	IFNULL(sp.Org2Position, '-') AS Org2Position,
+	IFNULL(sp.Org2Periode, '-') AS Org2Periode,
+	IFNULL(sp.Org2Place, '-') AS Org2Place,
+	IFNULL(sp.LikeSports, '-') AS LikeSports,
+	IFNULL(sp.LikeArts, '-') AS LikeArts,
+	IFNULL(sp.LikeHobby, '-') AS LikeHobby,
+	IFNULL(sp.LikeVision, '-') AS LikeVision,
+	IFNULL(sp.SpouseName, '-') AS SpouseName,
+	IFNULL(sp.Child1Name, '-') AS Child1Name,
+	IFNULL(sp.Child1Age, '-') AS Child1Age,
+	IFNULL(sp.Child2Name, '-') AS Child2Name,
+	IFNULL(sp.Child2Age, '-') AS Child2Age,
+	IFNULL(sp.Child3Name, '-') AS Child3Name,
+	IFNULL(sp.Child3Age, '-') AS Child3Age,
+	IFNULL(sp.Child4Name, '-') AS Child4Name,
+	IFNULL(sp.Child4Age, '-') AS Child4Age,
+	IFNULL(sp.CountFamily, '-') AS CountFamily,
+	IFNULL(sp.SeqFamily, '-') AS SeqFamily,
 	CASE
-    	WHEN sp.ReffName != '' THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS isReff,
-  sp.ReffName,
-	sp.ReffDept,
-	sp.ReffRelation,
-	sp.ExpectedSalary,
-	sp.ExpectedTMB,
-  CASE
-    	WHEN sp.isReadyContract = 1 THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS ReadyContract,
-  CASE
-    	WHEN sp.isDocValid = 1 THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS DocValid,
-  CASE
-    	WHEN sp.isReadyPlacement = 1 THEN 'YA'
-    	ELSE 'TIDAK'
-  END AS ReadyPlacement,
-  DATE(sp.CreateDate) AS TanggalLamaran,
-  sp.CreateDate AS Timestamp,
-	DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s') AS CreateDate
+		WHEN sp.PsikotestPlace != '' THEN 'YA'
+		ELSE 'TIDAK'
+	END AS isPsikotest,
+	IFNULL(sp.PsikotestPlace, '-') AS PsikotestPlace,
+	IFNULL(sp.PsikotestTime, '-') AS PsikotestTime,
+	CASE
+		WHEN sp.ReffName != '' THEN 'YA'
+		ELSE 'TIDAK'
+	END AS isReff,
+	IFNULL(sp.ReffName, '-') AS ReffName,
+	IFNULL(sp.ReffDept, '-') AS ReffDept,
+	IFNULL(sp.ReffRelation, '-') AS ReffRelation,
+	IFNULL(sp.ExpectedSalary, '-') AS ExpectedSalary,
+	IFNULL(sp.ExpectedTMB, '-') AS ExpectedTMB,
+	CASE
+		WHEN sp.isReadyContract = 1 THEN 'YA'
+		ELSE 'TIDAK'
+	END AS ReadyContract,
+	CASE
+		WHEN sp.isDocValid = 1 THEN 'YA'
+		ELSE 'TIDAK'
+	END AS DocValid,
+	CASE
+		WHEN sp.isReadyPlacement = 1 THEN 'YA'
+		ELSE 'TIDAK'
+	END AS ReadyPlacement,
+	IFNULL(DATE(sp.CreateDate), '-') AS TanggalLamaran,
+  DATE_FORMAT(sp.CreateDate,'%d %M %Y')  AS TanggalLamaranText,
+	IFNULL(sp.CreateDate, '-') AS Timestamp,
+	IFNULL(DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s'), '-') AS CreateDate
 FROM
 	sumbiri_pelamar sp
-LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = sp.AddressIdProv 
-LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = sp.AddressIdKabKota 
-LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = sp.AddressIdKecamatan 
-LEFT JOIN master_alamat_kelurahan mak5 ON mak5.id_kelurahan = sp.AddressIdKelurahan 
-LEFT JOIN master_alamat_provinsi map3 ON map3.id_prov = sp.AddressIdProvTgl
-LEFT JOIN master_alamat_kabkota mak3 ON mak3.id_kabkota = sp.AddressIdKabKotaTgl 
-LEFT JOIN master_alamat_kecamatan mak4 ON mak4.id_kecamatan = sp.AddressIdKecamatanTgl 
-LEFT JOIN master_alamat_kelurahan mak6 ON mak6.id_kelurahan = sp.AddressIdKelurahanTgl 
-WHERE DATE(sp.CreateDate) = :tglLamaran
+LEFT JOIN master_alamat_kabkota mak5 ON mak5.id_kabkota = sp.BirthPlace 
+LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = sp.AddressKTPProvID 
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = sp.AddressKTPKabKotaID AND mak.id_prov = sp.AddressKTPProvID 
+LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = sp.AddressKTPKecamatanID 
+LEFT JOIN master_alamat_provinsi map3 ON map3.id_prov = sp.AddressDOMProvID 
+LEFT JOIN master_alamat_kabkota mak3 ON mak3.id_kabkota = sp.AddressDOMKabKotaID 
+LEFT JOIN master_alamat_kecamatan mak4 ON mak4.id_kecamatan = sp.AddressDOMKecamatanID 
+WHERE DATE(sp.CreateDate) BETWEEN :startDate AND :endDate ;
+
 `;
 
 

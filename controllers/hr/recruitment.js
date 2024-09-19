@@ -184,16 +184,20 @@ export const getMasterAlamat = async(req,res) => {
 
 export const getLamaranByDate = async(req,res) => {
     try {
-        const tglLamaran    = req.params.tanggal;
+        const startDate     = req.params.startDate;
+        const endDate       = req.params.endDate;   
         const dataLamaran   = await dbSPL.query(findLamaranByDate, {
             replacements: {
-                tglLamaran: tglLamaran
+                startDate: startDate,
+                endDate: endDate
             }, type: QueryTypes.SELECT 
         });
         res.status(200).json({
             success: true,
             message: "success get data lamaran",
-            data: dataLamaran
+            data: dataLamaran,
+            startDate: startDate,
+            endDate: endDate
         });
 
     } catch(err){ 
