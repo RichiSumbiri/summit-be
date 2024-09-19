@@ -459,6 +459,19 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     type: DataTypes.TINYINT(4),
     allowNull: true
   },
+  ApprovalStatus: {
+    type: DataTypes.STRING(10),
+    allowNull: true
+  },
+  ApprovalTime: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: DataTypes.NOW
+  },
+  ApprovalRemark: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
   CreateDate: {
     type: DataTypes.DATE,
     allowNull: true,
@@ -487,13 +500,27 @@ SELECT
 	IFNULL(mak2.nama_kecamatan, '-') AS AlamatKTPKecamatan,
 	IFNULL(sp.AddressKTPKelurahanID, '-') AS AlamatKTPKelurahan,
 	IFNULL(CONCAT('RT', sp.AddressKTPRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatKTPRTRW,
-	IFNULL(sp.AddressKTPDetail, '-') AS AlamatKTPDetail,
-	CASE
+	IFNULL(sp.AddressKTPRT, '-') AS AddressKTPRT,
+  IFNULL(sp.AddressKTPRW, '-') AS AddressKTPRW,
+  IFNULL(sp.AddressKTPProvID, '-') AS AddressKTPProvID,
+  IFNULL(sp.AddressKTPKabKotaID, '-') AS AddressKTPKabKotaID,
+  IFNULL(sp.AddressKTPKecamatanID, '-') AS AddressKTPKecamatanID,
+  IFNULL(sp.AddressKTPKelurahanID, '-') AS AddressKTPKelurahanID,
+  IFNULL(sp.AddressKTPDetail, '-') AS AlamatKTPDetail,
+	IFNULL(sp.AddressDOMRT, '-') AS AddressDOMRT,
+  IFNULL(sp.AddressDOMRW, '-') AS AddressDOMRW,
+  IFNULL(sp.AddressDOMProvID, '-') AS AddressDOMProvID,
+  IFNULL(sp.AddressDOMKabKotaID, '-') AS AddressDOMKabKotaID,
+  IFNULL(sp.AddressDOMKecamatanID, '-') AS AddressDOMKecamatanID,
+  IFNULL(sp.AddressDOMKelurahanID, '-') AS AddressDOMKelurahanID,
+  IFNULL(sp.AddressDOMDetail, '-') AS AlamatDOMDetail,
+  CASE
     	WHEN sp.isKTPCurrent = 0 THEN CONCAT(IFNULL(sp.AddressKTPDetail, '-'), ', RT', IFNULL(sp.AddressKTPRT, '-'), ' RW', IFNULL(sp.AddressKTPRW, '-'), ', ', IFNULL(sp.AddressKTPKelurahanID, '-'), ', ', IFNULL(mak2.nama_kecamatan, '-'), ', ', IFNULL(mak.nama_kabkota, '-'))
     	WHEN sp.isKTPCurrent = 1 THEN CONCAT(IFNULL(sp.AddressDOMDetail, '-'), ', RT ', IFNULL(sp.AddressDOMRT, '-'), ' RW ', IFNULL(sp.AddressDOMRW, '-'), ', ', IFNULL(sp.AddressDOMKelurahanID, '-'), ', ', IFNULL(mak4.nama_kecamatan, '-'), ', ', IFNULL(mak3.nama_kabkota, '-'))
     	ELSE '-'
 	END AS AlamatDomisili,
-	IFNULL(map3.nama_prov, '-') AS DOMProvinsi,
+	sp.isKTPCurrent, 
+  IFNULL(map3.nama_prov, '-') AS DOMProvinsi,
 	IFNULL(mak3.nama_kabkota, '-') AS AlamatDOMKabKota,
 	IFNULL(mak4.nama_kecamatan, '-') AS AlamatDOMKecamatan,
 	IFNULL(sp.AddressDOMKelurahanID, '-') AS AlamatDOMKelurahan,
@@ -653,7 +680,10 @@ SELECT
 	IFNULL(DATE(sp.CreateDate), '-') AS TanggalLamaran,
   DATE_FORMAT(sp.CreateDate,'%d %M %Y')  AS TanggalLamaranText,
 	IFNULL(sp.CreateDate, '-') AS Timestamp,
-	IFNULL(DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s'), '-') AS CreateDate
+	IFNULL(DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s'), '-') AS CreateDate,
+  sp.ApprovalStatus,
+  sp.ApprovalTime,
+  sp.ApprovalRemark
 FROM
 	sumbiri_pelamar sp
 LEFT JOIN master_alamat_kabkota mak5 ON mak5.id_kabkota = sp.BirthPlace 
