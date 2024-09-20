@@ -465,8 +465,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
   },
   ApprovalTime: {
     type: DataTypes.DATE,
-    allowNull: true,
-    defaultValue: DataTypes.NOW
+    allowNull: true
   },
   ApprovalRemark: {
     type: DataTypes.STRING(100),
@@ -491,7 +490,7 @@ SELECT
 	IFNULL(sp.PassKey, '-') AS PassKey,
 	IFNULL(sp.FullName, '-') AS FullName,
 	IFNULL(sp.Position, '-') AS Position,
-	IFNULL(mak5.nama_kabkota, '-') AS BirthPlace,
+	sp.BirthPlace,
 	IFNULL(sp.BirthDate, '-') AS BirthDate,
 	IFNULL(sp.Phone, '-') AS Phone,
 	IFNULL(sp.Email, '-') AS Email,

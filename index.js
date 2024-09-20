@@ -56,12 +56,13 @@ var whitelist = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://192.168.1.192:3001",
-  "http://192.168.60.152:3000",
+  "http://192.168.6.177:3000",
   "http://192.168.1.192:3000",
   "https://spmqc.sumbiri.com",
   "https://spmqc1.sumbiri.com",
   "https://spm.sumbiri.com",
   "https://api.sumbiri.com",
+  "https://rekrutmen.sumbiri.com"
 ];
 
 // const options = {

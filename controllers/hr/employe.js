@@ -7,7 +7,7 @@ import moment from "moment";
 // get master departement
 export const getDeptAll = async(req,res)=> {
   try {
-    const data = await modelMasterDepartment.findAll();
+    const data = await dbSPL.query('SELECT * FROM master_department', { type: QueryTypes.SELECT });
     return res.status(200).json({
       success: true,
       message: "success get master department",
@@ -26,7 +26,7 @@ export const getDeptAll = async(req,res)=> {
 // get master subdepartement
 export const getSubDeptAll = async(req,res)=> {
   try {
-    const data = await modelMasterSubDepartment.findAll();
+    const data = await dbSPL.query('SELECT * FROM master_subdepartment', { type: QueryTypes.SELECT });
     return res.status(200).json({
       success: true,
       message: "success get master subdepartment",
@@ -40,6 +40,62 @@ export const getSubDeptAll = async(req,res)=> {
     });
   }
 }
+
+// get master position
+export const getPositionAll = async(req,res)=> {
+  try {
+    const data = await dbSPL.query('SELECT * FROM master_position', { type: QueryTypes.SELECT });
+    return res.status(200).json({
+      success: true,
+      message: "success get master position",
+      data: data,
+    });
+  } catch(error){
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error get list position",
+    });
+  }
+}
+
+
+// get master salary type
+export const getSalaryType = async(req,res)=> {
+  try {
+    const data = await dbSPL.query('SELECT * FROM master_salary_type', { type: QueryTypes.SELECT });
+    return res.status(200).json({
+      success: true,
+      message: "success get master position",
+      data: data,
+    });
+  } catch(error){
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error get list position",
+    });
+  }
+}
+
+// get master section type
+export const getSection = async(req,res)=> {
+  try {
+    const data = await dbSPL.query('SELECT * FROM master_section', { type: QueryTypes.SELECT });
+    return res.status(200).json({
+      success: true,
+      message: "success get master section",
+      data: data,
+    });
+  } catch(error){
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error get list section",
+    });
+  }
+}
+
 
 
 // get employee aktif
