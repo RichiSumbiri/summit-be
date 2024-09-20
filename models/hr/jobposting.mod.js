@@ -20,6 +20,14 @@ export const jobPosting = dbSPL.define('SumbiriJobPosting', {
       type: DataTypes.DATE,
       allowNull: true
     },
+    StartDate: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    EndDate: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     CreateDate: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -33,7 +41,7 @@ export const jobPosting = dbSPL.define('SumbiriJobPosting', {
   });
 
 
-export const getJobPostingActive = `SELECT * FROM sumbiri_job_posting WHERE TenggatWaktu >= DATE(NOW())`;
+export const getJobPostingActive = `SELECT * FROM sumbiri_job_posting WHERE StartDate <= DATE(NOW()) AND EndDate >= DATE(NOW())`;
 export const getJobPostingById = `SELECT * FROM sumbiri_job_posting WHERE idPost = :idPost`;
 export const putJobById = `
 UPDATE 
