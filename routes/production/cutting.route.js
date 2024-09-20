@@ -143,7 +143,8 @@ router.get(
 );
 
 //cutting molding in out
-router.get("/molding-report/:startDate/:endDate/:site", getMolReport);
+router.get("/molding-report/:startDate/:endDate", getMolReport);
+// router.get("/molding-report/:startDate/:endDate/:site", getMolReport);
 
 //cutting po status report
 router.get("/cutting-po-status/:poNum/:date", getCuttingPOstatus);

@@ -1571,30 +1571,30 @@ export const getMolReport = async (req, res) => {
       replacements: {
         startDate: startDate,
         endDate: endDate,
-        site: site,
+        // site: site,
       },
       type: QueryTypes.SELECT,
     });
 
-    const detailData = await db.query(qryGetSizeMolRep, {
-      replacements: {
-        startDate: startDate,
-        endDate: endDate,
-        site: site,
-      },
-      type: QueryTypes.SELECT,
-    });
+    // const detailData = await db.query(qryGetSizeMolRep, {
+    //   replacements: {
+    //     startDate: startDate,
+    //     endDate: endDate,
+    //     site: site,
+    //   },
+    //   type: QueryTypes.SELECT,
+    // });
 
     const detailDataSize = await db.query(qryGetDtlMolRep, {
       replacements: {
         startDate: startDate,
         endDate: endDate,
-        site: site,
+        // site: site,
       },
       type: QueryTypes.SELECT,
     });
 
-    return res.json({ dataSchedule, detailDataSize, detailData });
+    return res.json({ dataSchedule, detailDataSize, detailData: [] });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
