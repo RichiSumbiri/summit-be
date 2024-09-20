@@ -62,6 +62,7 @@ var whitelist = [
   "https://spmqc1.sumbiri.com",
   "https://spm.sumbiri.com",
   "https://api.sumbiri.com",
+  "https://rekrutmen.sumbiri.com"
 ];
 
 // const options = {
