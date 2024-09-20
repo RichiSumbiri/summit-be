@@ -471,6 +471,10 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     type: DataTypes.STRING(100),
     allowNull: true
   },
+  ApprovalBy: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
   CreateDate: {
     type: DataTypes.DATE,
     allowNull: true,
@@ -486,59 +490,59 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
 
 export const findLamaranByDate = `
 SELECT
-	IFNULL(sp.NikKTP, '-') AS NikKTP,
-	IFNULL(sp.PassKey, '-') AS PassKey,
-	IFNULL(sp.FullName, '-') AS FullName,
-	IFNULL(sp.Position, '-') AS Position,
+	IFNULL(sp.NikKTP, '') AS NikKTP,
+	IFNULL(sp.PassKey, '') AS PassKey,
+	IFNULL(sp.FullName, '') AS FullName,
+	IFNULL(sp.Position, '') AS Position,
 	sp.BirthPlace,
-	IFNULL(sp.BirthDate, '-') AS BirthDate,
-	IFNULL(sp.Phone, '-') AS Phone,
-	IFNULL(sp.Email, '-') AS Email,
-	IFNULL(map2.nama_prov, '-') AS KTPProvinsi,
-	IFNULL(mak.nama_kabkota, '-') AS AlamatKTPKabKota,
-	IFNULL(mak2.nama_kecamatan, '-') AS AlamatKTPKecamatan,
-	IFNULL(sp.AddressKTPKelurahanID, '-') AS AlamatKTPKelurahan,
-	IFNULL(CONCAT('RT', sp.AddressKTPRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatKTPRTRW,
-	IFNULL(sp.AddressKTPRT, '-') AS AddressKTPRT,
-  IFNULL(sp.AddressKTPRW, '-') AS AddressKTPRW,
-  IFNULL(sp.AddressKTPProvID, '-') AS AddressKTPProvID,
-  IFNULL(sp.AddressKTPKabKotaID, '-') AS AddressKTPKabKotaID,
-  IFNULL(sp.AddressKTPKecamatanID, '-') AS AddressKTPKecamatanID,
-  IFNULL(sp.AddressKTPKelurahanID, '-') AS AddressKTPKelurahanID,
-  IFNULL(sp.AddressKTPDetail, '-') AS AlamatKTPDetail,
-	IFNULL(sp.AddressDOMRT, '-') AS AddressDOMRT,
-  IFNULL(sp.AddressDOMRW, '-') AS AddressDOMRW,
-  IFNULL(sp.AddressDOMProvID, '-') AS AddressDOMProvID,
-  IFNULL(sp.AddressDOMKabKotaID, '-') AS AddressDOMKabKotaID,
-  IFNULL(sp.AddressDOMKecamatanID, '-') AS AddressDOMKecamatanID,
-  IFNULL(sp.AddressDOMKelurahanID, '-') AS AddressDOMKelurahanID,
-  IFNULL(sp.AddressDOMDetail, '-') AS AlamatDOMDetail,
+	IFNULL(sp.BirthDate, '') AS BirthDate,
+	IFNULL(sp.Phone, '') AS Phone,
+	IFNULL(sp.Email, '') AS Email,
+	IFNULL(map2.nama_prov, '') AS KTPProvinsi,
+	IFNULL(mak.nama_kabkota, '') AS AlamatKTPKabKota,
+	IFNULL(mak2.nama_kecamatan, '') AS AlamatKTPKecamatan,
+	IFNULL(sp.AddressKTPKelurahanID, '') AS AlamatKTPKelurahan,
+	IFNULL(CONCAT('RT', sp.AddressKTPRT, '/', 'RW', sp.AddressKTPRW), '') AS AlamatKTPRTRW,
+	IFNULL(sp.AddressKTPRT, '') AS AddressKTPRT,
+  IFNULL(sp.AddressKTPRW, '') AS AddressKTPRW,
+  IFNULL(sp.AddressKTPProvID, '') AS AddressKTPProvID,
+  IFNULL(sp.AddressKTPKabKotaID, '') AS AddressKTPKabKotaID,
+  IFNULL(sp.AddressKTPKecamatanID, '') AS AddressKTPKecamatanID,
+  IFNULL(sp.AddressKTPKelurahanID, '') AS AddressKTPKelurahanID,
+  IFNULL(sp.AddressKTPDetail, '') AS AlamatKTPDetail,
+	IFNULL(sp.AddressDOMRT, '') AS AddressDOMRT,
+  IFNULL(sp.AddressDOMRW, '') AS AddressDOMRW,
+  IFNULL(sp.AddressDOMProvID, '') AS AddressDOMProvID,
+  IFNULL(sp.AddressDOMKabKotaID, '') AS AddressDOMKabKotaID,
+  IFNULL(sp.AddressDOMKecamatanID, '') AS AddressDOMKecamatanID,
+  IFNULL(sp.AddressDOMKelurahanID, '') AS AddressDOMKelurahanID,
+  IFNULL(sp.AddressDOMDetail, '') AS AlamatDOMDetail,
   CASE
-    	WHEN sp.isKTPCurrent = 0 THEN CONCAT(IFNULL(sp.AddressKTPDetail, '-'), ', RT', IFNULL(sp.AddressKTPRT, '-'), ' RW', IFNULL(sp.AddressKTPRW, '-'), ', ', IFNULL(sp.AddressKTPKelurahanID, '-'), ', ', IFNULL(mak2.nama_kecamatan, '-'), ', ', IFNULL(mak.nama_kabkota, '-'))
-    	WHEN sp.isKTPCurrent = 1 THEN CONCAT(IFNULL(sp.AddressDOMDetail, '-'), ', RT ', IFNULL(sp.AddressDOMRT, '-'), ' RW ', IFNULL(sp.AddressDOMRW, '-'), ', ', IFNULL(sp.AddressDOMKelurahanID, '-'), ', ', IFNULL(mak4.nama_kecamatan, '-'), ', ', IFNULL(mak3.nama_kabkota, '-'))
-    	ELSE '-'
+    	WHEN sp.isKTPCurrent = 0 THEN CONCAT(IFNULL(sp.AddressKTPDetail, ''), ', RT', IFNULL(sp.AddressKTPRT, ''), ' RW', IFNULL(sp.AddressKTPRW, ''), ', ', IFNULL(sp.AddressKTPKelurahanID, ''), ', ', IFNULL(mak2.nama_kecamatan, ''), ', ', IFNULL(mak.nama_kabkota, ''))
+    	WHEN sp.isKTPCurrent = 1 THEN CONCAT(IFNULL(sp.AddressDOMDetail, ''), ', RT ', IFNULL(sp.AddressDOMRT, ''), ' RW ', IFNULL(sp.AddressDOMRW, ''), ', ', IFNULL(sp.AddressDOMKelurahanID, ''), ', ', IFNULL(mak4.nama_kecamatan, ''), ', ', IFNULL(mak3.nama_kabkota, ''))
+    	ELSE ''
 	END AS AlamatDomisili,
 	sp.isKTPCurrent, 
-  IFNULL(map3.nama_prov, '-') AS DOMProvinsi,
-	IFNULL(mak3.nama_kabkota, '-') AS AlamatDOMKabKota,
-	IFNULL(mak4.nama_kecamatan, '-') AS AlamatDOMKecamatan,
-	IFNULL(sp.AddressDOMKelurahanID, '-') AS AlamatDOMKelurahan,
-	IFNULL(CONCAT('RT', sp.AddressDOMRT, '/', 'RW', sp.AddressKTPRW), '-') AS AlamatDOMRTRW,
-	IFNULL(sp.AddressDOMDetail, '-') AS AlamatDOMDetail,
-  IFNULL(sp.BloodType, '-') AS BloodType,
-	IFNULL(sp.FatherName, '-') AS FatherName,
-	IFNULL(sp.FatherJob, '-') AS FatherJob,
-	IFNULL(sp.MotherName, '-') AS MotherName,
-	IFNULL(sp.MotherJob, '-') AS MotherJob,
-	IFNULL(sp.ParentAddress, '-') AS ParentAddress,
-	IFNULL(sp.ParentPhone, '-') AS ParentPhone,
+  IFNULL(map3.nama_prov, '') AS DOMProvinsi,
+	IFNULL(mak3.nama_kabkota, '') AS AlamatDOMKabKota,
+	IFNULL(mak4.nama_kecamatan, '') AS AlamatDOMKecamatan,
+	IFNULL(sp.AddressDOMKelurahanID, '') AS AlamatDOMKelurahan,
+	IFNULL(CONCAT('RT', sp.AddressDOMRT, '/', 'RW', sp.AddressKTPRW), '') AS AlamatDOMRTRW,
+	IFNULL(sp.AddressDOMDetail, '') AS AlamatDOMDetail,
+  IFNULL(sp.BloodType, '') AS BloodType,
+	IFNULL(sp.FatherName, '') AS FatherName,
+	IFNULL(sp.FatherJob, '') AS FatherJob,
+	IFNULL(sp.MotherName, '') AS MotherName,
+	IFNULL(sp.MotherJob, '') AS MotherJob,
+	IFNULL(sp.ParentAddress, '') AS ParentAddress,
+	IFNULL(sp.ParentPhone, '') AS ParentPhone,
 	CASE 
 		WHEN sp.EduSDName != '' THEN 'SD'
 		WHEN sp.EduSMPName != '' THEN 'SMP'
 		WHEN sp.EduSMAName != '' THEN 'SMA'
 		WHEN sp.EduD3Name != '' THEN 'D3'
 		WHEN sp.EduS1Name != '' THEN 'S1'
-		ELSE '-'
+		ELSE ''
 	END AS EduLastLevel,
 	CASE 
 		WHEN sp.EduSDName != '' THEN sp.EduSDName
@@ -546,7 +550,7 @@ SELECT
 		WHEN sp.EduSMAName != '' THEN sp.EduSMAName
 		WHEN sp.EduD3Name != '' THEN sp.EduD3Name
 		WHEN sp.EduS1Name != '' THEN sp.EduS1Name
-		ELSE '-'
+		ELSE ''
 	END AS EduLastName,
 	CASE 
 		WHEN sp.EduSDCity != '' THEN sp.EduSDCity
@@ -554,7 +558,7 @@ SELECT
 		WHEN sp.EduSMACity != '' THEN sp.EduSMACity
 		WHEN sp.EduD3City != '' THEN sp.EduD3City
 		WHEN sp.EduS1City != '' THEN sp.EduS1City
-		ELSE '-'
+		ELSE ''
 	END AS EduLastCity,
 	CASE 
 		WHEN sp.EduSDYear != '' THEN sp.EduSDYear
@@ -562,7 +566,7 @@ SELECT
 		WHEN sp.EduSMAYear != '' THEN sp.EduSMAYear
 		WHEN sp.EduD3Year != '' THEN sp.EduD3Year
 		WHEN sp.EduS1Year != '' THEN sp.EduS1Year
-		ELSE '-'
+		ELSE ''
 	END AS EduLastYear,
 	CASE 
 		WHEN sp.EduSDType != '' THEN sp.EduSDType
@@ -570,100 +574,100 @@ SELECT
 		WHEN sp.EduSMAType != '' THEN sp.EduSMAType
 		WHEN sp.EduD3Type != '' THEN sp.EduD3Type
 		WHEN sp.EduS1Type != '' THEN sp.EduS1Type
-		ELSE '-'
+		ELSE ''
 	END AS EduLastType,
-	IFNULL(sp.EduSDName, '-') AS EduSDName,
-	IFNULL(sp.EduSDCity, '-') AS EduSDCity,
-	IFNULL(sp.EduSDYear, '-') AS EduSDYear,
-	IFNULL(sp.EduSDType, '-') AS EduSDType,
-	IFNULL(sp.EduSMPName, '-') AS EduSMPName,
-	IFNULL(sp.EduSMPCity, '-') AS EduSMPCity,
-	IFNULL(sp.EduSMPType, '-') AS EduSMPType,
-	IFNULL(sp.EduSMPYear, '-') AS EduSMPYear,
-	IFNULL(sp.EduSMAName, '-') AS EduSMAName,
-	IFNULL(sp.EduSMACity, '-') AS EduSMACity,
-	IFNULL(sp.EduSMAType, '-') AS EduSMAType,
-	IFNULL(sp.EduSMAYear, '-') AS EduSMAYear,
-	IFNULL(sp.EduD3Name, '-') AS EduD3Name,
-	IFNULL(sp.EduD3City, '-') AS EduD3City,
-	IFNULL(sp.EduD3Type, '-') AS EduD3Type,
-	IFNULL(sp.EduD3Year, '-') AS EduD3Year,
-	IFNULL(sp.EduS1Name, '-') AS EduS1Name,
-	IFNULL(sp.EduS1City, '-') AS EduS1City,
-	IFNULL(sp.EduS1Type, '-') AS EduS1Type,
-	IFNULL(sp.EduS1Year, '-') AS EduS1Year,
+	IFNULL(sp.EduSDName, '') AS EduSDName,
+	IFNULL(sp.EduSDCity, '') AS EduSDCity,
+	IFNULL(sp.EduSDYear, '') AS EduSDYear,
+	IFNULL(sp.EduSDType, '') AS EduSDType,
+	IFNULL(sp.EduSMPName, '') AS EduSMPName,
+	IFNULL(sp.EduSMPCity, '') AS EduSMPCity,
+	IFNULL(sp.EduSMPType, '') AS EduSMPType,
+	IFNULL(sp.EduSMPYear, '') AS EduSMPYear,
+	IFNULL(sp.EduSMAName, '') AS EduSMAName,
+	IFNULL(sp.EduSMACity, '') AS EduSMACity,
+	IFNULL(sp.EduSMAType, '') AS EduSMAType,
+	IFNULL(sp.EduSMAYear, '') AS EduSMAYear,
+	IFNULL(sp.EduD3Name, '') AS EduD3Name,
+	IFNULL(sp.EduD3City, '') AS EduD3City,
+	IFNULL(sp.EduD3Type, '') AS EduD3Type,
+	IFNULL(sp.EduD3Year, '') AS EduD3Year,
+	IFNULL(sp.EduS1Name, '') AS EduS1Name,
+	IFNULL(sp.EduS1City, '') AS EduS1City,
+	IFNULL(sp.EduS1Type, '') AS EduS1Type,
+	IFNULL(sp.EduS1Year, '') AS EduS1Year,
 	CASE
 		WHEN sp.Kursus1Topic != '' OR sp.Kursus2Topic != '' THEN 'YA'
 		ELSE 'TIDAK'
 	END AS isKursus,
-	IFNULL(sp.Kursus1Topic, '-') AS Kursus1Topic,
-	IFNULL(sp.Kursus1Location, '-') AS Kursus1Location,
-	IFNULL(sp.Kursus1Periode, '-') AS Kursus1Periode,
-	IFNULL(sp.Kursus1Place, '-') AS Kursus1Place,
-	IFNULL(sp.Kursus2Topic, '-') AS Kursus2Topic,
-	IFNULL(sp.Kursus2Location, '-') AS Kursus2Location,
-	IFNULL(sp.Kursus2Periode, '-') AS Kursus2Periode,
-	IFNULL(sp.Kursus2Place, '-') AS Kursus2Place,
-	IFNULL(sp.Work1Name, '-') AS Work1Name,
-	IFNULL(sp.Work1Position, '-') AS Work1Position,
-	IFNULL(sp.Work1Place, '-') AS Work1Place,
-	IFNULL(sp.Work1Periode, '-') AS Work1Periode,
-	IFNULL(sp.Work1Salary, '-') AS Work1Salary,
-	IFNULL(sp.Work1Reason, '-') AS Work1Reason,
-	IFNULL(sp.Work2Name, '-') AS Work2Name,
-	IFNULL(sp.Work2Position, '-') AS Work2Position,
-	IFNULL(sp.Work2Place, '-') AS Work2Place,
-	IFNULL(sp.Work2Periode, '-') AS Work2Periode,
-	IFNULL(sp.Work2Salary, '-') AS Work2Salary,
-	IFNULL(sp.Work2Reason, '-') AS Work2Reason,
-	IFNULL(sp.Work3Name, '-') AS Work3Name,
-	IFNULL(sp.Work3Position, '-') AS Work3Position,
-	IFNULL(sp.Work3Place, '-') AS Work3Place,
-	IFNULL(sp.Work3Periode, '-') AS Work3Periode,
-	IFNULL(sp.Work3Salary, '-') AS Work3Salary,
-	IFNULL(sp.Work3Reason, '-') AS Work3Reason,
+	IFNULL(sp.Kursus1Topic, '') AS Kursus1Topic,
+	IFNULL(sp.Kursus1Location, '') AS Kursus1Location,
+	IFNULL(sp.Kursus1Periode, '') AS Kursus1Periode,
+	IFNULL(sp.Kursus1Place, '') AS Kursus1Place,
+	IFNULL(sp.Kursus2Topic, '') AS Kursus2Topic,
+	IFNULL(sp.Kursus2Location, '') AS Kursus2Location,
+	IFNULL(sp.Kursus2Periode, '') AS Kursus2Periode,
+	IFNULL(sp.Kursus2Place, '') AS Kursus2Place,
+	IFNULL(sp.Work1Name, '') AS Work1Name,
+	IFNULL(sp.Work1Position, '') AS Work1Position,
+	IFNULL(sp.Work1Place, '') AS Work1Place,
+	IFNULL(sp.Work1Periode, '') AS Work1Periode,
+	IFNULL(sp.Work1Salary, '') AS Work1Salary,
+	IFNULL(sp.Work1Reason, '') AS Work1Reason,
+	IFNULL(sp.Work2Name, '') AS Work2Name,
+	IFNULL(sp.Work2Position, '') AS Work2Position,
+	IFNULL(sp.Work2Place, '') AS Work2Place,
+	IFNULL(sp.Work2Periode, '') AS Work2Periode,
+	IFNULL(sp.Work2Salary, '') AS Work2Salary,
+	IFNULL(sp.Work2Reason, '') AS Work2Reason,
+	IFNULL(sp.Work3Name, '') AS Work3Name,
+	IFNULL(sp.Work3Position, '') AS Work3Position,
+	IFNULL(sp.Work3Place, '') AS Work3Place,
+	IFNULL(sp.Work3Periode, '') AS Work3Periode,
+	IFNULL(sp.Work3Salary, '') AS Work3Salary,
+	IFNULL(sp.Work3Reason, '') AS Work3Reason,
 	CASE
 		WHEN sp.Org1Name != '' OR sp.Org2Name != '' OR sp.Org3Name != '' THEN 'YA'
 		ELSE 'TIDAK'
 	END AS isOrganisation,
-	IFNULL(sp.Org1Name, '-') AS Org1Name,
-	IFNULL(sp.Org1Position, '-') AS Org1Position,
-	IFNULL(sp.Org1Periode, '-') AS Org1Periode,
-	IFNULL(sp.Org1Place, '-') AS Org1Place,
-	IFNULL(sp.Org2Name, '-') AS Org2Name,
-	IFNULL(sp.Org2Position, '-') AS Org2Position,
-	IFNULL(sp.Org2Periode, '-') AS Org2Periode,
-	IFNULL(sp.Org2Place, '-') AS Org2Place,
-	IFNULL(sp.LikeSports, '-') AS LikeSports,
-	IFNULL(sp.LikeArts, '-') AS LikeArts,
-	IFNULL(sp.LikeHobby, '-') AS LikeHobby,
-	IFNULL(sp.LikeVision, '-') AS LikeVision,
-	IFNULL(sp.SpouseName, '-') AS SpouseName,
-	IFNULL(sp.Child1Name, '-') AS Child1Name,
-	IFNULL(sp.Child1Age, '-') AS Child1Age,
-	IFNULL(sp.Child2Name, '-') AS Child2Name,
-	IFNULL(sp.Child2Age, '-') AS Child2Age,
-	IFNULL(sp.Child3Name, '-') AS Child3Name,
-	IFNULL(sp.Child3Age, '-') AS Child3Age,
-	IFNULL(sp.Child4Name, '-') AS Child4Name,
-	IFNULL(sp.Child4Age, '-') AS Child4Age,
-	IFNULL(sp.CountFamily, '-') AS CountFamily,
-	IFNULL(sp.SeqFamily, '-') AS SeqFamily,
+	IFNULL(sp.Org1Name, '') AS Org1Name,
+	IFNULL(sp.Org1Position, '') AS Org1Position,
+	IFNULL(sp.Org1Periode, '') AS Org1Periode,
+	IFNULL(sp.Org1Place, '') AS Org1Place,
+	IFNULL(sp.Org2Name, '') AS Org2Name,
+	IFNULL(sp.Org2Position, '') AS Org2Position,
+	IFNULL(sp.Org2Periode, '') AS Org2Periode,
+	IFNULL(sp.Org2Place, '') AS Org2Place,
+	IFNULL(sp.LikeSports, '') AS LikeSports,
+	IFNULL(sp.LikeArts, '') AS LikeArts,
+	IFNULL(sp.LikeHobby, '') AS LikeHobby,
+	IFNULL(sp.LikeVision, '') AS LikeVision,
+	IFNULL(sp.SpouseName, '') AS SpouseName,
+	IFNULL(sp.Child1Name, '') AS Child1Name,
+	IFNULL(sp.Child1Age, '') AS Child1Age,
+	IFNULL(sp.Child2Name, '') AS Child2Name,
+	IFNULL(sp.Child2Age, '') AS Child2Age,
+	IFNULL(sp.Child3Name, '') AS Child3Name,
+	IFNULL(sp.Child3Age, '') AS Child3Age,
+	IFNULL(sp.Child4Name, '') AS Child4Name,
+	IFNULL(sp.Child4Age, '') AS Child4Age,
+	IFNULL(sp.CountFamily, '') AS CountFamily,
+	IFNULL(sp.SeqFamily, '') AS SeqFamily,
 	CASE
 		WHEN sp.PsikotestPlace != '' THEN 'YA'
 		ELSE 'TIDAK'
 	END AS isPsikotest,
-	IFNULL(sp.PsikotestPlace, '-') AS PsikotestPlace,
-	IFNULL(sp.PsikotestTime, '-') AS PsikotestTime,
+	IFNULL(sp.PsikotestPlace, '') AS PsikotestPlace,
+	IFNULL(sp.PsikotestTime, '') AS PsikotestTime,
 	CASE
 		WHEN sp.ReffName != '' THEN 'YA'
 		ELSE 'TIDAK'
 	END AS isReff,
-	IFNULL(sp.ReffName, '-') AS ReffName,
-	IFNULL(sp.ReffDept, '-') AS ReffDept,
-	IFNULL(sp.ReffRelation, '-') AS ReffRelation,
-	IFNULL(sp.ExpectedSalary, '-') AS ExpectedSalary,
-	IFNULL(sp.ExpectedTMB, '-') AS ExpectedTMB,
+	IFNULL(sp.ReffName, '') AS ReffName,
+	IFNULL(sp.ReffDept, '') AS ReffDept,
+	IFNULL(sp.ReffRelation, '') AS ReffRelation,
+	IFNULL(sp.ExpectedSalary, '') AS ExpectedSalary,
+	IFNULL(sp.ExpectedTMB, '') AS ExpectedTMB,
 	CASE
 		WHEN sp.isReadyContract = 1 THEN 'YA'
 		ELSE 'TIDAK'
@@ -676,13 +680,14 @@ SELECT
 		WHEN sp.isReadyPlacement = 1 THEN 'YA'
 		ELSE 'TIDAK'
 	END AS ReadyPlacement,
-	IFNULL(DATE(sp.CreateDate), '-') AS TanggalLamaran,
+	IFNULL(DATE(sp.CreateDate), '') AS TanggalLamaran,
   DATE_FORMAT(sp.CreateDate,'%d %M %Y')  AS TanggalLamaranText,
-	IFNULL(sp.CreateDate, '-') AS Timestamp,
-	IFNULL(DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s'), '-') AS CreateDate,
+	IFNULL(sp.CreateDate, '') AS Timestamp,
+	IFNULL(DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s'), '') AS CreateDate,
   sp.ApprovalStatus,
   sp.ApprovalTime,
-  sp.ApprovalRemark
+  sp.ApprovalRemark,
+  sp.ApprovalBy
 FROM
 	sumbiri_pelamar sp
 LEFT JOIN master_alamat_kabkota mak5 ON mak5.id_kabkota = sp.BirthPlace 

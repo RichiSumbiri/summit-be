@@ -212,10 +212,8 @@ export const getLamaranByDate = async(req,res) => {
 
 export const postLamaran = async(req,res) => {
     try {
-        const dataLamaran = req.body.dataLamaran;
-        
-        const newLamaran = await SumbiriPelamar.upsert(dataLamaran);
-        
+        const dataLamaran   = req.body.dataLamaran;
+        const newLamaran    = await SumbiriPelamar.upsert(dataLamaran);
         if(newLamaran){
             res.status(200).json({
                 success: true,
