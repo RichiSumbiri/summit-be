@@ -1,9 +1,9 @@
 import express from "express";
-import { getDeptAll, getEmployeAktif, getPositionAll, getSalaryType, getSection, getSubDeptAll, postNewEmploye } from "../../controllers/hr/employe.js";
+import { getDeptAll, getEmpByNIK, getEmpByNIKKTP, getEmployeAktif, getPositionAll, getSalaryType, getSection, getSubDeptAll, postNewEmploye } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterKelurahan, getMasterProv, postApproveLamaran, postLamaran } from "../../controllers/hr/recruitment.js";
 import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } from "../../controllers/hr/jobposting.js";
-import { getApprovedPelamar } from "../../controllers/hr/acceptance.js";
+import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.js";
 
 const router = express.Router();
 
@@ -34,12 +34,13 @@ router.get("/get-lamaran/:startDate/:endDate", getLamaranByDate);
 
 // acceptance
 router.get("/get-approved-pelamar/:startDate/:endDate", getApprovedPelamar);
-
+router.post("/new-emp", postNewEmp);
 
 // employee management
 router.get("/all-employe", getEmployeAktif);
 router.post("/new-employee", postNewEmploye);
-
+router.get("/find-emp-nik/:empnik", getEmpByNIK);
+router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 
 // event
 router.get("/event/:year", getEventList);

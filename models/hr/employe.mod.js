@@ -46,31 +46,267 @@ export const modelMasterSubDepartment = dbSPL.define('master_subdepartment',
 
 
 export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
-	Nik: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true },
-	NamaLengkap: { type: DataTypes.STRING(150), allowNull: true, defaultValue: null },
-	KodeDepartemen: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
-	NamaDepartemen: { type: DataTypes.STRING(100), allowNull: true, defaultValue: null },
-	Posisi: { type: DataTypes.STRING(50), allowNull: true, defaultValue: null },
-	JenisKelamin: { type: DataTypes.TINYINT, allowNull: true, defaultValue: null },
-	TanggalLahir: { type: DataTypes.DATEONLY, allowNull: true, defaultValue: null },
-	TanggalMasuk: { type: DataTypes.DATEONLY, allowNull: true, defaultValue: null },
-	TanggalKeluar: { type: DataTypes.DATEONLY, allowNull: true, defaultValue: null },
-	StatusAktif: { type: DataTypes.TINYINT(1), allowNull: true, defaultValue: null },
-	StatusKaryawan: { type: DataTypes.STRING(10), allowNull: true, defaultValue: null },
-	NoTelp1: { type: DataTypes.STRING(50), allowNull: true, defaultValue: null },
-	NoTelp2: { type: DataTypes.STRING(50), allowNull: true, defaultValue: null },
-	NoTelp3: { type: DataTypes.STRING(50), allowNull: true, defaultValue: null },
-	Alamat1: { type: DataTypes.STRING(200), allowNull: true, defaultValue: null },
-	Alamat2: { type: DataTypes.STRING(200), allowNull: true, defaultValue: null },
-	CreateDate: { type: DataTypes.DATE, allowNull: true, defaultValue: null },
-	UpdateDate: { type: DataTypes.DATE, allowNull: true, defaultValue: null }
+	Nik: {
+	  type: DataTypes.INTEGER,
+	  allowNull: false,
+	  primaryKey: true
+	},
+	NamaLengkap: {
+	  type: DataTypes.STRING(150),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	NikKTP: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	NPWP: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	BPJSKes: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	BPJSKet: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	KodeDepartemen: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	NamaDepartemen: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	IDDepartemen: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	IDSubDepartemen: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	IDPosisi: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	IDSection: {
+		type: DataTypes.STRING(20),
+		allowNull: true
+	  },
+	Posisi: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	JenisKelamin: {
+	  type: DataTypes.TINYINT,
+	  allowNull: true
+	},
+	TempatLahir: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	TanggalLahir: {
+	  type: DataTypes.DATEONLY,
+	  allowNull: true
+	},
+	StatusPerkawinan: {
+	  type: DataTypes.STRING(20),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	Agama: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	JenjangPendidikan: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	JenisUpah: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	PeriodeKontrak: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	TanggalMasuk: {
+	  type: DataTypes.DATEONLY,
+	  allowNull: true
+	},
+	TanggalKeluar: {
+	  type: DataTypes.DATEONLY,
+	  allowNull: true
+	},
+	StatusAktif: {
+	  type: DataTypes.TINYINT,
+	  allowNull: true
+	},
+	StatusKaryawan: {
+	  type: DataTypes.STRING(10),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	NoTelp1: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	NoTelp2: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	NoTelp3: {
+	  type: DataTypes.STRING(50),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	Email: {
+		type: DataTypes.STRING(50),
+		allowNull: true
+	  },  
+	Alamat1: {
+	  type: DataTypes.STRING(200),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	Alamat2: {
+	  type: DataTypes.STRING(200),
+	  allowNull: true,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci'
+	},
+	AlamatIDProv: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	AlamatIDKabKota: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	AlamatIDKecamatan: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true
+	},
+	AlamatKelurahan: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true
+	},
+	AlamatRT: {
+		type: DataTypes.STRING(10),
+		allowNull: true
+	},
+	AlamatRW: {
+		type: DataTypes.STRING(10),
+		allowNull: true
+	},
+	AlamatDetail: {
+		type: DataTypes.STRING(100),
+		allowNull: true
+	},
+	Photos: {
+		type: DataTypes.STRING(100),
+		allowNull: true
+	},
+	CreateDate: {
+	  type: DataTypes.DATE,
+	  allowNull: true,
+	  defaultValue: null
+	},
+	UpdateDate: {
+	  type: DataTypes.DATE,
+	  allowNull: true,
+	  defaultValue: null
+	}
   }, {
 	tableName: 'sumbiri_employee',
-	timestamps: false,
-	charset: 'utf8mb4',
-	collate: 'utf8mb4_general_ci'
+	timestamps: false, // Set to true if you want to manage `createdAt` and `updatedAt`
+	freezeTableName: true // Prevent Sequelize from pluralizing the table name
   });
 
+
+export const sqlFindEmp = `
+SELECT 
+	emp.Nik,
+	emp.NamaLengkap AS FullName,
+	emp.NikKTP,
+	emp.TempatLahir AS BirthPlace,
+	emp.TanggalLahir AS BirthDate,
+	emp.JenisKelamin,
+	emp.NPWP,
+	emp.BPJSKet,
+	emp.BPJSKes,
+	emp.Agama,
+	emp.StatusPerkawinan,
+	emp.JenjangPendidikan AS EduLastLevel,
+	emp.JenisKelamin,
+	emp.AlamatIDProv AS AddressKTPProvID,
+	map2.nama_prov AS AlamatNamaProv,
+	emp.AlamatIDKabKota AS AddressKTPKabKotaID,
+	mak.nama_kabkota AS AlamatNamaKabKota,
+	emp.AlamatIDKecamatan AS AddressKTPKecamatanID,
+	mak2.nama_kecamatan AS AlamatNamaKecamatan,
+	emp.AlamatKelurahan AS AddressKTPKelurahanID,
+	emp.AlamatRT AS AddressKTPRT,
+	emp.AlamatRW AS AddressKTPRW,
+	emp.AlamatDetail AS AlamatKTPDetail,
+	emp.NoTelp1 AS Phone,
+	emp.Email,
+	emp.IDDepartemen,
+	md.NameDept AS NamaDepartemen,
+	emp.IDSubDepartemen,
+	ms.Name AS NamaSubDepartemen,
+	emp.IDPosisi,
+	mp.Name AS NamaPosisi,
+	emp.IDSection,
+	ms2.Name AS NamaSection,
+	emp.JenisUpah,
+	emp.StatusKaryawan,
+	emp.PeriodeKontrak,
+	emp.TanggalMasuk
+FROM sumbiri_employee emp
+LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = emp.AlamatIDProv 
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = emp.AlamatIDKabKota 
+LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = emp.AlamatIDKecamatan 
+LEFT JOIN master_department md ON md.IdDept = emp.IDDepartemen 
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = emp.IDSubDepartemen 
+LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi 
+LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
+`;
+
+export const sqlFindEmpByNIK 	= sqlFindEmp + `WHERE emp.Nik = :empnik`;
+export const sqlFindEmpByNIKKTP = sqlFindEmp +  `WHERE emp.NikKTP = :nikktp`;
 
 modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");
