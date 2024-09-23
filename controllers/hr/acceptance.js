@@ -71,7 +71,7 @@ export const postNewEmp = async(req,res) => {
             newNik          = initNik + sequenceNik.toString().padStart(3, '0');;
         }
         
-       console.log(dataNewEmp);
+       
 
         const postEmp     = modelSumbiriEmployee.create({
             Nik: newNik,
