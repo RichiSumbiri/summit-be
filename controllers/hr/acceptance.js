@@ -102,7 +102,8 @@ export const postNewEmp = async(req,res) => {
             TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
             StatusKaryawan: dataNewEmp.StatusKaryawan,
             StatusAktif: 0,
-            CreateDate: new Date()
+            CreateDate: new Date(),
+            CreateBy: dataNewEmp.CreateBy
         });
           
         res.status(200).json({
