@@ -10,6 +10,7 @@ import {
   QrListAftrSewingIn,
   QRScanCutting,
   QRScanSewingIn,
+  QRScanSewingInSpesifik,
 } from "../../controllers/production/cutting/CuttingScan.js";
 import {
   generateBdlOrder,
@@ -99,6 +100,7 @@ router.post("/bundle/generate", generateBdlOrder);
 router.post("/order/qrgenerate", newQRCutting);
 router.post("/order/scan", QRScanCutting);
 router.post("/qr/scan-sewing-in", QRScanSewingIn);
+router.post("/qr/scan-sewing-in-spesifik", QRScanSewingInSpesifik);
 router.post("/qr/scan-supermarket-in", QRScanSuperMarketIn);
 router.post("/qr/scan-supermarket-out", QRScanSuperMarketOut);
 router.post("/qr/scan-molding-in", QRScanMolIn);

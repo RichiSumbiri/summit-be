@@ -19,6 +19,7 @@ import {
   QryFinSprMrktIn,
   QryListSizeSewIn,
   QueryCheckSchdScan,
+  QueryCheckSchdScanSpesifik,
   QueryfindQrSewingIn,
 } from "../../../models/planning/dailyPlan.mod.js";
 import {
@@ -568,3 +569,165 @@ async function autoRejectConfrm(barcodeserial, userId) {
     console.log(error);
   }
 }
+
+//CUTTING SEWING IN SPESIFIK
+export const QRScanSewingInSpesifik = async (req, res) => {
+  try {
+    const {
+      barcodeserial,
+      schDate,
+      sitename,
+      lineName,
+      userId,
+      SCH_ID,
+      SCHD_ID,
+    } = req.body;
+    //check apakah barcode serial ada pada table orders detail
+    //find schedule
+    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+      replacements: {
+        barcodeserial: barcodeserial,
+      },
+      type: QueryTypes.SELECT,
+    });
+    // console.log(checkBarcodeSerial);
+    //jika tidak ada reject
+    if (checkBarcodeSerial.length === 0) {
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "QRCode Not Found",
+      });
+    }
+
+    //jika ada maka bandingkan dengan
+    if (checkBarcodeSerial) {
+      const valueBarcode = checkBarcodeSerial[0];
+
+      const checkScan = await CuttinScanSewingIn.findAll({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+      });
+      //jika ketemu sudah di scan reject
+      if (checkScan.length !== 0) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "duplicate",
+          message: "Already Scan",
+        });
+      }
+
+      const checkScaOut = await CutSupermarketOut.findOne({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+        raw: true,
+      });
+
+      if (!checkScaOut) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "error",
+          message: "Belum Supermarket Out",
+        });
+      }
+      //find schedule
+      const checkSchdNsize = await db.query(QueryCheckSchdScanSpesifik, {
+        replacements: {
+          plannDate: schDate,
+          sitename: sitename,
+          lineName: lineName ? lineName : valueBarcode.LINE_NAME,
+          orderNo: valueBarcode.ORDER_NO,
+          orderRef: valueBarcode.ORDER_REF,
+          styleDesc: valueBarcode.ORDER_STYLE,
+          colorCode: valueBarcode.ORDER_COLOR,
+          sizeCode: valueBarcode.ORDER_SIZE,
+          prodMonth: valueBarcode.PRODUCTION_MONTH,
+          fxSiteName: valueBarcode.MANUFACTURING_SITE,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      if (checkSchdNsize.length > 0) {
+        //check total schedule
+        const ttlScanInQty = await db.query(qryCheckTtlSewScanIn, {
+          replacements: {
+            schId: SCH_ID,
+            size: valueBarcode.ORDER_SIZE,
+          },
+          type: QueryTypes.SELECT,
+        });
+
+        if (ttlScanInQty.length > 0) {
+          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+
+          if (ttlInQty > SCH_SIZE_QTY)
+            return res.status(200).json({
+              success: true,
+              qrstatus: "error",
+              message: "Melebih Schedule Qty",
+            });
+        }
+
+        const dataBarcode = {
+          BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
+          SCHD_ID,
+          SCH_ID,
+          SEWING_SCAN_BY: userId,
+          SEWING_SCAN_LOCATION: sitename,
+        };
+        const returnData = {
+          ...valueBarcode,
+          LINE_NAME: lineName ? lineName : valueBarcode.LINE_NAME,
+          SCHD_ID,
+          SCH_ID,
+          SITE_NAME: sitename,
+        };
+        const pushQrSewin = await CuttinScanSewingIn.create(dataBarcode);
+
+        if (pushQrSewin) {
+          if (checkScaOut.SCH_ID !== dataBarcode.SCH_ID) {
+            //update SCH_ID Supermarket In jika tidak sama dengan SCH_ID supermarket out
+            await CutSupermarketIn.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+            await CutSupermarketOut.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+          }
+
+          return res.status(200).json({
+            success: true,
+            qrstatus: "success",
+            message: "Scan Success",
+            data: returnData,
+          });
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "No Schedule",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
+    });
+  }
+};
