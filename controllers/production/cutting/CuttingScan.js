@@ -636,7 +636,7 @@ export const QRScanSewingInSpesifik = async (req, res) => {
       const checkSchdNsize = await db.query(QueryCheckSchdScanSpesifik, {
         replacements: {
           plannDate: schDate,
-          sitename: sitename,
+          schdId: SCHD_ID,
           lineName: lineName ? lineName : valueBarcode.LINE_NAME,
           orderNo: valueBarcode.ORDER_NO,
           orderRef: valueBarcode.ORDER_REF,
@@ -651,6 +651,8 @@ export const QRScanSewingInSpesifik = async (req, res) => {
 
       if (checkSchdNsize.length > 0) {
         //check total schedule
+        const { SCH_SIZE_QTY } = checkSchdNsize[0];
+
         const ttlScanInQty = await db.query(qryCheckTtlSewScanIn, {
           replacements: {
             schId: SCH_ID,
