@@ -36,12 +36,11 @@ export const postNewEmp = async(req,res) => {
         let prefixNik;
         let sequenceNik;
         let newNik;
-        
         switch(dataNewEmp.JenisUpah){
-            case '1':
+            case 'HARIAN':
                 prefixNik         = "20";
                 break;
-            case '2':
+            case 'BULANAN':
                 prefixNik         = "10";
                 break;
             default:
@@ -103,7 +102,6 @@ export const postNewEmp = async(req,res) => {
             TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
             StatusKaryawan: dataNewEmp.StatusKaryawan,
             StatusAktif: 0,
-            PeriodeKontrak: dataNewEmp.PeriodeKontrak,
             CreateDate: new Date()
         });
           

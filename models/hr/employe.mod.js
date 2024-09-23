@@ -294,7 +294,9 @@ SELECT
 	emp.JenisUpah,
 	emp.StatusKaryawan,
 	emp.PeriodeKontrak,
-	emp.TanggalMasuk
+	emp.TanggalMasuk,
+	emp.CreateBy,
+	emp.CreateDate
 FROM sumbiri_employee emp
 LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = emp.AlamatIDProv 
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = emp.AlamatIDKabKota 
