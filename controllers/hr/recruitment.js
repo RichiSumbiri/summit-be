@@ -1,6 +1,7 @@
 import { QueryTypes, Op, fn, col, Sequelize } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import { findLamaranByDate, SumbiriPelamar, SumbiriRecruitmentPassKey } from "../../models/hr/recruitment.mod.js";
+import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
 export const checkLokerLanding = async(req,res) => {
     try {
@@ -201,7 +202,6 @@ export const getLamaranByDate = async(req,res) => {
         });
 
     } catch(err){ 
-        console.error(err);
         res.status(404).json({
             success: false,
             data: err,

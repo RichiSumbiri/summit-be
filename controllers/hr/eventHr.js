@@ -48,7 +48,6 @@ export const getRefGuest = async (req, res) => {
       data: listRefGuest,
     });
   } catch (error) {
-    console.log(error);
     res.status(404).json({
       success: false,
       data: error,

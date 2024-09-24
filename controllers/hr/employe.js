@@ -1,6 +1,6 @@
 import { QueryTypes, Op } from "sequelize";
 import db from "../../config/database.js";
-import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 
@@ -117,6 +117,51 @@ export const getEmployeAktif = async (req, res) => {
     });
   }
 };
+
+export const getEmpByNIK = async(req,res) => {
+  try {
+    const empnik  = req.params.empnik;
+    const data    = await dbSPL.query(sqlFindEmpByNIK, {
+      replacements: {
+        empnik: empnik
+      }, type: QueryTypes.SELECT
+    });
+    return res.status(200).json({
+      success: true,
+      message: "success get employee by nik",
+      data: data,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error get employee with NIK",
+    });
+  }
+}
+
+export const getEmpByNIKKTP = async(req,res) => {
+  try {
+    const nikktp  = req.params.nikktp;
+    const data    = await dbSPL.query(sqlFindEmpByNIKKTP, {
+      replacements: {
+        nikktp: nikktp
+      }, type: QueryTypes.SELECT
+    });
+    return res.status(200).json({
+      success: true,
+      message: "success get employee by nik ktp",
+      data: data,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error get employee with NIK ktp",
+    });
+  }
+}
+
 
 
 // controller add new employyee
