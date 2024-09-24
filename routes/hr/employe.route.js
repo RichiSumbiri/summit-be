@@ -4,6 +4,7 @@ import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterKelurahan, getMasterProv, postApproveLamaran, postLamaran } from "../../controllers/hr/recruitment.js";
 import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } from "../../controllers/hr/jobposting.js";
 import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.js";
+import { getKontrakKerjaByRange, newKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
 
 const router = express.Router();
 
@@ -36,11 +37,17 @@ router.get("/get-lamaran/:startDate/:endDate", getLamaranByDate);
 router.get("/get-approved-pelamar/:startDate/:endDate", getApprovedPelamar);
 router.post("/new-emp", postNewEmp);
 
+// kontrak kerj
+router.get("/get-kontrakkerja-range/:startDate/:endDate", getKontrakKerjaByRange);
+router.post("/new-kontrakkerja", newKontrakKerja);
+router.post("/update-kontrakkerja", updateKontrakKerja);
+
 // employee management
 router.get("/all-employe", getEmployeAktif);
 router.post("/new-employee", postNewEmploye);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
+
 
 // event
 router.get("/event/:year", getEventList);
