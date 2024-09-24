@@ -1,8 +1,10 @@
 import express from "express";
 import {
+  getCheckHoliday,
   getDailyPlanning,
   getDailyPlanningQCend,
   getDailySchSewIn,
+  postSwitchToOt,
   syncLogDailyOutput,
 } from "../../controllers/production/planning/DailyPlanning.js";
 import {
@@ -46,6 +48,7 @@ router.get("/group/:schId", getOneGroupDayliSch);
 
 //daily-planning
 router.get("/planning-daily/:plannDate/:sitename/:shift", getDailyPlanning);
+router.get("/planning-daily-ceheckholiday/:plannDate", getCheckHoliday);
 router.get("/planning-sycn-log/:schDate/:sitename/:shift", syncLogDailyOutput);
 //daily-planning sewing in
 router.get("/planning-daily-sewin/:plannDate/:sitename", getDailySchSewIn);
@@ -53,6 +56,8 @@ router.get(
   "/planning-daily-sewin-size/:schDate/:sitename",
   ListSizeSewingScanIn
 );
+
+router.post("/planning-daily-switch-to-ot", postSwitchToOt);
 
 //daily-planning qcEndLine
 router.get(

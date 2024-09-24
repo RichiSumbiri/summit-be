@@ -16,6 +16,8 @@ import {
   QueryEffCurDate,
   QueryEffCurDateShiftB,
 } from "../../../models/reports/sewDayliEffRep.mod.js";
+import CalendarHoliday from "../../../models/setup/holidays.mod.js";
+import moment from "moment";
 
 export const getDailyPlanning = async (req, res) => {
   try {
@@ -34,6 +36,31 @@ export const getDailyPlanning = async (req, res) => {
     });
 
     return res.json(pland);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+export const getCheckHoliday = async (req, res) => {
+  try {
+    const { plannDate } = req.params;
+    const dayPlan = moment(plannDate, "YYYY-MM-DD").format("dddd");
+    const days = ["Sunday", "Saturday"];
+    const holidayBukan = await CalendarHoliday.findOne({
+      where: {
+        calendar_date: plannDate,
+      },
+    });
+
+    if (days.includes(dayPlan) || holidayBukan) {
+      return res.json({ message: "Hari Libur", status: true });
+    } else {
+      return res.json({ message: "Bukan Hari Libur", status: false });
+    }
   } catch (error) {
     console.log(error);
     res.status(404).json({
@@ -247,6 +274,79 @@ export const clearMpAndWh = async (req, res) => {
     };
 
     exeClear();
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+//post switch to OT
+export const postSwitchToOt = async (req, res) => {
+  try {
+    const { date, sites } = req.body;
+
+    const getLog = await LogDailyOutput.findAll({
+      where: {
+        SCHD_PROD_DATE: date,
+        SITE_NAME: {
+          [Op.in]: sites,
+        },
+      },
+      raw: true,
+    });
+
+    if (getLog.length > 0) {
+      const dataLog = getLog.map((item) => ({
+        ...item,
+        PLAN_TARGET: 0,
+        ACT_TARGET: 0,
+        PLAN_MP: null,
+        PLAN_MP_OT: item.PLAN_MP ? item.PLAN_MP : item.PLAN_MP_OT,
+        ACT_MP: null,
+        ACT_MP_OT: item.ACT_MP ? item.ACT_MP : item.ACT_MP_OT,
+        PLAN_EH: null,
+        PLAN_AH: null,
+        PLAN_EH_OT: item.PLAN_EH ? item.PLAN_EH : item.PLAN_EH_OT,
+        PLAN_AH_OT: item.PLAN_AH ? item.PLAN_AH : item.PLAN_AH_OT,
+        PLAN_TARGET: 0,
+        PLAN_TARGET_OT: item.PLAN_TARGET
+          ? item.PLAN_TARGET
+          : item.PLAN_TARGET_OT,
+        ACT_TARGET: null,
+        ACT_TARGET_OT: item.ACT_TARGET ? item.ACT_TARGET : item.ACT_TARGET_OT,
+        NORMAL_OUTPUT: 0,
+        OT_OUTPUT: item.NORMAL_OUTPUT ? item.NORMAL_OUTPUT : item.OT_OUTPUT,
+        ACT_WH: 0,
+        ACT_WH_OT: item.ACT_WH ? item.ACT_WH : item.ACT_WH_OT,
+        ACT_WH_X_OT: null,
+        ACTUAL_EH: null,
+        ACTUAL_AH: null,
+        ACTUAL_EH_OT: item.ACTUAL_EH ? item.ACTUAL_EH : item.ACTUAL_EH_OT,
+        ACTUAL_AH_OT: item.ACTUAL_AH ? item.ACTUAL_AH : item.ACTUAL_AH_OT,
+        EFF_NORMAL: null,
+        EFF_OT: item.EFF_NORMAL ? item.EFF_NORMAL : item.EFF_OT,
+      }));
+
+      const dstrLog = await LogDailyOutput.destroy({
+        where: {
+          SCHD_PROD_DATE: date,
+          SITE_NAME: {
+            [Op.in]: sites,
+          },
+        },
+      });
+      if (dstrLog) {
+        const createLog = await LogDailyOutput.bulkCreate(dataLog);
+        if (createLog) {
+          return res
+            .status(200)
+            .json({ message: "Success Switch", status: true });
+        }
+      }
+    }
   } catch (error) {
     console.log(error);
     res.status(404).json({
