@@ -1,4 +1,4 @@
-import { QueryTypes } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import db from "../../../config/database.js";
 import {
   checkBlcShipScan,
@@ -15,6 +15,7 @@ import {
   qryTtlCtnClp,
   qryShipmentMonitoring,
 } from "../../../models/production/packing.mod.js";
+import { CheckNilai, CheckNilaiToint } from "../../util/Utility.js";
 
 //get list container list
 export const getContainerList = async (req, res) => {
@@ -42,6 +43,7 @@ export const getContainerList = async (req, res) => {
     });
   }
 };
+
 export const getListShipPlanScan = async (req, res) => {
   try {
     const { sid, conId } = req.params;
@@ -53,7 +55,16 @@ export const getListShipPlanScan = async (req, res) => {
         conId,
       },
       type: QueryTypes.SELECT,
+      raw: true,
     });
+
+    const converIng = shipPlan?.map((item) => ({
+      ...item,
+      SCAN_RESULT: CheckNilaiToint(item.SCAN_RESULT),
+      BALANCE_SCAN: CheckNilaiToint(item.BALANCE_SCAN),
+    }));
+
+    const listPoBuyer = [...new Set(shipPlan.map((item) => item.PO_BUYER))];
 
     const ttlCtn = await db.query(qryTtlCtnClp, {
       replacements: {
@@ -84,10 +95,11 @@ export const getListShipPlanScan = async (req, res) => {
 
     return res.status(200).json({
       data: {
-        shipPlan,
+        shipPlan: converIng,
         shipPlanResult,
         containerList,
-        ttlCtn: ttlCtn[0].TTL_SCAN,
+        listPoBuyer: listPoBuyer,
+        ttlCtn: parseInt(ttlCtn[0].TTL_SCAN),
       },
     });
   } catch (error) {
@@ -111,7 +123,7 @@ export const getTtlScanClp = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    return res.status(200).json({ data: ttlCtn });
+    return res.status(200).json({ data: [0].TTL_SCAN });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
@@ -223,65 +235,59 @@ const generateCartonObjects = (shipment, noOF) => {
   return cartons;
 };
 
+//untuk auto post shipment scan
 export const scanShipmentBox = async (req, res) => {
   try {
     const dataBox = req.body;
 
-    //check item sekalian check upc
-    const checkPoItem = await db.query(qryCheckPoItem, {
+    if (!dataBox) {
+      return res.json({
+        status: "error",
+        message: "Data Tidak Ditemukan",
+      });
+    }
+
+    const formatingPost = dataBox
+      .filter((rslt) => rslt.SCAN_RESULT !== null)
+      .map((items) => ({
+        SHIPMENT_PLAN_ID: items.ID,
+        UPC: items.PACK_UPC,
+        SHIPMENT_ID: items.SHIPMENT_ID,
+        PO_ITEM: items.PO_ITEM,
+        PO_NUMBER: items.PO_BUYER,
+        CONTAINER_ID: items.CONTAINER_ID,
+        SCAN_QTY: items.SCAN_RESULT,
+      }));
+
+    const arrShipId = formatingPost.map((items) => items.SHIPMENT_PLAN_ID);
+    await PackingShipScan.destroy({
+      where: {
+        SHIPMENT_PLAN_ID: {
+          [Op.in]: arrShipId,
+        },
+      },
+    });
+
+    const postScan = await PackingShipScan.bulkCreate(formatingPost, {
+      updateOnDuplicate: ["SCAN_QTY"],
+      where: {
+        SHIPMENT_PLAN_ID: ["SHIPMENT_PLAN_ID  "],
+      },
+    });
+
+    const newTtlCtn = await db.query(qryTtlCtnClp, {
       replacements: {
-        id: dataBox.SHIPMENT_PLAN_ID,
-        upc: dataBox.UPC,
-        conId: dataBox.CONTAINER_ID,
+        sid: dataBox[0].SHIPMENT_ID,
+        conId: dataBox[0].CONTAINER_ID,
       },
       type: QueryTypes.SELECT,
     });
 
-    if (checkPoItem.length === 0) {
-      return res.json({
-        status: "error",
-        message: "UPC Tidak Ditemukan",
-      });
-    }
-
-    // if (checkPoItem.length === 2) {
-    //   return res.json({
-    //     status: "pending",
-    //     data: checkPoItem,
-    //     message: "Terdapat 2 PO Item",
-    //   });
-    // }
-
-    //compare saldo container dengan planing
-    const checkBlc = await db.query(checkBlcShipScan, {
-      replacements: {
-        id: dataBox.SHIPMENT_PLAN_ID,
-        upc: dataBox.UPC,
-        // sid: dataBox.SHIPMENT_ID,
-        // conId: dataBox.CONTAINER_ID,
-      },
-      type: QueryTypes.SELECT,
-    });
-
-    if (checkBlc[0].BALANCE_SCAN === 0) {
-      return res.json({
-        status: "error",
-        message: "Melebihi Planning",
-      });
-    }
-
-    // const poItem = checkPoItem[idxPo].PO_ITEM;
-    // const dataPush = {
-    //   ...dataBox,
-    //   PO_ITEM: poItem,
-    // };
-
-    const postScan = await PackingShipScan.create(dataBox);
     if (postScan) {
       return res.json({
         status: "success",
         message: "Success Scan",
-        scanResult: checkBlc[0].SCAN_RESULT + 1,
+        scanResult: parseInt(newTtlCtn[0].TTL_SCAN),
       });
     } else {
       return res.json({ status: "error", message: "Gagal Scan" });

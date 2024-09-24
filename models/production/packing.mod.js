@@ -1316,7 +1316,7 @@ export const queryShipPlanScan = `SELECT
 FROM packing_shipment_plan a 
 LEFT JOIN (
 	SELECT 
-		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
+		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC, IFNULL(SUM(c.SCAN_QTY),0) AS SCAN_RESULT
 	FROM packing_shipment_scan c WHERE c.SHIPMENT_ID = :sid AND c.CONTAINER_ID = :conId
 	GROUP BY c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC
 ) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
@@ -1327,7 +1327,7 @@ LEFT JOIN (
   AND a.ID =  b.SHIPMENT_PLAN_ID
 WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
 
-export const qryTtlCtnClp = `SELECT COUNT(*) AS TTL_SCAN FROM packing_shipment_scan a WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
+export const qryTtlCtnClp = `SELECT SUM(COALESCE(a.SCAN_QTY, 0)) AS TTL_SCAN FROM packing_shipment_scan a WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
 
 //shipment scan detail result
 export const queryShipPlanScanResult = `SELECT 
@@ -1388,6 +1388,7 @@ export const PackingShipScan = db.define(
     PO_ITEM: { type: DataTypes.STRING },
     PO_NUMBER: { type: DataTypes.STRING },
     CONTAINER_ID: { type: DataTypes.INTEGER },
+    SCAN_QTY: { type: DataTypes.INTEGER },
     USER_ADD: { type: DataTypes.STRING },
     ADD_TIME: { type: DataTypes.DATE },
     MOD_TIME: { type: DataTypes.DATE },
@@ -1441,7 +1442,7 @@ export const PackSortSize = db.define(
 
 PackSortSize.removeAttribute("id");
 
-export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId AND a.ID = :id`;
+export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId AND a.PO_BUYER = :po`;
 
 export const checkBlcShipScan = `SELECT
  a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE, 
