@@ -6,11 +6,11 @@ import db from "../../config/database.js";
 const CalendarHoliday = db.define(
   "item_calendar_holiday",
   {
-    calendar_datate: { type: DataTypes.DATEONLY, primaryKey: true },
+    calendar_date: { type: DataTypes.DATEONLY, primaryKey: true },
     calendar_holiday_type: { type: DataTypes.STRING },
     calendar_holiday_reason: { type: DataTypes.STRING },
   },
-  { freezeTableName: true }
+  { freezeTableName: true, createdAt: false, updatedAt: false }
 );
 
 export default CalendarHoliday;
