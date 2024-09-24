@@ -2,11 +2,27 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import { dbSPL } from "../../config/dbAudit.js";
 
-export const qryEmployeAktif = `SELECT a.Nik, a.NamaLengkap, a.NamaDepartemen, a.TanggalMasuk, 
-		CASE WHEN  a.JenisKelamin = 1 THEN 'PEREMPUAN' ELSE 'LAKI-LAKI' END AS JenisKelamin,
-		a.Posisi
-FROM sumbiri_employee a 
-WHERE a.StatusAktif = 0`;
+export const qryEmployeAktif = `SELECT
+	se.Nik,
+	se.NamaLengkap,
+	se.TanggalMasuk, 
+	CASE
+		WHEN se.JenisKelamin = 1 THEN 'PEREMPUAN'
+		ELSE 'LAKI-LAKI'
+	END AS JenisKelamin,
+	md.NameDept AS NamaDepartemen,
+	ms.Name AS NamaSubDepartemen,
+	mp.Name AS NamaPosisi,
+	se.StatusKaryawan,
+	CASE 
+		WHEN se.StatusAktif = 0 THEN 'AKTIF'
+		ELSE 'NON AKTIF'
+	END AS StatusAktif
+FROM sumbiri_employee se
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
+LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
+WHERE se.StatusAktif = 0`;
 
 
 
