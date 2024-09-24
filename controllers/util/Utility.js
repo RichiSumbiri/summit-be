@@ -258,3 +258,59 @@ export function cstArrSortByNumberFirst(arr) {
     return 0; // Angka dan huruf sama
   });
 }
+
+
+
+export function replaceMonthToIndonesian(dateStr) {
+  // English to Indonesian month mapping
+  const monthMapping = {
+      "January": "Januari",
+      "February": "Februari",
+      "March": "Maret",
+      "April": "April",
+      "May": "Mei",
+      "June": "Juni",
+      "July": "Juli",
+      "August": "Agustus",
+      "September": "September",
+      "October": "Oktober",
+      "November": "November",
+      "December": "Desember"
+  };
+
+  // Replace each English month with the corresponding Indonesian month
+  for (const [engMonth, indMonth] of Object.entries(monthMapping)) {
+      const regex = new RegExp(engMonth, "g"); // create regex to match all instances
+      dateStr = dateStr.replace(regex, indMonth);
+  }
+
+  return dateStr;
+}
+
+
+
+export function convertMonthToRoman(monthNumber) {
+  // Array of Roman numerals for each month (1-12)
+  const romanMonths = [
+  "I",   // January
+  "II",  // February
+  "III", // March
+  "IV",  // April
+  "V",   // May
+  "VI",  // June
+  "VII", // July
+  "VIII",// August
+  "IX",  // September
+  "X",   // October
+  "XI",  // November
+  "XII"  // December
+  ];
+
+  // Check if month number is valid (1-12)
+  if (monthNumber < 1 || monthNumber > 12) {
+      return "Invalid month number";
+  }
+
+  // Return the corresponding Roman numeral
+  return romanMonths[monthNumber - 1];
+}
