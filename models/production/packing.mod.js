@@ -1444,25 +1444,25 @@ PackSortSize.removeAttribute("id");
 
 export const qryCheckPoItem = `SELECT a.PACK_UPC, a.PO_ITEM FROM packing_shipment_plan a WHERE a.PACK_UPC = :upc AND a.CONTAINER_ID = :conId AND a.PO_BUYER = :po`;
 
-export const checkBlcShipScan = `SELECT
- a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE, 
- a.TTL_CTN, IFNULL(b.SCAN_RESULT, 0) SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
-FROM packing_shipment_plan a 
-LEFT JOIN (
-	SELECT 
-		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID,  c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
-	FROM packing_shipment_scan c 
-	WHERE c.SHIPMENT_PLAN_ID = :id
-    AND c.UPC = :upc 
-  -- ADN  c.PO_ITEM = :poItem
-	GROUP BY c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  c.PO_ITEM
-) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
-	AND a.PACK_UPC = b.UPC 
-	AND a.PO_ITEM = b.PO_ITEM
-	AND a.CONTAINER_ID = b.CONTAINER_ID
-	AND a.ID = b.SHIPMENT_PLAN_ID
-WHERE a.ID = :id
-  AND a.PACK_UPC = :upc `;
+// export const checkBlcShipScan = `SELECT
+//  a.SHIPMENT_ID, a.PO_BUYER, a.PO_ITEM, a.PACK_METHODE,  a.CTN_MEAS, a.STYLE, a.COLOR_CODE,
+//  a.TTL_CTN, IFNULL(b.SCAN_RESULT, 0) SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+// FROM packing_shipment_plan a
+// LEFT JOIN (
+// 	SELECT
+// 		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID,  c.PO_ITEM, c.CONTAINER_ID, c.UPC,  COUNT(c.UPC) SCAN_RESULT
+// 	FROM packing_shipment_scan c
+// 	WHERE c.SHIPMENT_PLAN_ID = :id
+//     AND c.UPC = :upc
+//   -- ADN  c.PO_ITEM = :poItem
+// 	GROUP BY c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC,  c.PO_ITEM
+// ) b ON b.SHIPMENT_ID = a.SHIPMENT_ID
+// 	AND a.PACK_UPC = b.UPC
+// 	AND a.PO_ITEM = b.PO_ITEM
+// 	AND a.CONTAINER_ID = b.CONTAINER_ID
+// 	AND a.ID = b.SHIPMENT_PLAN_ID
+// WHERE a.ID = :id
+//   AND a.PACK_UPC = :upc `;
 
 export const qryGetLisCtnStylBoxByr = `SELECT DISTINCT a.BOX_ID, b.BOX_NAME, b.BOX_CODE, b.LWH_UOM, b.LENGTH, b.WIDTH, b.HEIGHT, a.ORDER_STYLE_DESCRIPTION, a.PACKING_METHODE
 FROM pack_carton_style a
@@ -1477,7 +1477,7 @@ FROM (
 	FROM  packing_shipment_plan  a 
 	LEFT JOIN packing_ship_container b ON b.CONTAINER_ID = a.CONTAINER_ID
 	LEFT JOIN (
-		SELECT a.SHIPMENT_ID, a.CONTAINER_ID, COUNT(*) TTL_RESULT
+		SELECT a.SHIPMENT_ID, a.CONTAINER_ID, SUM(a.SCAN_QTY) TTL_RESULT
 		FROM packing_shipment_scan a 
 		WHERE a.SHIPMENT_ID IN (
 				SELECT DISTINCT c.SHIPMENT_ID FROM  packing_shipment_plan  c WHERE c.SHIPMENT_DATE = :shipDate 
