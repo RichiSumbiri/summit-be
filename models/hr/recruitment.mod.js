@@ -256,7 +256,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Work1Salary: {
-    type: DataTypes.DECIMAL(15, 2),
+    type: DataTypes.STRING(20),
     allowNull: true
   },
   Work1Reason: {
@@ -280,7 +280,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Work2Salary: {
-    type: DataTypes.DECIMAL(15, 2),
+    type: DataTypes.STRING(20),
     allowNull: true
   },
   Work2Reason: {
@@ -304,7 +304,7 @@ export const SumbiriPelamar =  dbSPL.define('sumbiri_pelamar', {
     allowNull: true
   },
   Work3Salary: {
-    type: DataTypes.DECIMAL(15, 2),
+    type: DataTypes.STRING(20),
     allowNull: true
   },
   Work3Reason: {
