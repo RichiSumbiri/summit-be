@@ -239,7 +239,7 @@ export const postLamaran = async(req,res) => {
 export const postApproveLamaran = async(req,res) => {
     try {
         const dataLamaran   = req.body.dataLamaran;
-        const newLamaran    = await SumbiriPelamar.upsert({
+        const newLamaran    = await SumbiriPelamar.update({
             ApprovalStatus: dataLamaran.ApprovalStatus,
             ApprovalTime: dataLamaran.ApprovalTime,
             ApprovalRemark: dataLamaran.ApprovalRemark,
