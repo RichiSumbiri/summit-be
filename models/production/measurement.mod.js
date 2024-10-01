@@ -162,16 +162,32 @@ FROM measurement_qc_output a
 LEFT JOIN measurement_chart b ON a.MES_CHART_NO = b.MES_CHART_NO
 WHERE a.BARCODE_SERIAL = :barcodeSerial  AND a.SITE_NAME = :siteName AND a.LINE_NAME = :lineName AND a.SIZE_CODE = :sizeCode`;
 
-export const QryMeasCheck = `SELECT n.BARCODE_SERIAL, COUNT(n.BARCODE_SERIAL) CHECK_COUNT
+export const QryMeasCheck = `SELECT 
+	n.BARCODE_SERIAL, COUNT(n.BARCODE_SERIAL) AS CHECK_COUNT
 FROM (
 	SELECT a.BARCODE_SERIAL
-	FROM measurement_qc_output a
-	WHERE a.BARCODE_SERIAL IN (
-	  	SELECT DISTINCT a.BARCODE_SERIAL FROM scan_sewing_in a
-		LEFT JOIN weekly_prod_sch_detail g ON a.SCH_ID = g.SCH_ID 
-		LEFT JOIN item_siteline e ON e.ID_SITELINE = g.SCHD_ID_SITELINE
-		LEFT JOIN scan_sewing_out i ON i.BARCODE_SERIAL = a.BARCODE_SERIAL
-		WHERE g.SCHD_PROD_DATE <= :schDate AND g.SCHD_PROD_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND a.SEWING_SCAN_LOCATION = :sitename  AND 
-		e.LINE_NAME = :linename AND ISNULL(i.BARCODE_SERIAL) 
-	) GROUP BY a.BARCODE_SERIAL, a.MES_SEQ
-) n GROUP BY n.BARCODE_SERIAL`;
+	 FROM scan_sewing_in a
+	LEFT JOIN weekly_prod_sch_detail g ON a.SCH_ID = g.SCH_ID 
+	LEFT JOIN item_siteline e ON e.ID_SITELINE = g.SCHD_ID_SITELINE
+	LEFT JOIN scan_sewing_out i ON i.BARCODE_MAIN = a.BARCODE_SERIAL
+	INNER JOIN  measurement_qc_output m ON a.BARCODE_SERIAL = m.BARCODE_SERIAL
+	WHERE g.SCHD_PROD_DATE <= :schDate
+	AND g.SCHD_PROD_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+	AND a.SEWING_SCAN_LOCATION = :sitename  AND 
+	e.LINE_NAME = :linename AND ISNULL(i.BARCODE_SERIAL) 
+	GROUP BY a.BARCODE_SERIAL, m.MES_SEQ
+) n
+GROUP BY n.BARCODE_SERIAL`;
+// export const QryMeasCheck = `SELECT n.BARCODE_SERIAL, COUNT(n.BARCODE_SERIAL) CHECK_COUNT
+// FROM (
+// 	SELECT a.BARCODE_SERIAL
+// 	FROM measurement_qc_output a
+// 	WHERE a.BARCODE_SERIAL IN (
+// 	  	SELECT DISTINCT a.BARCODE_SERIAL FROM scan_sewing_in a
+// 		LEFT JOIN weekly_prod_sch_detail g ON a.SCH_ID = g.SCH_ID
+// 		LEFT JOIN item_siteline e ON e.ID_SITELINE = g.SCHD_ID_SITELINE
+// 		LEFT JOIN scan_sewing_out i ON i.BARCODE_SERIAL = a.BARCODE_SERIAL
+// 		WHERE g.SCHD_PROD_DATE <= :schDate AND g.SCHD_PROD_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND a.SEWING_SCAN_LOCATION = :sitename  AND
+// 		e.LINE_NAME = :linename AND ISNULL(i.BARCODE_SERIAL)
+// 	) GROUP BY a.BARCODE_SERIAL, a.MES_SEQ
+// ) n GROUP BY n.BARCODE_SERIAL`;
