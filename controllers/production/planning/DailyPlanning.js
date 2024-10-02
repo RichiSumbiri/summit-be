@@ -305,7 +305,7 @@ export const postSwitchToOt = async (req, res) => {
         ACT_TARGET: 0,
         PLAN_MP: null,
         PLAN_MP_OT: item.PLAN_MP ? item.PLAN_MP : item.PLAN_MP_OT,
-        PLAN_WH: item.PLAN_WH ? item.PLAN_WH : item.PLAN_WH_OT,
+        PLAN_WH_OT: item.PLAN_WH ? item.PLAN_WH : item.PLAN_WH_OT,
         ACT_MP: null,
         ACT_MP_OT: item.ACT_MP ? item.ACT_MP : item.ACT_MP_OT,
         PLAN_EH: null,
