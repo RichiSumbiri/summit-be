@@ -324,7 +324,7 @@ LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection
 `;
 
 export const sqlFindEmpByNIK 	= sqlFindEmp + `WHERE emp.Nik = :empnik`;
-export const sqlFindEmpByNIKKTP = sqlFindEmp +  `WHERE emp.NikKTP = :nikktp`;
+export const sqlFindEmpByNIKKTP = sqlFindEmp +  `WHERE emp.NikKTP=:nikKTP`;
 
 modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");

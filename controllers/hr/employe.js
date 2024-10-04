@@ -120,10 +120,10 @@ export const getEmployeAktif = async (req, res) => {
 
 export const getEmpByNIK = async(req,res) => {
   try {
-    const empnik  = req.params.empnik;
+    const nikktp  = parseInt(req.params.empnik);
     const data    = await dbSPL.query(sqlFindEmpByNIK, {
       replacements: {
-        empnik: empnik
+        empnik: nikktp
       }, type: QueryTypes.SELECT
     });
     return res.status(200).json({
@@ -142,16 +142,16 @@ export const getEmpByNIK = async(req,res) => {
 
 export const getEmpByNIKKTP = async(req,res) => {
   try {
-    const nikktp  = req.params.nikktp;
-    const data    = await dbSPL.query(sqlFindEmpByNIKKTP, {
+    const nikktp  = parseInt(req.params.nikktp);
+    const dataemp = await dbSPL.query(sqlFindEmpByNIKKTP, {
       replacements: {
-        nikktp: nikktp
+        nikKTP: nikktp
       }, type: QueryTypes.SELECT
     });
     return res.status(200).json({
       success: true,
       message: "success get employee by nik ktp",
-      data: data,
+      data: dataemp,
     });
   } catch(err){
     res.status(404).json({
