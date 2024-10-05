@@ -227,7 +227,6 @@ export const postNewEmploye = async(req,res) => {
       message: "success post new employee",
     });
   } catch(err){
-    console.log(err);
     res.status(404).json({
       success: false,
       data: err,
@@ -235,3 +234,57 @@ export const postNewEmploye = async(req,res) => {
     });
   }
 }
+
+
+
+export const updateEmp = async(req,res) => {
+  try {
+    const data        = req.body.dataEmp;
+    const postEmp     = modelSumbiriEmployee.update(
+      {
+        FullName: data.FullName,
+        NikKTP: data.NikKTP,
+        BirthPlace: data.BirthPlace,
+        BirthDate: data.BirthDate,
+        JenisKelamin: data.JenisKelamin,
+        NPWP: data.NPWP,
+        BPJSKet: data.BPJSKet,
+        BPJSKes: data.BPJSKes,
+        Agama: data.Agama,
+        StatusPerkawinan: data.StatusPerkawinan,
+        EduLastLevel: data.EduLastLevel,
+        AddressKTPProvID: data.AddressKTPProvID,
+        AddressKTPKabKotaID: data.AddressKTPKabKotaID,
+        AddressKTPKecamatanID: data.AddressKTPKecamatanID,
+        AddressKTPKelurahanID: data.AddressKTPKelurahanID,
+        AddressKTPRT: data.AddressKTPRT,
+        AddressKTPRW: data.AddressKTPRW,
+        AlamatKTPDetail: data.AlamatKTPDetail,
+        Phone: data.Phone,
+        Email: data.Email,
+        IDDepartemen: data.IDDepartemen,
+        IDSubDepartemen: data.IDSubDepartemen,
+        IDPosisi: data.IDPosisi,
+        IDSection: data.IDSection,
+        JenisUpah: data.JenisUpah,
+        StatusKaryawan: data.StatusKaryawan,
+        TanggalMasuk: data.TanggalMasuk
+    }, {
+      where: {
+        Nik: data.Nik
+      }
+    });
+    if(postEmp){
+      return res.status(200).json({
+        success: true,
+        message: `success update employee NIK ${data.Nik}`,
+      });
+    }
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error cannot post new employee",
+    });
+  }
+} 
