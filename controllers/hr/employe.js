@@ -260,7 +260,7 @@ export const updateEmp = async(req,res) => {
         AddressKTPRT: data.AddressKTPRT,
         AddressKTPRW: data.AddressKTPRW,
         AlamatKTPDetail: data.AlamatKTPDetail,
-        Phone: data.Phone,
+        NoTelp1: data.Phone,
         Email: data.Email,
         IDDepartemen: data.IDDepartemen,
         IDSubDepartemen: data.IDSubDepartemen,
