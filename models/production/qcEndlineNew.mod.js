@@ -15,24 +15,15 @@ SELECT
     SUM(M.GOOD - M.TTL_SEWING_OUT) BAL_TRANSFER, 
     SUM(M.SCH_QTY - M.TTL_SEWING_OUT) BAL_SCHEDULE
 FROM (
-SELECT a.SCH_ID, a.SIZE_CODE,
-	IFNULL(a.SCH_SIZE_QTY, 0) AS SCH_QTY,
+    SELECT a.SCH_ID, a.SIZE_CODE,
+        IFNULL(a.SCH_SIZE_QTY, 0) AS SCH_QTY,
         IFNULL(e.TTL_SEWING_IN, 0) AS TTL_SEWING_IN,
         IFNULL(e.BDL_QTY, 0) AS BDL_QTY,
         IFNULL(f.REPAIRED + f.RTT, 0) AS GOOD,
         IFNULL(f.TOTAL_CHECKED, 0) AS TOTAL_CHECKED,
         IFNULL(f.DEFECT + f.BS, 0) AS DEFECT_BS,
         IFNULL(g.TTL_SEWING_OUT, 0) AS TTL_SEWING_OUT
-	FROM (
-	    SELECT DISTINCT  a.SCH_ID, a.SIZE_CODE, SUM(a.SCH_SIZE_QTY) SCH_SIZE_QTY
-	    FROM weekly_sch_size a
-		 WHERE a.SCH_ID IN (
-	        SELECT a.SCH_ID FROM weekly_prod_sch_detail a 
-			  LEFT JOIN item_siteline b ON (a.SCHD_ID_SITELINE = b.ID_SITELINE)
-			  WHERE a.SCHD_PROD_DATE = CURDATE() AND a.SCHD_SITE = 'SBR_02A' AND b.LINE_NAME = 'LINE-03'
-	    ) AND a.SCH_SIZE_QTY <> 0  
-	    GROUP BY a.SCH_ID, a.SIZE_CODE
-	) a 
+    FROM weekly_sch_size a  
     LEFT JOIN (
         SELECT a.SCH_ID, b.ORDER_SIZE, COUNT(*) BDL_QTY, SUM(b.ORDER_QTY) TTL_SEWING_IN
         FROM scan_sewing_in a 
@@ -72,6 +63,11 @@ SELECT a.SCH_ID, a.SIZE_CODE,
         )
         GROUP BY a.SCH_ID, b.ORDER_SIZE
     ) g ON(a.SCH_ID = g.SCH_ID AND a.SIZE_CODE = g.ORDER_SIZE)
+    WHERE a.SCH_ID IN (
+        SELECT a.SCH_ID FROM weekly_prod_sch_detail a 
+		  LEFT JOIN item_siteline b ON (a.SCHD_ID_SITELINE = b.ID_SITELINE)
+		  WHERE a.SCHD_PROD_DATE = :schDate AND a.SCHD_SITE = :sitename AND b.LINE_NAME = :linename
+    ) AND a.SCH_SIZE_QTY <> 0
 ) M 
 GROUP BY M.SCH_ID, M.SIZE_CODE`;
 
