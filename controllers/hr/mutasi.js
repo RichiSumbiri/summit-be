@@ -94,10 +94,56 @@ export const newMutasi = async(req,res) => {
         }
 
     } catch(err){
-        console.error(err);
         return res.status(404).json({
             success: false,
             message: "fail post new mutasi emp"
+        });
+    }
+}
+
+
+export const updateMutasi = async(req,res) => {
+    try {
+        const dataMutasi    = req.body.dataMutasi;
+        console.log(dataMutasi);
+        const TryPutMutasi  = await sumbiriMutasiEmp.update({
+            date_mutasi: dataMutasi.TanggalMutasi,
+            destination_dept: dataMutasi.ID_Destination_Dept,
+            destination_subdept: dataMutasi.ID_Destination_SubDept,
+            destination_position: dataMutasi.ID_Destination_Position,
+            destination_section: dataMutasi.Destination_Section,
+            update_by: dataMutasi.UpdateBy,
+            update_time: moment().format('YYYY-MM-DD hh:mm:ss')
+        }, {
+            where: {
+                Nik: dataMutasi.NIK,
+                number_mutasi: dataMutasi.NoMutasi,
+            }
+        });
+        if(TryPutMutasi){
+            const updateEmp = await modelSumbiriEmployee.update({
+                IDDepartemen: dataMutasi.ID_Destination_Dept,
+                IDSubDepartemen: dataMutasi.ID_Destination_SubDept,
+                IDPosisi: dataMutasi.ID_Destination_Position,
+                IDSection: dataMutasi.Destination_Section
+            }, {
+                where: {
+                    Nik: parseInt(dataMutasi.NIK)
+                }
+            });
+            
+            if(updateEmp){
+                return res.status(200).json({
+                    success: true,
+                    message: `success update new mutasi emp`
+                });
+            }
+            
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail update mutasi emp"
         });
     }
 }

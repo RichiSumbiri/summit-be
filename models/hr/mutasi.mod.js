@@ -70,6 +70,16 @@ export const sumbiriMutasiEmp = dbSPL.define('sumbiri_mutasiemp', {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null
+    },
+    update_by: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: null
+    },
+    update_time: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'sumbiri_mutasiemp',
