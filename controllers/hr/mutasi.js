@@ -105,7 +105,6 @@ export const newMutasi = async(req,res) => {
 export const updateMutasi = async(req,res) => {
     try {
         const dataMutasi    = req.body.dataMutasi;
-        console.log(dataMutasi);
         const TryPutMutasi  = await sumbiriMutasiEmp.update({
             date_mutasi: dataMutasi.TanggalMutasi,
             destination_dept: dataMutasi.ID_Destination_Dept,
