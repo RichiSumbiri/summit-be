@@ -240,26 +240,26 @@ export const postNewEmploye = async(req,res) => {
 export const updateEmp = async(req,res) => {
   try {
     const data        = req.body.dataEmp;
-    const postEmp     = modelSumbiriEmployee.update(
+    const postEmp     = await modelSumbiriEmployee.update(
       {
         FullName: data.FullName,
-        NikKTP: data.NikKTP,
-        BirthPlace: data.BirthPlace,
-        BirthDate: data.BirthDate,
+        NikKTP: data.NikKTP.toString(),
+        TempatLahir: data.BirthPlace,
+        TanggalLahir: data.BirthDate,
         JenisKelamin: data.JenisKelamin,
-        NPWP: data.NPWP,
+        NPWP: data.NPWP.toString(),
         BPJSKet: data.BPJSKet,
         BPJSKes: data.BPJSKes,
         Agama: data.Agama,
         StatusPerkawinan: data.StatusPerkawinan,
         EduLastLevel: data.EduLastLevel,
-        AddressKTPProvID: data.AddressKTPProvID,
-        AddressKTPKabKotaID: data.AddressKTPKabKotaID,
-        AddressKTPKecamatanID: data.AddressKTPKecamatanID,
-        AddressKTPKelurahanID: data.AddressKTPKelurahanID,
-        AddressKTPRT: data.AddressKTPRT,
-        AddressKTPRW: data.AddressKTPRW,
-        AlamatKTPDetail: data.AlamatKTPDetail,
+        AlamatIDProv: parseInt(data.AddressKTPProvID),
+        AlamatIDKabKota: parseInt(data.AddressKTPKabKotaID),
+        AlamatIDKecamatan: parseInt(data.AddressKTPKecamatanID),
+        AlamatKelurahan: data.AddressKTPKelurahanID,
+        AlamatRT: parseInt(data.AddressKTPRT),
+        AlamatRW: parseInt(data.AddressKTPRW),
+        AlamatDetail: data.AddressKTPDetail,
         NoTelp1: data.Phone,
         Email: data.Email,
         IDDepartemen: data.IDDepartemen,
@@ -271,7 +271,7 @@ export const updateEmp = async(req,res) => {
         TanggalMasuk: data.TanggalMasuk
     }, {
       where: {
-        Nik: data.Nik
+        Nik: parseInt(data.Nik)
       }
     });
     if(postEmp){

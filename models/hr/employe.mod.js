@@ -95,13 +95,13 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	  primaryKey: true
 	},
 	NamaLengkap: {
-	  type: DataTypes.STRING(150),
+	  type: DataTypes.STRING(50),
 	  allowNull: true,
 	  charset: 'utf8mb4',
 	  collate: 'utf8mb4_general_ci'
 	},
 	NikKTP: {
-	  type: DataTypes.STRING(50),
+	  type: DataTypes.STRING(255),
 	  allowNull: true,
 	  charset: 'utf8mb4',
 	  collate: 'utf8mb4_general_ci'
@@ -163,8 +163,6 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	TempatLahir: {
 	  type: DataTypes.STRING(100),
 	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
 	},
 	TanggalLahir: {
 	  type: DataTypes.DATEONLY,
@@ -173,8 +171,6 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	StatusPerkawinan: {
 	  type: DataTypes.STRING(20),
 	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
 	},
 	Agama: {
 	  type: DataTypes.STRING(50),
