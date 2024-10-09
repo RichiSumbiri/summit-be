@@ -8,9 +8,13 @@ export const sumbiriKontrakKerja = dbSPL.define('sumbiri_spkk', {
 		primaryKey: true,
 	  },
 	  Nik: {
-		type: DataTypes.STRING(10),
+		type: DataTypes.STRING(255),
 		allowNull: false,
 	  },
+	  NikKTP: {
+		type: DataTypes.STRING(255),
+		allowNull: false,
+	  }, 
 	  PeriodeKontrak: {
 		type: DataTypes.INTEGER,
 		allowNull: true,
@@ -48,6 +52,7 @@ export const sumbiriKontrakKerja = dbSPL.define('sumbiri_spkk', {
 export const querySPKK = `SELECT
 	ss.IDSPKK,
 	ss.Nik,
+	ss.NikKTP,
 	se.NamaLengkap,
 	se.TempatLahir,
 	se.TanggalLahir,
