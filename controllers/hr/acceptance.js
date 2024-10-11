@@ -41,7 +41,7 @@ export const postNewEmp = async(req,res) => {
         let postEmp;
 
         if(checkExistingEMP.length !== 0){
-            postEmp     = modelSumbiriEmployee.update({
+            postEmp     = await modelSumbiriEmployee.update({
                 BPJSKes: dataNewEmp.BPJSKes,
                 BPJSKet: dataNewEmp.BPJSKet,
                 NPWP: dataNewEmp.NPWP,
@@ -116,7 +116,7 @@ export const postNewEmp = async(req,res) => {
             
            
     
-            postEmp     = modelSumbiriEmployee.create({
+            postEmp     = await modelSumbiriEmployee.create({
                 Nik: newNik,
                 NikKTP: dataNewEmp.NikKTP,
                 BPJSKes: dataNewEmp.BPJSKes,
