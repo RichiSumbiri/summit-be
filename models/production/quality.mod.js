@@ -48,6 +48,27 @@ export const QcType = db.define(
   }
 );
 
+export const listGroupShift = db.define(
+  "item_group_shift",
+  {
+    GROUP_SHIFT_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true,
+    },
+    GROUP_SHIFT_NAME: { type: DataTypes.STRING, allowNull: false },
+    GROUP_SHIFT_DEPT: { type: DataTypes.STRING },
+    GROUP_SHIFT_DESC: { type: DataTypes.STRING },
+    GROUP_SHIFT_COLOR: { type: DataTypes.STRING },
+  },
+  {
+    freezeTableName: true,
+    createdAt: false,
+    updatedAt: false,
+  }
+);
+
 export const QcRemarks = db.define(
   "qc_endline_remark",
   {
@@ -93,6 +114,8 @@ export const QcUsers = db.define(
     QC_USER_ADD_ID: { type: DataTypes.INTEGER },
     QC_USER_DEL: { type: DataTypes.INTEGER },
     QC_USER_MOD_ID: { type: DataTypes.INTEGER },
+    QC_USER_MOD_ID: { type: DataTypes.INTEGER },
+    GROUP_SHIFT_ID: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE },
   },
@@ -103,10 +126,11 @@ export const QcUsers = db.define(
   }
 );
 
-export const QueryGetListUserQc = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_TYPE_ID, c.QC_TYPE_NAME, a.ID_SITELINE,  b.SITE_NAME, b.LINE_NAME, b.SHIFT, a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL
+export const QueryGetListUserQc = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_TYPE_ID, c.QC_TYPE_NAME, a.ID_SITELINE,  b.SITE_NAME, b.LINE_NAME, b.SHIFT, a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL, d.GROUP_SHIFT_NAME, d.GROUP_SHIFT_ID
 FROM qc_inspection_user a
 LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
 LEFT JOIN qc_inspection_type c ON c.QC_TYPE_ID = a.QC_TYPE_ID 
+LEFT JOIN item_group_shift d ON d.GROUP_SHIFT_ID = a.GROUP_SHIFT_ID
 WHERE a.QC_USER_DEL <> '1'
 `;
 

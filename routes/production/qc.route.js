@@ -10,10 +10,15 @@ import {
   getQcEndSumPartDefCode,
 } from "../../controllers/production/quality/QcEndlineRep.js";
 import {
+  createGroupShift,
   createUserQC,
+  deleteUserGroup,
   deleteUserQC,
+  getListGroupShift,
   getListQcType,
   getListUserQc,
+  updateGroupShift,
+  updateUserGroup,
   updateUserQc,
 } from "../../controllers/production/quality/QcSetup.js";
 import {
@@ -40,13 +45,19 @@ const router = express.Router();
 // QC Route
 
 router.get("/list-type", getListQcType);
+router.get("/list-group-shift", getListGroupShift);
 router.get("/users", getListUserQc);
 router.get("/part", getListPart);
 router.get("/defect", getListDefect);
 
 router.post("/users", createUserQC);
 router.patch("/users", updateUserQc);
+router.patch("/users-group", updateUserGroup);
 router.patch("/delete/users/:id", deleteUserQC);
+
+router.post("/group-shift/", createGroupShift);
+router.patch("/group-shift/", updateGroupShift);
+router.delete("/delete/group/:id", deleteUserGroup);
 
 router.post("/endline/act-manpower", SetActualMp);
 

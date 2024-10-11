@@ -1,7 +1,8 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 
-export const queryGetEventList = `SELECT a.EVENT_ID id, a.EVENT_TITLE title, a.EVENT_START_TIME 'start', -- a.EVENT_END_TIME 'end',
+export const queryGetEventList = `SELECT a.EVENT_ID id, a.EVENT_TITLE title, a.EVENT_START_TIME 'start', a.EVENT_END_TIME 'end',
+a.EVENT_COLOR AS backgroundColor,
 a.EVENT_DESCRIPTION, a.EVENT_TYPE, a.EVENT_LOCATION
 FROM event_and_traning a WHERE YEAR(a.EVENT_START_TIME) = :year`;
 

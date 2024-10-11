@@ -16,6 +16,7 @@ import {
   rapairedPost,
   sewingScanOutQrSplit,
 } from "../../controllers/production/quality/QcEndlineNew.js";
+// import { postEndlineQc14 } from "../../controllers/production/quality/QcEndLineVer14.js";
 const router = express.Router();
 
 //planning size endline
@@ -40,4 +41,7 @@ router.post("/qr/split-transfer/", addAndTransferSplit);
 router.post("/qr/split-transfer-one/", sewingScanOutQrSplit);
 router.patch("/repaired/", rapairedPost);
 router.patch("/exe-undo/", handleExeUndo);
+
+//version 1.4
+// router.post("/output-14/", postEndlineQc14);
 export default router;
