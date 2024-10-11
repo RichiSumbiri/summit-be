@@ -4,8 +4,30 @@ import { dbSPL } from "../../config/dbAudit.js";
 
 export const qryEmployeAktif = `SELECT
 	se.Nik,
+	se.NikKTP,
+	se.NPWP,
+	se.BPJSKes,
+	se.BPJSKet,
 	se.NamaLengkap,
-	se.TanggalMasuk, 
+	se.TempatLahir,
+	se.TanggalLahir,
+	se.TanggalMasuk,
+	se.Agama,
+	se.JenjangPendidikan,
+	se.JenisUpah,
+	CASE 
+		WHEN se.StatusPerkawinan = 'BK' THEN 'BELUM KAWIN'
+		WHEN se.StatusPerkawinan = 'K' THEN 'KAWIN'
+		WHEN se.StatusPerkawinan = 'JDH' THEN 'JANDA / DUDA HIDUP'
+		WHEN se.StatusPerkawinan = 'JDM' THEN 'JANDA / DUDA MATI'
+	END AS StatusPerkawinan,
+	map2.nama_prov AS AlamatNamaProv,
+	mak.nama_kabkota AS AlamatNamaKabKota,
+	mak2.nama_kecamatan AS AlamatNamaKecamatan,
+	se.AlamatKelurahan AS AlamatNamaKelurahan,
+	se.AlamatRT,
+	se.AlamatRW,
+	se.AlamatDetail,
 	CASE
 		WHEN se.JenisKelamin = 1 THEN 'PEREMPUAN'
 		ELSE 'LAKI-LAKI'
@@ -13,6 +35,7 @@ export const qryEmployeAktif = `SELECT
 	md.NameDept AS NamaDepartemen,
 	ms.Name AS NamaSubDepartemen,
 	mp.Name AS NamaPosisi,
+	ms2.Name AS NamaSection,
 	se.StatusKaryawan,
 	CASE 
 		WHEN se.StatusAktif = 0 THEN 'AKTIF'
@@ -22,6 +45,10 @@ FROM sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
 LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
+LEFT JOIN master_section ms2 ON ms2.IDSection = se.IDSection 
+LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = se.AlamatIDProv 
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota 
+LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
 WHERE se.StatusAktif = 0`;
 
 
@@ -68,13 +95,13 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	  primaryKey: true
 	},
 	NamaLengkap: {
-	  type: DataTypes.STRING(150),
+	  type: DataTypes.STRING(50),
 	  allowNull: true,
 	  charset: 'utf8mb4',
 	  collate: 'utf8mb4_general_ci'
 	},
 	NikKTP: {
-	  type: DataTypes.STRING(50),
+	  type: DataTypes.STRING(255),
 	  allowNull: true,
 	  charset: 'utf8mb4',
 	  collate: 'utf8mb4_general_ci'
@@ -136,8 +163,6 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	TempatLahir: {
 	  type: DataTypes.STRING(100),
 	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
 	},
 	TanggalLahir: {
 	  type: DataTypes.DATEONLY,
@@ -146,8 +171,6 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	StatusPerkawinan: {
 	  type: DataTypes.STRING(20),
 	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
 	},
 	Agama: {
 	  type: DataTypes.STRING(50),

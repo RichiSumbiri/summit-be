@@ -5,6 +5,7 @@ import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMa
 import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } from "../../controllers/hr/jobposting.js";
 import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.js";
 import { getKontrakKerjaByRange, newKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
+import { getMutasiEmpByDate, newMutasi, updateMutasi } from "../../controllers/hr/mutasi.js";
 
 const router = express.Router();
 
@@ -48,6 +49,12 @@ router.post("/new-employee", postNewEmploye);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.post("/update-emp", updateEmp);
+
+// mutasi karyawan
+router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);
+router.post("/mutasi-employee", newMutasi);
+router.put("/mutasi-employee", updateMutasi);
+
 
 // event
 router.get("/event/:year", getEventList);

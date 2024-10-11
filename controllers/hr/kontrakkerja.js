@@ -61,24 +61,40 @@ export const newKontrakKerja = async(req,res) => {
         const yearNow       = moment().format('YYYY');
         const monthNow      = convertMonthToRoman(moment().format('MM'));
         const formatIDSPKK  = `/HRD/SBR/${monthNow}/${yearNow}`;
+        
+        
         let lastSPKID;
-        let nomorUrut       = 1;
-        const findLastSPKK = await dbSPL.query(queryLastSPKK, {
+        let nomorUrut;
+        
+        const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
             replacements: {
                 formatSPKK: '%'+formatIDSPKK
             }, type: QueryTypes.SELECT
-        })
+        });
+        
         if(findLastSPKK.length===0){
             nomorUrut   = 1;
         } else {
-            lastSPKID   = findLastSPKK[0].IDSPKK;
-            nomorUrut   = parseInt(lastSPKID.substring(0, 3)) + 1;
+            lastSPKID       = findLastSPKK[0].IDSPKK;
+            const lastCount = lastSPKID.match(/-(\d{3})\//);
+            nomorUrut   = parseInt(lastCount[1]) + 1;
         }
+        
         const newNoUrut     = nomorUrut.toString().padStart(3, '0');
-        const newIdSPKK     = newNoUrut + formatIDSPKK;
+        
+        const CountSPKK     = await sumbiriKontrakKerja.count({
+            where: {
+                Nik: dataSPKK.Nik,
+                NikKTP: dataSPKK.NikKTP,    
+            }
+        });
+        
+        const stringSPKK    = `KK${convertMonthToRoman(parseInt(CountSPKK)+1)}-`;
+        const newIdSPKK     = stringSPKK + newNoUrut + formatIDSPKK;
         const newSPKK       = await sumbiriKontrakKerja.create({
             IDSPKK: newIdSPKK,
-            Nik: dataSPKK.Nik,
+            Nik: dataSPKK.Nik.toString(),
+            NikKTP: dataSPKK.NikKTP.toString(),
             PeriodeKontrak: dataSPKK.PeriodeKontrak,
             StartKontrak: dataSPKK.StartKontrak,
             FinishKontrak: dataSPKK.FinishKontrak,
@@ -92,7 +108,7 @@ export const newKontrakKerja = async(req,res) => {
             });  
         }
     } catch(err){
-        console.log(err);
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "fail create new kontrak kerja"
