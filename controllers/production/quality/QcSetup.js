@@ -2,6 +2,7 @@ import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import bcryptjs from "bcryptjs";
 import {
+  listGroupShift,
   QcType,
   QcUsers,
   QueryGetListUserQc,
@@ -19,6 +20,50 @@ export const getListQcType = async (req, res) => {
       data: error,
     });
   }
+};
+
+export const getListGroupShift = async (req, res) => {
+  try {
+    const listgroup = await listGroupShift.findAll({});
+
+    return res.status(200).json(listgroup);
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+//create group shift
+export const createGroupShift = async (req, res) => {
+  const dataGroup = req.body;
+  if (!dataGroup) return res.status(404).json({ message: "tidak ada data" });
+  await listGroupShift.create(dataGroup);
+  const newGroup = await listGroupShift.findAll({});
+
+  res.json({
+    data: newGroup,
+    message: "Group Added",
+  });
+};
+
+export const updateGroupShift = async (req, res) => {
+  const dataGroup = req.body;
+  if (!dataGroup) return res.status(404).json({ message: "tidak ada data" });
+  await listGroupShift.update(dataGroup, {
+    where: {
+      GROUP_SHIFT_ID: dataGroup.GROUP_SHIFT_ID,
+    },
+  });
+  const newGroup = await listGroupShift.findAll({});
+
+  res.json({
+    data: newGroup,
+    message: "Group update",
+  });
 };
 
 //controller Create User
@@ -58,6 +103,26 @@ export const updateUserQc = async (req, res) => {
   });
 };
 
+export const updateUserGroup = async (req, res) => {
+  const listDataUser = req.body;
+
+  await QcUsers.bulkCreate(listDataUser, {
+    updateOnDuplicate: ["GROUP_SHIFT_ID"],
+    where: {
+      QC_USER_ID: ["QC_USER_ID"],
+    },
+  });
+
+  const listUserQc = await db.query(QueryGetListUserQc, {
+    type: QueryTypes.SELECT,
+  });
+
+  res.json({
+    message: "User Updated",
+    data: listUserQc,
+  });
+};
+
 //controller Delete User QC
 export const deleteUserQC = async (req, res) => {
   try {
@@ -70,6 +135,43 @@ export const deleteUserQC = async (req, res) => {
       message: "User Delete",
     });
   } catch (error) {
+    res.status(404).json({
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+//controller Delete User QC
+export const deleteUserGroup = async (req, res) => {
+  try {
+    const checkExist = await QcUsers.findAll({
+      where: {
+        GROUP_SHIFT_ID: req.params.id,
+        QC_USER_ACTIVE: 1,
+        QC_USER_DEL: 0,
+      },
+    });
+    if (checkExist.length > 0)
+      return res
+        .status(404)
+        .json({ message: "Can't Delete Pls Remove Group From User" });
+
+    await listGroupShift.destroy({
+      where: {
+        GROUP_SHIFT_ID: req.params.id,
+      },
+    });
+
+    const newGroup = await listGroupShift.findAll({});
+
+    res.json({
+      message: "Group Delete",
+      data: newGroup,
+    });
+  } catch (error) {
+    console.log(error);
+
     res.status(404).json({
       message: "error processing request",
       data: error,
