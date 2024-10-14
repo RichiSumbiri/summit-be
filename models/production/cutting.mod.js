@@ -329,7 +329,7 @@ FROM (
     FROM
         order_po_listing_size a 
     WHERE
-        a.ORDER_REFERENCE_PO_NO = :poNo
+        a.ORDER_REFERENCE_PO_NO =:poNo
     GROUP BY
         a.ORDER_NO, a.MO_NO, a.ITEM_COLOR_CODE, a.ORDER_PO_ID, a.SIZE_CODE
      UNION ALL
@@ -349,9 +349,9 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CREATE_TIME) <= :date
+        c.ORDER_REFERENCE_PO_NO =:poNo AND DATE(a.CREATE_TIME) <= :date
     GROUP BY
-        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+        b.ORDER_NO, b.MO_NO,  c.ORDER_PO_ID, b.ORDER_COLOR, b.ORDER_SIZE
 
              UNION ALL
 	    SELECT
@@ -370,9 +370,9 @@ FROM (
 	 JOIN
 	     order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
 	 WHERE
-	     c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CUT_SCAN_TIME) <= :date
+	     c.ORDER_REFERENCE_PO_NO =:poNo AND DATE(a.CUT_SCAN_TIME) <= :date
 	 GROUP BY
-	     b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+	     b.ORDER_NO, b.MO_NO,  c.ORDER_PO_ID, b.ORDER_COLOR, b.ORDER_SIZE
    
 	  UNION ALL
      
@@ -392,9 +392,9 @@ FROM (
 	 JOIN
 	     order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
 	 WHERE
-	     c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CUT_SCAN_TIME) <= :date
+	     c.ORDER_REFERENCE_PO_NO =:poNo AND DATE(a.CUT_SCAN_TIME) <= :date
 	 GROUP BY
-	     b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+	     b.ORDER_NO, b.MO_NO,  c.ORDER_PO_ID, b.ORDER_COLOR, b.ORDER_SIZE
 
 	UNION ALL
 
@@ -414,9 +414,9 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CUT_SCAN_TIME) <= :date
+        c.ORDER_REFERENCE_PO_NO =:poNo AND DATE(a.CUT_SCAN_TIME) <= :date
     GROUP BY
-        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+        b.ORDER_NO, b.MO_NO,  c.ORDER_PO_ID, b.ORDER_COLOR, b.ORDER_SIZE
 
    UNION ALL
 
@@ -436,9 +436,9 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.CUT_SCAN_TIME) <= :date
+        c.ORDER_REFERENCE_PO_NO =:poNo AND DATE(a.CUT_SCAN_TIME) <= :date
     GROUP BY
-        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+        b.ORDER_NO, b.MO_NO,  c.ORDER_PO_ID, b.ORDER_COLOR, b.ORDER_SIZE
 
 	UNION ALL
 
@@ -458,12 +458,12 @@ FROM (
     JOIN
         order_po_listing c ON substring_index(b.BUYER_PO,',',-1) = c.ORDER_PO_ID
     WHERE
-        c.ORDER_REFERENCE_PO_NO = :poNo AND DATE(a.SEWING_SCAN_TIME) <= :date
+        c.ORDER_REFERENCE_PO_NO =:poNo AND DATE(a.SEWING_SCAN_TIME) <= :date
     GROUP BY
-        b.ORDER_NO, b.MO_NO, b.ORDER_COLOR, b.ORDER_SIZE
+        b.ORDER_NO, b.MO_NO, c.ORDER_PO_ID, b.ORDER_COLOR, b.ORDER_SIZE
 ) n
 GROUP BY
-    n.ORDER_REFERENCE_PO_NO, n.ORDER_NO,  n.ORDER_COLOR, n.ORDER_SIZE
+    n.ORDER_REFERENCE_PO_NO, n.ORDER_NO, n.MO_NO, n.ORDER_PO_ID, n.ORDER_COLOR,  n.ITEM_COLOR_NAME, n.ORDER_STYLE_DESCRIPTION,  n.ORDER_SIZE
 `;
 
 export const getDetailQuery = `SELECT 
