@@ -15,7 +15,7 @@ import { getDataQrTrackOne } from "../../controllers/production/reports/QrTracki
 const router = express.Router();
 
 router.get("/workerdone/:startDate/:endDate", getWorkerDoneRep);
-router.get("/bundletracking/:startDate/:endDate", getBlkTrace);
+// router.get("/bundletracking/:startDate/:endDate", getBlkTrace);
 router.get("/bundletracking-split/:barcodeserial", getTrackQrSplit);
 
 // sewing dayli output report
