@@ -179,22 +179,27 @@ export const LoginQc = async (req, res) => {
 };
 
 export const LogoutQc = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  //ambil token di client
-  if (!refreshToken) return res.sendStatus(204);
-  //jika tidak ada kasih respons forbiden
-  const user = await QcUsers.findAll({
-    where: {
-      QC_USER_REF_TOKEN: refreshToken,
-    },
-  });
-  //ambil token di server
-  if (!user[0]) return res.sendStatus(204);
-  const userId = user[0].QC_USER_ID;
-  await QcUsers.update(
-    { QC_USER_REF_TOKEN: null },
-    { where: { QC_USER_ID: userId } }
-  );
-  res.clearCookie("refreshToken");
-  return res.sendStatus(200);
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    //ambil token di client
+    if (!refreshToken) return res.sendStatus(204);
+    //jika tidak ada kasih respons forbiden
+    const user = await QcUsers.findAll({
+      where: {
+        QC_USER_REF_TOKEN: refreshToken,
+      },
+    });
+    //ambil token di server
+    if (!user[0]) return res.sendStatus(204);
+    const userId = user[0].QC_USER_ID;
+    await QcUsers.update(
+      { QC_USER_REF_TOKEN: null },
+      { where: { QC_USER_ID: userId } }
+    );
+    res.clearCookie("refreshToken");
+    return res.sendStatus(200);
+  } catch(err){
+    res.status(404).json({ message: "logout error Incorrect", msg: err });
+  }
+  
 };
