@@ -4,8 +4,8 @@ import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterKelurahan, getMasterProv, postApproveLamaran, postLamaran } from "../../controllers/hr/recruitment.js";
 import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } from "../../controllers/hr/jobposting.js";
 import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.js";
-import { getKontrakKerjaByRange, newKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
-import { getMutasiEmpByDate, newMutasi, updateMutasi } from "../../controllers/hr/mutasi.js";
+import { getKontrakKerjaByRange, newKontrakKerja, newMassKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
+import { getMutasiEmpByDate, newMutasi, newMutasiMass, updateMutasi } from "../../controllers/hr/mutasi.js";
 
 const router = express.Router();
 
@@ -41,6 +41,7 @@ router.post("/new-emp", postNewEmp);
 // kontrak kerj
 router.get("/get-kontrakkerja-range/:startDate/:endDate", getKontrakKerjaByRange);
 router.post("/new-kontrakkerja", newKontrakKerja);
+router.post("/new-mass-kontrakkerja", newMassKontrakKerja);
 router.post("/update-kontrakkerja", updateKontrakKerja);
 
 // employee management
@@ -53,6 +54,7 @@ router.post("/update-emp", updateEmp);
 // mutasi karyawan
 router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);
 router.post("/mutasi-employee", newMutasi);
+router.post("/mutasi-mass-employee", newMutasiMass);
 router.put("/mutasi-employee", updateMutasi);
 
 

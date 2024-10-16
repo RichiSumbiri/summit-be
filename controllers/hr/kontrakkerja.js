@@ -108,6 +108,75 @@ export const newKontrakKerja = async(req,res) => {
             });  
         }
     } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "fail create new kontrak kerja"
+        });
+    }
+}
+
+
+
+export const newMassKontrakKerja = async(req,res) => {
+    try {
+        const dataSPKK      = req.body.dataSPKK;
+        const yearNow       = moment().format('YYYY');
+        const monthNow      = convertMonthToRoman(moment().format('MM'));
+        const formatIDSPKK  = `/HRD/SBR/${monthNow}/${yearNow}`;
+        const SuccessSPKK   = [];
+        const ListEmp       = dataSPKK.listEmp;
+        
+        
+        let lastSPKID;
+        let nomorUrut;
+
+        for await (const row of ListEmp) {
+            const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
+                replacements: {
+                    formatSPKK: '%'+formatIDSPKK
+                }, type: QueryTypes.SELECT
+            });
+            
+            if(findLastSPKK.length===0){
+                nomorUrut   = 1;
+            } else {
+                lastSPKID       = findLastSPKK[0].IDSPKK;
+                const lastCount = lastSPKID.match(/-(\d{3})\//);
+                nomorUrut   = parseInt(lastCount[1]) + 1;
+            }
+            
+            const newNoUrut     = nomorUrut.toString().padStart(3, '0');
+            
+            const CountSPKK     = await sumbiriKontrakKerja.count({
+                where: {
+                    Nik: row.Nik,
+                    NikKTP: row.NikKTP,    
+                }
+            });
+            
+            const stringSPKK    = `KK${convertMonthToRoman(parseInt(CountSPKK)+1)}-`;
+            const newIdSPKK     = stringSPKK + newNoUrut + formatIDSPKK;
+            const newSPKK       = await sumbiriKontrakKerja.create({
+                IDSPKK: newIdSPKK,
+                Nik: row.Nik.toString(),
+                NikKTP: row.NikKTP.toString(),
+                PeriodeKontrak: dataSPKK.PeriodeKontrak,
+                StartKontrak: dataSPKK.StartKontrak,
+                FinishKontrak: dataSPKK.FinishKontrak,
+                isActive: 'Y',
+                CreateBy: dataSPKK.CreateBy
+            });
+            if(newSPKK){
+                SuccessSPKK.push({Nik: row.Nik, status: true});
+            }
+        }
+        if(SuccessSPKK.length===ListEmp.length){
+            res.status(200).json({
+                success: true,
+                message: "success post new kontrak kerja "
+            });  
+        }
+    } catch(err){
         console.error(err);
         res.status(404).json({
             success: false,

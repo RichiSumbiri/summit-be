@@ -32,8 +32,11 @@ export const qryEmployeAktif = `SELECT
 		WHEN se.JenisKelamin = 1 THEN 'PEREMPUAN'
 		ELSE 'LAKI-LAKI'
 	END AS JenisKelamin,
+	se.IDDepartemen,
 	md.NameDept AS NamaDepartemen,
+	se.IDSubDepartemen,
 	ms.Name AS NamaSubDepartemen,
+	se.IDPosisi,
 	mp.Name AS NamaPosisi,
 	ms2.Name AS NamaSection,
 	se.StatusKaryawan,
@@ -135,11 +138,11 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	  collate: 'utf8mb4_general_ci'
 	},
 	IDDepartemen: {
-	  type: DataTypes.INTEGER,
+	  type: DataTypes.INTEGER(50),
 	  allowNull: true
 	},
 	IDSubDepartemen: {
-	  type: DataTypes.INTEGER,
+	  type: DataTypes.INTEGER(50),
 	  allowNull: true
 	},
 	IDPosisi: {
