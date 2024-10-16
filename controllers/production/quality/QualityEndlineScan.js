@@ -593,7 +593,7 @@ export async function sewingScanOut(req, res) {
 
     // console.log(checkQrScanOut);
     //jika ketemu sudah di scan reject
-    if (checkQrScanOut.length !== 0) {
+    if (checkQrScanOut.length > 0) {
       return res.status(200).json({
         success: true,
         qrstatus: "danger",
@@ -607,6 +607,12 @@ export async function sewingScanOut(req, res) {
           success: true,
           qrstatus: "success",
           message: "Transfer Berhasil",
+        });
+      } else {
+        return res.status(202).json({
+          success: false,
+          qrstatus: "danger",
+          message: "QR Sudah transfer",
         });
       }
     }
@@ -638,11 +644,11 @@ export async function sewingScanOut(req, res) {
     //   }
     // }
 
-    return res.status(404).json({
-      success: false,
-      data: error,
-      message: "error transfer QR",
-    });
+    // return res.status(404).json({
+    //   success: false,
+    //   data: error,
+    //   message: "error transfer QR",
+    // });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
