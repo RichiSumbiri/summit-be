@@ -115,7 +115,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                         a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE a.ENDLINE_SCHD_DATE = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                          a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_PORD_TYPE = 'N'
                                         -- RTT n Repair
                                         UNION ALL
@@ -124,7 +124,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                                 a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL   AND a.ENDLINE_PORD_TYPE = 'N'
                                         UNION ALL
                                 -- OT
@@ -133,7 +133,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                                 0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE a.ENDLINE_SCHD_DATE = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_PORD_TYPE = 'O'
                                         UNION ALL
                                         SELECT 
@@ -141,7 +141,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                         0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND  
+                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND  
                                         a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL  AND a.ENDLINE_PORD_TYPE = 'O'
                                         UNION ALL 
                                 -- extra ot
@@ -150,7 +150,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                                 0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE a.ENDLINE_SCHD_DATE = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_PORD_TYPE = 'XO'
                                         UNION ALL
                                         SELECT 
@@ -158,7 +158,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                         0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a  
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL  AND a.ENDLINE_PORD_TYPE = 'XO'
                                 ) N
                                 GROUP BY  N.ENDLINE_ACT_SCHD_ID
