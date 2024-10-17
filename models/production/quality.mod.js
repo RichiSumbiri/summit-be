@@ -107,6 +107,7 @@ export const QcUsers = db.define(
     QC_TYPE_ID: { type: DataTypes.INTEGER },
     SITE_NAME: { type: DataTypes.STRING },
     ID_SITELINE: { type: DataTypes.STRING },
+    LINE_NAME: { type: DataTypes.STRING },
     QC_USER_PASSWORD: { type: DataTypes.STRING },
     QC_USER_REF_TOKEN: { type: DataTypes.STRING },
     QC_USER_ACTIVE: { type: DataTypes.STRING },
