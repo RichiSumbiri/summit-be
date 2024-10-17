@@ -126,6 +126,31 @@ export const QcUsers = db.define(
   }
 );
 
+export const QcUsersSchedule = db.define(
+  "qc_user_schedule",
+  {
+    ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true,
+    },
+    GROUP_ID: { type: DataTypes.INTEGER, allowNull: false },
+    SHIFT: { type: DataTypes.STRING },
+    START_DATE: { type: DataTypes.DATE },
+    END_DATE: { type: DataTypes.DATE },
+    ADD_ID: { type: DataTypes.INTEGER },
+    MOD_ID: { type: DataTypes.INTEGER },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  }
+);
+
 export const QueryGetListUserQc = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_TYPE_ID, c.QC_TYPE_NAME, a.ID_SITELINE,  b.SITE_NAME, b.LINE_NAME, b.SHIFT, a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL, d.GROUP_SHIFT_NAME, d.GROUP_SHIFT_ID
 FROM qc_inspection_user a
 LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
@@ -133,6 +158,38 @@ LEFT JOIN qc_inspection_type c ON c.QC_TYPE_ID = a.QC_TYPE_ID
 LEFT JOIN item_group_shift d ON d.GROUP_SHIFT_ID = a.GROUP_SHIFT_ID
 WHERE a.QC_USER_DEL <> '1'
 `;
+
+export const QueryGetListGroupSch = `SELECT 
+	a.ID AS id,
+	a.GROUP_ID AS groupId,
+	a.SHIFT AS category,
+	a.START_DATE AS startDate,
+	a.END_DATE AS endDate,
+	b.GROUP_SHIFT_NAME AS title,
+	b.GROUP_SHIFT_COLOR AS color
+  FROM qc_user_schedule a 
+  LEFT JOIN item_group_shift b ON a.GROUP_ID = b.GROUP_SHIFT_ID
+  WHERE ( a.START_DATE BETWEEN :startDate AND :endDate ) OR 
+  ( a.END_DATE BETWEEN :startDate AND  :endDate )
+`;
+
+export const QueryCheckSchQc = `SELECT 
+	a.ID AS id,
+	a.GROUP_ID AS groupId,
+	a.SHIFT AS category,
+	a.START_DATE AS startDate,
+	a.END_DATE AS endDate,
+	b.GROUP_SHIFT_NAME AS title,
+	b.GROUP_SHIFT_COLOR AS color
+  FROM qc_user_schedule a 
+  LEFT JOIN item_group_shift b ON a.GROUP_ID = b.GROUP_SHIFT_ID
+  WHERE a.GROUP_ID = :groupId AND a.SHIFT = :shift
+     AND (
+    (START_DATE BETWEEN :startDate AND :endDate) 
+    OR (END_DATE BETWEEN :startDate AND :endDate)
+    OR (:startDate BETWEEN START_DATE AND END_DATE)
+    OR (:endDate BETWEEN START_DATE AND END_DATE)
+  )`;
 
 export const QueryGetUserQc = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_USER_PASSWORD, a.QC_USER_REF_TOKEN, a.QC_TYPE_ID,
 c.QC_TYPE_NAME, a.ID_SITELINE,  b.SITE_NAME, b.LINE_NAME, b.SHIFT, a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL,
@@ -142,12 +199,38 @@ LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
 LEFT JOIN qc_inspection_type c ON c.QC_TYPE_ID = a.QC_TYPE_ID 
 WHERE a.QC_USER_DEL <> '1' AND a.QC_USERNAME = :userNameQc`;
 
+export const QryGetUserQcWhGroup = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_USER_PASSWORD,
+ a.QC_USER_REF_TOKEN, a.QC_TYPE_ID, d.QC_TYPE_NAME, a.GROUP_SHIFT_ID, b.GROUP_ID,
+a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL, a.SITE_NAME, a.LINE_NAME, b.SHIFT, c.ID_SITELINE,
+c.START_TIME, c.END_TIME 
+FROM qc_inspection_user a
+LEFT JOIN qc_user_schedule b ON b.GROUP_ID = a.GROUP_SHIFT_ID
+JOIN item_siteline c ON a.SITE_NAME = c.SITE_NAME
+	AND a.LINE_NAME = c.LINE_NAME
+	AND b.SHIFT = c.SHIFT
+LEFT JOIN qc_inspection_type d ON d.QC_TYPE_ID = a.QC_TYPE_ID 
+WHERE a.QC_USER_DEL <> '1' AND a.QC_USERNAME = :userNameQc
+AND CURDATE() BETWEEN b.START_DATE AND b.END_DATE;`;
+
 export const QueryGetUserQcReftok = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_USER_PASSWORD, a.QC_USER_REF_TOKEN, a.QC_TYPE_ID,
 c.QC_TYPE_NAME, a.ID_SITELINE,  b.SITE_NAME, b.LINE_NAME, b.SHIFT, a.QC_USER_ACTIVE, a.QC_USER_DEL 
 FROM qc_inspection_user a
 LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
 LEFT JOIN qc_inspection_type c ON c.QC_TYPE_ID = a.QC_TYPE_ID 
 WHERE a.QC_USER_DEL <> '1' AND a.QC_USER_REF_TOKEN = :reftoken`;
+
+export const QueryGetUserQcReftok13 = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_USER_PASSWORD,
+a.QC_USER_REF_TOKEN, a.QC_TYPE_ID, d.QC_TYPE_NAME, a.GROUP_SHIFT_ID, b.GROUP_ID,
+a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL, a.SITE_NAME, a.LINE_NAME, b.SHIFT, c.ID_SITELINE,
+c.START_TIME, c.END_TIME 
+FROM qc_inspection_user a
+LEFT JOIN qc_user_schedule b ON b.GROUP_ID = a.GROUP_SHIFT_ID
+JOIN item_siteline c ON a.SITE_NAME = c.SITE_NAME
+ AND a.LINE_NAME = c.LINE_NAME
+ AND b.SHIFT = c.SHIFT
+LEFT JOIN qc_inspection_type d ON d.QC_TYPE_ID = a.QC_TYPE_ID 
+WHERE a.QC_USER_DEL <> '1' AND a.QC_USER_REF_TOKEN = :reftoken
+AND CURDATE() BETWEEN b.START_DATE AND b.END_DATE;`;
 
 export const QueryGetListPart = `SELECT a.PART_CODE, a.PART_NAME FROM item_part a ORDER BY a.PART_ORDER`;
 export const QueryGetListDefect = `SELECT a.DEFECT_SEW_CODE, a.DEFECT_NAME FROM item_defect_internal a WHERE a.DEFECT_SEW_CODE IS NOT NULL`;
@@ -180,6 +263,7 @@ export const QcEndlineOutput = db.define(
     ENDLINE_TIME: { type: DataTypes.TIME },
     ENDLINE_OUT_UNDO: { type: DataTypes.STRING },
     ENDLINE_REPAIR: { type: DataTypes.STRING },
+    GROUP_ID: { type: DataTypes.INTEGER },
     ENDLINE_ADD_ID: { type: DataTypes.INTEGER },
     ENDLINE_MOD_ID: { type: DataTypes.INTEGER },
     ENDLINE_ADD_TIME: { type: DataTypes.DATE },

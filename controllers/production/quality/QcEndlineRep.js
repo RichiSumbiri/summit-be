@@ -4,6 +4,7 @@ import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import {
   QryMesHederRepList,
+  qryUserQcEndName,
   QueryDetailEndCheck,
   QueryDtlDayDef,
   QueryDtlDayDefSum,
@@ -81,9 +82,17 @@ export const getQcEndSumPartDefCode = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const getUserAddName = await db.query(qryUserQcEndName, {
+      replacements: {
+        schdId: schdId,
+      },
+      type: QueryTypes.SELECT,
+    });
+
     return res.status(200).json({
       success: true,
       data: checkPerHour,
+      userName: getUserAddName,
     });
   } catch (error) {
     console.log(error);

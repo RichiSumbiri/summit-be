@@ -12,12 +12,16 @@ import {
 import {
   createGroupShift,
   createUserQC,
+  deleteScheduleQcGroup,
   deleteUserGroup,
   deleteUserQC,
   getListGroupShift,
   getListQcType,
+  getListSchGroupQc,
   getListUserQc,
+  postScheduleQcGroup,
   updateGroupShift,
+  updateScheduleQcGroup,
   updateUserGroup,
   updateUserQc,
 } from "../../controllers/production/quality/QcSetup.js";
@@ -49,11 +53,15 @@ router.get("/list-group-shift", getListGroupShift);
 router.get("/users", getListUserQc);
 router.get("/part", getListPart);
 router.get("/defect", getListDefect);
+router.get("/list-group-schedule/:startDate/:endDate", getListSchGroupQc);
 
 router.post("/users", createUserQC);
 router.patch("/users", updateUserQc);
 router.patch("/users-group", updateUserGroup);
 router.patch("/delete/users/:id", deleteUserQC);
+router.post("/group-schedule", postScheduleQcGroup);
+router.post("/group-schedule-update", updateScheduleQcGroup);
+router.delete("/group-schedule/:id", deleteScheduleQcGroup);
 
 router.post("/group-shift/", createGroupShift);
 router.patch("/group-shift/", updateGroupShift);

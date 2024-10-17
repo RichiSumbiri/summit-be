@@ -1,10 +1,17 @@
 import express from "express";
 import userRoute from "./setup/user.route.js";
 
-import { Login, Logout, LoginQc, LogoutQc } from "../controllers/auth/Login.js";
+import {
+  Login,
+  Logout,
+  LoginQc,
+  LogoutQc,
+  LoginQc13,
+} from "../controllers/auth/Login.js";
 import {
   refreshToken,
   refreshTokenQc,
+  refreshTokenQc13,
 } from "../controllers/auth/RefreshToken.js";
 import userAccesRoute from "./auth/userAccess.route.js";
 import getMenu from "../controllers/setup/Menu.js";
@@ -31,10 +38,12 @@ const router = express.Router();
 
 router.post("/login", Login);
 router.post("/loginqc", LoginQc);
+router.post("/loginqc13", LoginQc13);
 router.delete("/logout", Logout);
 router.delete("/logoutqc", LogoutQc);
 router.get("/token", refreshToken);
 router.get("/tokenQc", refreshTokenQc);
+router.get("/tokenQc13", refreshTokenQc13);
 router.get("/menu", getMenu);
 router.get("/dept", getDept);
 router.get("/dept/:id", getDeptById);

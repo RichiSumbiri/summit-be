@@ -19,7 +19,7 @@ IFNULL(I.ACTUAL_AH,0)+IFNULL(I.ACTUAL_AH_OT,0)+IFNULL(I.ACTUAL_AH_X_OT,0) AS TOT
 ROUND(NULLIF(I.ACTUAL_EH/I.ACTUAL_AH,0)*100,2) EFF_NORMAL,
 ROUND(NULLIF(I.ACTUAL_EH_OT/I.ACTUAL_AH_OT,0)*100,2) EFF_OT,
 ROUND(NULLIF(I.ACTUAL_EH_X_OT/I.ACTUAL_AH_X_OT,0)*100,2) EFF_X_OT,
-I.PLAN_REMARK
+I.PLAN_REMARK, I.GROUP_ID
 FROM (
 SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LINE_NAME, h.SHIFT, h.SCHD_QTY,
         h.ORDER_REFERENCE_PO_NO, h.SCHD_DAYS_NUMBER,
@@ -42,7 +42,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
         (h.NORMAL_OUTPUT*h.PLAN_SEW_SMV) ACTUAL_EH, (h.ACT_MP*h.ACT_WH) ACTUAL_AH,
         (h.OT_OUTPUT*h.PLAN_SEW_SMV) ACTUAL_EH_OT, (h.ACT_MP_OT*h.ACT_WH_OT) ACTUAL_AH_OT,
         (h.X_OT_OUTPUT*h.PLAN_SEW_SMV) ACTUAL_EH_X_OT, (h.ACT_MP_X_OT*h.ACT_WH_X_OT)  ACTUAL_AH_X_OT,
-        h.PLAN_REMARK
+        h.PLAN_REMARK, h.GROUP_ID
         FROM(
  			   SELECT n.SCHD_ID, n.SCH_ID, n.SCHD_PROD_DATE, n.ID_SITELINE,  n.SITE_NAME, n.LINE_NAME, n.SHIFT, n.SCHD_QTY,
 		       n.ORDER_REFERENCE_PO_NO, n.SCHD_DAYS_NUMBER,
@@ -60,7 +60,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 		       (n.PLAN_WH*n.ACT_MIN)/n.MAIN_WH ACT_WH, -- NEW FORMULA 
 		       (n.PLAN_WH_OT*n.ACT_MIN_OT)/n.MAIN_WH_OT ACT_WH_OT,
 		       (n.PLAN_WH_X_OT*n.ACT_MIN_XOT)/n.MAIN_WH_X_OT ACT_WH_X_OT,
-                       n.PLAN_REMARK
+              n.PLAN_REMARK, n.GROUP_ID
 		   FROM (
 		           SELECT a.SCHD_ID, a.SCH_ID, a.SCHD_PROD_DATE, e.ID_SITELINE,  d.SITE_NAME, d.LINE_NAME, e.SHIFT, 
 		       IF(SUBSTRING(:shift ,1,5) = 'Shift', CAST(ROUND(a.SCHD_QTY/2) AS INT), a.SCHD_QTY ) SCHD_QTY,
@@ -79,7 +79,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 		       m.PLAN_MP_OT, m.PLAN_MP_X_OT, f.PLAN_WH_OT, f.PLAN_WH_X_OT, m.ACT_MP, 
 		       FIND_ACT_MP(m.ACT_MP_OT, m.PLAN_MP_OT, NULL) ACT_MP_OT,
 		       FIND_ACT_MP(m.ACT_MP_X_OT, m.PLAN_MP_X_OT, NULL) ACT_MP_X_OT,
-		       p.NORMAL_OUTPUT, p.OT_OUTPUT, p.X_OT_OUTPUT, o.PLAN_REMARK
+		       p.NORMAL_OUTPUT, p.OT_OUTPUT, p.X_OT_OUTPUT, p.GROUP_ID, o.PLAN_REMARK
 		           FROM weekly_prod_sch_detail a
 		           LEFT JOIN viewcapacity b ON a.SCHD_CAPACITY_ID = b.ID_CAPACITY 
 		           LEFT JOIN item_smv_header c ON c.ORDER_NO = b.ORDER_NO
@@ -94,8 +94,8 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 								 LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
 								 LEFT JOIN  weekly_prod_sch_detail c on c.SCHD_ID_SITELINE = b.ID_SITELINE 
 								 LEFT JOIN workinghour_detail d ON d.SCHD_ID = c.SCHD_ID
-								 WHERE a.MP_DATE = :schDate    AND b.SHIFT = :shift -- AND  b.SITE_NAME = :sitename
-								 AND c.SCHD_PROD_DATE = :schDate 
+								 WHERE a.MP_DATE = :schDate   AND b.SHIFT = :shift -- AND  b.SITE_NAME = :sitename
+								 AND c.SCHD_PROD_DATE = :schDate
 								 GROUP BY a.ID_SITELINE, b.SHIFT
 								 ORDER by a.ID_SITELINE
 		           ) e ON e.LINE_NAME = d.LINE_NAME AND a.SCHD_SITE = e.SITE_NAME
@@ -104,7 +104,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 		           LEFT JOIN mp_daily_detail m  ON m.SCHD_ID = a.SCHD_ID AND m.SHIFT = :shift 
 		           -- left join ciew qcendlineoutput untuk mendapatkan output
 		           LEFT JOIN (
-                                SELECT N.ENDLINE_ACT_SCHD_ID, N.ENDLINE_SCHD_DATE,  N.ENDLINE_SCH_ID, N.ENDLINE_ID_SITELINE, N.ENDLINE_LINE_NAME,
+                                SELECT N.ENDLINE_ACT_SCHD_ID, N.ENDLINE_SCHD_DATE,  N.ENDLINE_SCH_ID, N.ENDLINE_ID_SITELINE, N.ENDLINE_LINE_NAME, N.GROUP_ID,
                                 SUM(N.ENDLINE_OUT_QTY) NORMAL_OUTPUT,
                                 SUM(N.ENDLINE_OUT_QTY_OT) OT_OUTPUT,
                                 SUM(N.ENDLINE_OUT_QTY_X_OT) X_OT_OUTPUT
@@ -112,60 +112,60 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                 -- normal 
                                         SELECT  
                                         a.ENDLINE_ACT_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, a.ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                        a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                        a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE a.ENDLINE_SCHD_DATE = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                          a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_PORD_TYPE = 'N'
                                         -- RTT n Repair
                                         UNION ALL
                                         SELECT 
                                                 a.ENDLINE_ACT_RPR_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, date(a.ENDLINE_MOD_TIME) ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                                a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                                a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL   AND a.ENDLINE_PORD_TYPE = 'N'
                                         UNION ALL
                                 -- OT
                                         SELECT
                                                 a.ENDLINE_ACT_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, a.ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE,
-                                                0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                                0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE a.ENDLINE_SCHD_DATE = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_PORD_TYPE = 'O'
                                         UNION ALL
                                         SELECT 
                                         a.ENDLINE_ACT_RPR_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME,date(a.ENDLINE_MOD_TIME) ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                        0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                        0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND  
+                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND  
                                         a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL  AND a.ENDLINE_PORD_TYPE = 'O'
                                         UNION ALL 
                                 -- extra ot
                                         SELECT
                                                 a.ENDLINE_ACT_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, a.ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE,
-                                                0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT
+                                                0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE a.ENDLINE_SCHD_DATE = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_PORD_TYPE = 'XO'
                                         UNION ALL
                                         SELECT 
                                         a.ENDLINE_ACT_RPR_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, date(a.ENDLINE_MOD_TIME) ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                        0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT
+                                        0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a  
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
-                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
+                                        WHERE DATE(a.ENDLINE_MOD_TIME) = :schDateAND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
                                         a.ENDLINE_OUT_TYPE <> 'BS' AND a.ENDLINE_OUT_UNDO IS NULL AND a.ENDLINE_REPAIR = 'Y' AND a.ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL  AND a.ENDLINE_PORD_TYPE = 'XO'
                                 ) N
                                 GROUP BY  N.ENDLINE_ACT_SCHD_ID
 		           ) p ON a.SCHD_ID = p.ENDLINE_ACT_SCHD_ID
-		           LEFT JOIN item_working_shift k ON k.SHIFT_ID  = :shift AND INSTR(k.SHIFT_DAYS, DAYNAME (:schDate  )) > 1 
+		           LEFT JOIN item_working_shift k ON k.SHIFT_ID  = :shift AND INSTR(k.SHIFT_DAYS, DAYNAME (:schDate )) > 1 
                            LEFT JOIN remark_detail o ON o.SCHD_ID = a.SCHD_ID AND o.SHIFT = :shift 
-		           WHERE a.SCHD_PROD_DATE = :schDate    AND  e.SHIFT = :shift AND d.SITE_NAME = :sitename
+		           WHERE a.SCHD_PROD_DATE = :schDate   AND  e.SHIFT = :shift AND d.SITE_NAME = :sitename
             )n
         )h
     ) I`;
@@ -191,7 +191,7 @@ IFNULL(I.ACTUAL_AH,0)+IFNULL(I.ACTUAL_AH_OT,0)+IFNULL(I.ACTUAL_AH_X_OT,0) AS TOT
 ROUND(NULLIF(I.ACTUAL_EH/I.ACTUAL_AH,0)*100,2) EFF_NORMAL,
 ROUND(NULLIF(I.ACTUAL_EH_OT/I.ACTUAL_AH_OT,0)*100,2) EFF_OT,
 ROUND(NULLIF(I.ACTUAL_EH_X_OT/I.ACTUAL_AH_X_OT,0)*100,2) EFF_X_OT,
-I.PLAN_REMARK
+I.PLAN_REMARK, I.GROUP_ID
 FROM (
 SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LINE_NAME, h.SHIFT, h.SCHD_QTY,
         h.ORDER_REFERENCE_PO_NO, h.SCHD_DAYS_NUMBER,
@@ -214,7 +214,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
         (h.NORMAL_OUTPUT*h.PLAN_SEW_SMV) ACTUAL_EH, (h.ACT_MP*h.ACT_WH) ACTUAL_AH,
         (h.OT_OUTPUT*h.PLAN_SEW_SMV) ACTUAL_EH_OT, (h.ACT_MP_OT*h.ACT_WH_OT) ACTUAL_AH_OT,
         (h.X_OT_OUTPUT*h.PLAN_SEW_SMV) ACTUAL_EH_X_OT, (h.ACT_MP_X_OT*h.ACT_WH_X_OT)  ACTUAL_AH_X_OT,
-        h.PLAN_REMARK
+        h.PLAN_REMARK, h.GROUP_ID
         FROM(
  			   SELECT n.SCHD_ID, n.SCH_ID, n.SCHD_PROD_DATE, n.ID_SITELINE,  n.SITE_NAME, n.LINE_NAME, n.SHIFT, n.SCHD_QTY,
 		       n.ORDER_REFERENCE_PO_NO, n.SCHD_DAYS_NUMBER,
@@ -232,7 +232,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 		       (n.PLAN_WH*n.ACT_MIN)/n.MAIN_WH ACT_WH, -- NEW FORMULA 
 		       (n.PLAN_WH_OT*n.ACT_MIN_OT)/n.MAIN_WH_OT ACT_WH_OT,
 		       (n.PLAN_WH_X_OT*n.ACT_MIN_XOT)/n.MAIN_WH_X_OT ACT_WH_X_OT,
-                       n.PLAN_REMARK
+                       n.PLAN_REMARK, n.GROUP_ID
 		   FROM (
 		           SELECT a.SCHD_ID, a.SCH_ID, a.SCHD_PROD_DATE, e.ID_SITELINE,  d.SITE_NAME, d.LINE_NAME, e.SHIFT, 
 		       IF(SUBSTRING(:shift ,1,5) = 'Shift', CAST(ROUND(a.SCHD_QTY/2) AS INT), a.SCHD_QTY ) SCHD_QTY,
@@ -251,7 +251,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 		       m.PLAN_MP_OT, m.PLAN_MP_X_OT, f.PLAN_WH_OT, f.PLAN_WH_X_OT, m.ACT_MP, 
 		       FIND_ACT_MP(m.ACT_MP_OT, m.PLAN_MP_OT, NULL) ACT_MP_OT,
 		       FIND_ACT_MP(m.ACT_MP_X_OT, m.PLAN_MP_X_OT, NULL) ACT_MP_X_OT,
-		       p.NORMAL_OUTPUT, p.OT_OUTPUT, p.X_OT_OUTPUT, o.PLAN_REMARK
+		       p.NORMAL_OUTPUT, p.OT_OUTPUT, p.X_OT_OUTPUT, o.PLAN_REMARK, p.GROUP_ID
 		           FROM weekly_prod_sch_detail a
 		           LEFT JOIN viewcapacity b ON a.SCHD_CAPACITY_ID = b.ID_CAPACITY 
 		           LEFT JOIN item_smv_header c ON c.ORDER_NO = b.ORDER_NO
@@ -267,7 +267,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                            INNER JOIN workinghour_detail d ON d.SCHD_ID = c.SCHD_ID
                            WHERE a.MP_DATE = :schDate   
                            AND b.SHIFT = :shift   AND b.SITE_NAME = :sitename
-                           AND c.SCHD_PROD_DATE = :schDate
+                           AND c.SCHD_PROD_DATE = '2024-09-12'
                            GROUP BY b.ID_SITELINE, b.SHIFT
                            ORDER BY b.ID_SITELINE
 		           ) e ON e.LINE_NAME = d.LINE_NAME AND a.SCHD_SITE = e.SITE_NAME
@@ -276,7 +276,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
 		           LEFT JOIN mp_daily_detail m  ON m.SCHD_ID = a.SCHD_ID AND m.SHIFT = :shift 
 		           -- left join ciew qcendlineoutput untuk mendapatkan output
 		           LEFT JOIN (
-                                SELECT N.ENDLINE_ACT_SCHD_ID, N.ENDLINE_SCHD_DATE,  N.ENDLINE_SCH_ID, N.ENDLINE_ID_SITELINE, N.ENDLINE_LINE_NAME,
+                                SELECT N.ENDLINE_ACT_SCHD_ID, N.ENDLINE_SCHD_DATE,  N.ENDLINE_SCH_ID, N.ENDLINE_ID_SITELINE, N.ENDLINE_LINE_NAME, N.GROUP_ID,
                                 SUM(N.ENDLINE_OUT_QTY) NORMAL_OUTPUT,
                                 SUM(N.ENDLINE_OUT_QTY_OT) OT_OUTPUT,
                                 SUM(N.ENDLINE_OUT_QTY_X_OT) X_OT_OUTPUT
@@ -284,7 +284,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                 -- normal 
                                         SELECT  
                                         a.ENDLINE_ACT_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, a.ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                        a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                        a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
                                         WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
@@ -293,7 +293,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                         UNION ALL
                                         SELECT 
                                                 a.ENDLINE_ACT_RPR_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, date(a.ENDLINE_MOD_TIME) ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                                a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                                a.ENDLINE_OUT_QTY, 0 ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
                                         WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
@@ -302,7 +302,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                 -- OT
                                         SELECT
                                                 a.ENDLINE_ACT_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, a.ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE,
-                                                0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                                0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
                                         WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
@@ -310,7 +310,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                         UNION ALL
                                         SELECT 
                                         a.ENDLINE_ACT_RPR_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME,date(a.ENDLINE_MOD_TIME) ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                        0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT
+                                        0 ENDLINE_OUT_QTY, a.ENDLINE_OUT_QTY  ENDLINE_OUT_QTY_OT, 0 ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
                                         WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND  
@@ -319,7 +319,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                 -- extra ot
                                         SELECT
                                                 a.ENDLINE_ACT_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, a.ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE,
-                                                0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT
+                                                0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a 
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
                                         WHERE a.ENDLINE_SCHD_DATE = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
@@ -327,7 +327,7 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                                         UNION ALL
                                         SELECT 
                                         a.ENDLINE_ACT_RPR_SCHD_ID, a.ENDLINE_SCH_ID, a.ENDLINE_ID_SITELINE, a.ENDLINE_LINE_NAME, date(a.ENDLINE_MOD_TIME) ENDLINE_SCHD_DATE, a.ENDLINE_OUT_TYPE, a.ENDLINE_PORD_TYPE, a.ENDLINE_PLAN_SIZE, 
-                                        0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT
+                                        0 ENDLINE_OUT_QTY, 0  ENDLINE_OUT_QTY_OT, a.ENDLINE_OUT_QTY ENDLINE_OUT_QTY_X_OT, a.GROUP_ID
                                         FROM qc_endline_output a  
                                         LEFT JOIN item_siteline b ON a.ENDLINE_ID_SITELINE = b.ID_SITELINE
                                         WHERE DATE(a.ENDLINE_MOD_TIME) = :schDate AND b.SITE_NAME = :sitename AND b.SHIFT = :shift AND 
@@ -368,7 +368,7 @@ a.EFF_OT,
 a.EFF_X_OT,
 a.SCHD_DAYS_NUMBER, a.CUSTOMER_NAME, a.ORDER_REFERENCE_PO_NO, 
 a.PRODUCT_ITEM_CODE, a.ORDER_STYLE_DESCRIPTION, a.ITEM_COLOR_CODE, a.ITEM_COLOR_NAME,
-o.PLAN_REMARK
+o.PLAN_REMARK, a.GROUP_ID
 FROM log_daily_output a
 LEFT JOIN remark_detail o ON o.SCHD_ID = a.SCHD_ID AND o.SHIFT = a.shift
 WHERE a.SCHD_PROD_DATE = :schDate AND a.SITE_NAME = :sitename  -- AND a.SHIFT = :shift
