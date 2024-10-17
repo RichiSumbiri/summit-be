@@ -766,6 +766,21 @@ export const QRScanSuperMarketIn = async (req, res) => {
         });
       }
 
+      if (checkBarcodeSerial[0].PRODUCT_TYPE === "BRA") {
+        const checkScan = await MoldingOut.findOne({
+          where: {
+            BARCODE_SERIAL: barcodeserial,
+          },
+        });
+
+        if (!checkScan)
+          return res.status(200).json({
+            success: true,
+            qrstatus: "error",
+            message: "Belum Molding Out",
+          });
+      }
+
       //find schedule
       const checkSchdNsize = await db.query(queryChkclSupSchIn, {
         replacements: {
