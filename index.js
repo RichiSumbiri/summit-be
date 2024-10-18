@@ -72,13 +72,26 @@ var whitelist = [
 // };
 app.use(express.static("public"));
 
+// app.use(
+//   cors({
+//     credentials: true,
+//     origin: function (origin, callback) {
+//       if (whitelist.indexOf(origin) !== -1) {
+//         callback(null, true);
+//       } else if (whitelist.indexOf(origin) !== -1 && express.static("public")) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//   })
+// );
+
 app.use(
   cors({
     credentials: true,
     origin: function (origin, callback) {
-      if (whitelist.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else if (whitelist.indexOf(origin) !== -1 && express.static("public")) {
+      if (!origin || whitelist.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -86,6 +99,18 @@ app.use(
     },
   })
 );
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  // Cek apakah origin diizinkan, jika tidak, lakukan redirect
+  if (whitelist.indexOf(origin) === -1) {
+    return res.redirect(302, "https://spm.sumbiri.com");
+  }
+
+  // Jika origin diizinkan, lanjut ke middleware berikutnya
+  next();
+});
 
 app.use(cookieParser());
 // app.use(express.json());
