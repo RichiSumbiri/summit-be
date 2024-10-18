@@ -170,8 +170,12 @@ export const QueryGetListGroupSch = `SELECT
 	b.GROUP_SHIFT_COLOR AS color
   FROM qc_user_schedule a 
   LEFT JOIN item_group_shift b ON a.GROUP_ID = b.GROUP_SHIFT_ID
-  WHERE ( a.START_DATE BETWEEN :startDate AND :endDate ) OR 
-  ( a.END_DATE BETWEEN :startDate AND  :endDate )
+  WHERE (
+    (START_DATE BETWEEN :startDate AND :endDate) 
+    OR (END_DATE BETWEEN :startDate AND :endDate)
+    OR (:startDate BETWEEN START_DATE AND END_DATE)
+    OR (:endDate BETWEEN START_DATE AND END_DATE)
+  )
 `;
 
 export const QueryCheckSchQc = `SELECT 
