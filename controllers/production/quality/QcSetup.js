@@ -259,12 +259,32 @@ export const updateScheduleQcGroup = async (req, res) => {
   try {
     const data = req.body;
 
+    //cari schedule sblmnya
+    const schBefore = await QcUsersSchedule.findOne({
+      where: {
+        ID: data.ID,
+      },
+    });
+
     const today = moment().startOf("day");
+
+    //compare jika start date sudah berjalan
     const start = moment(data.START_DATE).startOf("day");
     if (start.isBefore(today)) {
       return res.status(200).json({
         status: "fail",
-        message: "Tidak Bisa set schedule dihari sebelumnya",
+        message:
+          "Tidak Bisa Tidak Bisa Ubah Tanggal Awal Ke tanggal sebelumnya",
+      });
+    }
+
+    const curStartDate = moment(schBefore.START_DATE).startOf("day");
+    // jika start date awal kurang dari hari ini
+
+    if (curStartDate.isSameOrBefore(today) && start.isAfter(today)) {
+      return res.status(200).json({
+        status: "fail",
+        message: "Tidak Bisa Ubah Tanggal Awal yang sudah berjalan",
       });
     }
 
