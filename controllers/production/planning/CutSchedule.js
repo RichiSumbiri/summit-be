@@ -1033,7 +1033,7 @@ export const QRScanMolIn = async (req, res) => {
     }
 
     const productType = ["BRA", "SHAPEWEAR", "BODY"];
-    if (productType.includes(checkBarcodeSerial[0].PRODUCT_TYPE)) {
+    if (!productType.includes(checkBarcodeSerial[0].PRODUCT_TYPE)) {
       return res.status(200).json({
         success: true,
         qrstatus: "error",
