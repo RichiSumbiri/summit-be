@@ -27,9 +27,10 @@ export const getWorkerDoneRep = async (req, res) => {
 //query get blk tracking
 export const getBlkTrace = async (req, res) => {
   try {
-    const { startDate, endDate } = req.params;
+    const { orderNo } = req.params;
     const bundleTrace = await db.query(QryBundleTrack, {
-      replacements: { startDate, endDate },
+      replacements: { orderNo },
+      // replacements: { startDate, endDate },
       type: QueryTypes.SELECT,
     });
 
