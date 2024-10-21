@@ -1031,11 +1031,13 @@ export const QRScanMolIn = async (req, res) => {
         message: "QRCode Tidak Ditemukan",
       });
     }
-    if (checkBarcodeSerial[0].PRODUCT_TYPE !== "BRA") {
+
+    const productType = ["BRA", "SHAPEWEAR", "BODY"];
+    if (!productType.includes(checkBarcodeSerial[0].PRODUCT_TYPE)) {
       return res.status(200).json({
         success: true,
         qrstatus: "error",
-        message: "Bukan Produk BRA",
+        message: "Bukan Produk yang di Mol",
       });
     }
 

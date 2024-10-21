@@ -16,6 +16,7 @@ const router = express.Router();
 
 router.get("/workerdone/:startDate/:endDate", getWorkerDoneRep);
 // router.get("/bundletracking/:startDate/:endDate", getBlkTrace);
+router.get("/bundletracking/:orderNo", getBlkTrace);
 router.get("/bundletracking-split/:barcodeserial", getTrackQrSplit);
 
 // sewing dayli output report
