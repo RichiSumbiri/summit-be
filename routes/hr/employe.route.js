@@ -6,8 +6,13 @@ import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } fro
 import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.js";
 import { getKontrakKerjaByRange, newKontrakKerja, newMassKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
 import { getMutasiEmpByDate, newMutasi, newMutasiMass, updateMutasi } from "../../controllers/hr/mutasi.js";
+import { getCutiByDate, postCutiNew } from "../../controllers/hr/hrcuti.js";
+import { uploadFileEmpPhoto, uploadPhotosMid } from "../../controllers/hr/empPhoto.js";
+
 
 const router = express.Router();
+router.use(express.static('../../assets/images/photos'));
+
 
 // master hr
 router.get("/master-address", getMasterAlamat);
@@ -50,6 +55,7 @@ router.post("/new-employee", postNewEmploye);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.post("/update-emp", updateEmp);
+router.post("/update-photos/:nikEmp", uploadPhotosMid.single('file'), uploadFileEmpPhoto);
 
 // mutasi karyawan
 router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);
@@ -57,6 +63,9 @@ router.post("/mutasi-employee", newMutasi);
 router.post("/mutasi-mass-employee", newMutasiMass);
 router.put("/mutasi-employee", updateMutasi);
 
+// cuti karyawan
+router.get("/cuti-employee/:startDate/:endDate", getCutiByDate);
+router.post("/cuti-employee", postCutiNew);
 
 // event
 router.get("/event/:year", getEventList);
