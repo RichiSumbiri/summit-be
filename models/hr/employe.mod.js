@@ -337,6 +337,7 @@ SELECT
 	emp.StatusKaryawan,
 	emp.PeriodeKontrak,
 	emp.TanggalMasuk,
+	emp.Photos,
 	emp.CreateBy,
 	emp.CreateDate
 FROM sumbiri_employee emp

@@ -71,7 +71,7 @@ var whitelist = [
 //   cert: fs.readFileSync("server.cert"),
 // };
 app.use(express.static("public"));
-
+// app.use('/assets/images/photos', express.static('uploadempphoto'));
 // app.use(
 //   cors({
 //     credentials: true,

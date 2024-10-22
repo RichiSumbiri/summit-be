@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import { getDeptAll, getEmpByNIK, getEmpByNIKKTP, getEmployeAktif, getPositionAll, getSalaryType, getSection, getSubDeptAll, postNewEmploye, updateEmp } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import { CheckPassKey, GeneratePassKey, getLamaranByDate, getMasterAlamat, getMasterKabkota, getMasterKecamatan, getMasterKelurahan, getMasterProv, postApproveLamaran, postLamaran } from "../../controllers/hr/recruitment.js";
@@ -7,11 +8,10 @@ import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.
 import { getKontrakKerjaByRange, newKontrakKerja, newMassKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
 import { getMutasiEmpByDate, newMutasi, newMutasiMass, updateMutasi } from "../../controllers/hr/mutasi.js";
 import { getCutiByDate, postCutiNew } from "../../controllers/hr/hrcuti.js";
-import { uploadFileEmpPhoto, uploadPhotosMid } from "../../controllers/hr/empPhoto.js";
+import { downloadPhotosEmp, uploadPhotosEmp } from "../../controllers/hr/empPhoto.js";
 
 
 const router = express.Router();
-router.use(express.static('../../assets/images/photos'));
 
 
 // master hr
@@ -55,7 +55,8 @@ router.post("/new-employee", postNewEmploye);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.post("/update-emp", updateEmp);
-router.post("/update-photos/:nikEmp", uploadPhotosMid.single('file'), uploadFileEmpPhoto);
+router.post("/update-photos/:nikEmp", uploadPhotosEmp);
+router.get("/get-photos/:nik", downloadPhotosEmp);
 
 // mutasi karyawan
 router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);

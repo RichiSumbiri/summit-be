@@ -1,5 +1,6 @@
 import Moment from "moment";
 import momentRange from "moment-range";
+import multer from "multer";
 const moment = momentRange.extendMoment(Moment);
 
 export const CheckNilai = (nilai) => {
@@ -316,3 +317,13 @@ export function convertMonthToRoman(monthNumber) {
   // Return the corresponding Roman numeral
   return romanMonths[monthNumber - 1];
 }
+
+
+export const EmpPhotos = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '../../assets/images/photos/'); // Specify the destination folder for uploads
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Use timestamp to avoid filename conflicts
+  },
+});

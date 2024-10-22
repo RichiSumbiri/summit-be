@@ -195,7 +195,8 @@ SELECT
   DATE_FORMAT(sp.CreateDate,'%d %M %Y')  AS TanggalLamaranText,
 	IFNULL(sp.CreateDate, '') AS Timestamp,
 	IFNULL(DATE_FORMAT(sp.CreateDate, '%Y-%m-%d %H:%i:%s'), '') AS CreateDate,
-  sp.ApprovalStatus,
+  se.Photos,
+	sp.ApprovalStatus,
   sp.ApprovalTime,
   sp.ApprovalRemark,
   sp.ApprovalBy
