@@ -63,11 +63,14 @@ export const downloadPhotosEmp = async(req, res) => {
                 "../../assets/images/photos",
                 getFileName.Photos
               );
-              res.sendFile(filePath, (err) => {
-                if (err) {
-                  res.status(404).send('File not found');
-                }
-              });
+              if(filePath){
+                res.sendFile(filePath, (err) => {
+                  if (err) {
+                    res.status(404).send('File not found');
+                  }
+                });
+              }
+              
         }
 } catch (error) {
       console.log(error);
