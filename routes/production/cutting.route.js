@@ -89,7 +89,7 @@ router.get("/result-supermarket-out/:schDate/:site", getResulSacnSupOut);
 router.get("/result-molding-in/", getResulSacnMolIN);
 router.get("/result-molding-out/", getResulSacnMolOut);
 
-router.get("/order/list/:startDate/:endDate", getCuttingOrder);
+// router.get("/order/list/:startDate/:endDate", getCuttingOrder);
 router.get("/order/bundle/:orderNo", getOrderByBLK);
 router.get(
   "/qr/scan-sewing-in/:schDate/:sitename/:linename/:barcodeserial",

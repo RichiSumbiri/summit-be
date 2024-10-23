@@ -268,6 +268,27 @@ export const OrderPoListingSize = db.define(
 );
 
 export const OrderDetailHeader = `SELECT * FROM vieworderdetailheader WHERE UPLOAD_DATE BETWEEN :startDate AND :endDate`;
+export const NewOrderDtlHeader = `SELECT
+	n.*, d.QTY_PRINT
+ FROM (
+	SELECT a.BUYER_CODE,
+	a.ORDER_NO, 
+	a.MO_NO,
+	b.PRODUCT_CATEGORY,
+	SUM(a.ORDER_QTY) QTY,
+	CAST(a.CREATE_DATE AS DATE)  AS UPLOAD_DATE
+	FROM order_detail a 
+	LEFT JOIN order_po_listing b ON b.ORDER_NO = a.ORDER_NO
+	WHERE a.ORDER_NO = :orderNo
+	GROUP BY a.BUYER_CODE, a.ORDER_NO
+) n LEFT JOIN (
+		SELECT b.ORDER_NO,
+		SUM(b.ORDER_QTY) QTY_PRINT
+		FROM order_qr_generate a
+		JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+		WHERE b.ORDER_NO = :orderNo
+		GROUP BY b.ORDER_NO
+) d ON d.ORDER_NO = n.ORDER_NO`;
 
 export const OrderDetailList = `SELECT N.BUYER_CODE, N.ORDER_NO, N.PRODUCT_TYPE, N.BUYER_PO, N.MO_NO, N.ORDER_VERSION, N.SHIPMENT_DATE,
 N.ORDER_QTY, N.PRINT_QTY, N.ORDER_SIZE,  N.ORDER_STYLE, N.ORDER_REF, N.BARCODE_SERIAL, N.SEQUENCE, N.SITE_LINE, 

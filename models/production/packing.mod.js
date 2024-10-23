@@ -1329,6 +1329,30 @@ WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
 
 export const qryTtlCtnClp = `SELECT SUM(COALESCE(a.SCAN_QTY, 0)) AS TTL_SCAN FROM packing_shipment_scan a WHERE a.SHIPMENT_ID = :sid AND a.CONTAINER_ID = :conId`;
 
+export const PackingShipContainer = db.define(
+  "packing_ship_container",
+  {
+    CONTAINER_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    SHIPMENT_ID: { type: DataTypes.INTEGER },
+    CONTAINER_SEQ: { type: DataTypes.INTEGER },
+    CONTAINER_NO: { type: DataTypes.STRING },
+    CONTAINER_TYPE: { type: DataTypes.STRING },
+    USER_ADD: { type: DataTypes.STRING },
+    ADD_TIME: { type: DataTypes.DATE },
+    MOD_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: "MOD_TIME",
+  }
+);
+
 //shipment scan detail result
 export const queryShipPlanScanResult = `SELECT 
 	a.*, b.PACK_METHODE, b.PO_BUYER, b.STYLE, b.COLOR_NAME, b.SIZE, b.CONTAINER_ID, d.CONTAINER_SEQ,  c.USER_NAME
@@ -1487,3 +1511,57 @@ FROM (
 	WHERE a.SHIPMENT_DATE = :shipDate
 	GROUP BY a.SHIPMENT_ID, a.CONTAINER_ID
 ) n`;
+
+//get list SID by year
+export const qryGetSidByYear = `SELECT 
+a.SHIPMENT_ID, 
+a.SHIPMENT_DATE,
+a.BUYER,
+COUNT(b.CONTAINER_ID) COUNT_CLP
+FROM packing_shipment_header a 
+LEFT JOIN packing_ship_container b ON a.SHIPMENT_ID = b.SHIPMENT_ID
+WHERE YEAR(a.SHIPMENT_DATE) = :year
+GROUP BY a.SHIPMENT_ID`;
+
+//shipment scan
+export const queryShipPlanLoad = `SELECT
+ a.*, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+FROM packing_shipment_plan a 
+LEFT JOIN (
+	SELECT 
+		c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC, IFNULL(SUM(c.SCAN_QTY),0) AS SCAN_RESULT
+	FROM packing_shipment_scan c WHERE c.SHIPMENT_ID = :sid  
+	GROUP BY c.SHIPMENT_PLAN_ID, c.SHIPMENT_ID, c.PO_ITEM, c.CONTAINER_ID, c.UPC
+) b ON b.SHIPMENT_ID = a.SHIPMENT_ID 
+	AND a.PACK_UPC = b.UPC 
+	AND a.PO_ITEM = b.PO_ITEM
+	AND a.CONTAINER_ID = b.CONTAINER_ID
+  AND a.PO_ITEM =  b.PO_ITEM
+  AND a.ID =  b.SHIPMENT_PLAN_ID
+WHERE a.SHIPMENT_ID = :sid`;
+
+export const qryGetNewSid = `SELECT CAST(SUBSTRING(a.SHIPMENT_ID,8) AS INTEGER)+1 LAST_ID, YEAR(a.SHIPMENT_DATE) LAST_YEAR 
+FROM packing_shipment_header a 
+WHERE YEAR(a.SHIPMENT_DATE) = YEAR(:shipDate)
+ORDER BY a.SHIPMENT_DATE DESC
+LIMIT 1`;
+
+export const PackShipHeader = db.define(
+  "packing_shipment_header",
+  {
+    SHIPMENT_ID: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+    },
+    SHIPMENT_DATE: { type: DataTypes.DATE },
+    BUYER: { type: DataTypes.STRING },
+    ADD_ID: { type: DataTypes.INTEGER },
+    ADD_TIME: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    createdAt: "ADD_TIME",
+    updatedAt: false,
+  }
+);

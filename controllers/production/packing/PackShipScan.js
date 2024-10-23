@@ -14,6 +14,9 @@ import {
   PackShipPlan,
   qryTtlCtnClp,
   qryShipmentMonitoring,
+  qryGetSidByYear,
+  PackingShipContainer,
+  queryShipPlanLoad,
 } from "../../../models/production/packing.mod.js";
 import { CheckNilai, CheckNilaiToint } from "../../util/Utility.js";
 
@@ -317,6 +320,77 @@ export const getShipMntrResult = async (req, res) => {
     });
 
     return res.json({ data: listResult });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get result",
+      data: error,
+    });
+  }
+};
+
+//get list sid by year
+export const getListSidByYear = async (req, res) => {
+  try {
+    const { year } = req.params;
+
+    if (!year) return res.status(404).json({ message: "Tidak ada tahun" });
+
+    const listResult = await db.query(qryGetSidByYear, {
+      replacements: {
+        year,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listResult });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get result",
+      data: error,
+    });
+  }
+};
+
+export const getListClp = async (req, res) => {
+  try {
+    const { sid } = req.params;
+
+    if (!sid) return res.status(404).json({ message: "Tidak ada sid" });
+
+    const listResult = await PackingShipContainer.findAll({
+      where: {
+        SHIPMENT_ID: sid,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ data: listResult });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get result",
+      data: error,
+    });
+  }
+};
+
+export const getListLoadDetail = async (req, res) => {
+  try {
+    const { sid } = req.params;
+
+    if (!sid) return res.status(404).json({ message: "Tidak ada sid" });
+
+    const shipPlan = await db.query(queryShipPlanLoad, {
+      replacements: {
+        sid,
+      },
+      type: QueryTypes.SELECT,
+      raw: true,
+    });
+
+    return res.json({ data: shipPlan });
   } catch (error) {
     console.log(error);
     return res.status(404).json({

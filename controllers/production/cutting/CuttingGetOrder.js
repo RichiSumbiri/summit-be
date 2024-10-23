@@ -1,5 +1,8 @@
 import db from "../../../config/database.js";
-import { Orders } from "../../../models/production/order.mod.js";
+import {
+  NewOrderDtlHeader,
+  Orders,
+} from "../../../models/production/order.mod.js";
 import { QueryTypes, Op } from "sequelize";
 import {
   OrderDetailList,
@@ -62,6 +65,13 @@ export const getOrderByBarcodeSerial = async (req, res) => {
 
 export const getOrderByBLK = async (req, res) => {
   try {
+    const ordersHeader = await db.query(NewOrderDtlHeader, {
+      replacements: {
+        orderNo: req.params.orderNo,
+      },
+      type: QueryTypes.SELECT,
+    });
+
     const orders = await db.query(OrderDetailList, {
       replacements: {
         orderNo: req.params.orderNo,
@@ -109,8 +119,11 @@ export const getOrderByBLK = async (req, res) => {
       success: true,
       message: "data retrieved successfully",
       data: orderWithSeq,
+      ordersHeader: ordersHeader,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(404).json({
       success: false,
       message: "error processing request",

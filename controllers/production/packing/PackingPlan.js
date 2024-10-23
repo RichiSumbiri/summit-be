@@ -9,6 +9,7 @@ import {
   PackPlanChild,
   PackPlanHeader,
   PackPlanRowDetail,
+  PackShipHeader,
   PackSortSize,
   PackingPlanBoxRow,
   PackingPlanDetail,
@@ -28,6 +29,7 @@ import {
   qryGetLisCtnStylBoxByr,
   qryGetLisPOPPID,
   qryGetLisSizePPID,
+  qryGetNewSid,
   qryGetPackHeader,
   qryGetPackMethod,
   qryGetPackPlanDtlPo,
@@ -2294,6 +2296,49 @@ export const getRefListPoBuyer = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing referensi po number",
+      data: error,
+    });
+  }
+};
+
+//get shipment plan id
+export const creatNewSid = async (req, res) => {
+  try {
+    const { shipDate, userId } = req.body;
+    const getNoId = await db.query(qryGetNewSid, {
+      replacements: {
+        shipDate,
+      },
+      type: QueryTypes.SELECT,
+    });
+    console.log(getNoId);
+
+    const lastSid = getNoId[0]
+      ? getNoId[0].LAST_ID.toString().padStart(4, "0")
+      : "0001";
+
+    const years = moment(shipDate).format("YYYY");
+
+    const newSID = "SID" + years + lastSid;
+
+    const newDataPost = {
+      SHIPMENT_ID: newSID,
+      SHIPMENT_DATE: shipDate,
+      BUYER: "BRI",
+      ADD_ID: userId,
+    };
+
+    const postNewSid = await PackShipHeader.create(newDataPost);
+
+    if (postNewSid) {
+      return res.status(200).json({ data: newDataPost });
+    } else {
+      return res.status(404).json({ message: "error create new sid" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing Plan ID",
       data: error,
     });
   }

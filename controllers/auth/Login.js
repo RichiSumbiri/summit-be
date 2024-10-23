@@ -223,11 +223,9 @@ export const LoginQc13 = async (req, res) => {
     });
 
     if (findSchedule.length === 0) {
-      return res
-        .status(400)
-        .json({
-          message: "Anda tidak memiliki Jadwal Login, harap hubungi Adm QC",
-        });
+      return res.status(400).json({
+        message: "Anda tidak memiliki Jadwal Login, harap hubungi Adm QC",
+      });
     }
 
     const user = findSchedule[0];
@@ -310,6 +308,8 @@ export const LoginQc13 = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error);
+
     res.status(404).json({ message: "User Name or Password Incorrect" });
   }
 };
