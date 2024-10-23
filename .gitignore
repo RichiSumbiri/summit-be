@@ -1,3 +1,4 @@
 node_modules
 request.rest
 assets/images/photos/*.jpg
+package-lock.json

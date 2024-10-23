@@ -23,6 +23,7 @@ import {
   chgCtnStartNo,
   commitPackingPlan,
   copyFromStyle,
+  creatNewSid,
   delOneDetailPpid,
   delPackPosum,
   deletePPIDEntire,
@@ -73,7 +74,10 @@ import {
 import {
   genShipLabelCtn,
   getContainerList,
+  getListClp,
+  getListLoadDetail,
   getListShipPlanScan,
+  getListSidByYear,
   getQryListShipId,
   getShipMntrResult,
   getTtlScanClp,
@@ -203,4 +207,12 @@ router.patch("/pack-scan-item/pack-update-gw-nw", updateOneRowGwNw);
 
 router.get("/plann-ref-ponumberbuyer/:poNum", getRefListPoBuyer);
 router.get("/po-buyer-with-result/:poNo", getPoByrWthOutput);
+
+//upload  loading data
+router.get("/upload-loading-list-sid/:year", getListSidByYear);
+router.get("/upload-loading-list-clp/:sid", getListClp);
+router.get("/upload-loading-list-detail/:sid", getListLoadDetail);
+
+router.post("/upload-loading-new-sid", creatNewSid);
+
 export default router;
