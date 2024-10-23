@@ -10,10 +10,12 @@ import {
   PackPlanHeader,
   PackPlanRowDetail,
   PackShipHeader,
+  PackShipPlan,
   PackSortSize,
   PackingPlanBoxRow,
   PackingPlanDetail,
   PackingPlanPoSum,
+  PackingShipContainer,
   findPoPlanPack,
   getBoxStyleCode,
   getCtnStyleCode,
@@ -2311,7 +2313,6 @@ export const creatNewSid = async (req, res) => {
       },
       type: QueryTypes.SELECT,
     });
-    console.log(getNoId);
 
     const lastSid = getNoId[0]
       ? getNoId[0].LAST_ID.toString().padStart(4, "0")
@@ -2331,7 +2332,9 @@ export const creatNewSid = async (req, res) => {
     const postNewSid = await PackShipHeader.create(newDataPost);
 
     if (postNewSid) {
-      return res.status(200).json({ data: newDataPost });
+      return res
+        .status(200)
+        .json({ data: newDataPost, message: "Success Add New SID" });
     } else {
       return res.status(404).json({ message: "error create new sid" });
     }
@@ -2339,6 +2342,82 @@ export const creatNewSid = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get Packing Plan ID",
+      data: error,
+    });
+  }
+};
+
+export const creatNewClp = async (req, res) => {
+  try {
+    const dataNewClp = req.body;
+
+    const postNewSid = await PackingShipContainer.create(dataNewClp);
+
+    if (postNewSid) {
+      return res.status(200).json({ message: "Success Add New CLP" });
+    } else {
+      return res.status(404).json({ message: "error create new CLP" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get Packing Plan ID",
+      data: error,
+    });
+  }
+};
+
+export const deleteClp = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const checkUsed = await PackShipPlan.findAll({
+      where: {
+        CONTAINER_ID: id,
+      },
+    });
+
+    if (checkUsed.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "CLP ID sudah digunakan dalam loading plann detail" });
+    }
+
+    const delClp = await PackingShipContainer.destroy({
+      where: {
+        CONTAINER_ID: id,
+      },
+    });
+
+    if (delClp) {
+      return res.status(200).json({ message: "Success delete CLP" });
+    } else {
+      return res.status(404).json({ message: "error delete  CLP" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error delete clp",
+      data: error,
+    });
+  }
+};
+
+export const postDataLoadingSch = async (req, res) => {
+  try {
+    const data = req.body;
+
+    await PackShipPlan.destroy({ where: { SHIPMENT_ID: data[0].SHIPMENT_ID } });
+    const postSHip = await PackShipPlan.bulkCreate(data);
+
+    if (postSHip) {
+      return res.status(200).json({ message: "Success submit data" });
+    } else {
+      return res.status(404).json({ message: "error submit data" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error submit data",
       data: error,
     });
   }

@@ -1101,10 +1101,13 @@ export const PackPlanRowDetail = db.define(
 export const PackShipPlan = db.define(
   "packing_shipment_plan",
   {
+    ID: {
+      type: DataTypes.STRING(50),
+      primaryKey: true,
+      autoIncrement: true,
+    },
     SHIPMENT_ID: {
       type: DataTypes.STRING(50),
-      allowNull: false,
-      primaryKey: true,
     },
     SHIPMENT_DATE: {
       type: DataTypes.DATE,
@@ -1168,7 +1171,7 @@ export const PackShipPlan = db.define(
       type: DataTypes.STRING,
     },
     QTY: {
-      type: DataTypes.DATE,
+      type: DataTypes.INTEGER,
     },
     PRINTED_STATUS: {
       type: DataTypes.INTEGER,
@@ -1521,11 +1524,15 @@ COUNT(b.CONTAINER_ID) COUNT_CLP
 FROM packing_shipment_header a 
 LEFT JOIN packing_ship_container b ON a.SHIPMENT_ID = b.SHIPMENT_ID
 WHERE YEAR(a.SHIPMENT_DATE) = :year
-GROUP BY a.SHIPMENT_ID`;
+GROUP BY a.SHIPMENT_ID 
+order BY a.ADD_TIME DESC`;
 
 //shipment scan
 export const queryShipPlanLoad = `SELECT
- a.*, b.SCAN_RESULT, (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
+ a.*,  
+  e.CONTAINER_NO,
+  b.SCAN_RESULT, 
+  (a.TTL_CTN - IFNULL(b.SCAN_RESULT, 0)) BALANCE_SCAN
 FROM packing_shipment_plan a 
 LEFT JOIN (
 	SELECT 
@@ -1538,12 +1545,13 @@ LEFT JOIN (
 	AND a.CONTAINER_ID = b.CONTAINER_ID
   AND a.PO_ITEM =  b.PO_ITEM
   AND a.ID =  b.SHIPMENT_PLAN_ID
+LEFT JOIN packing_ship_container e ON e.CONTAINER_ID = a.CONTAINER_ID
 WHERE a.SHIPMENT_ID = :sid`;
 
 export const qryGetNewSid = `SELECT CAST(SUBSTRING(a.SHIPMENT_ID,8) AS INTEGER)+1 LAST_ID, YEAR(a.SHIPMENT_DATE) LAST_YEAR 
 FROM packing_shipment_header a 
 WHERE YEAR(a.SHIPMENT_DATE) = YEAR(:shipDate)
-ORDER BY a.SHIPMENT_DATE DESC
+ORDER BY a.ADD_TIME DESC
 LIMIT 1`;
 
 export const PackShipHeader = db.define(

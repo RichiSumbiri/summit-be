@@ -23,9 +23,11 @@ import {
   chgCtnStartNo,
   commitPackingPlan,
   copyFromStyle,
+  creatNewClp,
   creatNewSid,
   delOneDetailPpid,
   delPackPosum,
+  deleteClp,
   deletePPIDEntire,
   deletePackBox,
   deleteRowSolid,
@@ -54,6 +56,7 @@ import {
   getSequanceId,
   pachtSortPoId,
   postCstmSetSortSize,
+  postDataLoadingSch,
   postDataPackPlanChild,
   postDataPackPlanHeader,
   postGenPrePack,
@@ -214,5 +217,8 @@ router.get("/upload-loading-list-clp/:sid", getListClp);
 router.get("/upload-loading-list-detail/:sid", getListLoadDetail);
 
 router.post("/upload-loading-new-sid", creatNewSid);
+router.post("/upload-loading-new-clp", creatNewClp);
+router.post("/upload-loading-new-detail", postDataLoadingSch);
+router.delete("/upload-loading-new-clp/:id", deleteClp);
 
 export default router;
