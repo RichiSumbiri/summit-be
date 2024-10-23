@@ -69,11 +69,13 @@ export const downloadPhotosEmp = async(req, res) => {
                     res.status(404).send('File not found');
                   }
                 });
+              } else {
+                res.status(404).send('File not found');
               }
-              
+        } else {
+          res.status(404).send('File not found');
         }
 } catch (error) {
-      console.log(error);
       res.status(500).json({ message: "Error download file", error: error });
     }
   };

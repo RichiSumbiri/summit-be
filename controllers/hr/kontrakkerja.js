@@ -72,6 +72,7 @@ export const newKontrakKerja = async(req,res) => {
             }, type: QueryTypes.SELECT
         });
         
+        
         if(findLastSPKK.length===0){
             nomorUrut   = 1;
         } else {
@@ -99,7 +100,7 @@ export const newKontrakKerja = async(req,res) => {
             StartKontrak: dataSPKK.StartKontrak,
             FinishKontrak: dataSPKK.FinishKontrak,
             isActive: 'Y',
-            CreateBy: dataSPKK.CreateBy
+            CreateBy: moment().format('YYYY-MM-DD hh:mm:ss')
         });
         if(newSPKK){
             res.status(200).json({
