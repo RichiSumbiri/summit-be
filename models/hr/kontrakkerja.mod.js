@@ -88,4 +88,4 @@ LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamat
 `;
 
 export const querySPKKbyRange 	= querySPKK + `WHERE DATE(ss.CreateTime) BETWEEN :startDate AND :endDate`;
-export const queryLastSPKK 		= querySPKK + `WHERE ss.IDSPKK LIKE :formatSPKK ORDER BY ss.CreateTime DESC LIMIT 1`;
+export const queryLastSPKK 		= querySPKK + `WHERE ss.IDSPKK LIKE :formatSPKK ORDER BY ss.CreateTime, ss.IDSPKK DESC LIMIT 1`;

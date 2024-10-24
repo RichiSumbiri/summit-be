@@ -78,3 +78,25 @@ export const SumbiriCutiMain =  dbSPL.define('sumbiri_cuti_main', {
   
 
 export const queryGetCutiDate = `SELECT * FROM sumbiri_cuti_main WHERE DATE(cuti_createdate) BETWEEN :startDate AND :endDate ORDER BY cuti_createdate DESC`;
+
+
+export const querySummaryCuti = `
+SELECT
+	scm.cuti_emp_nik AS EmpNIK,
+	se.NamaLengkap AS EmpName,
+	scm.cuti_emp_tmb AS EmpTMB,
+	scm.cuti_date_start AS CutiDate,
+	scm.cuti_id AS CutiID,
+	SUM(scm.cuti_length) AS CutiCountTahunan,
+	scm.cuti_daymonth AS CutiDayMonth,
+	scm.cuti_purpose AS CutiPurpose
+FROM
+	sumbiri_cuti_main scm
+LEFT JOIN sumbiri_employee se ON se.Nik = scm.cuti_emp_nik
+GROUP BY
+	scm.cuti_emp_nik,
+	DATE_FORMAT(scm.cuti_date_start , '%m-%d')
+ORDER BY
+	scm.cuti_emp_nik,
+	scm.cuti_date_start ASC
+`;

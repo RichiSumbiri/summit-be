@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryGetCutiDate, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
+import { queryGetCutiDate, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
 import moment from "moment";
 
 export const postCutiNew = async(req,res) => {
@@ -85,6 +85,25 @@ export const getCutiByDate = async(req,res) => {
             success: false,
             data: err,
             message: "error get cuti",
+        });
+    }
+}
+
+export const getCutiSummary = async(req,res) => {
+    try {
+        const actionGet = await dbSPL.query(querySummaryCuti, { type: QueryTypes.SELECT });
+        if(actionGet){
+            res.status(200).json({
+                success: true,
+                data: actionGet,
+                message: `success get cuti summary`,
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error get cuti summary",
         });
     }
 }

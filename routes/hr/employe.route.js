@@ -7,7 +7,7 @@ import { getJobPosting, getJobPostingByID, postJobActive, updateJobPosting } fro
 import { getApprovedPelamar, postNewEmp } from "../../controllers/hr/acceptance.js";
 import { getKontrakKerjaByRange, newKontrakKerja, newMassKontrakKerja, updateKontrakKerja } from "../../controllers/hr/kontrakkerja.js";
 import { getMutasiEmpByDate, newMutasi, newMutasiMass, updateMutasi } from "../../controllers/hr/mutasi.js";
-import { getCutiByDate, postCutiNew } from "../../controllers/hr/hrcuti.js";
+import { getCutiByDate, getCutiSummary, postCutiNew } from "../../controllers/hr/hrcuti.js";
 import { downloadPhotosEmp, uploadPhotosEmp } from "../../controllers/hr/empPhoto.js";
 
 
@@ -66,6 +66,7 @@ router.put("/mutasi-employee", updateMutasi);
 
 // cuti karyawan
 router.get("/cuti-employee/:startDate/:endDate", getCutiByDate);
+router.get("/cuti-summary", getCutiSummary);
 router.post("/cuti-employee", postCutiNew);
 
 // event
