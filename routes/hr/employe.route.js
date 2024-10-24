@@ -1,4 +1,8 @@
 import express from "express";
+<<<<<<< HEAD
+=======
+import multer from "multer";
+>>>>>>> 0f3f1d46a33b9cdfd5a4d6125ec59ec9b9e4fd1b
 import {
   getDeptAll,
   getEmpByNIK,
@@ -8,6 +12,10 @@ import {
   getSalaryType,
   getSection,
   getSubDeptAll,
+<<<<<<< HEAD
+=======
+  postNewEmploye,
+>>>>>>> 0f3f1d46a33b9cdfd5a4d6125ec59ec9b9e4fd1b
   updateEmp,
 } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
@@ -46,7 +54,10 @@ import {
   updateMutasi,
 } from "../../controllers/hr/mutasi.js";
 import {
+<<<<<<< HEAD
     deleteCuti,
+=======
+>>>>>>> 0f3f1d46a33b9cdfd5a4d6125ec59ec9b9e4fd1b
   getCutiByDate,
   getCutiSummary,
   postCutiNew,
@@ -55,6 +66,10 @@ import {
   downloadPhotosEmp,
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
+<<<<<<< HEAD
+=======
+import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
+>>>>>>> 0f3f1d46a33b9cdfd5a4d6125ec59ec9b9e4fd1b
 
 const router = express.Router();
 
@@ -69,6 +84,7 @@ router.get("/master-subdept", getSubDeptAll);
 router.get("/master-position", getPositionAll);
 router.get("/master-saltype", getSalaryType);
 router.get("/master-section", getSection);
+router.get("/master-jam-kerja", postNewJamKerja);
 
 // job posting
 router.post("/post-active-job", postJobActive);
