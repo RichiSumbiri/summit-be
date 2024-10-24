@@ -237,6 +237,14 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		type: DataTypes.STRING(50),
 		allowNull: true
 	  },  
+	NamaAyah: {
+		type: DataTypes.STRING(50),
+		allowNull: true,
+	},
+	NamaIbu: {
+		type: DataTypes.STRING(50),
+		allowNull: true,
+	},
 	Alamat1: {
 	  type: DataTypes.STRING(200),
 	  allowNull: true,
@@ -325,6 +333,8 @@ SELECT
 	emp.AlamatDetail AS AlamatKTPDetail,
 	emp.NoTelp1 AS Phone,
 	emp.Email,
+	emp.NamaIbu,
+	emp.NamaAyah,
 	emp.IDDepartemen,
 	md.NameDept AS NamaDepartemen,
 	emp.IDSubDepartemen,
@@ -333,8 +343,8 @@ SELECT
 	mp.Name AS NamaPosisi,
 	emp.IDSection,
 	ms2.Name AS NamaSection,
-	emp.JenisUpah,
-	emp.StatusKaryawan,
+	TRIM(emp.JenisUpah) AS JenisUpah,
+	TRIM(emp.StatusKaryawan) AS StatusKaryawan,
 	emp.PeriodeKontrak,
 	emp.TanggalMasuk,
 	emp.Photos,

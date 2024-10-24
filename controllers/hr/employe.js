@@ -14,7 +14,6 @@ export const getDeptAll = async(req,res)=> {
       data: data,
     });
   } catch(error){
-    console.log(error);
     res.status(404).json({
       success: false,
       data: error,
@@ -163,86 +162,12 @@ export const getEmpByNIKKTP = async(req,res) => {
 }
 
 
-
-// controller add new employyee
-export const postNewEmploye = async(req,res) => {
-  try {
-    const { dataEmp }     = req.body;
-    let prefixNik;
-    switch(dataEmp.JenisUpah){
-      case 'UMR':
-        prefixNik         = "20";
-        break;
-      case 'NEGO':
-        prefixNik         = "10";
-        break;
-      default:
-        prefixNik         = "10";
-        break;
-    }
-    const prefixBulanMasuk  = moment(dataEmp.TanggalMasuk).format("MM");
-    const prefixTahunMasuk  = moment(dataEmp.TanggalMasuk).year()  % 100;
-    const initNik           = prefixNik + prefixTahunMasuk + prefixBulanMasuk;
-    let sequenceNik;
-    let newNik;
-    const checkLastNik      = await modelSumbiriEmployee.findOne({
-      where: {
-        Nik: {
-          [Op.like]: `${initNik}%`
-        } 
-      },
-      order: [['Nik', 'DESC']]
-    });
-    
-    if(checkLastNik === null) {
-      sequenceNik = '001';
-      newNik = initNik + sequenceNik;
-    } else {
-      const lastNik   = String(checkLastNik.dataValues.Nik);
-      sequenceNik = parseInt(lastNik.slice(-3)) + 1;
-      newNik = initNik + sequenceNik.toString().padStart(3, '0');;
-    }
-    const postEmp     = modelSumbiriEmployee.create({
-      Nik: newNik,
-      NamaLengkap: dataEmp.NamaLengkap,
-      //KodeDepartemen: dataEmp.KodeDepartemen,
-      NamaDepartemen: dataEmp.NamaDepartemen,
-      Posisi: dataEmp.Posisi,
-      JenisKelamin: dataEmp.JenisKelamin, // assuming 1 = Male, 0 = Female
-      TanggalLahir: dataEmp.TanggalLahir,
-      TanggalMasuk: dataEmp.TanggalMasuk,
-      // TanggalKeluar: dataEmp.TanggalKeluar,
-      StatusAktif: dataEmp.StatusAktif,
-      StatusKaryawan: dataEmp.StatusKaryawan,
-      NoTelp1: dataEmp.NoTelp1,
-      // NoTelp2: '098-765-4321',
-      // NoTelp3: null,
-      Alamat1: dataEmp.Alamat1,
-      // Alamat2: 'Apt 456',
-      CreateDate: new Date(),
-      // UpdateDate: new Date()
-    });
-    return res.status(200).json({
-      success: true,
-      message: "success post new employee",
-    });
-  } catch(err){
-    res.status(404).json({
-      success: false,
-      data: err,
-      message: "error cannot post new employee",
-    });
-  }
-}
-
-
-
 export const updateEmp = async(req,res) => {
   try {
     const data        = req.body.dataEmp;
     const postEmp     = await modelSumbiriEmployee.update(
       {
-        FullName: data.FullName,
+        NamaLengkap: data.FullName.toUpperCase(),
         NikKTP: data.NikKTP.toString(),
         TempatLahir: data.BirthPlace,
         TanggalLahir: data.BirthDate,
@@ -252,7 +177,7 @@ export const updateEmp = async(req,res) => {
         BPJSKes: data.BPJSKes,
         Agama: data.Agama,
         StatusPerkawinan: data.StatusPerkawinan,
-        EduLastLevel: data.EduLastLevel,
+        JenjangPendidikan: data.EduLastLevel,
         AlamatIDProv: parseInt(data.AddressKTPProvID),
         AlamatIDKabKota: parseInt(data.AddressKTPKabKotaID),
         AlamatIDKecamatan: parseInt(data.AddressKTPKecamatanID),
@@ -260,6 +185,8 @@ export const updateEmp = async(req,res) => {
         AlamatRT: parseInt(data.AddressKTPRT),
         AlamatRW: parseInt(data.AddressKTPRW),
         AlamatDetail: data.AddressKTPDetail,
+        NamaAyah: data.FatherName,
+        NamaIbu: data.MotherName,
         NoTelp1: data.Phone,
         Email: data.Email,
         IDDepartemen: data.IDDepartemen,

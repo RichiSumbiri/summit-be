@@ -32,11 +32,7 @@ export const getApprovedPelamar = async(req,res) => {
 export const postNewEmp = async(req,res) => {
     try {
         const dataNewEmp            = req.body.dataNewEmp;
-        const checkExistingEMP      = await modelSumbiriEmployee.findAll({
-            where: {
-                NikKTP: dataNewEmp.NikKTP
-            }
-        });
+        const checkExistingEMP      = await modelSumbiriEmployee.findAll({ where: { NikKTP: dataNewEmp.NikKTP }});
 
         let postEmp;
 
@@ -54,6 +50,8 @@ export const postNewEmp = async(req,res) => {
                 Agama: dataNewEmp.Agama,
                 NoTelp1: dataNewEmp.Phone,
                 Email: dataNewEmp.Email,
+                NamaAyah: dataNewEmp.FatherName,
+                NamaIbu: dataNewEmp.MotherName,
                 AlamatIDProv: dataNewEmp.AddressKTPProvID,
                 AlamatIDKabKota: dataNewEmp.AddressKTPKabKotaID,
                 AlamatIDKecamatan: dataNewEmp.AddressKTPKecamatanID,
@@ -114,8 +112,6 @@ export const postNewEmp = async(req,res) => {
                 newNik          = initNik + sequenceNik.toString().padStart(3, '0');;
             }
             
-           
-    
             postEmp     = await modelSumbiriEmployee.create({
                 Nik: newNik,
                 NikKTP: dataNewEmp.NikKTP,
@@ -131,6 +127,8 @@ export const postNewEmp = async(req,res) => {
                 Agama: dataNewEmp.Agama,
                 NoTelp1: dataNewEmp.Phone,
                 Email: dataNewEmp.Email,
+                NamaAyah: dataNewEmp.FatherName,
+                NamaIbu: dataNewEmp.MotherName,
                 AlamatIDProv: dataNewEmp.AddressKTPProvID,
                 AlamatIDKabKota: dataNewEmp.AddressKTPKabKotaID,
                 AlamatIDKecamatan: dataNewEmp.AddressKTPKecamatanID,
@@ -154,9 +152,7 @@ export const postNewEmp = async(req,res) => {
             success: true,
             message: "success post new emp"
         });
-        
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             data: err,

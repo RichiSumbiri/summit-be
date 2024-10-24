@@ -47,46 +47,11 @@ SELECT
 	IFNULL(sp.MotherJob, '') AS MotherJob,
 	IFNULL(sp.ParentAddress, '') AS ParentAddress,
 	IFNULL(sp.ParentPhone, '') AS ParentPhone,
-	CASE 
-		WHEN sp.EduSDName != '' THEN 'SD'
-		WHEN sp.EduSMPName != '' THEN 'SMP'
-		WHEN sp.EduSMAName != '' THEN 'SMA'
-		WHEN sp.EduD3Name != '' THEN 'D3'
-		WHEN sp.EduS1Name != '' THEN 'S1'
-		ELSE ''
-	END AS EduLastLevel,
-	CASE 
-		WHEN sp.EduSDName != '' THEN sp.EduSDName
-		WHEN sp.EduSMPName != '' THEN sp.EduSMPName
-		WHEN sp.EduSMAName != '' THEN sp.EduSMAName
-		WHEN sp.EduD3Name != '' THEN sp.EduD3Name
-		WHEN sp.EduS1Name != '' THEN sp.EduS1Name
-		ELSE ''
-	END AS EduLastName,
-	CASE 
-		WHEN sp.EduSDCity != '' THEN sp.EduSDCity
-		WHEN sp.EduSMPCity != '' THEN sp.EduSMPCity
-		WHEN sp.EduSMACity != '' THEN sp.EduSMACity
-		WHEN sp.EduD3City != '' THEN sp.EduD3City
-		WHEN sp.EduS1City != '' THEN sp.EduS1City
-		ELSE ''
-	END AS EduLastCity,
-	CASE 
-		WHEN sp.EduSDYear != '' THEN sp.EduSDYear
-		WHEN sp.EduSMPYear != '' THEN sp.EduSMPYear
-		WHEN sp.EduSMAYear != '' THEN sp.EduSMAYear
-		WHEN sp.EduD3Year != '' THEN sp.EduD3Year
-		WHEN sp.EduS1Year != '' THEN sp.EduS1Year
-		ELSE ''
-	END AS EduLastYear,
-	CASE 
-		WHEN sp.EduSDType != '' THEN sp.EduSDType
-		WHEN sp.EduSMPType != '' THEN sp.EduSMPType
-		WHEN sp.EduSMAType != '' THEN sp.EduSMAType
-		WHEN sp.EduD3Type != '' THEN sp.EduD3Type
-		WHEN sp.EduS1Type != '' THEN sp.EduS1Type
-		ELSE ''
-	END AS EduLastType,
+	sp.EduLastLevel,
+	sp.EduLastName,
+	sp.EduLastCity,
+	sp.EduLastYear,
+	sp.EduLastType,
 	IFNULL(sp.EduSDName, '') AS EduSDName,
 	IFNULL(sp.EduSDCity, '') AS EduSDCity,
 	IFNULL(sp.EduSDYear, '') AS EduSDYear,

@@ -68,7 +68,12 @@ export const SumbiriCutiMain =  dbSPL.define('sumbiri_cuti_main', {
     cuti_notes: {
       type: DataTypes.TEXT,
       allowNull: true
-    }
+    },
+    cuti_active: {
+      type: DataTypes.STRING(2),
+      allowNull: true
+    },
+    
   }, {
     tableName: 'sumbiri_cuti_main',
     timestamps: false,
@@ -77,7 +82,7 @@ export const SumbiriCutiMain =  dbSPL.define('sumbiri_cuti_main', {
   });
   
 
-export const queryGetCutiDate = `SELECT * FROM sumbiri_cuti_main WHERE DATE(cuti_createdate) BETWEEN :startDate AND :endDate ORDER BY cuti_createdate DESC`;
+export const queryGetCutiDate = `SELECT * FROM sumbiri_cuti_main WHERE cuti_active="Y" AND DATE(cuti_createdate) BETWEEN :startDate AND :endDate ORDER BY cuti_createdate DESC`;
 
 
 export const querySummaryCuti = `
@@ -93,6 +98,7 @@ SELECT
 FROM
 	sumbiri_cuti_main scm
 LEFT JOIN sumbiri_employee se ON se.Nik = scm.cuti_emp_nik
+WHERE scm.cuti_active = "Y"
 GROUP BY
 	scm.cuti_emp_nik,
 	DATE_FORMAT(scm.cuti_date_start , '%m-%d')

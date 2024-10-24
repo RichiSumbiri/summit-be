@@ -9,16 +9,10 @@ const __dirname = path.dirname(__filename);
 
 export const uploadPhotosEmp = async(req, res) => {
   try {
-    
     const fileBuffer    = req.files.file.data; // This is the buffer containing the file data
     const fileName      = req.files.file.name;
     const NikEmp        = req.body.Nik;
-    
-    const filePath = path.join(
-      __dirname,
-      "../../assets/images/photos",
-      fileName
-    );
+    const filePath      = path.join(__dirname, "../../assets/images/photos", fileName );
     
     fs.writeFile(filePath, fileBuffer, (err) => {
       if (err) {
@@ -26,22 +20,17 @@ export const uploadPhotosEmp = async(req, res) => {
         return res.status(500).send("Error saving file");
       }
     
-    const updatePhotoDB = modelSumbiriEmployee.update({
-        Photos: fileName
-    }, {
-        where: {
-            Nik: NikEmp 
-        }
-    });
+      const updatePhotoDB = modelSumbiriEmployee.update({ Photos: fileName }, {
+            where: {
+              Nik: NikEmp 
+          }
+      });
     
-    if(updatePhotoDB){
+      if(updatePhotoDB){
         res.json({ message: "success update emp photos" });
-    
-    }
-    
+      }
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error uploading file", error: err });
   }
 };
@@ -51,18 +40,11 @@ export const uploadPhotosEmp = async(req, res) => {
 
 export const downloadPhotosEmp = async(req, res) => {
     try {
-      
         const NikEmp        = req.params.nik;
-        const getFileName   = await modelSumbiriEmployee.findOne({ where: {
-            Nik: NikEmp
-        }});
+        const getFileName   = await modelSumbiriEmployee.findOne({ where: { Nik: NikEmp }});
 
         if(getFileName){
-            const filePath = path.join(
-                __dirname,
-                "../../assets/images/photos",
-                getFileName.Photos
-              );
+            const filePath = path.join( __dirname, "../../assets/images/photos", getFileName.Photos );
               if(filePath){
                 res.sendFile(filePath, (err) => {
                   if (err) {
