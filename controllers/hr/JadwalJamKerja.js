@@ -1,11 +1,19 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import { MasterJamKerja } from "../../models/hr/JadwalDanJam.mod.js";
+import Users from "../../models/setup/users.mod.js";
 
 export const postNewJamKerja = async (req, res) => {
   try {
     const dataJk = req.body;
 
+    const findName = await MasterJamKerja.findOne({
+      where: { jk_nama: dataJk.jk_nama },
+    });
+
+    if (findName) {
+      return res.status(400).json({ message: "Nama Jam Kerja sudah ada" });
+    }
     const createNewJk = await MasterJamKerja.create(dataJk);
 
     if (createNewJk) {
@@ -14,6 +22,103 @@ export const postNewJamKerja = async (req, res) => {
       res.status(400).json({ message: "Gagal Menambahkan Jam Kerja" });
     }
   } catch (error) {
+    // console.log(error);
+
     res.status(500).json({ error, message: "Gagal Menambahkan Jam Kerja" });
+  }
+};
+
+export const getAllJamKerja = async (req, res) => {
+  try {
+    const listJamKerja = await MasterJamKerja.findAll({
+      raw: true,
+    });
+    if (listJamKerja.length > 0) {
+      const listUserId = listJamKerja.map((item) => item.add_id);
+      const listNuixUsr = [...new Set(listUserId)];
+
+      const listUser = await Users.findAll({
+        where: {
+          USER_ID: {
+            [Op.in]: listNuixUsr,
+          },
+        },
+      });
+
+      const jamKerjaWithUser = listJamKerja.map((items) => {
+        const user = listUser.find((item) => item.USER_ID === items.add_id);
+
+        return { ...items, add_name: user.USER_NAME };
+      });
+      res.status(200).json({
+        data: jamKerjaWithUser,
+        message: "Success Menambahkan Jam Kerja",
+      });
+    } else {
+      res.status(200).json({ data: [], message: "Belum Ada Jam Kerja" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan Jam Kerja" });
+  }
+};
+
+//update jam kerja
+export const patchJamKerja = async (req, res) => {
+  try {
+    const dataJk = req.body;
+
+    const findName = await MasterJamKerja.findOne({
+      where: {
+        jk_nama: dataJk.jk_nama,
+        jk_id: {
+          [Op.not]: dataJk.jk_id,
+        },
+      },
+    });
+
+    if (findName) {
+      return res.status(400).json({ message: "Nama Jam Kerja sudah ada" });
+    }
+
+    const updateJk = await MasterJamKerja.update(dataJk, {
+      where: {
+        jk_id: dataJk.jk_id,
+      },
+    });
+
+    if (updateJk) {
+      res.status(200).json({ message: "Success Update Jam Kerja" });
+    } else {
+      res.status(400).json({ message: "Gagal Update Jam Kerja" });
+    }
+  } catch (error) {
+    // console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Update Jam Kerja" });
+  }
+};
+
+//delete jam kerja
+export const deleteJamKerja = async (req, res) => {
+  try {
+    const { jkId } = req.params;
+
+    const delteJk = await MasterJamKerja.destroy({
+      where: {
+        jk_id: jkId,
+      },
+    });
+
+    if (delteJk) {
+      res.status(200).json({ message: "Success Delete Jam Kerja" });
+    } else {
+      res.status(400).json({ message: "Gagal Delete Jam Kerja" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Delete Jam Kerja" });
   }
 };

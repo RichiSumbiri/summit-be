@@ -202,7 +202,7 @@ b.START_TIME, b.END_TIME
 FROM qc_inspection_user a
 LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
 LEFT JOIN qc_inspection_type c ON c.QC_TYPE_ID = a.QC_TYPE_ID 
-WHERE a.QC_USER_DEL <> '1' AND a.QC_USERNAME = :userNameQc`;
+WHERE a.QC_USER_DEL <> '1' AND a.QC_USERNAME = :userNameQc AND a.GROUP_SHIFT_ID IS NULL`;
 
 export const QryGetUserQcWhGroup = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_USER_PASSWORD,
  a.QC_USER_REF_TOKEN, a.QC_TYPE_ID, d.QC_TYPE_NAME, a.GROUP_SHIFT_ID, b.GROUP_ID,

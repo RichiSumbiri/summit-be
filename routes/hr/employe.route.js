@@ -46,7 +46,7 @@ import {
   updateMutasi,
 } from "../../controllers/hr/mutasi.js";
 import {
-    deleteCuti,
+  deleteCuti,
   getCutiByDate,
   getCutiSummary,
   postCutiNew,
@@ -57,6 +57,12 @@ import {
 } from "../../controllers/hr/empPhoto.js";
 import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
 import { getLemburanPending } from "../../controllers/hr/lemburan.js";
+import {
+  deleteJamKerja,
+  getAllJamKerja,
+  patchJamKerja,
+  postNewJamKerja,
+} from "../../controllers/hr/JadwalJamKerja.js";
 
 const router = express.Router();
 
@@ -71,7 +77,12 @@ router.get("/master-subdept", getSubDeptAll);
 router.get("/master-position", getPositionAll);
 router.get("/master-saltype", getSalaryType);
 router.get("/master-section", getSection);
-router.get("/master-jam-kerja", postNewJamKerja);
+
+//jam kerja
+router.get("/master-jam-kerja", getAllJamKerja);
+router.post("/master-jam-kerja", postNewJamKerja);
+router.patch("/master-jam-kerja", patchJamKerja);
+router.delete("/master-jam-kerja/:jkId", deleteJamKerja);
 
 // job posting
 router.post("/post-active-job", postJobActive);

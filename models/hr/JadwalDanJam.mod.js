@@ -119,6 +119,11 @@ export const MasterJamKerja = dbSPL.define(
       allowNull: true,
       defaultValue: null,
     },
+    jk_color: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
     add_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
