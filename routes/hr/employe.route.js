@@ -56,6 +56,7 @@ import {
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
 import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
+import { getLemburanPending } from "../../controllers/hr/lemburan.js";
 
 const router = express.Router();
 
@@ -117,6 +118,15 @@ router.get("/cuti-employee/:startDate/:endDate", getCutiByDate);
 router.get("/cuti-summary", getCutiSummary);
 router.post("/cuti-employee", postCutiNew);
 router.get("/cuti-delete/:cutiid", deleteCuti);
+
+
+// lemburan / spl overtime
+router.get("/lemburan-pending", getLemburanPending);
+router.get("/lemburan-detail/:splNumber");
+router.get("/lemburan-aproval/:posisi/:nik");
+router.post("/lemburan-new");
+router.put("/lemburan-update/:splNumber");
+router.delete("/lemburan-delete/:splNumber")
 
 // event
 router.get("/event/:year", getEventList);
