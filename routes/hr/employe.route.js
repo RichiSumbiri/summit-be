@@ -63,6 +63,7 @@ import {
   patchJamKerja,
   postNewJamKerja,
 } from "../../controllers/hr/JadwalJamKerja.js";
+import { getKarTap } from "../../controllers/hr/kartap.js";
 
 const router = express.Router();
 
@@ -138,6 +139,9 @@ router.get("/lemburan-aproval/:posisi/:nik");
 router.post("/lemburan-new");
 router.put("/lemburan-update/:splNumber");
 router.delete("/lemburan-delete/:splNumber")
+
+// set pengangkatan karyawan tetap
+router.get("/get-kartap", getKarTap);
 
 // event
 router.get("/event/:year", getEventList);
