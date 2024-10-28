@@ -55,7 +55,7 @@ import {
   downloadPhotosEmp,
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
-import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
+// import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
 import { getLemburanPending } from "../../controllers/hr/lemburan.js";
 import {
   deleteJamKerja,
