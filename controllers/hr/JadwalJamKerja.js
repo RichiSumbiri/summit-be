@@ -1,6 +1,9 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { MasterJamKerja } from "../../models/hr/JadwalDanJam.mod.js";
+import {
+  GroupShift,
+  MasterJamKerja,
+} from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
 
 export const postNewJamKerja = async (req, res) => {
@@ -120,5 +123,106 @@ export const deleteJamKerja = async (req, res) => {
     console.log(error);
 
     res.status(500).json({ error, message: "Gagal Delete Jam Kerja" });
+  }
+};
+
+/// get all group
+
+export const getAllGroup = async (req, res) => {
+  try {
+    const listGroup = await GroupShift.findAll({
+      raw: true,
+    });
+
+    if (listGroup.length > 0) {
+      const listUserId = listGroup.map((item) => item.add_id);
+      const listNuixUsr = [...new Set(listUserId)];
+
+      const listUser = await Users.findAll({
+        where: {
+          USER_ID: {
+            [Op.in]: listNuixUsr,
+          },
+        },
+      });
+
+      const listGroup = listGroup.map((items) => {
+        const user = listUser.find((item) => item.USER_ID === items.add_id);
+
+        return { ...items, add_name: user.USER_NAME };
+      });
+      res.status(200).json({
+        data: listGroup,
+        message: "Success mendapatakan list group",
+      });
+    } else {
+      res.status(200).json({ data: [], message: "Belum Ada list group" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan list group" });
+  }
+};
+
+//post new group
+export const postNewGroup = async (req, res) => {
+  try {
+    const dataGrp = req.body;
+
+    const findName = await GroupShift.findOne({
+      where: { groupName: dataGrp.groupName },
+    });
+
+    if (findName) {
+      return res.status(400).json({ message: "Nama Group sudah ada" });
+    }
+    const createGrp = await GroupShift.create(dataGrp);
+
+    if (createGrp) {
+      res.status(200).json({ message: "Success Menambahkan Group" });
+    } else {
+      res.status(400).json({ message: "Gagal Menambahkan Group" });
+    }
+  } catch (error) {
+    // console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan Group" });
+  }
+};
+
+//pacth group
+export const patchGroup = async (req, res) => {
+  try {
+    const dataJk = req.body;
+
+    const findName = await GroupShift.findOne({
+      where: {
+        groupName: dataJk.groupName,
+        groupId: {
+          [Op.not]: dataJk.groupId,
+        },
+      },
+    });
+
+    if (findName) {
+      return res.status(400).json({ message: "Nama group sudah ada" });
+    }
+
+    const updateJk = await GroupShift.update(dataJk, {
+      where: {
+        groupId: dataJk.groupId,
+      },
+    });
+
+    if (updateJk) {
+      res.status(200).json({ message: "Success Update group" });
+    } else {
+      res.status(400).json({ message: "Gagal Update group" });
+    }
+  } catch (error) {
+    // console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Update group" });
   }
 };

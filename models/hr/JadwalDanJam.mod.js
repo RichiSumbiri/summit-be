@@ -150,3 +150,36 @@ export const MasterJamKerja = dbSPL.define(
     timestamps: true,
   }
 );
+
+export const GroupShift = dbSPL.define(
+  "sumbiri_group_shift",
+  {
+    groupId: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    groupCode: {
+      type: DataTypes.STRING,
+    },
+    groupName: {
+      type: DataTypes.STRING,
+    },
+    groupDescription: {
+      type: DataTypes.STRING,
+    },
+    groupColor: {
+      type: DataTypes.STRING,
+    },
+    add_id: {
+      type: DataTypes.INTEGER,
+    },
+    mod_id: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    tableName: "sumbiri_group_shift",
+    timestamps: true,
+  }
+);
