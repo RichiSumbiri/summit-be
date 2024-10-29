@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteGroup,
   getAllGroup,
   patchGroup,
   postNewGroup,
@@ -10,5 +11,6 @@ const router = express.Router();
 router.get("/group", getAllGroup);
 router.post("/group", postNewGroup);
 router.patch("/group", patchGroup);
+router.delete("/group/:groupId", deleteGroup);
 
 export default router;
