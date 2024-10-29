@@ -124,6 +124,16 @@ export const MasterJamKerja = dbSPL.define(
       allowNull: true,
       defaultValue: null,
     },
+    jk_tunjangan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+    },
+    jk_percent_tunjangan: {
+      type: DataTypes.DECIMAL,
+      allowNull: true,
+      defaultValue: null,
+    },
     add_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
