@@ -1,4 +1,4 @@
-import { Op, QueryTypes } from "sequelize";
+import { Op, or, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import {
   GroupShift,
@@ -35,9 +35,13 @@ export const getAllJamKerja = async (req, res) => {
   try {
     const listJamKerja = await MasterJamKerja.findAll({
       raw: true,
+      order: [["jk_nama", "ASC"]],
     });
     if (listJamKerja.length > 0) {
-      const listUserId = listJamKerja.map((item) => item.add_id);
+      const listUserId = listJamKerja
+        .map((item) => [item.add_id, item.mod_id])
+        .flat();
+
       const listNuixUsr = [...new Set(listUserId)];
 
       const listUser = await Users.findAll({
@@ -50,8 +54,13 @@ export const getAllJamKerja = async (req, res) => {
 
       const jamKerjaWithUser = listJamKerja.map((items) => {
         const user = listUser.find((item) => item.USER_ID === items.add_id);
+        const userMOd = listUser.find((item) => item.USER_ID === items.mod_id);
 
-        return { ...items, add_name: user.USER_NAME };
+        return {
+          ...items,
+          add_name: user.USER_NAME,
+          mod_name: userMOd?.USER_NAME,
+        };
       });
       res.status(200).json({
         data: jamKerjaWithUser,
@@ -135,7 +144,9 @@ export const getAllGroup = async (req, res) => {
     });
 
     if (listGroup.length > 0) {
-      const listUserId = listGroup.map((item) => item.add_id);
+      const listUserId = listGroup
+        .map((item) => [item.add_id, item.mod_id])
+        .flat();
       const listNuixUsr = [...new Set(listUserId)];
 
       const listUser = await Users.findAll({
@@ -146,14 +157,19 @@ export const getAllGroup = async (req, res) => {
         },
       });
 
-      const listGroup = listGroup.map((items) => {
+      const listGroupNew = listGroup.map((items) => {
         const user = listUser.find((item) => item.USER_ID === items.add_id);
+        const userMOd = listUser.find((item) => item.USER_ID === items.mod_id);
 
-        return { ...items, add_name: user.USER_NAME };
+        return {
+          ...items,
+          add_name: user.USER_NAME,
+          mod_name: userMOd?.USER_NAME,
+        };
       });
+
       res.status(200).json({
-        data: listGroup,
-        message: "Success mendapatakan list group",
+        data: listGroupNew,
       });
     } else {
       res.status(200).json({ data: [], message: "Belum Ada list group" });
@@ -171,11 +187,13 @@ export const postNewGroup = async (req, res) => {
     const dataGrp = req.body;
 
     const findName = await GroupShift.findOne({
-      where: { groupName: dataGrp.groupName },
+      where: {
+        [Op.or]: { groupName: dataGrp.groupName, groupCode: dataGrp.groupCode },
+      },
     });
 
     if (findName) {
-      return res.status(400).json({ message: "Nama Group sudah ada" });
+      return res.status(202).json({ message: "Nama Group sudah ada" });
     }
     const createGrp = await GroupShift.create(dataGrp);
 
@@ -185,7 +203,7 @@ export const postNewGroup = async (req, res) => {
       res.status(400).json({ message: "Gagal Menambahkan Group" });
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
 
     res.status(500).json({ error, message: "Gagal Menambahkan Group" });
   }
@@ -198,15 +216,15 @@ export const patchGroup = async (req, res) => {
 
     const findName = await GroupShift.findOne({
       where: {
-        groupName: dataJk.groupName,
         groupId: {
           [Op.not]: dataJk.groupId,
         },
+        [Op.or]: { groupName: dataJk.groupName, groupCode: dataJk.groupCode },
       },
     });
 
     if (findName) {
-      return res.status(400).json({ message: "Nama group sudah ada" });
+      return res.status(202).json({ message: "Nama group sudah ada" });
     }
 
     const updateJk = await GroupShift.update(dataJk, {
@@ -221,8 +239,40 @@ export const patchGroup = async (req, res) => {
       res.status(400).json({ message: "Gagal Update group" });
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
 
     res.status(500).json({ error, message: "Gagal Update group" });
+  }
+};
+
+export const deleteGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const findExist = await GroupShift.findOne({
+      where: {
+        groupId,
+      },
+    });
+
+    if (!findExist) {
+      return res.status(202).json({ message: "Group Id tidak tedaftar" });
+    }
+
+    const updateJk = await GroupShift.destroy({
+      where: {
+        groupId,
+      },
+    });
+
+    if (updateJk) {
+      res.status(200).json({ message: "Success delete group" });
+    } else {
+      res.status(400).json({ message: "Gagal delete group" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal delete group" });
   }
 };
