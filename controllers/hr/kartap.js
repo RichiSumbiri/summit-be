@@ -1,11 +1,13 @@
-import { sumbiriSPKT } from "../../models/hr/kartap.mod.js";
+import { QueryTypes } from "sequelize";
+import { dbSPL } from "../../config/dbAudit.js";
+import { queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
 
 
 
 export const getKarTap = async(req,res) => {
     try {
-        const listKarTap = await sumbiriSPKT.findAll();
-        if(listPending){
+        const listKarTap = await dbSPL.query(queryListSPKT, { type: QueryTypes.SELECT});
+        if(listKarTap){
             res.status(200).json({
                 success: true,
                 message: "success get list kartap docs",
