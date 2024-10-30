@@ -35,6 +35,7 @@ import {
   postNewEmp,
 } from "../../controllers/hr/acceptance.js";
 import {
+  getKontrakKerjaByNik,
   getKontrakKerjaByRange,
   newKontrakKerja,
   newMassKontrakKerja,
@@ -104,10 +105,8 @@ router.get("/get-approved-pelamar/:startDate/:endDate", getApprovedPelamar);
 router.post("/new-emp", postNewEmp);
 
 // kontrak kerj
-router.get(
-  "/get-kontrakkerja-range/:startDate/:endDate",
-  getKontrakKerjaByRange
-);
+router.get( "/get-kontrakkerja-range/:startDate/:endDate", getKontrakKerjaByRange);
+router.get( "/get-kontrakkerja-nik/:nik", getKontrakKerjaByNik);
 router.post("/new-kontrakkerja", newKontrakKerja);
 router.post("/new-mass-kontrakkerja", newMassKontrakKerja);
 router.post("/update-kontrakkerja", updateKontrakKerja);

@@ -1,6 +1,6 @@
 import { QueryTypes, DataTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryLastSPKK, querySPKKbyRange, sumbiriKontrakKerja } from "../../models/hr/kontrakkerja.mod.js";
+import { queryLastSPKK, querySPKKbyNIK, querySPKKbyRange, sumbiriKontrakKerja } from "../../models/hr/kontrakkerja.mod.js";
 import moment from "moment";
 import { convertMonthToRoman } from "../util/Utility.js";
 
@@ -25,6 +25,29 @@ export const getKontrakKerjaByRange = async(req,res) => {
         });
     }
 }
+
+export const getKontrakKerjaByNik = async(req,res) => {
+    try {
+        const nik       = req.params.nik;
+        const dataSPKK  = await dbSPL.query(querySPKKbyNIK, { 
+            replacements: {
+                NikEMP: nik
+            }, type: QueryTypes.SELECT
+        });
+        res.status(200).json({
+            success: true,
+            message: "success get kontrak kerja by nik",
+            data: dataSPKK
+        });
+    } catch(err){
+        console.error(err);
+        res.status(404).json({
+            success: false,
+            message: "fail get kontrak kerja by nik"
+        });
+    }
+}
+
 
 export const updateKontrakKerja = async(req,res) => {
     try {
