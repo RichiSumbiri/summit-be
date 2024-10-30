@@ -1686,11 +1686,12 @@ export const delOneDetailPpid = async (req, res) => {
         message: "No Data For Update",
       });
     const endCodRowId = decodeURIComponent(rowId);
+    const sizes = decodeURIComponent(size);
 
     const deleteDetail = await PackPlanRowDetail.destroy({
       where: {
         ROWID: endCodRowId,
-        SIZE_CODE: size,
+        SIZE_CODE: sizes,
       },
     });
 
