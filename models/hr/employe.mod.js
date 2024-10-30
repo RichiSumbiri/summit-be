@@ -12,6 +12,7 @@ export const qryEmployeAktif = `SELECT
 	se.TempatLahir,
 	se.TanggalLahir,
 	se.TanggalMasuk,
+	se.TanggalKeluar,
 	se.Agama,
 	se.JenjangPendidikan,
 	se.JenisUpah,
@@ -40,10 +41,7 @@ export const qryEmployeAktif = `SELECT
 	mp.Name AS NamaPosisi,
 	ms2.Name AS NamaSection,
 	se.StatusKaryawan,
-	CASE 
-		WHEN se.StatusAktif = 0 THEN 'AKTIF'
-		ELSE 'NON AKTIF'
-	END AS StatusAktif
+	se.StatusAktif
 FROM sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
