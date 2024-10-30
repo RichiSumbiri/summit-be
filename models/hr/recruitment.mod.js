@@ -476,7 +476,119 @@ SELECT
 	IFNULL(sp.MotherJob, '') AS MotherJob,
 	IFNULL(sp.ParentAddress, '') AS ParentAddress,
 	IFNULL(sp.ParentPhone, '') AS ParentPhone,
-	sp.EduLastLevel,
+  CASE
+    WHEN sp.EduLastLevel = 'SD' THEN sp.EduLastName
+    ELSE ''
+  END AS EduSDName,
+  CASE
+    WHEN sp.EduLastLevel = 'SD' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduSDCity,
+  CASE
+    WHEN sp.EduLastLevel = 'SD' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduSDYear,
+  CASE
+    WHEN sp.EduLastLevel = 'SD' THEN sp.EduLastType
+    ELSE ''
+  END AS EduSDType,
+  CASE
+    WHEN sp.EduLastLevel = 'SMP' THEN sp.EduLastName
+    ELSE ''
+  END AS EduSMPName,
+  CASE
+    WHEN sp.EduLastLevel = 'SMP' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduSMPCity,
+  CASE
+    WHEN sp.EduLastLevel = 'SMP' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduSMPYear,
+  CASE
+    WHEN sp.EduLastLevel = 'SMP' THEN sp.EduLastType
+    ELSE ''
+  END AS EduSMPType,
+  CASE
+    WHEN sp.EduLastLevel = 'SMA' THEN sp.EduLastName
+    ELSE ''
+  END AS EduSMAName,
+  CASE
+    WHEN sp.EduLastLevel = 'SMA' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduSMACity,
+  CASE
+    WHEN sp.EduLastLevel = 'SMA' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduSMAYear,
+  CASE
+    WHEN sp.EduLastLevel = 'SMA' THEN sp.EduLastType
+    ELSE ''
+  END AS EduSMAType,
+  CASE
+    WHEN sp.EduLastLevel = 'D1' THEN sp.EduLastName
+    ELSE ''
+  END AS EduD1Name,
+  CASE
+    WHEN sp.EduLastLevel = 'D1' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduD1City,
+  CASE
+    WHEN sp.EduLastLevel = 'D1' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduD1Year,
+  CASE
+    WHEN sp.EduLastLevel = 'D1' THEN sp.EduLastType
+    ELSE ''
+  END AS EduD1Type,
+  CASE
+    WHEN sp.EduLastLevel = 'D2' THEN sp.EduLastName
+    ELSE ''
+  END AS EduD2Name,
+  CASE
+    WHEN sp.EduLastLevel = 'D2' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduD2City,
+  CASE
+    WHEN sp.EduLastLevel = 'D2' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduD2Year,
+  CASE
+    WHEN sp.EduLastLevel = 'D2' THEN sp.EduLastType
+    ELSE ''
+  END AS EduD2Type,
+  CASE
+    WHEN sp.EduLastLevel = 'D3' THEN sp.EduLastName
+    ELSE ''
+  END AS EduD3Name,
+  CASE
+    WHEN sp.EduLastLevel = 'D3' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduD3City,
+  CASE
+    WHEN sp.EduLastLevel = 'D3' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduD3Year,
+  CASE
+    WHEN sp.EduLastLevel = 'D3' THEN sp.EduLastType
+    ELSE ''
+  END AS EduD3Type,
+  CASE
+    WHEN sp.EduLastLevel = 'S1' THEN sp.EduLastName
+    ELSE ''
+  END AS EduS1Name,
+  CASE
+    WHEN sp.EduLastLevel = 'S1' THEN sp.EduLastCity
+    ELSE ''
+  END AS EduS1City,
+  CASE
+    WHEN sp.EduLastLevel = 'S1' THEN sp.EduLastYear
+    ELSE ''
+  END AS EduS1Year,
+  CASE
+    WHEN sp.EduLastLevel = 'S1' THEN sp.EduLastType
+    ELSE ''
+  END AS EduS1Type,
+  sp.EduLastLevel,
 	sp.EduLastName,
 	sp.EduLastCity,
 	sp.EduLastYear,
