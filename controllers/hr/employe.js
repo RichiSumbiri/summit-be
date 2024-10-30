@@ -212,7 +212,9 @@ export const updateEmp = async(req,res) => {
         IDSection: data.IDSection,
         JenisUpah: data.JenisUpah,
         StatusKaryawan: data.StatusKaryawan,
-        TanggalMasuk: data.TanggalMasuk
+        TanggalMasuk: data.TanggalMasuk,
+        TanggalKeluar: data.TanggalKeluar,
+        StatusAktif: data.StatusAktif
     }, {
       where: {
         Nik: parseInt(data.Nik)
