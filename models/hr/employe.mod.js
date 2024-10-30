@@ -360,8 +360,9 @@ LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi
 LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
 `;
 
-export const sqlFindEmpByNIK 	= sqlFindEmp + `WHERE emp.Nik = :empnik`;
-export const sqlFindEmpByNIKKTP = sqlFindEmp +  `WHERE emp.NikKTP=:nikKTP`;
+export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
+export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP`;
+export const sqlFindEmpKontrak 	= sqlFindEmp +  ` WHERE TRIM(emp.StatusKaryawan)='Kontrak'`;
 
 modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");

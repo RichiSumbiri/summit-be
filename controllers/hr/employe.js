@@ -1,6 +1,6 @@
 import { QueryTypes, Op } from "sequelize";
 import db from "../../config/database.js";
-import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 
@@ -157,6 +157,23 @@ export const getEmpByNIKKTP = async(req,res) => {
       success: false,
       data: err,
       message: "error get employee with NIK ktp",
+    });
+  }
+}
+
+export const getEmpKontrak = async(req,res) => {
+  try {
+    const data    = await dbSPL.query(sqlFindEmpKontrak, { type: QueryTypes.SELECT });
+    return res.status(200).json({
+      success: true,
+      message: "success get employee kontrak",
+      data: data,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error get employee kontrak",
     });
   }
 }

@@ -3,6 +3,7 @@ import {
   getDeptAll,
   getEmpByNIK,
   getEmpByNIKKTP,
+  getEmpKontrak,
   getEmployeAktif,
   getPositionAll,
   getSalaryType,
@@ -63,7 +64,7 @@ import {
   patchJamKerja,
   postNewJamKerja,
 } from "../../controllers/hr/JadwalJamKerja.js";
-import { getKarTap } from "../../controllers/hr/kartap.js";
+import { getKarTap, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 
 const router = express.Router();
 
@@ -113,6 +114,7 @@ router.post("/update-kontrakkerja", updateKontrakKerja);
 
 // employee management
 router.get("/all-employe", getEmployeAktif);
+router.get("/all-employe-kontrak", getEmpKontrak);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.post("/update-emp", updateEmp);
@@ -142,6 +144,8 @@ router.delete("/lemburan-delete/:splNumber")
 
 // set pengangkatan karyawan tetap
 router.get("/get-kartap", getKarTap);
+router.post("/new-kartap", newKarTap);
+router.put("/update-kartap", updateKarTap);
 
 // event
 router.get("/event/:year", getEventList);

@@ -64,3 +64,6 @@ LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = se.AlamatIDProv
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota 
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
 `;
+
+
+export const queryGetLastSPKT = queryListSPKT + ` WHERE ss.IDSPKT LIKE :formatSPKT ORDER BY ss.CreateDate DESC LIMIT 1`;

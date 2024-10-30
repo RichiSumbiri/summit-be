@@ -1,8 +1,9 @@
 import { QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
-
-
+import { queryGetLastSPKT, queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
+import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
+import moment from "moment";
+import { convertMonthToRoman } from "../util/Utility.js";
 
 export const getKarTap = async(req,res) => {
     try {
@@ -21,3 +22,88 @@ export const getKarTap = async(req,res) => {
         });
     }
 }
+
+export const updateKarTap = async(req,res) => {
+    try {
+        const dataSPKT      = req.body.dataSPKT;
+        const putAction     = await sumbiriSPKT.update({
+                DateSPKT: dataSPKT.DateSPKT
+            }, {
+                where: {
+                    IDSPKT: dataSPKT.IDSPKT,
+                    Nik: dataSPKT.Nik
+                }
+            });
+        if(putAction){
+            return res.status(200).json({
+                success: true,
+                message: "success update spkt emp"
+            });
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail post update spkt emp"
+        });
+    }
+}
+
+export const newKarTap = async(req,res) => {
+    try {
+        const dataSPKT      = req.body.dataSPKT;
+        const yearNow       = moment().format('YYYY');
+        const monthNow      = convertMonthToRoman(moment().format('M'));
+        const formatNoSPKT  = `/HRD-SBR/${monthNow}/${yearNow}`; 
+        
+        let lastSPKT;
+        let nomorUrut       = 1;
+        
+        const findLastSPKT  = await dbSPL.query(queryGetLastSPKT, {
+            replacements: {
+                formatSPKT: '%'+formatNoSPKT
+            }, type: QueryTypes.SELECT
+        })
+        
+        if(findLastSPKT.length===0){
+            nomorUrut   = 1;
+        } else {
+            lastSPKT    = findLastSPKT[0].IDSPKT;
+            nomorUrut   = parseInt(lastSPKT.substring(0, 3)) + 1;
+        }
+        
+        const newNoUrut     = nomorUrut.toString().padStart(3, '0');
+        const newIdSPKT     = newNoUrut + formatNoSPKT;
+        
+        const postSPKT = await sumbiriSPKT.create({
+            Nik: dataSPKT.Nik,
+            IDSPKT: newIdSPKT,
+            DateSPKT: dataSPKT.DateSPKT,
+            CreateBy: 'system',
+            CreateDate: moment().format('YYYY-MM-DD hh:mm:ss') 
+        });
+
+        if(postSPKT){
+            const updateEmp = await modelSumbiriEmployee.update({
+                StatusKaryawan: 'TETAP'
+            }, {
+                where: {
+                    Nik: parseInt(dataSPKT.Nik)
+                }
+            });
+            
+            if(updateEmp){
+                return res.status(200).json({
+                    success: true,
+                    message: `success post new spkt emp`
+                });
+            }    
+        }
+
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail post new spkt emp"
+        });
+    }
+}
+
