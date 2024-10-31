@@ -153,7 +153,11 @@ export const newMassKontrakKerja = async(req,res) => {
         
         let lastSPKID;
         let nomorUrut;
-
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
         for await (const row of ListEmp) {
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
@@ -193,6 +197,8 @@ export const newMassKontrakKerja = async(req,res) => {
             if(newSPKK){
                 SuccessSPKK.push({Nik: row.Nik, status: true});
             }
+
+            await delay(1000);
         }
         if(SuccessSPKK.length===ListEmp.length){
             res.status(200).json({
