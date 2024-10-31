@@ -3,6 +3,7 @@ import { dbSPL } from "../../config/dbAudit.js";
 import {
   GroupShift,
   MasterJamKerja,
+  qryListEmpActv,
 } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
 
@@ -274,5 +275,21 @@ export const deleteGroup = async (req, res) => {
     console.log(error);
 
     res.status(500).json({ error, message: "Gagal delete group" });
+  }
+};
+
+export const getAllEmpForGrp = async (req, res) => {
+  try {
+    const listKaryawan = await dbSPL.query(qryListEmpActv, {
+      type: QueryTypes.SELECT,
+    });
+
+    res.json({ data: listKaryawan });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Gagal Mendapatakan data employee" });
   }
 };

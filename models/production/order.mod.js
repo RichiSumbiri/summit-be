@@ -430,7 +430,7 @@ FROM order_po_listing_size a WHERE a.ORDER_NO = :orderId `;
 
 export const getListBlkNo = `SELECT 
 a.ORDER_NO 
-FROM order_po_listing_size a WHERE a.ORDER_NO LIKE :orderId AND a.MO_NO IS NOT NULL
+FROM order_po_listing_size a WHERE a.ORDER_NO LIKE :orderId -- AND a.MO_NO IS NOT NULL
 GROUP BY a.ORDER_NO `;
 
 export const getDetailPoSize = `SELECT 

@@ -193,3 +193,31 @@ export const GroupShift = dbSPL.define(
     timestamps: true,
   }
 );
+
+export const qryListEmpActv = `SELECT
+	se.Nik,
+	se.NikKTP,
+	se.NPWP,
+	se.NamaLengkap,
+	CASE
+		WHEN se.JenisKelamin = 1 THEN 'PEREMPUAN'
+		ELSE 'LAKI-LAKI'
+	END AS JenisKelamin,
+	se.IDDepartemen,
+	md.NameDept AS NamaDepartemen,
+	se.IDSubDepartemen,
+	ms.Name AS NamaSubDepartemen,
+	se.IDPosisi,
+	mp.Name AS NamaPosisi,
+	ms2.Name AS NamaSection,
+	seg.groupId,
+	sgs.groupName
+FROM sumbiri_employee se
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
+LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
+LEFT JOIN master_section ms2 ON ms2.IDSection = se.IDSection 
+LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId
+WHERE se.StatusAktif = 0 
+ORDER BY se.IDDepartemen, se.NamaLengkap`;
