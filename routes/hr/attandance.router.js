@@ -1,8 +1,10 @@
 import express from "express";
 import {
   deleteGroup,
+  empToGroup,
   getAllEmpForGrp,
   getAllGroup,
+  getMemberGroup,
   patchGroup,
   postNewGroup,
 } from "../../controllers/hr/JadwalJamKerja.js";
@@ -16,5 +18,7 @@ router.delete("/group/:groupId", deleteGroup);
 
 //get employee rote
 router.get("/employe-active", getAllEmpForGrp);
+router.get("/member-group/:groupId", getMemberGroup);
+router.post("/emp-to-group", empToGroup);
 
 export default router;

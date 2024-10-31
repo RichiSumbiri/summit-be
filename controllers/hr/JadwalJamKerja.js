@@ -1,8 +1,10 @@
 import { Op, or, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import {
+  EmpGroup,
   GroupShift,
   MasterJamKerja,
+  qryGetMemberGroup,
   qryListEmpActv,
 } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
@@ -291,5 +293,49 @@ export const getAllEmpForGrp = async (req, res) => {
     res
       .status(500)
       .json({ error, message: "Gagal Mendapatakan data employee" });
+  }
+};
+
+//get list memberGroup
+export const getMemberGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const listMemberGroup = await dbSPL.query(qryGetMemberGroup, {
+      type: QueryTypes.SELECT,
+      replacements: {
+        groupId,
+      },
+    });
+
+    res.json({ data: listMemberGroup });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Mendapatakan data member" });
+  }
+};
+
+//post emp to group
+export const empToGroup = async (req, res) => {
+  try {
+    const dataGrp = req.body;
+
+    const addGrp = await EmpGroup.bulkCreate(dataGrp, {
+      updateOnDuplicate: ["groupId"],
+      where: {
+        Nik: ["Nik"],
+      },
+    });
+
+    if (addGrp) {
+      res.status(200).json({ message: "Success Menambahkan Ke Group" });
+    } else {
+      res.status(400).json({ message: "Gagal Menambahkan ke Group" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan ke Group" });
   }
 };
