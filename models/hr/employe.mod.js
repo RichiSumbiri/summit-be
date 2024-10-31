@@ -16,6 +16,11 @@ export const qryEmployeAktif = `SELECT
 	se.Agama,
 	se.JenjangPendidikan,
 	se.JenisUpah,
+	se.NoTelp1,
+	se.NoTelp2,
+	se.Email,
+	se.NamaAyah,
+	se.NamaIbu,
 	CASE 
 		WHEN se.StatusPerkawinan = 'BK' THEN 'BELUM KAWIN'
 		WHEN se.StatusPerkawinan = 'K' THEN 'KAWIN'
