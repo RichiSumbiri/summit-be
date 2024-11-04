@@ -272,3 +272,43 @@ export const EmpGroup = dbSPL.define(
     timestamps: true,
   }
 );
+
+export const GroupJadwal = dbSPL.define(
+  "sumbiri_group_schedule",
+  {
+    jadwalId: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+    },
+    scheduleDate: {
+      type: DataTypes.DATE,
+    },
+    groupId: {
+      type: DataTypes.INTEGER,
+    },
+    jk_id: {
+      type: DataTypes.INTEGER,
+    },
+    add_id: {
+      type: DataTypes.INTEGER,
+    },
+    mod_id: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    tableName: "sumbiri_group_schedule",
+    timestamps: true,
+  }
+);
+
+export const getGroupSCh = `SELECT 
+	a.jadwalId,
+	a.scheduleDate,
+	a.groupId,
+	a.jk_id,
+	b.jk_nama,
+	b.jk_color
+FROM sumbiri_group_schedule a
+LEFT JOIN master_jam_kerja b ON b.jk_id = a.jk_id
+ WHERE a.scheduleDate BETWEEN :startDate AND :endDate AND a.groupId = :groupId `;
