@@ -23,7 +23,7 @@ export const sumbiriMutasiEmp = dbSPL.define('sumbiri_mutasiemp', {
     },
     reason_mutasi: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: true
     },
     source_dept: {
       type: DataTypes.INTEGER,

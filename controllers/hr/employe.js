@@ -1,6 +1,6 @@
 import { QueryTypes, Op } from "sequelize";
 import db from "../../config/database.js";
-import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 
@@ -95,7 +95,24 @@ export const getSection = async(req,res)=> {
   }
 }
 
-
+export const getEmpSummaryDept = async(req,res) => {
+  try {
+    const dataSummary = await dbSPL.query(sqlSummaryEmpByDept, { type: QueryTypes.SELECT });
+    if(dataSummary){
+      return res.status(200).json({
+        success: true,
+        message: "success get summary emp by dept",
+        data: data,
+      });
+    }
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error get list employee",
+    });
+  }
+}
 
 // get employee aktif
 export const getEmployeAktif = async (req, res) => {

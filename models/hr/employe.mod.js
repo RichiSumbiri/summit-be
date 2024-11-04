@@ -367,6 +367,22 @@ export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
 export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP`;
 export const sqlFindEmpKontrak 	= sqlFindEmp +  ` WHERE TRIM(emp.StatusKaryawan)='Kontrak'`;
 
+export const sqlSummaryEmpByDept = `
+SELECT
+	se.IDDepartemen,
+	se.IDSubDepartemen,
+	md.GolDept AS Golongan,
+	md.NameDept AS NamaDepartemen,
+	ms.Name AS NamaSubDepartemen,
+	COUNT(*) AS Qty
+FROM
+	sumbiri_employee se
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
+WHERE se.StatusAktif = 0
+GROUP BY se.IDSubDepartemen 
+`;
+
 modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");
 modelSumbiriEmployee.removeAttribute("id");
