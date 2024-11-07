@@ -1,4 +1,3 @@
-import moment from "moment";
 import { getJobPostingActive, getJobPostingById, jobPosting, putJobById } from "../../models/hr/jobposting.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";

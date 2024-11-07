@@ -43,7 +43,7 @@ export const postCutiNew = async(req,res) => {
                 cuti_length: dataCuti.cuti_length,
                 cuti_daymonth: dataCuti.cuti_daymonth.toUpperCase(),
                 cuti_purpose: dataCuti.cuti_purpose.toUpperCase(),
-                cuti_createdate: moment().format('YYYY-MM-DD hh:mm:ss'),
+                cuti_createdate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 cuti_createby: dataCuti.cuti_createby,
                 cuti_active: "Y"
             }, {

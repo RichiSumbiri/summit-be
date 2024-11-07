@@ -1,8 +1,6 @@
 import { QueryTypes, Op } from "sequelize";
-import db from "../../config/database.js";
 import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
-import moment from "moment";
 
 // get master departement
 export const getDeptAll = async(req,res)=> {
@@ -203,25 +201,25 @@ export const updateEmp = async(req,res) => {
       {
         NamaLengkap: data.FullName.toUpperCase(),
         NikKTP: data.NikKTP.toString(),
-        TempatLahir: data.BirthPlace,
-        TanggalLahir: data.BirthDate,
+        TempatLahir: data.TempatLahir,
+        TanggalLahir: data.TanggalLahir,
         JenisKelamin: data.JenisKelamin,
         NPWP: data.NPWP.toString(),
         BPJSKet: data.BPJSKet,
         BPJSKes: data.BPJSKes,
         Agama: data.Agama,
         StatusPerkawinan: data.StatusPerkawinan,
-        JenjangPendidikan: data.EduLastLevel,
-        AlamatIDProv: parseInt(data.AddressKTPProvID),
-        AlamatIDKabKota: parseInt(data.AddressKTPKabKotaID),
-        AlamatIDKecamatan: parseInt(data.AddressKTPKecamatanID),
-        AlamatKelurahan: data.AddressKTPKelurahanID,
-        AlamatRT: parseInt(data.AddressKTPRT),
-        AlamatRW: parseInt(data.AddressKTPRW),
-        AlamatDetail: data.AddressKTPDetail,
-        NamaAyah: data.FatherName,
-        NamaIbu: data.MotherName,
-        NoTelp1: data.Phone,
+        JenjangPendidikan: data.JenjangPendidikan,
+        AlamatIDProv: parseInt(data.AlamatIDProv),
+        AlamatIDKabKota: parseInt(data.AlamatIDKabKota),
+        AlamatIDKecamatan: parseInt(data.AlamatIDKecamatan),
+        AlamatKelurahan: data.AlamatKelurahan,
+        AlamatRT: parseInt(data.AlamatRT),
+        AlamatRW: parseInt(data.AlamatRW),
+        AlamatDetail: data.AlamatDetail,
+        NamaAyah: data.NamaAyah,
+        NamaIbu: data.NamaIbu,
+        NoTelp1: data.NoTelp1,
         Email: data.Email,
         IDDepartemen: data.IDDepartemen,
         IDSubDepartemen: data.IDSubDepartemen,
