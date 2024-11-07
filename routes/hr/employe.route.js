@@ -35,6 +35,7 @@ import {
   postNewEmp,
 } from "../../controllers/hr/acceptance.js";
 import {
+  deleteKontrakKerja,
   getKontrakKerjaByNik,
   getKontrakKerjaByRange,
   newKontrakKerja,
@@ -69,6 +70,7 @@ import { getKarTap, newKarTap, updateKarTap } from "../../controllers/hr/kartap.
 
 const router = express.Router();
 
+
 // master hr
 router.get("/master-address", getMasterAlamat);
 router.get("/master-address-provinsi", getMasterProv);
@@ -81,17 +83,20 @@ router.get("/master-position", getPositionAll);
 router.get("/master-saltype", getSalaryType);
 router.get("/master-section", getSection);
 
+
 //jam kerja
 router.get("/master-jam-kerja", getAllJamKerja);
 router.post("/master-jam-kerja", postNewJamKerja);
 router.patch("/master-jam-kerja", patchJamKerja);
 router.delete("/master-jam-kerja/:jkId", deleteJamKerja);
 
+
 // job posting
 router.post("/post-active-job", postJobActive);
 router.get("/get-active-job", getJobPosting);
 router.get("/get-job-by-id/:id", getJobPostingByID);
 router.post("/put-job-by-id", updateJobPosting);
+
 
 // recruitment
 router.get("/generate-passkey", GeneratePassKey);
@@ -100,9 +105,11 @@ router.post("/submit-lamaran", postLamaran);
 router.post("/approval-recruitment", postApproveLamaran);
 router.get("/get-lamaran/:startDate/:endDate", getLamaranByDate);
 
+
 // acceptance
 router.get("/get-approved-pelamar/:startDate/:endDate", getApprovedPelamar);
 router.post("/new-emp", postNewEmp);
+
 
 // kontrak kerj
 router.get( "/get-kontrakkerja-range/:startDate/:endDate", getKontrakKerjaByRange);
@@ -110,6 +117,8 @@ router.get( "/get-kontrakkerja-nik/:nik", getKontrakKerjaByNik);
 router.post("/new-kontrakkerja", newKontrakKerja);
 router.post("/new-mass-kontrakkerja", newMassKontrakKerja);
 router.post("/update-kontrakkerja", updateKontrakKerja);
+router.delete("/delete-kontrakkerja/:idspkk", deleteKontrakKerja);
+
 
 // employee management
 router.get("/all-employe", getEmployeAktif);
@@ -120,11 +129,13 @@ router.post("/update-emp", updateEmp);
 router.post("/update-photos/:nikEmp", uploadPhotosEmp);
 router.get("/get-photos/:nik", downloadPhotosEmp);
 
+
 // mutasi karyawan
 router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);
 router.post("/mutasi-employee", newMutasi);
 router.post("/mutasi-mass-employee", newMutasiMass);
 router.put("/mutasi-employee", updateMutasi);
+
 
 // cuti karyawan
 router.get("/cuti-employee/:startDate/:endDate", getCutiByDate);
@@ -140,6 +151,7 @@ router.get("/lemburan-aproval/:posisi/:nik");
 router.post("/lemburan-new");
 router.put("/lemburan-update/:splNumber");
 router.delete("/lemburan-delete/:splNumber")
+
 
 // set pengangkatan karyawan tetap
 router.get("/get-kartap", getKarTap);

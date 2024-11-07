@@ -60,6 +60,7 @@ export const querySPKK = `SELECT
 		WHEN se.JenisKelamin = 0 THEN 'LAKI-LAKI'
 		WHEN se.JenisKelamin = 1 THEN 'PEREMPUAN'
 	END AS JenisKelamin,
+	se.AlamatDetail,
 	se.AlamatKelurahan,
 	se.AlamatRT,
 	se.AlamatRW,

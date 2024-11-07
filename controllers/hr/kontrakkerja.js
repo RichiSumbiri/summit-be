@@ -74,9 +74,39 @@ export const updateKontrakKerja = async(req,res) => {
             success: false,
             message: "fail update kontrak kerja"
         });
-    }
-    
+    }    
 }
+
+
+export const deleteKontrakKerja = async(req,res) => {
+    try {
+        const IDSPKK    = decodeURIComponent(req.params.idspkk); 
+        const action    = await sumbiriKontrakKerja.destroy({
+            where: {
+                IDSPKK: IDSPKK
+            }
+        });
+        if(action){
+            res.status(200).json({
+                success: true,
+                message: `success delete kontrak kerja ${IDSPKK}`
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: `fail delete kontrak kerja ${IDSPKK}`
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "fail delete kontrak kerja",
+            error: err
+        });
+    }
+}
+
+
 
 export const newKontrakKerja = async(req,res) => {
     try {
