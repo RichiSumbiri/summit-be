@@ -87,22 +87,23 @@ export const queryGetCutiDate = `SELECT * FROM sumbiri_cuti_main WHERE cuti_acti
 
 export const querySummaryCuti = `
 SELECT
+	se.NamaLengkap AS EmpName,	
 	scm.cuti_emp_nik AS EmpNIK,
-	se.NamaLengkap AS EmpName,
+	md.NameDept AS EmpDept,
 	scm.cuti_emp_tmb AS EmpTMB,
-	scm.cuti_date_start AS CutiDate,
-	scm.cuti_id AS CutiID,
-	SUM(scm.cuti_length) AS CutiCountTahunan,
+	scm.cuti_length AS CutiCountTahunan,
 	scm.cuti_daymonth AS CutiDayMonth,
-	scm.cuti_purpose AS CutiPurpose
+	scm.cuti_date_start AS CutiDateStart,
+	scm.cuti_date_end AS CutiDateEnd,
+	scm.cuti_purpose AS CutiPurpose,
+	scm.cuti_createdate AS CutiCreateDate,
+	scm.cuti_createby AS CutiCreateBy,
+	scm.cuti_id AS CutiID
 FROM
 	sumbiri_cuti_main scm
 LEFT JOIN sumbiri_employee se ON se.Nik = scm.cuti_emp_nik
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 WHERE scm.cuti_active = "Y"
-GROUP BY
-	scm.cuti_emp_nik,
-	DATE_FORMAT(scm.cuti_date_start , '%m-%d')
 ORDER BY
-	scm.cuti_emp_nik,
-	scm.cuti_date_start ASC
+	scm.cuti_date_start DESC
 `;
