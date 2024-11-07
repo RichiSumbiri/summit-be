@@ -96,7 +96,7 @@ SELECT
 	scm.cuti_date_start AS CutiDateStart,
 	scm.cuti_date_end AS CutiDateEnd,
 	scm.cuti_purpose AS CutiPurpose,
-	scm.cuti_createdate AS CutiCreateDate,
+	DATE(scm.cuti_createdate) AS CutiCreateDate,
 	scm.cuti_createby AS CutiCreateBy,
 	scm.cuti_id AS CutiID
 FROM
