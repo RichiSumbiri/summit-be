@@ -117,10 +117,11 @@ export const postSewingSmvDetail = async (req, res) => {
             PRODUCT_ID: smvData.PRODUCT_ID,
             SIZE_ID: smvData.SIZE_ID,
           },
-        });
+        }).catch(error => console.error(error));
       } else {
         delete smvData.SMV_DETAIL_MOD_ID;
-        await SewingSmvDetail.create(smvData);
+        const action = await SewingSmvDetail.create(smvData).catch(error => console.error(error));
+      
       }
 
       if (i + 1 === dataSmv.length)
