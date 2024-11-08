@@ -335,6 +335,7 @@ SELECT
 	emp.AlamatRW,
 	emp.AlamatDetail,
 	emp.NoTelp1,
+	emp.NoTelp2,
 	emp.Email,
 	emp.NamaIbu,
 	emp.NamaAyah,
