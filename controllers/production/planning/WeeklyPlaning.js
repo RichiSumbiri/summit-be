@@ -702,7 +702,7 @@ const postSchSizeDetail = async (data) => {
           where: {
             SCH_SIZE_ID: dtSize.SCH_SIZE_ID,
           },
-        });
+        }).catch(error => console.error(error));
       }
     });
   } catch (error) {
