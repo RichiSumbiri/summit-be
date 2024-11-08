@@ -1,6 +1,26 @@
 import { Op, QueryTypes, DataTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 
+export const MasterTypeCal = dbSPL.define(
+  "master_calendar_type",
+  {
+    calendar_code: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    calendar_description: {
+      type: DataTypes.STRING,
+    },
+    calendar_color: {
+      type: DataTypes.STRING,
+    },
+  },
+  {
+    tableName: "master_calendar_type",
+    timestamps: false,
+  }
+);
+
 export const MasterJamKerja = dbSPL.define(
   "master_jam_kerja",
   {
@@ -222,6 +242,14 @@ LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId
 WHERE se.StatusAktif = 0 
 ORDER BY se.IDDepartemen, se.NamaLengkap`;
 
+export const qryGetEmpRef = `SELECT
+	se.Nik,
+	se.NamaLengkap,
+  CONCAT(se.Nik,' - ',se.NamaLengkap) AS labelKaryawan
+FROM sumbiri_employee se
+WHERE se.StatusAktif = 0 AND (se.Nik LIKE :qry OR se.NamaLengkap LIKE :qry)
+ORDER BY se.IDDepartemen, se.NamaLengkap `;
+
 export const qryGetMemberGroup = `SELECT
 	se.Nik,
 	se.NikKTP,
@@ -289,6 +317,9 @@ export const GroupJadwal = dbSPL.define(
     jk_id: {
       type: DataTypes.INTEGER,
     },
+    calendar: {
+      type: DataTypes.STRING,
+    },
     add_id: {
       type: DataTypes.INTEGER,
     },
@@ -307,8 +338,46 @@ export const getGroupSCh = `SELECT
 	a.scheduleDate,
 	a.groupId,
 	a.jk_id,
+	a.calendar,
+	c.calendar_color,
 	b.jk_nama,
 	b.jk_color
 FROM sumbiri_group_schedule a
 LEFT JOIN master_jam_kerja b ON b.jk_id = a.jk_id
+LEFT JOIN master_calendar_type c ON c.calendar_code = a.calendar
  WHERE a.scheduleDate BETWEEN :startDate AND :endDate AND a.groupId = :groupId `;
+
+export const qrySchIndividu = `SELECT 
+	fn.*,
+	mjk.jk_nama,
+	mjk.jk_in,
+	mjk.jk_out
+FROM (
+	SELECT 
+		nm.scheduleDate, nm.Nik, nm.NamaLengkap, nm.groupId,
+		CASE WHEN  nm.groupId = 0 THEN nm.jadwal_indv ELSE nm.jadwal_group END AS jk_id
+	FROM (
+		SELECT  	se.Nik, 
+					se.NamaLengkap, 
+					sgs.scheduleDate, 
+					seg.groupId, 
+				   sgs.jk_id AS jadwal_group,
+				   0 AS jadwal_indv
+		FROM sumbiri_employee se 
+		LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+		LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
+		WHERE se.Nik = :nik   AND sgs.scheduleDate BETWEEN :startDate AND :endDate
+		UNION ALL 
+		SELECT  	se.Nik, 
+					se.NamaLengkap, 
+					sis.scheduleDate_inv AS scheduleDate, 
+					0 AS groupId, 
+					0 AS jadwal_group,
+				   sis.jk_id AS jadwal_indv
+		FROM sumbiri_employee se 
+		LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
+		WHERE se.Nik = :nik  AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate
+	) nm
+) fn
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = fn.jk_id
+GROUP BY fn.scheduleDate`;

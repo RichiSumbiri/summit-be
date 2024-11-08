@@ -6,8 +6,11 @@ import {
   GroupJadwal,
   GroupShift,
   MasterJamKerja,
+  MasterTypeCal,
+  qryGetEmpRef,
   qryGetMemberGroup,
   qryListEmpActv,
+  qrySchIndividu,
 } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import Moment from "moment";
@@ -143,6 +146,18 @@ export const deleteJamKerja = async (req, res) => {
     console.log(error);
 
     res.status(500).json({ error, message: "Gagal Delete Jam Kerja" });
+  }
+};
+
+//get calendar type
+export const getCldrType = async (req, res) => {
+  try {
+    const allCalType = await MasterTypeCal.findAll({});
+
+    res.json({ data: allCalType });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error, message: "Gagal Amnil Calender type" });
   }
 };
 
@@ -369,6 +384,140 @@ export const getGroupSchedule = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    const checkHolidays = (date, data) => {
+      const dayName = moment(date).format("dddd");
+      if (holidays.length > 0) {
+        const findDate = holidays.find((item) => item.calendar_date === date);
+        if (findDate)
+          return {
+            calendar: findDate.calendar_holiday_type,
+            calendarName: findDate.calendar_holiday_reason,
+            color: "#ca2129",
+          };
+      }
+      if (dayName === "Sunday")
+        return {
+          calendar: data.calendar ? data.calendar : "HL",
+          calendarName: null,
+          colorDay: "#ca2129",
+          color: data.calendar_color ? data.calendar_color : "#ec0000",
+        };
+      if (dayName === "Saturday")
+        return {
+          calendar: data.calendar ? data.calendar : "WD",
+          calendarName: null,
+          colorDay: "#0144B7",
+          color: data.calendar_color ? data.calendar_color : "#97f65a",
+        };
+      return {
+        calendar: data.calendar ? data.calendar : "WD",
+        calendarName: null,
+        colorDay: "#000000",
+        color: data.calendar_color ? data.calendar_color : "#97f65a",
+      };
+    };
+
+    const today = moment().startOf("day");
+
+    const listDates = Array.from(moment.range(start, end).by("days")).map(
+      (day) => {
+        const dateFormat = day.format("YYYY-MM-DD");
+        let dataExist = {};
+
+        if (groupSch.length > 0) {
+          const checkIdx = groupSch.findIndex(
+            (items) => items.scheduleDate === dateFormat
+          );
+
+          if (checkIdx >= 0) {
+            dataExist = groupSch[checkIdx];
+          }
+        }
+        const objHoliday = checkHolidays(dateFormat, dataExist);
+
+        return {
+          allowEdit: day.isAfter(today),
+          scheduleDate: dateFormat,
+          sortDate: day.format("MM-DD"),
+          days: day.format("ddd"),
+          ...dataExist,
+          ...objHoliday,
+        };
+      }
+    );
+
+    res.json({ data: listDates });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Mendapatakan data jadwa;" });
+  }
+};
+
+// post schedule group
+export async function postGroupSch(req, res) {
+  try {
+    const dataArr = req.body;
+
+    if (!dataArr) res.status(404).json({ message: "tidak ada data" });
+
+    const bulk = await GroupJadwal.bulkCreate(dataArr, {
+      updateOnDuplicate: ["jk_id", "calendar"],
+      where: {
+        jadwalId: ["jadwalId"],
+      },
+    });
+
+    if (bulk) return res.json({ message: "Success Save Schedule" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Terdapat error saat save schedule" });
+  }
+}
+
+export const getRefEmpByQry = async (req, res) => {
+  try {
+    const { qrytext } = req.params;
+
+    const qry = `%${qrytext}%`;
+
+    const listEmpRef = await dbSPL.query(qryGetEmpRef, {
+      replacements: {
+        qry,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    res.json({ data: listEmpRef });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Terdapat error saat ambil emp ref" });
+  }
+};
+
+//get jadwal individu
+export const getSchIndividu = async (req, res) => {
+  try {
+    const { nik, startDate, endDate } = req.params;
+
+    if (!nik || !startDate || !endDate)
+      return res.status(400).json({ message: "Tidak Terdapat Parameter" });
+
+    const start = moment(startDate);
+    const end = moment(endDate);
+
+    const holidays = await db.query(QueryGetHolidayByDate, {
+      replacements: { startDate, endDate },
+      type: QueryTypes.SELECT,
+    });
+
+    const groupSch = await dbSPL.query(qrySchIndividu, {
+      replacements: { startDate, endDate, nik },
+      type: QueryTypes.SELECT,
+    });
+
     const checkHolidays = (date) => {
       const dayName = moment(date).format("dddd");
       if (holidays.length > 0) {
@@ -399,7 +548,8 @@ export const getGroupSchedule = async (req, res) => {
           const checkIdx = groupSch.findIndex(
             (items) => items.scheduleDate === dateFormat
           );
-          if (checkIdx) {
+
+          if (checkIdx >= 0) {
             dataExist = groupSch[checkIdx];
           }
         }
@@ -422,41 +572,3 @@ export const getGroupSchedule = async (req, res) => {
     res.status(500).json({ error, message: "Gagal Mendapatakan data jadwa;" });
   }
 };
-
-// post schedule group
-export async function postGroupSch(req, res) {
-  try {
-    const dataArr = req.body;
-
-    if (!dataArr) res.status(404).json({ message: "tidak ada data" });
-    // const dataFirst = dataArr[0];
-    // const dataLast = dataArr[dataArr.length - 1];
-
-    // const checkId = dataArr.map((item) => item.jadwalId);
-    // if (checkId.length > 0) {
-    //   //destory
-    //   await GroupJadwal.destroy({
-    //     where: {
-    //       groupId: dataFirst.groupId,
-    //       scheduleDate: {
-    //         [Op.gte]: moment(dataFirst.scheduleDate).toDate(),
-    //         [Op.lte]: moment(dataLast.scheduleDate).toDate(),
-    //       },
-    //     },
-    //   });
-    // }
-
-    const bulk = await GroupJadwal.bulkCreate(dataArr, {
-      updateOnDuplicate: ["jk_id"],
-      where: {
-        jadwalId: ["jadwalId"],
-      },
-    });
-
-    if (bulk) return res.json({ message: "Success Save Schedule" });
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({ message: "Terdapat error saat save schedule" });
-  }
-}
