@@ -67,7 +67,7 @@ import {
   postNewJamKerja,
 } from "../../controllers/hr/JadwalJamKerja.js";
 import { getKarTap, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
-import { getEmpResignSPK } from "../../controllers/hr/empResign.js";
+import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
 
 const router = express.Router();
 
@@ -162,7 +162,8 @@ router.put("/update-kartap", updateKarTap);
 
 // employee resignation dan pembuatan surat pengalaman kerja
 router.get("/get-empresign/:startDate/:endDate", getEmpResignSPK);
-
+router.post("/new-empresign", postNewEmpResignSPK);
+router.delete("/delete-empresign/:idSPK", deleteEmpResignSPK);
 
 // event
 router.get("/event/:year", getEventList);

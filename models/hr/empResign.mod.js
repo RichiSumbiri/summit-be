@@ -1,3 +1,7 @@
+import { DataTypes } from "sequelize";
+import db from "../../config/database.js";
+import { dbSPL } from "../../config/dbAudit.js";
+
 export const queryEmpResignSPK = `
 SELECT
 	spk.id_spk,
@@ -22,3 +26,39 @@ LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi
 WHERE se.TanggalKeluar BETWEEN :startDate AND :endDate
 ORDER BY spk.CreateDate DESC
 `;
+
+export const queryLastEmpResignSPK = `SELECT * FROM sumbiri_spk WHERE id_spk LIKE :formatSPK ORDER BY CreateDate DESC LIMIT 1  `;
+
+
+export const sumbiriSPK = dbSPL.define('sumbiri_spk', {
+	id_spk: {
+	  type: DataTypes.STRING(255),
+	  allowNull: false,
+	  primaryKey: true,
+	},
+	Nik: {
+	  type: DataTypes.INTEGER(200),
+	  allowNull: false,
+	},
+	FlagReason: {
+	  type: DataTypes.STRING(200),
+	  allowNull: true,
+	  defaultValue: null,
+	},
+	CreateBy: {
+	  type: DataTypes.STRING(200),
+	  allowNull: true,
+	  defaultValue: null,
+	},
+	CreateDate: {
+	  type: DataTypes.DATE,
+	  allowNull: true,
+	  defaultValue: null,
+	},
+  }, {
+	tableName: 'sumbiri_spk',
+	timestamps: false,
+	freezeTableName: true,
+	charset: 'utf8mb4',
+	collate: 'utf8mb4_general_ci',
+  });
