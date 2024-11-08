@@ -199,7 +199,7 @@ export const updateEmp = async(req,res) => {
     const data        = req.body.dataEmp;
     const postEmp     = await modelSumbiriEmployee.update(
       {
-        NamaLengkap: data.FullName.toUpperCase(),
+        NamaLengkap: data.NamaLengkap.toUpperCase(),
         NikKTP: data.NikKTP.toString(),
         TempatLahir: data.TempatLahir,
         TanggalLahir: data.TanggalLahir,
@@ -228,7 +228,7 @@ export const updateEmp = async(req,res) => {
         JenisUpah: data.JenisUpah,
         StatusKaryawan: data.StatusKaryawan,
         TanggalMasuk: data.TanggalMasuk,
-        TanggalKeluar: data.TanggalKeluar,
+        //TanggalKeluar: data.TanggalKeluar,
         StatusAktif: data.StatusAktif
     }, {
       where: {
