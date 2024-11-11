@@ -265,13 +265,12 @@ export const updateEmp = async(req,res) => {
       }
     });
     
-    const checkEmpGroup = await EmpGroup.findOne({
+    const checkEmpGroup = await EmpGroup.findAll({
       where: {
         Nik: data.Nik
       }
     });
-    
-    if(checkEmpGroup.length===0){
+    if(checkEmpGroup.length===0 || checkEmpGroup===null){
       await EmpGroup.create({
         Nik: data.Nik,
         groupId: data.groupId,
@@ -295,6 +294,7 @@ export const updateEmp = async(req,res) => {
       });
     }
   } catch(err){
+    console.log(err);
     res.status(404).json({
       success: false,
       data: err,
