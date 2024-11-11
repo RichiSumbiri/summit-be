@@ -302,3 +302,46 @@ export const updateEmp = async(req,res) => {
     });
   }
 } 
+
+
+export const updateEmpMassGroup = async(req,res) => {
+  try {
+    const data = req.body.dataGroup;
+    
+    for (const emp of data.listEmp) {
+        const checkEmpGroup = await EmpGroup.findOne({
+          where: {
+            Nik: emp.Nik
+          }
+        });
+        
+        if(checkEmpGroup.length===0){
+          await EmpGroup.create({
+            Nik: emp.Nik,
+            groupId: data.groupId,
+            add_id: data.UpdateBy
+          });
+        } else {
+          await EmpGroup.update({
+            groupId: data.groupId,
+            mod_id: data.UpdateBy
+          }, {
+            where: {
+              Nik: emp.Nik
+            }
+          });
+        }    
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: `success update employee mass group`,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error cannot update employee mass group",
+    });
+  }
+}

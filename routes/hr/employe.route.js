@@ -11,6 +11,7 @@ import {
   getSection,
   getSubDeptAll,
   updateEmp,
+  updateEmpMassGroup,
 } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
 import {
@@ -131,7 +132,7 @@ router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.post("/update-emp", updateEmp);
 router.post("/update-photos/:nikEmp", uploadPhotosEmp);
 router.get("/get-photos/:nik", downloadPhotosEmp);
-
+router.post("/update-emp-mass-group", updateEmpMassGroup);
 
 // mutasi karyawan
 router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);
