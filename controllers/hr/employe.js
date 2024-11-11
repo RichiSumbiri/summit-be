@@ -1,6 +1,9 @@
 import { QueryTypes, Op } from "sequelize";
-import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
+import moment from "moment";
+import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
+
 
 // get master departement
 export const getDeptAll = async(req,res)=> {
@@ -154,6 +157,30 @@ export const getEmpByNIK = async(req,res) => {
   }
 }
 
+export const getEmpLikeNIK = async(req,res) => {
+  try {
+    const inputQry  = parseInt(req.params.inputQry);
+    const qry       = `%${inputQry}%`;
+    const data      = await dbSPL.query(sqlFindEmpLikeNIK, {
+      replacements: {
+        inputQry: qry
+      }, type: QueryTypes.SELECT
+    });
+    return res.status(200).json({
+      success: true,
+      message: "success get employee by nik or name",
+      data: data,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error get employee with NIK or name",
+    });
+  }
+}
+
+
 export const getEmpByNIKKTP = async(req,res) => {
   try {
     const nikktp  = parseInt(req.params.nikktp);
@@ -196,7 +223,7 @@ export const getEmpKontrak = async(req,res) => {
 
 export const updateEmp = async(req,res) => {
   try {
-    const data        = req.body.dataEmp;
+    const data          = req.body.dataEmp;
     const postEmp     = await modelSumbiriEmployee.update(
       {
         NamaLengkap: data.NamaLengkap.toUpperCase(),
@@ -220,6 +247,7 @@ export const updateEmp = async(req,res) => {
         NamaAyah: data.NamaAyah,
         NamaIbu: data.NamaIbu,
         NoTelp1: data.NoTelp1,
+        NoTelp2: data.NoTelp2,
         Email: data.Email,
         IDDepartemen: data.IDDepartemen,
         IDSubDepartemen: data.IDSubDepartemen,
@@ -228,13 +256,38 @@ export const updateEmp = async(req,res) => {
         JenisUpah: data.JenisUpah,
         StatusKaryawan: data.StatusKaryawan,
         TanggalMasuk: data.TanggalMasuk,
-        //TanggalKeluar: data.TanggalKeluar,
-        StatusAktif: data.StatusAktif
+        TanggalKeluar: data.TanggalKeluar==='0000-00-00' ? null: data.TanggalKeluar,
+        StatusAktif: data.StatusAktif,
+        CreateDate: moment().format('YYYY-MM-DD HH:mm:ss')
     }, {
       where: {
         Nik: parseInt(data.Nik)
       }
     });
+    
+    const checkEmpGroup = await EmpGroup.findOne({
+      where: {
+        Nik: data.Nik
+      }
+    });
+    
+    if(checkEmpGroup.length===0){
+      await EmpGroup.create({
+        Nik: data.Nik,
+        groupId: data.groupId,
+        add_id: data.UpdateBy
+      });
+    } else {
+      await EmpGroup.update({
+        groupId: data.groupId,
+        mod_id: data.UpdateBy
+      }, {
+        where: {
+          Nik: data.Nik
+        }
+      });
+    }
+    
     if(postEmp){
       return res.status(200).json({
         success: true,

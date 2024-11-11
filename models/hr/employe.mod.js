@@ -313,6 +313,7 @@ export const sqlFindEmp = `
 SELECT 
 	emp.Nik,
 	emp.NamaLengkap,
+	CONCAT(emp.Nik,' - ', emp.NamaLengkap) AS labelKaryawan,
 	emp.NikKTP,
 	emp.TempatLahir,
 	emp.TanggalLahir,
@@ -352,6 +353,9 @@ SELECT
 	emp.PeriodeKontrak,
 	emp.TanggalMasuk,
 	emp.TanggalKeluar,
+	emp.StatusAktif,
+	seg.groupId,
+	sgs.groupName ,
 	emp.Photos,
 	emp.CreateBy,
 	emp.CreateDate
@@ -363,9 +367,12 @@ LEFT JOIN master_department md ON md.IdDept = emp.IDDepartemen
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = emp.IDSubDepartemen 
 LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi 
 LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
+LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik 
+LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
 `;
 
 export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
+export const sqlFindEmpLikeNIK 	= sqlFindEmp + ` WHERE emp.Nik LIKE :inputQry OR emp.NamaLengkap LIKE :inputQry `;
 export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP`;
 export const sqlFindEmpKontrak 	= sqlFindEmp +  ` WHERE TRIM(emp.StatusKaryawan)='Kontrak'`;
 

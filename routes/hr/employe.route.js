@@ -4,6 +4,7 @@ import {
   getEmpByNIK,
   getEmpByNIKKTP,
   getEmpKontrak,
+  getEmpLikeNIK,
   getEmployeAktif,
   getPositionAll,
   getSalaryType,
@@ -59,7 +60,7 @@ import {
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
 // import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
-import { getLemburanPending } from "../../controllers/hr/lemburan.js";
+import { getLemburanPending, getSPLAccess } from "../../controllers/hr/lemburan.js";
 import {
   deleteJamKerja,
   getAllJamKerja,
@@ -125,6 +126,7 @@ router.delete("/delete-kontrakkerja/:idspkk", deleteKontrakKerja);
 router.get("/all-employe", getEmployeAktif);
 router.get("/all-employe-kontrak", getEmpKontrak);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
+router.get("/find-emp-like/:inputQry", getEmpLikeNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.post("/update-emp", updateEmp);
 router.post("/update-photos/:nikEmp", uploadPhotosEmp);
@@ -146,6 +148,7 @@ router.get("/cuti-delete/:cutiid", deleteCuti);
 
 
 // lemburan / spl overtime
+router.get("/lemburan-access/:userId", getSPLAccess);
 router.get("/lemburan-pending", getLemburanPending);
 router.get("/lemburan-detail/:splNumber");
 router.get("/lemburan-aproval/:posisi/:nik");
@@ -158,6 +161,7 @@ router.delete("/lemburan-delete/:splNumber")
 router.get("/get-kartap", getKarTap);
 router.post("/new-kartap", newKarTap);
 router.put("/update-kartap", updateKarTap);
+
 
 
 // employee resignation dan pembuatan surat pengalaman kerja
