@@ -12,6 +12,7 @@ import {
   patchGroup,
   postGroupSch,
   postNewGroup,
+  postSchIndividu,
 } from "../../controllers/hr/JadwalJamKerja.js";
 
 const router = express.Router();
@@ -34,5 +35,6 @@ router.post("/jadwal-group", postGroupSch);
 //jadwal individu
 router.get("/jadwal-indivdu-emp/:qrytext", getRefEmpByQry);
 router.get("/jadwal-individu/:nik/:startDate/:endDate", getSchIndividu);
+router.post("/jadwal-individu", postSchIndividu);
 
 export default router;

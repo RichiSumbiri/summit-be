@@ -5,6 +5,7 @@ import {
   getGroupSCh,
   GroupJadwal,
   GroupShift,
+  IndividuJadwal,
   MasterJamKerja,
   MasterTypeCal,
   qryGetEmpRef,
@@ -461,7 +462,23 @@ export async function postGroupSch(req, res) {
 
     if (!dataArr) res.status(404).json({ message: "tidak ada data" });
 
-    const bulk = await GroupJadwal.bulkCreate(dataArr, {
+    //cari jika tidak ada jam kerja tapi ada id maka destroy
+    let destroyCount = 0;
+    const arrDestroy = dataArr.filter((item) => !item.jk_id && item.jadwalId);
+    if (arrDestroy.length > 0) {
+      const arrIdDestroy = arrDestroy.map((item) => item.jadwalId);
+      const destData = GroupJadwal.destroy({
+        where: {
+          jadwalId: arrIdDestroy,
+        },
+      });
+      destroyCount = destData;
+    }
+
+    // jika ada jam kerja maka create or update
+    const datapost = dataArr.filter((item) => item.jk_id);
+
+    const bulk = await GroupJadwal.bulkCreate(datapost, {
       updateOnDuplicate: ["jk_id", "calendar"],
       where: {
         jadwalId: ["jadwalId"],
@@ -518,7 +535,7 @@ export const getSchIndividu = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const checkHolidays = (date) => {
+    const checkHolidays = (date, data) => {
       const dayName = moment(date).format("dddd");
       if (holidays.length > 0) {
         const findDate = holidays.find((item) => item.calendar_date === date);
@@ -530,10 +547,25 @@ export const getSchIndividu = async (req, res) => {
           };
       }
       if (dayName === "Sunday")
-        return { calendar: "HL", calendarName: null, color: "#ca2129" };
+        return {
+          calendar: data.calendar ? data.calendar : "HL",
+          calendarName: null,
+          colorDay: "#ca2129",
+          color: data.calendar_color ? data.calendar_color : "#ec0000",
+        };
       if (dayName === "Saturday")
-        return { calendar: "WD", calendarName: null, color: "#0144B7" };
-      return { calendar: "WD", calendarName: null, color: "#000000" };
+        return {
+          calendar: data.calendar ? data.calendar : "WD",
+          calendarName: null,
+          colorDay: "#0144B7",
+          color: data.calendar_color ? data.calendar_color : "#97f65a",
+        };
+      return {
+        calendar: data.calendar ? data.calendar : "WD",
+        calendarName: null,
+        colorDay: "#000000",
+        color: data.calendar_color ? data.calendar_color : "#97f65a",
+      };
     };
 
     const today = moment().startOf("day");
@@ -541,7 +573,6 @@ export const getSchIndividu = async (req, res) => {
     const listDates = Array.from(moment.range(start, end).by("days")).map(
       (day) => {
         const dateFormat = day.format("YYYY-MM-DD");
-        const objHoliday = checkHolidays(dateFormat);
         let dataExist = {};
 
         if (groupSch.length > 0) {
@@ -553,6 +584,7 @@ export const getSchIndividu = async (req, res) => {
             dataExist = groupSch[checkIdx];
           }
         }
+        const objHoliday = checkHolidays(dateFormat, dataExist);
 
         return {
           allowEdit: day.isAfter(today),
@@ -569,6 +601,50 @@ export const getSchIndividu = async (req, res) => {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ error, message: "Gagal Mendapatakan data jadwa;" });
+    res.status(500).json({ error, message: "Gagal Mendapatakan data jadwal" });
   }
 };
+
+// post schedule group
+export async function postSchIndividu(req, res) {
+  try {
+    const dataArr = req.body;
+
+    if (!dataArr) res.status(404).json({ message: "tidak ada data" });
+
+    //cari jika tidak ada jam kerja tapi ada id maka destroy
+    let destroyCount = 0;
+    const arrDestroy = dataArr.filter(
+      (item) => !item.jk_id && item.jadwalId_inv
+    );
+    if (arrDestroy.length > 0) {
+      const arrIdDestroy = arrDestroy.map((item) => item.jadwalId_inv);
+      const destData = IndividuJadwal.destroy({
+        where: {
+          jadwalId_inv: arrIdDestroy,
+        },
+      });
+      destroyCount = destData;
+    }
+
+    // jika ada jam kerja maka create or update
+    const datapost = dataArr
+      .filter((item) => item.jk_id)
+      .map((items) => ({
+        ...items,
+        scheduleDate_inv: items.scheduleDate,
+      }));
+    const bulk = await IndividuJadwal.bulkCreate(datapost, {
+      updateOnDuplicate: ["jk_id", "calendar"],
+      where: {
+        jadwalId: ["jadwalId_inv"],
+      },
+    });
+
+    if (bulk) return res.json({ message: "Success Save Schedule" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Terdapat error saat save schedule" });
+  }
+}
