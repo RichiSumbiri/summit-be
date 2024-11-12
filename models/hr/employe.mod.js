@@ -2,7 +2,8 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import { dbSPL } from "../../config/dbAudit.js";
 
-export const qryEmployeAktif = `SELECT
+export const qryEmployeAktif = `
+SELECT
 	se.Nik,
 	se.NikKTP,
 	se.NPWP,
@@ -46,7 +47,10 @@ export const qryEmployeAktif = `SELECT
 	mp.Name AS NamaPosisi,
 	ms2.Name AS NamaSection,
 	se.StatusKaryawan,
-	se.StatusAktif
+	se.StatusAktif,
+	seg.groupId,
+	sgs.groupCode,
+	sgs.groupName 
 FROM sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
@@ -55,7 +59,10 @@ LEFT JOIN master_section ms2 ON ms2.IDSection = se.IDSection
 LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = se.AlamatIDProv 
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota 
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
-WHERE se.StatusAktif = 0`;
+LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik 
+LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
+WHERE se.StatusAktif = 0
+`;
 
 
 
