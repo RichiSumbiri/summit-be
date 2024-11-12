@@ -49,8 +49,7 @@ SELECT
 	se.StatusKaryawan,
 	se.StatusAktif,
 	seg.groupId,
-	sgs.groupCode,
-	sgs.groupName 
+	CONCAT(sgs.groupCode, " - ", sgs.groupName) AS GroupEmp
 FROM sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
