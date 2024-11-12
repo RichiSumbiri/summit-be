@@ -11,20 +11,39 @@ SELECT
 	md.NameDept AS NamaDepartemen,
 	se.IDPosisi,
 	mp.Name AS NamaPosisi,
-    se.StatusKaryawan,
+	se.StatusKaryawan,
 	se.TanggalMasuk,
 	se.TanggalKeluar,
-    DATE(spk.CreateDate) AS TanggalDokumen,
+	CONCAT(
+    IF(TIMESTAMPDIFF(YEAR, se.TanggalMasuk, se.TanggalKeluar) > 0, 
+       CONCAT(TIMESTAMPDIFF(YEAR, se.TanggalMasuk, se.TanggalKeluar), ' TAHUN', 
+              IF(TIMESTAMPDIFF(YEAR, se.TanggalMasuk, se.TanggalKeluar) > 1, '', ''), ', '), 
+       ''),
+    IF(TIMESTAMPDIFF(MONTH, se.TanggalMasuk, se.TanggalKeluar) % 12 > 0, 
+       CONCAT(TIMESTAMPDIFF(MONTH, se.TanggalMasuk, se.TanggalKeluar) % 12, ' BULAN', 
+              IF(TIMESTAMPDIFF(MONTH, se.TanggalMasuk, se.TanggalKeluar) % 12 > 1, '', ''), ', '), 
+       ''),
+    IF(DATEDIFF(se.TanggalKeluar, DATE_ADD(se.TanggalMasuk, INTERVAL TIMESTAMPDIFF(MONTH, se.TanggalMasuk, se.TanggalKeluar) MONTH)) > 0, 
+       CONCAT(DATEDIFF(se.TanggalKeluar, DATE_ADD(se.TanggalMasuk, INTERVAL TIMESTAMPDIFF(MONTH, se.TanggalMasuk, se.TanggalKeluar) MONTH)), ' HARI', 
+              IF(DATEDIFF(se.TanggalKeluar, DATE_ADD(se.TanggalMasuk, INTERVAL TIMESTAMPDIFF(MONTH, se.TanggalMasuk, se.TanggalKeluar) MONTH)) > 1, '', ''), ''), 
+       '')
+  ) AS MasaKerja,
+	DATE(spk.CreateDate) AS TanggalDokumen,
 	spk.FlagReason,
 	spk.CreateBy,
 	spk.CreateDate
 FROM
 	sumbiri_spk spk
-LEFT JOIN sumbiri_employee se ON se.Nik = spk.Nik 
-LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
-LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
-WHERE DATE(spk.CreateDate) BETWEEN :startDate AND :endDate
-ORDER BY spk.CreateDate DESC
+LEFT JOIN sumbiri_employee se ON
+	se.Nik = spk.Nik
+LEFT JOIN master_department md ON
+	md.IdDept = se.IDDepartemen
+LEFT JOIN master_position mp ON
+	mp.IDPosition = se.IDPosisi
+WHERE
+	DATE(spk.CreateDate) BETWEEN :startDate AND :endDate
+ORDER BY
+	spk.CreateDate DESC
 `;
 
 export const queryLastEmpResignSPK = `SELECT * FROM sumbiri_spk WHERE id_spk LIKE :formatSPK ORDER BY CreateDate DESC LIMIT 1  `;
