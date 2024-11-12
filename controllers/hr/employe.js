@@ -307,15 +307,13 @@ export const updateEmp = async(req,res) => {
 export const updateEmpMassGroup = async(req,res) => {
   try {
     const data = req.body.dataGroup;
-    
     for (const emp of data.listEmp) {
-        const checkEmpGroup = await EmpGroup.findOne({
+        const checkEmpGroup = await EmpGroup.findAll({
           where: {
             Nik: emp.Nik
           }
         });
-        
-        if(checkEmpGroup.length===0){
+        if(checkEmpGroup.length===0||!checkEmpGroup){
           await EmpGroup.create({
             Nik: emp.Nik,
             groupId: data.groupId,
@@ -338,6 +336,7 @@ export const updateEmpMassGroup = async(req,res) => {
       message: `success update employee mass group`,
     });
   } catch(err){
+    console.log(err);
     res.status(404).json({
       success: false,
       data: err,
