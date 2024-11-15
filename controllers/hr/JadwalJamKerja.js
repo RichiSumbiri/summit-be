@@ -403,13 +403,14 @@ export const getGroupSchedule = async (req, res) => {
           colorDay: "#ca2129",
           color: data.calendar_color ? data.calendar_color : "#ec0000",
         };
-      if (dayName === "Saturday")
+      if (dayName === "Saturday") {
         return {
           calendar: data.calendar ? data.calendar : "WD",
           calendarName: null,
           colorDay: "#0144B7",
           color: data.calendar_color ? data.calendar_color : "#97f65a",
         };
+      }
       return {
         calendar: data.calendar ? data.calendar : "WD",
         calendarName: null,
@@ -463,20 +464,20 @@ export async function postGroupSch(req, res) {
     if (!dataArr) res.status(404).json({ message: "tidak ada data" });
 
     //cari jika tidak ada jam kerja tapi ada id maka destroy
-    let destroyCount = 0;
-    const arrDestroy = dataArr.filter((item) => !item.jk_id && item.jadwalId);
-    if (arrDestroy.length > 0) {
-      const arrIdDestroy = arrDestroy.map((item) => item.jadwalId);
-      const destData = GroupJadwal.destroy({
-        where: {
-          jadwalId: arrIdDestroy,
-        },
-      });
-      destroyCount = destData;
-    }
+    // let destroyCount = 0;
+    // const arrDestroy = dataArr.filter((item) => !item.jk_id && item.jadwalId);
+    // if (arrDestroy.length > 0) {
+    //   const arrIdDestroy = arrDestroy.map((item) => item.jadwalId);
+    //   const destData = GroupJadwal.destroy({
+    //     where: {
+    //       jadwalId: arrIdDestroy,
+    //     },
+    //   });
+    //   destroyCount = destData;
+    // }
 
     // jika ada jam kerja maka create or update
-    const datapost = dataArr.filter((item) => item.jk_id);
+    const datapost = dataArr; //.filter((item) => item.jk_id);
 
     const bulk = await GroupJadwal.bulkCreate(datapost, {
       updateOnDuplicate: ["jk_id", "calendar"],
