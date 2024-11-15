@@ -270,21 +270,23 @@ export const updateEmp = async(req,res) => {
         Nik: data.Nik
       }
     });
-    if(checkEmpGroup.length===0 || checkEmpGroup===null){
-      await EmpGroup.create({
-        Nik: data.Nik,
-        groupId: data.groupId,
-        add_id: data.UpdateBy
-      });
-    } else {
-      await EmpGroup.update({
-        groupId: data.groupId,
-        mod_id: data.UpdateBy
-      }, {
-        where: {
-          Nik: data.Nik
-        }
-      });
+    if(data.groupId){
+      if(checkEmpGroup.length===0 || checkEmpGroup===null){
+        await EmpGroup.create({
+          Nik: data.Nik,
+          groupId: data.groupId,
+          add_id: data.UpdateBy
+        });
+      } else {
+        await EmpGroup.update({
+          groupId: data.groupId,
+          mod_id: data.UpdateBy
+        }, {
+          where: {
+            Nik: data.Nik
+          }
+        });
+      }  
     }
     
     if(postEmp){
