@@ -67,8 +67,9 @@ WHERE se.StatusAktif = 0
 
 export const modelMasterDepartment = dbSPL.define('master_department', 
 	{
-		id_dept: { type: DataTypes.INTEGER(255), allowNull: false, primaryKey: true },
-		name_dept: { type: DataTypes.STRING(100), allowNull: false },
+		IdDept: { type: DataTypes.INTEGER(255), allowNull: false, primaryKey: true },
+		NameDept: { type: DataTypes.STRING(100), allowNull: false },
+		IDManager: { type: DataTypes.STRING(100), allowNull: true }
 	}, {
 		tableName: 'master_department',
 		timestamps: false,
