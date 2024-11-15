@@ -37,6 +37,10 @@ export const SumbiriCutiMain =  dbSPL.define('sumbiri_cuti_main', {
       type: DataTypes.STRING(255),
       allowNull: false
     },
+    id_absen: {
+      type: DataTypes.INTEGER(20),
+      allowNull: false
+    },
     cuti_emp_nik: {
       type: DataTypes.INTEGER(10),
       allowNull: false
@@ -106,4 +110,19 @@ LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
 WHERE scm.cuti_active = "Y"
 ORDER BY
 	scm.cuti_date_start DESC
+`;
+
+
+export const queryMasterCuti = `
+SELECT
+	id_absen,
+	code_absen,
+	name_absen,
+	type_absen,
+	length_absen,
+	daymonth_absen,
+	create_date
+FROM
+	master_absentee
+WHERE type_absen !='ABSEN'
 `;

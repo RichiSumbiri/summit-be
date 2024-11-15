@@ -54,6 +54,7 @@ import {
   deleteCuti,
   getCutiByDate,
   getCutiSummary,
+  getMasterCuti,
   postCutiNew,
 } from "../../controllers/hr/hrcuti.js";
 import {
@@ -85,7 +86,7 @@ router.get("/master-subdept", getSubDeptAll);
 router.get("/master-position", getPositionAll);
 router.get("/master-saltype", getSalaryType);
 router.get("/master-section", getSection);
-
+router.get("/master-cuti", getMasterCuti);
 
 //jam kerja
 router.get("/master-jam-kerja", getAllJamKerja);

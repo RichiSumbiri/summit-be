@@ -1,7 +1,26 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryGetCutiDate, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
+import { queryGetCutiDate, queryMasterCuti, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
 import moment from "moment";
+
+export const getMasterCuti = async(req,res) => {
+    try {
+        const data = await dbSPL.query(queryMasterCuti, { type: QueryTypes.SELECT });
+        if(data){
+            res.status(200).json({
+                success: true,
+                message: "success get master cuti",
+                data: data
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error get master cuti",
+        });
+    }
+}
 
 export const deleteCuti = async(req,res) => {
     try {
@@ -43,6 +62,7 @@ export const postCutiNew = async(req,res) => {
                 cuti_length: dataCuti.cuti_length,
                 cuti_daymonth: dataCuti.cuti_daymonth.toUpperCase(),
                 cuti_purpose: dataCuti.cuti_purpose.toUpperCase(),
+                id_absen: parseInt(dataCuti.id_absen),
                 cuti_createdate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 cuti_createby: dataCuti.cuti_createby,
                 cuti_active: "Y"
@@ -95,6 +115,7 @@ export const postCutiNew = async(req,res) => {
                     cuti_length: dataCuti.cuti_length,
                     cuti_daymonth: dataCuti.cuti_daymonth.toUpperCase(),
                     cuti_purpose: dataCuti.cuti_purpose.toUpperCase(),
+                    id_absen: parseInt(dataCuti.id_absen),
                     cuti_createdate: moment().format('YYYY-MM-DD hh:mm:ss'),
                     cuti_createby: dataCuti.cuti_createby,
                     cuti_active: "Y"
