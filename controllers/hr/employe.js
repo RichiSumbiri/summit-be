@@ -159,7 +159,8 @@ export const getEmpByNIK = async(req,res) => {
 
 export const getEmpLikeNIK = async(req,res) => {
   try {
-    const inputQry  = parseInt(req.params.inputQry);
+    // const inputQry  = parseInt(req.params.inputQry);
+    const {inputQry} = req.params
     const qry       = `%${inputQry}%`;
     const data      = await dbSPL.query(sqlFindEmpLikeNIK, {
       replacements: {
