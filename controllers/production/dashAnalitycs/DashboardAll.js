@@ -9,6 +9,7 @@ import {
 } from "../../../models/dashAnalitycs/mainDashSew.js";
 import { CheckNilai, findRTT, totalCol } from "../../util/Utility.js";
 import moment from "moment/moment.js";
+import { dbSlave1 } from "../../../config/dbAudit.js";
 
 //query get data All size dash
 export const getDataAllSiteDash = async (req, res, next) => {
@@ -36,7 +37,7 @@ export const getDataAllSiteDash = async (req, res, next) => {
 
     let queryEff = today === date ? QueryMainSewDash : QueryMainSewDashPast;
 
-    const detailDataDash = await db.query(queryEff, {
+    const detailDataDash = await dbSlave1.query(queryEff, {
       replacements: {
         schDate: date,
       },
@@ -291,7 +292,7 @@ export const getEffYtdOverAll = async (req, res) => {
 
     const schdDateYes = findYesDate(date);
 
-    const dataRefYes = await db.query(QueryMainSewDashPast, {
+    const dataRefYes = await dbSlave1.query(QueryMainSewDashPast, {
       replacements: {
         schDate: schdDateYes,
       },
@@ -335,7 +336,7 @@ export const getDefRate = async (req, res) => {
       customerx = customers.split("-");
     }
 
-    const dataQCCheck = await db.query(QueryDefRetDash, {
+    const dataQCCheck = await dbSlave1.query(QueryDefRetDash, {
       replacements: {
         schDate: date,
       },
@@ -378,13 +379,13 @@ export const getThreeTop = async (req, res) => {
       customerx = customers.split("-");
     }
 
-    const top3Def = await db.query(QueryGet3topDef, {
+    const top3Def = await dbSlave1.query(QueryGet3topDef, {
       replacements: {
         schDate: date,
       },
       type: QueryTypes.SELECT,
     });
-    const top3Part = await db.query(QueryGet3Part, {
+    const top3Part = await dbSlave1.query(QueryGet3Part, {
       replacements: {
         schDate: date,
       },
