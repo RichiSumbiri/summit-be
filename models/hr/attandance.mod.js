@@ -166,3 +166,47 @@ export const Attandance = dbSPL.define(
     timestamps: true,
   }
 );
+
+
+
+export const MasterAbsentee = dbSPL.define('master_absentee', {
+  id_absen: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    allowNull: false,
+  },
+  code_absen: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  name_absen: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+  },
+  type_absen: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: null,
+  },
+  length_absen: {
+    type: DataTypes.INTEGER(20),
+    allowNull: true,
+    defaultValue: null,
+  },
+  daymonth_absen: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    defaultValue: null,
+  },
+  create_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null,
+  },
+}, {
+  tableName: 'master_absentee',
+  timestamps: false,
+  charset: 'utf8mb4',
+  collate: 'utf8mb4_general_ci',
+});
