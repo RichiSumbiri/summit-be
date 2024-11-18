@@ -46,6 +46,7 @@ export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state
 FROM   iclock_transaction a 
 WHERE a.punch_time BETWEEN :startDateTime AND :endDateTime
 GROUP BY a.emp_code,  a.punch_state
+ORDER BY a.punch_time
 `
 
 export const qrySchAttdComp = (params) => {
