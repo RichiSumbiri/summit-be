@@ -26,3 +26,14 @@ export const dbSPL = new Sequelize("sumbiri_hrm", "sumbiri", "082234725445", {
     timezone: "local",
   },
 });
+
+export const dbWdms = new Sequelize("wdms", "sumbirispm", "Asd54321`", {
+  host: "192.168.1.241",
+  port: 3306,
+  dialect: "mysql",
+  logging: false,
+  timezone: "+07:00",
+  dialectOptions: {
+    timezone: "local",
+  },
+});

@@ -3,9 +3,10 @@ import db from "../../config/database.js";
 import {
   Attandance,
   LogAttandance,
+  LogFromWdms,
   qrySchAttdComp,
 } from "../../models/hr/attandance.mod.js";
-import { dbSPL } from "../../config/dbAudit.js";
+import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import moment from "moment";
 
 export const postDataLogAttd = async (req, res) => {
@@ -168,6 +169,44 @@ export const punchAttdLog = async (req, res) => {
     } else {
       res.status(500).json({ message: "Gagal Punch Log Attandance" });
     }
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat upload Log Attandance" });
+  }
+};
+
+export const getWdmsToAmano = async (req, res) => {
+  try {
+    const { start, end } = req.params;
+
+    const getLog = await dbWdms.query(LogFromWdms, {
+      replacements: { startDateTime: start, endDateTime: end },
+      type: QueryTypes.SELECT,
+    });
+
+    if (getLog.length > 0) {
+      const newData = getLog
+        .map((item) => ({
+          TIME: moment(item.punch_time),
+          NIK: item.emp_code,
+          STATUS: item.punch_state,
+        }))
+ 
+
+      const arrConvert = newData.map(
+        (items) =>
+          `31${items.TIME.format("YYYYMMDD")}${items.TIME.format("HHmm")}000${
+            items.STATUS
+          }${items.NIK.padStart(10, "0")}0001`
+      );
+
+      return  res.json({ data: arrConvert, message: "succcess get data" });
+    }
+
+    res.json({ data: getLog, message: "succcess get data tapi kosong" });
   } catch (error) {
     console.log(error);
 

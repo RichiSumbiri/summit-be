@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { dbSPL } from "../../config/dbAudit.js";
+import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 
 export const LogAttandance = dbSPL.define(
   "sumbiri_log_attd",
@@ -41,6 +41,12 @@ export const LogAttandance = dbSPL.define(
     timestamps: true,
   }
 );
+
+export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state
+FROM   iclock_transaction a 
+WHERE a.punch_time BETWEEN :startDateTime AND :endDateTime
+GROUP BY a.emp_code,  a.punch_state
+`
 
 export const qrySchAttdComp = (params) => {
   return `SELECT 
