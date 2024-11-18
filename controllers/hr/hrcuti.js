@@ -2,6 +2,8 @@ import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import { queryGetCutiDate, queryMasterCuti, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
 import moment from "moment";
+import { EmpGroup, GroupJadwal } from "../../models/hr/JadwalDanJam.mod.js";
+import { Attandance, MasterAbsentee } from "../../models/hr/attandance.mod.js";
 
 export const getMasterCuti = async(req,res) => {
     try {
@@ -25,20 +27,45 @@ export const getMasterCuti = async(req,res) => {
 export const deleteCuti = async(req,res) => {
     try {
         const cutiID = decodeURIComponent(req.params.cutiid);
-        const action = await SumbiriCutiMain.update({
-            cuti_active: "N"
-        }, {
-            where: {
-                cuti_id: cutiID
+        const DetailCuti = await SumbiriCutiMain.findOne({ where: { cuti_id: cutiID } });
+        const getNikGroupId     = await EmpGroup.findOne({ where: { Nik: DetailCuti.cuti_emp_nik } });
+        const getCodeAbsen      = await MasterAbsentee.findOne({ where: { id_absen: DetailCuti.id_absen }}); 
+        const startDate         = moment(DetailCuti.cuti_date_start);
+        const endDate           = moment(DetailCuti.cuti_date_end);
+        const CutiDateList      = [];
+        while (startDate.isSameOrBefore(endDate)) {
+            CutiDateList.push(startDate.format('YYYY-MM-DD'));
+            startDate.add(1, 'day');
+        }
+        for (const CutiDate of CutiDateList) {
+            const getJKID   = await GroupJadwal.findOne({
+                where: {
+                    scheduleDate: CutiDate,
+                    groupId: getNikGroupId.groupId
+                }
+            })
+            if(getJKID){
+                const deleteAttd = await Attandance.destroy({
+                    where:{
+                        Nik: DetailCuti.cuti_emp_nik,
+                        groupId: getNikGroupId.groupId,
+                        jk_id: getJKID.jk_id,
+                        tanggal_in: CutiDate,
+                        keterangan: getCodeAbsen.code_absen,
+                        ket_in: DetailCuti.cuti_purpose.toUpperCase(),
+                        validasi: 0
+                }});
+                if(deleteAttd){
+                    await SumbiriCutiMain.update({ cuti_active: "N" }, { where: { cuti_id: cutiID } });
+                    res.status(200).json({
+                        success: true,
+                        message: "success delete cuti",
+                    });
+                }
             }
-        });
-        if(action){
-            res.status(200).json({
-                success: true,
-                message: "success delete cuti",
-            });
         }
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             data: err,
@@ -50,7 +77,43 @@ export const deleteCuti = async(req,res) => {
 export const postCutiNew = async(req,res) => {
     try {
         const dataCuti          = req.body.dataCuti;
+        const getNikGroupId     = await EmpGroup.findOne({ where: { Nik: dataCuti.cuti_emp_nik } });
+        const getCodeAbsen      = await MasterAbsentee.findOne({ where: { id_absen: dataCuti.id_absen }}); 
+        const startDate         = moment(dataCuti.cuti_date_start);
+        const endDate           = moment(dataCuti.cuti_date_end);
+        const CutiDateList      = [];
+        while (startDate.isSameOrBefore(endDate)) {
+            CutiDateList.push(startDate.format('YYYY-MM-DD'));
+            startDate.add(1, 'day');
+        }
         if(dataCuti.cuti_id){
+            const getPreviousData   = await SumbiriCutiMain.findOne({ where: { cuti_id: dataCuti.cuti_id }});
+            const startDatePrev     = moment(getPreviousData.cuti_date_start);
+            const endDatePrev       = moment(getPreviousData.cuti_date_end);
+            const CutiDateListPrev  = [];
+            while (startDatePrev.isSameOrBefore(endDatePrev)) {
+                CutiDateList.push(startDatePrev.format('YYYY-MM-DD'));
+                startDatePrev.add(1, 'day');
+            }
+            for (const CutiDatePrev of CutiDateListPrev) {
+                const getJKID   = await GroupJadwal.findOne({
+                    where: {
+                        scheduleDate: CutiDatePrev,
+                        groupId: getNikGroupId.groupId
+                    }
+                })
+                if(getJKID){
+                    await Attandance.destroy({
+                        Nik: getPreviousData.cuti_emp_nik,
+                        groupId: getNikGroupId.groupId,
+                        jk_id: getJKID.jk_id,
+                        tanggal_in: CutiDatePrev,
+                        keterangan: getCodeAbsen.code_absen,
+                        ket_in: getPreviousData.cuti_purpose.toUpperCase(),
+                        validasi: 0
+                    });
+                }
+            }
             const updateCuti = await SumbiriCutiMain.update({
                 cuti_emp_nik: dataCuti.cuti_emp_nik,
                 cuti_emp_tmb: dataCuti.cuti_emp_tmb,
@@ -72,6 +135,25 @@ export const postCutiNew = async(req,res) => {
                 }
             });
             if(updateCuti){
+                for (const CutiDate of CutiDateList) {
+                    const getJKID   = await GroupJadwal.findOne({
+                        where: {
+                            scheduleDate: CutiDate,
+                            groupId: getNikGroupId.groupId
+                        }
+                    })
+                    if(getJKID){
+                        await Attandance.create({
+                            Nik: dataCuti.cuti_emp_nik,
+                            groupId: getNikGroupId.groupId,
+                            jk_id: getJKID.jk_id,
+                            tanggal_in: CutiDate,
+                            keterangan: getCodeAbsen.code_absen,
+                            ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                            validasi: 0
+                        });
+                    }
+                }
                 res.status(200).json({
                     success: true,
                     message: "success update cuti",
@@ -81,13 +163,7 @@ export const postCutiNew = async(req,res) => {
             const cutiformat        = `SPC${moment().format('YYYY').toString().substr(-2)}${("0" + (moment().format('MM') + 1)).slice(-2)}${("0" + moment().format('DD')).slice(-2)}`;
             let cuti_id;
             const checkLastCuti     = await SumbiriCutiMain.findAll({
-                where: {
-                    cuti_id: {
-                        [Op.like]: `${cutiformat}%`
-                    },
-                }, order: [
-                    ['cuti_id','DESC']
-                ]
+                where: { cuti_id: { [Op.like]: `${cutiformat}%` }, }, order: [ ['cuti_id','DESC'] ]
             });
             if(checkLastCuti.length===0){
                 cuti_id = cutiformat + "001";
@@ -121,6 +197,25 @@ export const postCutiNew = async(req,res) => {
                     cuti_active: "Y"
                 });
                 if(insertCuti){
+                    for (const CutiDate of CutiDateList) {
+                        const getJKID   = await GroupJadwal.findOne({
+                            where: {
+                                scheduleDate: CutiDate,
+                                groupId: getNikGroupId.groupId
+                            }
+                        })
+                        if(getJKID){
+                            await Attandance.create({
+                                Nik: dataCuti.cuti_emp_nik,
+                                groupId: getNikGroupId.groupId,
+                                jk_id: getJKID.jk_id,
+                                tanggal_in: CutiDate,
+                                keterangan: getCodeAbsen.code_absen,
+                                ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                                validasi: 0
+                            });
+                        }
+                    }
                     res.status(200).json({
                         success: true,
                         message: "success post cuti",
@@ -129,6 +224,7 @@ export const postCutiNew = async(req,res) => {
             }
         }
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             data: err,
