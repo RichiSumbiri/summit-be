@@ -1,8 +1,9 @@
 import { QueryTypes, Op } from "sequelize";
-import { dbSPL } from "../../config/dbAudit.js";
+import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import { queryApprovedPelamarByDate } from "../../models/hr/acceptance.mod.js";
 import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 import moment from "moment";
+const { HOST_WDMS, USER_WDMS, PASS_WDMS, TOKEN_WDMS } = process.env;
 
 
 
@@ -149,6 +150,36 @@ export const postNewEmp = async(req,res) => {
                 CreateBy: dataNewEmp.CreateBy
             });
         }
+
+        const queryCheckEmp = `SELECT emp_code FROM personnel_employee WHERE :empNik`;
+        
+        const checkEmpWDMS  = await dbWdms.query(queryCheckEmp, {
+            replacements: {
+                empNik: newNik
+            }
+        });
+
+        if(checkEmpWDMS.length===0){
+            await axios.post(`${HOST_WDMS}/personnel/api/employees/`, { 
+                headers: {
+                   "Content-Type": "application/json",
+                   "Authorization": `JWT ${TOKEN_WDMS}`,
+                },
+                body: {
+                    "emp_code": newNik,
+                    "first_name": dataNewEmp.NamaLengkap,
+                    "hire_date": dataNewEmp.TanggalMasuk,
+                    "birthday": dataNewEmp.TanggalLahir,
+                    "department": 1,
+                    "position": 1,
+                    "company": 1,
+                    "area": [3]
+                }
+            });
+        }
+        
+
+
         res.status(200).json({
             success: true,
             message: "success post new emp"
