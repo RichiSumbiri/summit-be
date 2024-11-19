@@ -14,9 +14,9 @@ export const LogAttandance = dbSPL.define(
     log_date: {
       type: DataTypes.DATE,
     },
-    log_time: {
-      type: DataTypes.TIME,
-    },
+    // log_time: {
+    //   type: DataTypes.TIME,
+    // },
     log_status: {
       type: DataTypes.STRING,
     },
@@ -42,7 +42,7 @@ export const LogAttandance = dbSPL.define(
   }
 );
 
-export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state
+export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state, a.terminal_id
 FROM   iclock_transaction a 
 WHERE a.punch_time BETWEEN :startDateTime AND :endDateTime
 GROUP BY a.emp_code,  a.punch_state
