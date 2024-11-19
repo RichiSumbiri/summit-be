@@ -192,14 +192,14 @@ export const getWdmsToAmano = async (req, res) => {
         TIME: moment(item.punch_time),
         NIK: item.emp_code,
         STATUS: item.punch_state,
-        NO_MESIN: item.terminal_id
+        NO_MESIN: item.terminal_id+20
       }));
 
       const arrConvert = newData.map(
         (items) =>
           `31${items.TIME.format("YYYYMMDD")}${items.TIME.format("HHmm")}000${
             items.STATUS
-          }${items.NIK.padStart(10, "0")}000${items.NO_MESIN}`
+          }${items.NIK.padStart(10, "0")}00${items.NO_MESIN}`
       );
 
       return res.json({ data: arrConvert, message: "succcess get data" });
