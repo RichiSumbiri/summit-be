@@ -126,8 +126,6 @@ export const postCutiNew = async(req,res) => {
                 cuti_daymonth: dataCuti.cuti_daymonth.toUpperCase(),
                 cuti_purpose: dataCuti.cuti_purpose.toUpperCase(),
                 id_absen: parseInt(dataCuti.id_absen),
-                cuti_createdate: moment().format('YYYY-MM-DD HH:mm:ss'),
-                cuti_createby: dataCuti.cuti_createby,
                 cuti_active: "Y"
             }, {
                 where: {
