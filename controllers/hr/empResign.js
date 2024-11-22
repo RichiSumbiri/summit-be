@@ -93,6 +93,7 @@ export const postNewEmpResignSPK = async(req,res) => {
                 id_spk: newIdSPK,
                 Nik: dataEmpResign.Nik,
                 FlagReason: dataEmpResign.FlagReason,
+                Remark: dataEmpResign.Remark,
                 CreateBy: dataEmpResign.CreateBy,
                 CreateDate: moment().format('YYYY-MM-DD HH:mm:ss'),
             })

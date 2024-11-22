@@ -31,7 +31,8 @@ SELECT
 	DATE(spk.CreateDate) AS TanggalDokumen,
 	spk.FlagReason,
 	spk.CreateBy,
-	spk.CreateDate
+	spk.CreateDate,
+	spk.Remark
 FROM
 	sumbiri_spk spk
 LEFT JOIN sumbiri_employee se ON
@@ -64,6 +65,11 @@ export const sumbiriSPK = dbSPL.define('sumbiri_spk', {
 	  allowNull: true,
 	  defaultValue: null,
 	},
+	Remark: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
 	CreateBy: {
 	  type: DataTypes.STRING(200),
 	  allowNull: true,
