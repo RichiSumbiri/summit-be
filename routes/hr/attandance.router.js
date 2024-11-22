@@ -15,11 +15,13 @@ import {
   postSchIndividu,
 } from "../../controllers/hr/JadwalJamKerja.js";
 import {
+  deltSchPunchAttd,
   getLogAttdSummit,
   getSchPunchAttd,
   getWdmsToAmano,
   getWdmsToSummit,
   postDataLogAttd,
+  postSchPunchAttd,
   punchAttdLog,
 } from "../../controllers/hr/attandance.js";
 
@@ -50,6 +52,8 @@ router.get('/log-wdms-to-amano/:start/:end',getWdmsToAmano)
 router.get('/log-wdms-to-summit/:start/:end',getWdmsToSummit)
 router.get('/log-summit/:start/:end',getLogAttdSummit)
 router.get("/sch-attd", getSchPunchAttd);
+router.delete("/sch-attd/:id", deltSchPunchAttd);
+router.post("/sch-attd", postSchPunchAttd);
 router.post("/log-attd", postDataLogAttd);
 router.post("/punch-absens", punchAttdLog);
 export default router;

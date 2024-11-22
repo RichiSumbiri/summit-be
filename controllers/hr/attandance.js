@@ -477,7 +477,7 @@ export const getWdmsToSummit = async (req, res) => {
 };
 
 
-
+// schedule Punch Attd 
 export const getSchPunchAttd = async (req, res) =>{
   try {
     const getSch = await SchedulePunchAttd.findAll({})
@@ -489,5 +489,52 @@ export const getSchPunchAttd = async (req, res) =>{
     res
       .status(500)
       .json({ error, message: "Terdapat error get data schedule attd" });
+  }
+}
+
+
+export const postSchPunchAttd = async (req, res) =>{
+  try {
+
+    const data = req.body
+    const postSch = await SchedulePunchAttd.upsert(data)
+
+    if(postSch){
+      return res.json({message: "succcess create/update schedule attd" })
+    }else{
+      return res.status(202).json({message: "gagal create schedule attd" })
+    }
+  } catch (error) {
+    console.log(error);
+    
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error post data schedule attd" });
+  }
+}
+
+
+export const deltSchPunchAttd = async (req, res) =>{
+  try {
+
+    const {id} = req.params
+
+    const deleteSch = await SchedulePunchAttd.destroy({
+      where : {
+        id: id
+      }
+    })
+
+    if(deleteSch){
+      return res.json({message: "succcessdelete schedule attd" })
+    }else{
+      return res.status(202).json({message: "gagal delete schedule attd" })
+    }
+  } catch (error) {
+    console.log(error);
+    
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error delete  schedule attd" });
   }
 }
