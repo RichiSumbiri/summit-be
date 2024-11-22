@@ -23,6 +23,9 @@ export const LogAttandance = dbSPL.define(
     log_machine_id: {
       type: DataTypes.STRING,
     },
+    log_machine_name: {
+      type: DataTypes.STRING,
+    },
     log_by: {
       type: DataTypes.STRING,
     },
@@ -42,15 +45,20 @@ export const LogAttandance = dbSPL.define(
   }
 );
 
-export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state, a.terminal_id
+export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state, a.terminal_id, a.terminal_alias,  b.first_name
 FROM   iclock_transaction a 
+LEFT JOIN personnel_employee b ON a.emp_id = b.id
 WHERE a.punch_time BETWEEN :startDateTime AND :endDateTime
-GROUP BY a.emp_code,  a.punch_state
-ORDER BY a.punch_time
+-- GROUP BY a.emp_code,  a.punch_state
+ORDER BY  a.terminal_id, a.punch_time
 `
+// export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state, a.terminal_id
+// FROM   iclock_transaction a 
+// WHERE a.terminal_sn IN ('SYZ8240300054') AND DATE(a.punch_time) = '2024-11-20'
+// GROUP BY a.emp_code,  a.punch_state
+// ORDER BY a.punch_time`
 
-export const qrySchAttdComp = (params) => {
-  return `SELECT 
+export const qrySchAttdComp = `SELECT 
 	fn.*,
 	CASE WHEN mjk.jk_out_day = 'N' THEN DATE_ADD(fn.scheduleDate, INTERVAL 1 DAY) 
 	ELSE fn.scheduleDate END AS scanOutDate,
@@ -61,7 +69,13 @@ export const qrySchAttdComp = (params) => {
 	mjk.jk_scan_in_end,
 	mjk.jk_scan_out_start,
 	mjk.jk_scan_out_end,
-	mjk.jk_out_day
+	mjk.jk_out_day, 
+	d.id, 
+	d.keterangan,
+	d.scan_in,
+	d.scan_out,
+	d.ket_in,
+	d.ket_out
 FROM (
 	SELECT 
 		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.groupId,
@@ -92,7 +106,7 @@ FROM (
 			    FROM sumbiri_employee se 
 			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
-			    WHERE  sgs.scheduleDate IN ( ${params} )
+			    WHERE  sgs.scheduleDate BETWEEN  :startDate AND  :endDate  
 			    
 			    UNION ALL 
 			
@@ -108,7 +122,7 @@ FROM (
 			        sis.calendar AS calendar_indv
 			    FROM sumbiri_employee se 
 			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
-			    WHERE sis.scheduleDate_inv IN ( ${params} )
+			    WHERE sis.scheduleDate_inv BETWEEN :startDate AND  :endDate 
 			) nm 
 			GROUP BY 
 			    nm.scheduleDate, nm.Nik,  nm.groupId
@@ -117,8 +131,9 @@ FROM (
 ) fn
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = fn.jk_id
 LEFT JOIN master_calendar_type c ON c.calendar_code = fn.calendar
+LEFT JOIN sumbiri_absens d ON d.Nik = fn.Nik 
+	AND d.tanggal_in = fn.scheduleDate 
 `;
-};
 
 export const Attandance = dbSPL.define(
   "sumbiri_absens",
@@ -217,3 +232,29 @@ export const MasterAbsentee = dbSPL.define('master_absentee', {
   charset: 'utf8mb4',
   collate: 'utf8mb4_general_ci',
 });
+
+
+export const qrySplData = `SELECT ssm.spl_number, ssm.spl_date, ssm.spl_type, ssd.Nik, ssd.minutes/60 spl_jam
+			FROM sumbiri_spl_main ssm
+			LEFT JOIN sumbiri_spl_data ssd ON ssd.spl_number = ssm.spl_number
+			WHERE  ssm.spl_date BETWEEN :startDate AND  :endDate  
+`
+
+
+export const qrySbrLogAttd = `-- query untuk view log
+SELECT 
+ a.log_id,
+ a.Nik,
+ se.NamaLengkap,
+ a.log_date,
+ a.log_time,
+ a.log_status,
+ a.log_machine_id,
+ a.log_machine_name,
+ a.log_punch,
+ b.log_punch_description
+FROM sumbiri_log_attd a 
+LEFT JOIN sumbiri_employee se ON se.Nik = a.Nik
+LEFT JOIN master_log_punch b ON a.log_punch = b.log_punch_id
+WHERE a.log_date  BETWEEN :startDateTime AND  :endDateTime  
+ORDER BY a.log_machine_id,  a.log_date `

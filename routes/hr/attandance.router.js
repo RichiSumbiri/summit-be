@@ -15,7 +15,9 @@ import {
   postSchIndividu,
 } from "../../controllers/hr/JadwalJamKerja.js";
 import {
+  getLogAttdSummit,
   getWdmsToAmano,
+  getWdmsToSummit,
   postDataLogAttd,
   punchAttdLog,
 } from "../../controllers/hr/attandance.js";
@@ -44,6 +46,8 @@ router.post("/jadwal-individu", postSchIndividu);
 
 //log attandance
 router.get('/log-wdms-to-amano/:start/:end',getWdmsToAmano)
+router.get('/log-wdms-to-summit/:start/:end',getWdmsToSummit)
+router.get('/log-summit/:start/:end',getLogAttdSummit)
 router.post("/log-attd", postDataLogAttd);
 router.post("/punch-absens", punchAttdLog);
 export default router;
