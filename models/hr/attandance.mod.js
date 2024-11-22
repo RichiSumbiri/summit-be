@@ -258,3 +258,37 @@ LEFT JOIN sumbiri_employee se ON se.Nik = a.Nik
 LEFT JOIN master_log_punch b ON a.log_punch = b.log_punch_id
 WHERE a.log_date  BETWEEN :startDateTime AND  :endDateTime  
 ORDER BY a.log_machine_id,  a.log_date `
+
+
+export const SchedulePunchAttd = dbSPL.define('sumbiri_schedule_punch', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    // allowNull: false,
+  },
+  punch_name: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  execute_time: {
+    type: DataTypes.TIME,
+    allowNull: false,
+  },
+  day_start: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: null,
+  },
+  start_time_log: {
+    type: DataTypes.TIME,
+    allowNull: false,
+  },
+  until_time_log: {
+    type: DataTypes.TIME,
+    allowNull: false,
+  },
+}, {
+  tableName: 'sumbiri_schedule_punch',
+  timestamps: false,
+});

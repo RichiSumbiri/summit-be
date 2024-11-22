@@ -16,6 +16,7 @@ import {
 } from "../../controllers/hr/JadwalJamKerja.js";
 import {
   getLogAttdSummit,
+  getSchPunchAttd,
   getWdmsToAmano,
   getWdmsToSummit,
   postDataLogAttd,
@@ -48,6 +49,7 @@ router.post("/jadwal-individu", postSchIndividu);
 router.get('/log-wdms-to-amano/:start/:end',getWdmsToAmano)
 router.get('/log-wdms-to-summit/:start/:end',getWdmsToSummit)
 router.get('/log-summit/:start/:end',getLogAttdSummit)
+router.get("/sch-attd", getSchPunchAttd);
 router.post("/log-attd", postDataLogAttd);
 router.post("/punch-absens", punchAttdLog);
 export default router;

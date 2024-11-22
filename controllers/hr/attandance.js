@@ -7,6 +7,7 @@ import {
   qrySbrLogAttd,
   qrySchAttdComp,
   qrySplData,
+  SchedulePunchAttd,
 } from "../../models/hr/attandance.mod.js";
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import moment from "moment";
@@ -195,7 +196,7 @@ export const getWdmsToAmano = async (req, res) => {
       const dataLog = getLog.map((item) => {
         const baseTime = moment(item.punch_time, "DD-MMM-YY h:mm A");
 
-        const noMesin = item.terminal_id.toString().padStart(4, "0");
+        const noMesin = (item.terminal_id+20).toString().padStart(4, "0");
         const log_status = item.punch_state === "1" ? "IN" : "OUT";
         return {
           log_id: `31${baseTime.format("YYYYMMDD")}${baseTime.format(
@@ -205,7 +206,7 @@ export const getWdmsToAmano = async (req, res) => {
           // log_time: baseTime.format("HH:mm"),
           log_status: log_status,
           Nik: item.emp_code,
-          log_machine_id: item.terminal_id,
+          log_machine_id: item.terminal_id+20,
           log_machine_name: item.terminal_alias,
           NamaLengkap: item.first_name,
           log_by: "S",
@@ -474,3 +475,19 @@ export const getWdmsToSummit = async (req, res) => {
       .json({ error, message: "Terdapat error saat upload Log Attandance" });
   }
 };
+
+
+
+export const getSchPunchAttd = async (req, res) =>{
+  try {
+    const getSch = await SchedulePunchAttd.findAll({})
+
+    res.json({data: getSch})
+  } catch (error) {
+    console.log(error);
+    
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error get data schedule attd" });
+  }
+}
