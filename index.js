@@ -13,6 +13,7 @@ import sumbiriOneRoute from "./routes/index.js";
 import { funcReschedule } from "./cronjob/cronSchdVsActual.js";
 import { cronLogDialyOut } from "./cronjob/logDailyOutput.js";
 import { mainCutReSchedule } from "./cronjob/cronCutingSchd.js";
+import { recapWipMonitoring } from "./cronjob/sewWipRecap.js";
 
 // import fs from "fs"; //untuk ssl
 // import https from "https"; //untuk ssl
@@ -32,7 +33,6 @@ const runDb = async () => {
 };
 
 runDb();
-
 // funcReschedule();
 // cron.schedule(" 30 * * * *", () => {
 //   console.log("running a task reschedule");
@@ -44,6 +44,11 @@ runDb();
 //   cronLogDialyOut();
 // });
 // mainCutReSchedule();
+
+// cron.schedule(" 1 * * * * *", () => {
+//   console.log("running a task log");
+//   recapWipMonitoring();
+// });
 
 // app.use(cors());
 
