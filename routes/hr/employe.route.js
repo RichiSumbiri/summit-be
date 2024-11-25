@@ -152,6 +152,7 @@ router.get("/cuti-delete/:cutiid", deleteCuti);
 // lemburan / spl overtime
 router.get("/lemburan-access/:userId", getSPLAccess);
 router.get("/lemburan-pending", getLemburanPending);
+router.get("/lemburan-pending-spv/:nik");
 router.get("/lemburan-detail/:splnumber", getLemburanDetail);
 router.get("/lemburan-aproval/:posisi/:nik");
 router.post("/lemburan-new", postLemburan);
