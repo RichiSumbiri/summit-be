@@ -56,18 +56,18 @@ router.post("/clear-selected/", clearMpAndWh);
 router.patch("/sewing-mp/", updateManpowerDefault);
 
 //sewing wip monitoring
-router.get(
-  "/wip-monitoring/:startDate/:endDate/:sitename",
-  getMasterWipMonitor
-);
-router.get(
-  "/wip-monitoring-size/:startDate/:endDate/:sitename",
-  getMasterWipMonSize
-);
-router.get(
-  "/wip-monitoring-tracking/:schId/:orderSize",
-  trackingByWipMontioring
-);
+// router.get(
+//   "/wip-monitoring/:startDate/:endDate/:sitename",
+//   getMasterWipMonitor
+// );
+// router.get(
+//   "/wip-monitoring-size/:startDate/:endDate/:sitename",
+//   getMasterWipMonSize
+// );
+// router.get(
+//   "/wip-monitoring-tracking/:schId/:orderSize",
+//   trackingByWipMontioring
+// );
 
 router.post("/clear-double/", clearFixDouble);
 
