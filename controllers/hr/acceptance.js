@@ -151,7 +151,6 @@ export const postNewEmp = async(req,res) => {
             });
             if(postEmp){
                 const queryCheckEmp = `SELECT emp_code FROM personnel_employee WHERE emp_code = :empNik`;
-            
                 const checkEmpWDMS  = await dbWdms.query(queryCheckEmp, {
                     replacements: {
                         empNik: newNik
@@ -159,25 +158,34 @@ export const postNewEmp = async(req,res) => {
                     type: QueryTypes.SELECT
                 });
                 if(checkEmpWDMS.length===0){
-                    const newEmp = await axios.post(`${HOST_WDMS}/personnel/api/employees/`,  
-                        {
-                            "emp_code": newNik,
-                            "first_name": dataNewEmp.NamaLengkap,
-                            "hire_date": dataNewEmp.TanggalMasuk,
-                            "birthday": dataNewEmp.TanggalLahir,
-                            "department": 1,
-                            "position": 1,
-                            "company": 1,
-                            "area": [3]
+                    const loginWdms = await axios.post(`${HOST_WDMS}/jwt-api-token-auth/`, {
+                        username: USER_WDMS,
+                        password: PASS_WDMS
+                    }, {
+                        headers: {
+                            "Content-Type": "application/json"
                         }
-                        ,
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `JWT ${TOKEN_WDMS}`,
+                    });
+                    if(loginWdms){
+                        await axios.post(`${HOST_WDMS}/personnel/api/employees/`,  
+                            {
+                                "emp_code": newNik,
+                                "first_name": dataNewEmp.NamaLengkap,
+                                "hire_date": dataNewEmp.TanggalMasuk,
+                                "birthday": dataNewEmp.TanggalLahir,
+                                "department": 1,
+                                "position": 1,
+                                "company": 1,
+                                "area": [3]
                             }
-                        });
-                    console.log(newEmp);
+                            ,
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `JWT ${loginWdms.data.token}`,
+                                }
+                            });    
+                    }
                 }
             }
             
