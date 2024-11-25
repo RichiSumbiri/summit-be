@@ -493,6 +493,23 @@ export const getSchPunchAttd = async (req, res) =>{
 }
 
 
+export const getListMasterPunch = async (req, res) =>{
+  try {
+    const listMasterPunch = await dbSPL.query('SELECT * FROM master_log_punch', {
+      type: QueryTypes.SELECT,
+    });
+
+    res.json({data: listMasterPunch})
+  } catch (error) {
+    console.log(error);
+    
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error get list master punch" });
+  }
+}
+
+
 export const postSchPunchAttd = async (req, res) =>{
   try {
 

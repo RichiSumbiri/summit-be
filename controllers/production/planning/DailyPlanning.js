@@ -13,6 +13,8 @@ import {
   WorkingHoursDetail,
 } from "../../../models/production/sewing.mod.js";
 import {
+  qryRefreshOneSchd,
+  qryRefrshSchdOneShift,
   QueryEffCurDate,
   QueryEffCurDateShiftB,
 } from "../../../models/reports/sewDayliEffRep.mod.js";
@@ -21,6 +23,7 @@ import moment from "moment";
 
 export const getDailyPlanning = async (req, res) => {
   try {
+   
     const { plannDate, sitename, shift } = req.params;
     const queryShift =
       shift === "Shift_B" ? QueryEffCurDateShiftB : QueryEffCurDate;
@@ -349,6 +352,36 @@ export const postSwitchToOt = async (req, res) => {
         }
       }
     }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+
+//query get one schd id for refresh 
+
+export const getOneSchDailyPlan = async (req, res) => {
+  try {
+   
+    const { plannDate, schdId, shift } = req.params;
+    const queryShift =
+      shift === "Shift_B" ? qryRefrshSchdOneShift : qryRefreshOneSchd;
+
+    const pland = await db.query(queryShift, {
+      // const pland = await db.query(QueryDailyPlann, {
+      replacements: {
+        schDate: plannDate,
+        schdId: schdId,
+        shift: shift,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json(pland);
   } catch (error) {
     console.log(error);
     res.status(404).json({
