@@ -14,6 +14,7 @@ import { funcReschedule } from "./cronjob/cronSchdVsActual.js";
 import { cronLogDialyOut } from "./cronjob/logDailyOutput.js";
 import { mainCutReSchedule } from "./cronjob/cronCutingSchd.js";
 import { recapWipMonitoring } from "./cronjob/sewWipRecap.js";
+import { recapQcDefPart } from "./cronjob/logQcDefPart.js";
 
 // import fs from "fs"; //untuk ssl
 // import https from "https"; //untuk ssl
@@ -49,6 +50,13 @@ runDb();
 //   console.log("running a task log");
 //   recapWipMonitoring();
 // });
+
+// cron.schedule(" 1 * * * * *", () => {
+//   console.log("running a task log");
+//   recapQcDefPart();
+// });
+
+
 
 // app.use(cors());
 
