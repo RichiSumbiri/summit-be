@@ -589,13 +589,13 @@ export const LogCuttingDept = db.define('log_cutting_dept', {
 LogCuttingDept.removeAttribute('id')
 
 
-export const queryLogCutDept = `
+export const queryLogCutDept = ` -- QUERY RECAP DEPT CUTING
 -- query molding out
 SELECT DATE(smi.CUT_SCAN_TIME) TRANS_DATE, 'MOLDING' AS TRANSACTION, 'IN' AS CATEGORY, NULL AS SCH_ID, NULL AS  SCHD_ID, smi.CUT_SITE,
  od.BUYER_CODE, od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
 FROM scan_molding_in smi 
 JOIN order_detail od ON smi.BARCODE_SERIAL = od.BARCODE_SERIAL
-WHERE DATE(smi.CUT_SCAN_TIME) = '2024-11-28'
+WHERE DATE(smi.CUT_SCAN_TIME) = CURDATE()
 GROUP BY  smi.CUT_SITE, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE
 UNION ALL
 -- query molding out
@@ -603,7 +603,7 @@ SELECT  DATE(smo.CUT_SCAN_TIME) TRANS_DATE, 'MOLDING' AS TRANSACTION, 'OUT' AS C
 od.BUYER_CODE,  od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
 FROM scan_molding_out smo 
 JOIN order_detail od ON smo.BARCODE_SERIAL = od.BARCODE_SERIAL
-WHERE DATE(smo.CUT_SCAN_TIME) = '2024-11-28'
+WHERE DATE(smo.CUT_SCAN_TIME) = CURDATE()
 GROUP BY  smo.CUT_SITE, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE
 UNION ALL
 -- query supermarket in :
