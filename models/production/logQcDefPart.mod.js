@@ -7,6 +7,10 @@ export const LogDailyQcDefect = db.define('log_daily_qc_defect', {
       allowNull: false,
       primaryKey: true,
     },
+    SCH_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+    },
     SITELINE: {
       type: DataTypes.STRING(50),
       allowNull: false,
@@ -59,6 +63,10 @@ export const LogDailyQcPart = db.define('log_daily_qc_part', {
       defaultValue: '',
       primaryKey: true,
     },
+    SCH_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+    },
     SITE: {
       type: DataTypes.STRING(50),
       allowNull: false,
@@ -95,6 +103,7 @@ export const LogDailyQcPart = db.define('log_daily_qc_part', {
 
 
   export const queryLogQcDefect= ` SELECT  
+  a.ENDLINE_SCH_ID AS SCH_ID,
 a.ENDLINE_SCHD_DATE AS SCHEDULE_DATE,
   a.ENDLINE_ID_SITELINE AS SITELINE,
   c.SITE_NAME AS SITE,
@@ -107,14 +116,15 @@ FROM qc_endline_output a
 INNER JOIN item_defect_internal b ON a.ENDLINE_DEFECT_CODE = b.DEFECT_SEW_CODE
 INNER JOIN item_siteline c ON a.ENDLINE_ID_SITELINE = c.ID_SITELINE
 WHERE 
-    DATE(a.ENDLINE_ADD_TIME) = CURDATE() AND
---  DATE(a.ENDLINE_ADD_TIME) BETWEEN '2024-11-10' AND '2024-11-25' AND
+ DATE(a.ENDLINE_ADD_TIME) = CURDATE() AND
+   --  DATE(a.ENDLINE_ADD_TIME) BETWEEN '2024-11-01' AND '2024-11-31' AND
   a.ENDLINE_DEFECT_CODE IS NOT NULL AND 
   a.ENDLINE_OUT_UNDO IS NULL 
 GROUP BY a.ENDLINE_SCHD_DATE, a.ENDLINE_ID_SITELINE, a.ENDLINE_DEFECT_CODE`
 
 
   export const queryLogQcPart = `SELECT  
+  a.ENDLINE_SCH_ID AS SCH_ID,
 a.ENDLINE_SCHD_DATE AS SCHEDULE_DATE,
 a.ENDLINE_ID_SITELINE AS SITELINE,
 c.SITE_NAME AS SITE,
@@ -128,8 +138,8 @@ INNER JOIN item_defect_internal b ON a.ENDLINE_DEFECT_CODE = b.DEFECT_SEW_CODE
 INNER JOIN item_siteline c ON a.ENDLINE_ID_SITELINE = c.ID_SITELINE
 INNER JOIN item_part d ON a.ENDLINE_PART_CODE = d.PART_CODE
 WHERE 
-    DATE(a.ENDLINE_ADD_TIME) = CURDATE() AND
---  DATE(a.ENDLINE_ADD_TIME) BETWEEN '2024-11-10' AND '2024-11-25' AND
+ DATE(a.ENDLINE_ADD_TIME) = CURDATE() AND
+ --   DATE(a.ENDLINE_ADD_TIME) BETWEEN '2024-11-01' AND '2024-11-31' AND
   a.ENDLINE_DEFECT_CODE IS NOT NULL AND 
   a.ENDLINE_OUT_UNDO IS NULL 
 GROUP BY a.ENDLINE_SCHD_DATE, a.ENDLINE_ID_SITELINE, a.ENDLINE_PART_CODE`
