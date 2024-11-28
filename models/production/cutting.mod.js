@@ -501,3 +501,131 @@ WHERE
 GROUP BY 
     a.BARCODE_SERIAL
 `;
+
+
+
+
+export const LogCuttingDept = db.define('log_cutting_dept', {
+  TRANS_DATE: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  TRANSACTION: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  
+  },
+  CATEGORY: {
+    type: DataTypes.STRING(5),
+    allowNull: false,
+  
+  },
+  SCH_ID: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    defaultValue: null,
+  },
+  SCHD_ID: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    defaultValue: null,
+  },
+  CUT_SITE: {
+    type: DataTypes.STRING(15),
+    allowNull: false,
+  
+  },
+  BUYER_CODE: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  
+  },
+  ORDER_STYLE: {
+    type: DataTypes.STRING(200),
+    allowNull: false,
+  
+  },
+  PRODUCT_TYPE: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  
+  },
+  ORDER_NO: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  
+  },
+  BUYER_PO: {
+    type: DataTypes.STRING(200),
+    allowNull: false,
+  
+  },
+  ORDER_COLOR: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  
+  },
+  ORDER_SIZE: {
+    type: DataTypes.STRING(25),
+    allowNull: false,
+  
+  },
+  ORDER_QTY: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  createdAt: {
+    type: DataTypes.DATE
+  },
+  updatedAt: {
+    type: DataTypes.DATE
+  }
+}, {
+  tableName: 'log_cutting_dept',
+  timestamps: true,
+});
+
+LogCuttingDept.removeAttribute('id')
+
+
+export const queryLogCutDept = `
+-- query molding out
+SELECT DATE(smi.CUT_SCAN_TIME) TRANS_DATE, 'MOLDING' AS TRANSACTION, 'IN' AS CATEGORY, NULL AS SCH_ID, NULL AS  SCHD_ID, smi.CUT_SITE,
+ od.BUYER_CODE, od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
+FROM scan_molding_in smi 
+JOIN order_detail od ON smi.BARCODE_SERIAL = od.BARCODE_SERIAL
+WHERE DATE(smi.CUT_SCAN_TIME) = '2024-11-28'
+GROUP BY  smi.CUT_SITE, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE
+UNION ALL
+-- query molding out
+SELECT  DATE(smo.CUT_SCAN_TIME) TRANS_DATE, 'MOLDING' AS TRANSACTION, 'OUT' AS CATEGORY, NULL AS SCH_ID, NULL AS  SCHD_ID, smo.CUT_SITE, 
+od.BUYER_CODE,  od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
+FROM scan_molding_out smo 
+JOIN order_detail od ON smo.BARCODE_SERIAL = od.BARCODE_SERIAL
+WHERE DATE(smo.CUT_SCAN_TIME) = '2024-11-28'
+GROUP BY  smo.CUT_SITE, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE
+UNION ALL
+-- query supermarket in :
+SELECT DATE(ssi.CUT_SCAN_TIME) TRANS_DATE, 'SUPERMARKET' AS TRANSACTION, 'IN' AS CATEGORY, NULL AS SCH_ID, NULL AS  SCHD_ID, ssi.CUT_SITE, 
+od.BUYER_CODE,  od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
+FROM scan_supermarket_in ssi 
+JOIN order_detail od ON ssi.BARCODE_SERIAL = od.BARCODE_SERIAL
+WHERE DATE(ssi.CUT_SCAN_TIME) = CURDATE() 
+GROUP BY ssi.CUT_SITE, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_COLOR, od.ORDER_SIZE
+UNION ALL 
+-- query supermarket out
+SELECT DATE(sso.CUT_SCAN_TIME) TRANS_DATE,'SUPERMARKET' AS TRANSACTION, 'OUT' AS CATEGORY, NULL AS SCH_ID, NULL AS  SCHD_ID,  sso.CUT_SITE,
+ od.BUYER_CODE,  od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
+FROM scan_supermarket_out sso 
+JOIN order_detail od ON sso.BARCODE_SERIAL = od.BARCODE_SERIAL
+WHERE DATE(sso.CUT_SCAN_TIME) = CURDATE() 
+GROUP BY sso.CUT_SITE, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE
+UNION ALL 
+-- query supermarket in :
+SELECT DATE(swi.SEWING_SCAN_TIME) TRANS_DATE, 'SEWING_IN' AS TRANSACTION, 'IN' AS CATEGORY, swi.SCH_ID, swi.SCHD_ID,  swi.SEWING_SCAN_LOCATION CUT_SITE,
+ od.BUYER_CODE,  od.ORDER_STYLE, od.PRODUCT_TYPE, od.ORDER_NO, od.BUYER_PO, od.ORDER_COLOR, od.ORDER_SIZE, SUM(od.ORDER_QTY) AS ORDER_QTY
+FROM scan_sewing_in swi 
+JOIN order_detail od ON swi.BARCODE_SERIAL = od.BARCODE_SERIAL
+WHERE DATE(swi.SEWING_SCAN_TIME) = CURDATE() 
+GROUP BY swi.SCH_ID, swi.SCHD_ID, swi.SEWING_SCAN_LOCATION, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_COLOR, od.ORDER_SIZE`

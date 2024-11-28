@@ -12,7 +12,7 @@ import cron from "node-cron";
 import sumbiriOneRoute from "./routes/index.js";
 import { funcReschedule } from "./cronjob/cronSchdVsActual.js";
 import { cronLogDialyOut } from "./cronjob/logDailyOutput.js";
-import { mainCutReSchedule } from "./cronjob/cronCutingSchd.js";
+import { mainCutReSchedule, recapLogDepCut } from "./cronjob/cronCutingSchd.js";
 import { recapWipMonitoring } from "./cronjob/sewWipRecap.js";
 import { recapQcDefPart } from "./cronjob/logQcDefPart.js";
 
@@ -56,6 +56,11 @@ runDb();
 //   recapQcDefPart();
 // });
 
+
+// cron.schedule(" 1 * * * * *", () => {
+//   console.log("running a task log");
+//   recapLogDepCut()
+// });
 
 
 // app.use(cors());

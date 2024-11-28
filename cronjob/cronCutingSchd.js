@@ -1,6 +1,6 @@
 // import moment from "moment";
 import db from "../config/database.js";
-import { QueryTypes, Op, where } from "sequelize";
+import { QueryTypes, Op, where, DataTypes } from "sequelize";
 import {
   CutingLoadingSchSize,
   CutingLoadingSchedule,
@@ -14,6 +14,8 @@ import {
   funcUpdateDate,
   postSewToCutSchdSize,
 } from "../controllers/production/planning/CutSchedule.js";
+import { LogCuttingDept, queryLogCutDept } from "../models/production/cutting.mod.js";
+import moment from "moment";
 
 export async function mainCutReSchedule() {
   try {
@@ -178,6 +180,39 @@ async function resSchDataNoSize(arrOfObjDtlSize) {
         funcUpdateDate(arr.CUT_SCH_ID);
       }
     }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function recapLogDepCut() {
+  try {
+    const today = moment().format('YYYY-MM-DD')
+    const getSampleData =   await LogCuttingDept.findOne({
+      where : {
+        TRANS_DATE : today
+      },
+      raw: true
+    });
+
+    if(getSampleData){
+      await LogCuttingDept.destroy({
+        where : {
+          TRANS_DATE : today
+        },
+      })
+    }
+
+    const getCutLogs = await db.query(queryLogCutDept, {
+      type: QueryTypes.SELECT,
+    });
+
+    if (getCutLogs.length > 0) {
+      await LogCuttingDept.bulkCreate(getCutLogs);
+
+      console.log("success recap cuting dept log")
+    } 
+
   } catch (error) {
     console.log(error);
   }
