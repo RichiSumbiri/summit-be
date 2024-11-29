@@ -15,6 +15,7 @@ import { cronLogDialyOut } from "./cronjob/logDailyOutput.js";
 import { mainCutReSchedule, recapLogDepCut } from "./cronjob/cronCutingSchd.js";
 import { recapWipMonitoring } from "./cronjob/sewWipRecap.js";
 import { recapQcDefPart } from "./cronjob/logQcDefPart.js";
+import moment from "moment";
 
 // import fs from "fs"; //untuk ssl
 // import https from "https"; //untuk ssl
@@ -58,8 +59,9 @@ runDb();
 
 
 // cron.schedule(" 1 * * * * *", () => {
+// const date = moment().format("YYYY-MM-DD");
 //   console.log("running a task log");
-//   recapLogDepCut()
+//   recapLogDepCut(date)
 // });
 
 

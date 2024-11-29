@@ -59,6 +59,7 @@ import {
   QueryfindQrSewingIn,
 } from "../../../models/planning/dailyPlan.mod.js";
 import { QueryGetHoliday } from "../../../models/setup/holidays.mod.js";
+import { recapLogDepCut } from "../../../cronjob/cronCutingSchd.js";
 const moment = momentRange.extendMoment(Moment);
 
 export const getSchSewForCut = async (req, res) => {
@@ -1215,6 +1216,16 @@ export const DelQrScanSupIN = async (req, res) => {
     });
 
     if (deleteQr) {
+
+      const scanDate = checkQr.CUT_SCAN_TIME;
+      const momentToday = moment().startOf("days");
+      const momScanDate = moment(scanDate).startOf("days");
+      const compareDate = momScanDate.isBefore(momentToday);
+
+      if (compareDate) {
+        await recapLogDepCut(momScanDate.format('YYYY-MM-DD'));
+      }
+
       return res.status(200).json({
         success: true,
         message: "QR Deleted",
@@ -1320,6 +1331,15 @@ export const DelQrScanSupOUT = async (req, res) => {
     });
 
     if (deleteQr) {
+      const scanDate = checkQr.CUT_SCAN_TIME;
+      const momentToday = moment().startOf("days");
+      const momScanDate = moment(scanDate).startOf("days");
+      const compareDate = momScanDate.isBefore(momentToday);
+
+      if (compareDate) {
+        await recapLogDepCut(momScanDate.format('YYYY-MM-DD'));
+      }
+
       return res.status(200).json({
         success: true,
         message: "QR Deleted",

@@ -185,12 +185,12 @@ async function resSchDataNoSize(arrOfObjDtlSize) {
   }
 }
 
-export async function recapLogDepCut() {
+export async function recapLogDepCut(date) {
   try {
-    const today = moment().format('YYYY-MM-DD')
+    // const today = moment().format('YYYY-MM-DD')
     const getSampleData =   await LogCuttingDept.findOne({
       where : {
-        TRANS_DATE : today
+        TRANS_DATE : date
       },
       raw: true
     });
@@ -198,7 +198,7 @@ export async function recapLogDepCut() {
     if(getSampleData){
       await LogCuttingDept.destroy({
         where : {
-          TRANS_DATE : today
+          TRANS_DATE : date
         },
       })
     }

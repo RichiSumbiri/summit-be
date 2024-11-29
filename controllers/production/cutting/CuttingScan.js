@@ -318,6 +318,15 @@ export const DelQrScanSewIN = async (req, res) => {
     });
 
     if (deleteQr) {
+      const scanDate = checkQr[0].SCAN_DATE;
+      const momentToday = moment().startOf("days");
+      const momScanDate = moment(scanDate, 'YYYY-MM-DD').startOf("days");
+      const compareDate = momScanDate.isBefore(momentToday);
+
+      if (compareDate) {
+        await recapLogDepCut(scanDate);
+      }
+
       return res.status(200).json({
         success: true,
         message: "QR Deleted",
