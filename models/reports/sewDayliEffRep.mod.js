@@ -665,8 +665,8 @@ SELECT h.SCHD_ID, h.SCH_ID, h.SCHD_PROD_DATE, h.ID_SITELINE,  h.SITE_NAME, h.LIN
                            LEFT JOIN item_siteline b ON a.ID_SITELINE = b.ID_SITELINE
                            INNER JOIN weekly_prod_sch_detail c ON a.ID_SITELINE = b.ID_SITELINE
                            INNER JOIN workinghour_detail d ON d.SCHD_ID = c.SCHD_ID
-                           WHERE a.MP_DATE = :schDate   
-                           AND b.SHIFT = :shift   AND b.SITE_NAME = :sitename
+                           WHERE a.MP_DATE = :schDate   AND b.SHIFT = :shift
+                           AND b.SHIFT = :shift   -- AND b.SITE_NAME = :sitename
                            AND c.SCHD_ID =  :schdId
                            GROUP BY b.ID_SITELINE, b.SHIFT
                            ORDER BY b.ID_SITELINE
