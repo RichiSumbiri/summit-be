@@ -297,7 +297,6 @@ export const updateEmp = async(req,res) => {
       });
     }
   } catch(err){
-    console.log(err);
     res.status(404).json({
       success: false,
       data: err,
@@ -339,7 +338,6 @@ export const updateEmpMassGroup = async(req,res) => {
       message: `success update employee mass group`,
     });
   } catch(err){
-    console.log(err);
     res.status(404).json({
       success: false,
       data: err,

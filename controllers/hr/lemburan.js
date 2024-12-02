@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryLemburanPending } from "../../models/hr/lemburanspl.mod.js";
+import { queryLemburanComplete, queryLemburanCreated, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -8,11 +8,7 @@ import moment from "moment";
 export const getSPLAccess = async(req,res) => {
     try {
         const { userId }    = req.params;
-        const checkAccess   = await sumbiriUserSummitNIK.findAll({
-            where: {
-                USER_ID: userId
-            }
-        });
+        const checkAccess   = await sumbiriUserSummitNIK.findAll({ where: { USER_ID: userId }});
         if(checkAccess.length !== 0){
             res.status(200).json({
                 success: true,
@@ -33,6 +29,28 @@ export const getSPLAccess = async(req,res) => {
     }
 }
 
+
+export const getLemburanCreated = async(req,res) => {
+    try {
+        const { userId }    = req.params;
+        const listSPL       = await dbSPL.query(queryLemburanCreated, { replacements: { userId: userId }, type: QueryTypes.SELECT });
+        if(listSPL){
+            res.status(200).json({
+                success: true,
+                message: "success get list created lemburan",
+                data: listSPL
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list pending lemburan",
+        });
+    }
+}
+
+
+
 export const getLemburanPending = async(req,res) => {
     try {
         const listPending = await dbSPL.query(queryLemburanPending, { type: QueryTypes.SELECT });
@@ -51,10 +69,9 @@ export const getLemburanPending = async(req,res) => {
     }
 }
 
-export const getLemburanPendingSPV = async(req,res) => {
+export const getLemburanPendingAll = async(req,res) => {
     try {
-        const Nik           = req.params.nik;
-        const listPending   = await dbSPL.query(queryLemburanPending, { type: QueryTypes.SELECT });
+        const listPending = await dbSPL.query(queryLemburanPendingAll, { type: QueryTypes.SELECT });
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -66,6 +83,106 @@ export const getLemburanPendingSPV = async(req,res) => {
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
+        });
+    }
+}
+
+
+export const getLemburanPendingSPV = async(req,res) => {
+    try {
+        const Nik           = req.params.nik;
+        const listPending   = await dbSPL.query(queryLemburanPendingSPV, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        if(listPending){
+            res.status(200).json({
+                success: true,
+                message: "success get list pending lemburan",
+                data: listPending
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list pending lemburan",
+        });
+    }
+}
+
+
+export const getLemburanPendingHead = async(req,res) => {
+    try {
+        const Nik           = req.params.nik;
+        const listPending   = await dbSPL.query(queryLemburanPendingHead, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        if(listPending){
+            res.status(200).json({
+                success: true,
+                message: "success get list pending lemburan",
+                data: listPending
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list pending lemburan",
+        });
+    }
+}
+
+export const getLemburanPendingManager = async(req,res) => {
+    try {
+        const Nik           = req.params.nik;
+        const listPending   = await dbSPL.query(queryLemburanPendingManager, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        if(listPending){
+            res.status(200).json({
+                success: true,
+                message: "success get list pending lemburan",
+                data: listPending
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list pending lemburan",
+        });
+    }
+}
+
+
+export const getLemburanPendingHRD = async(req,res) => {
+    try {
+        const listPending   = await dbSPL.query(queryLemburanPendingHRD, {type: QueryTypes.SELECT });
+        if(listPending){
+            res.status(200).json({
+                success: true,
+                message: "success get list pending lemburan hrd",
+                data: listPending
+            });
+        }
+    } catch(err){
+        console.error(err);
+        res.status(404).json({
+            success: false,
+            message: "error get list pending lemburan",
+        });
+    }
+}
+
+
+export const getLemburanApprovalComplete = async(req,res) => {
+    try {
+        const { startDate, endDate }    = req.params;
+        const listComplete              = await dbSPL.query(queryLemburanComplete, { replacements: { startDate: startDate, endDate: endDate }, type: QueryTypes.SELECT });
+        if(listComplete){
+            res.status(200).json({
+                success: true,
+                message: "success get list complete lemburan",
+                data: listComplete
+            });
+        }
+    } catch(err){
+        console.error(err);
+        res.status(404).json({
+            success: false,
+            message: "error get list complete lemburan",
         });
     }
 }
@@ -168,7 +285,6 @@ export const postLemburan = async(req,res) => {
             message: "success post new lemburan"
         });
     } catch(err){
-        console.log(err);
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
