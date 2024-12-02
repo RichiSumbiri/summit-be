@@ -410,6 +410,8 @@ LEFT JOIN weekly_prod_sch_detail s ON s.SCHD_ID = p.SCHD_ID
 LEFT JOIN item_siteline t ON s.SCHD_ID_SITELINE = t.ID_SITELINE
 GROUP BY f.BARCODE_SERIAL`;
 
+
+//lawas tidak dipakai query ini
 export const qryRecapSewWip = ` SELECT a.SCH_ID, 
  		  a.SCH_SITE,
         d.SIZE_CODE, 
@@ -426,7 +428,7 @@ export const qryRecapSewWip = ` SELECT a.SCH_ID,
             FROM  weekly_sch_size p 
             WHERE p.SCH_ID IN (
                 SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                WHERE a.SCHD_PROD_DATE = CURDATE()
+                WHERE a.SCHD_PROD_DATE BETWEEN '2024-11-01' AND  '2024-12-31'
             ) 
             GROUP BY p.SCH_ID, p.SIZE_CODE
         ) d ON d.SCH_ID = a.SCH_ID
@@ -436,7 +438,7 @@ export const qryRecapSewWip = ` SELECT a.SCH_ID,
                 LEFT JOIN view_order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
                 WHERE a.SCH_ID IN (
                             SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                            WHERE a.SCHD_PROD_DATE = CURDATE()
+                            WHERE a.SCHD_PROD_DATE BETWEEN '2024-11-01' AND  '2024-12-31'
                 ) 
                 GROUP BY a.SCH_ID, b.ORDER_SIZE
         ) e ON(a.SCH_ID = e.SCH_ID AND d.SIZE_CODE = e.ORDER_SIZE)
@@ -448,7 +450,7 @@ export const qryRecapSewWip = ` SELECT a.SCH_ID,
                     FROM qc_endline_output a 
                     WHERE a.ENDLINE_SCH_ID IN (
                             SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                            WHERE a.SCHD_PROD_DATE = CURDATE()
+                            WHERE a.SCHD_PROD_DATE BETWEEN '2024-11-01' AND  '2024-12-31'
                     )  AND 
                         (
                             (a.ENDLINE_OUT_TYPE = 'RTT' AND a.ENDLINE_OUT_UNDO IS NULL) OR 
@@ -469,7 +471,7 @@ export const qryRecapSewWip = ` SELECT a.SCH_ID,
                         LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
                         WHERE a.SCH_ID IN (
                             SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                                WHERE a.SCHD_PROD_DATE = CURDATE()
+                                WHERE a.SCHD_PROD_DATE BETWEEN '2024-11-01' AND  '2024-12-31'
                         ) 
                         GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
                     ) a GROUP BY a.SCH_ID, a.ORDER_SIZE
@@ -485,15 +487,97 @@ export const qryRecapSewWip = ` SELECT a.SCH_ID,
                         LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
                         WHERE a.SCH_ID IN (
                             SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a 
-                                WHERE a.SCHD_PROD_DATE = CURDATE()
+                                WHERE a.SCHD_PROD_DATE BETWEEN '2024-11-01' AND  '2024-12-31'
                         ) 
                         GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
                     ) a GROUP BY a.SCH_ID, a.ORDER_SIZE
         ) h ON(h.SCH_ID = a.SCH_ID AND h.ORDER_SIZE = d.SIZE_CODE)
         WHERE  a.SCH_ID IN  (
-         SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a WHERE a.SCHD_PROD_DATE = CURDATE()
+         SELECT DISTINCT a.SCH_ID  FROM weekly_prod_sch_detail a WHERE a.SCHD_PROD_DATE BETWEEN '2024-11-01' AND  '2024-12-31'
         ) AND (d.SCH_SIZE_QTY + IFNULL(e.TTL_SEWING_IN, 0) <> 0)  
         ORDER BY a.SCH_ID_SITELINE, a.SCH_START_PROD ASC`;
+
+export const queryGetRecapWip = `WITH relevant_sch_ids AS (
+    SELECT DISTINCT SCH_ID
+    FROM (
+        SELECT SCH_ID FROM scan_sewing_in WHERE DATE(SEWING_SCAN_TIME) BETWEEN :startDate and :endDate
+        UNION
+        SELECT SCH_ID FROM scan_sewing_out WHERE DATE(SEWING_SCAN_TIME) BETWEEN :startDate and :endDate
+        UNION
+        SELECT SCH_ID FROM scan_packing_in WHERE DATE(PACKING_SCAN_TIME) BETWEEN :startDate and :endDate
+        UNION
+        SELECT SCH_ID FROM weekly_prod_sch_detail WHERE SCHD_PROD_DATE BETWEEN :startDate and :endDate
+    ) temp
+),
+size_data AS (
+    SELECT SCH_ID, SIZE_CODE, SUM(SCH_SIZE_QTY) AS SCH_SIZE_QTY
+    FROM weekly_sch_size
+    WHERE SCH_ID IN (SELECT SCH_ID FROM relevant_sch_ids)
+    GROUP BY SCH_ID, SIZE_CODE
+),
+sewing_in_data AS (
+    SELECT a.SCH_ID, b.ORDER_SIZE, SUM(b.ORDER_QTY) AS TTL_SEWING_IN
+    FROM scan_sewing_in a
+    LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL
+    WHERE a.SCH_ID IN (SELECT SCH_ID FROM relevant_sch_ids)
+    GROUP BY a.SCH_ID, b.ORDER_SIZE
+),
+qc_data AS (
+    SELECT ENDLINE_SCH_ID AS SCH_ID, ENDLINE_PLAN_SIZE AS SIZE_CODE, SUM(ENDLINE_OUT_QTY) AS TTL_QC_QTY
+    FROM qc_endline_output
+    WHERE ENDLINE_SCH_ID IN (SELECT SCH_ID FROM relevant_sch_ids)
+      AND (
+        (ENDLINE_OUT_TYPE = 'RTT' AND ENDLINE_OUT_UNDO IS NULL) OR
+        (ENDLINE_OUT_TYPE <> 'BS' AND ENDLINE_OUT_UNDO IS NULL AND ENDLINE_REPAIR = 'Y' AND ENDLINE_ACT_RPR_SCHD_ID IS NOT NULL)
+      )
+    GROUP BY ENDLINE_SCH_ID, ENDLINE_PLAN_SIZE
+),
+sewing_out_data AS (
+    SELECT SCH_ID, ORDER_SIZE, SUM(ORDER_QTY) AS TTL_SEWING_OUT
+    FROM (
+        SELECT a.SCH_ID, b.ORDER_SIZE, 
+               CASE WHEN c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+        FROM scan_sewing_out a
+        LEFT JOIN order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+        LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+        WHERE a.SCH_ID IN (SELECT SCH_ID FROM relevant_sch_ids)
+        GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+    ) temp
+    GROUP BY SCH_ID, ORDER_SIZE
+),
+packing_in_data AS (
+    SELECT SCH_ID, ORDER_SIZE, SUM(ORDER_QTY) AS TTL_PACKING_IN
+    FROM (
+        SELECT a.SCH_ID, b.ORDER_SIZE, 
+               CASE WHEN c.BARCODE_SERIAL IS NOT NULL THEN SUM(c.NEW_QTY) ELSE b.ORDER_QTY END AS ORDER_QTY
+        FROM scan_packing_in a
+        LEFT JOIN order_detail b ON a.BARCODE_MAIN = b.BARCODE_SERIAL
+        LEFT JOIN scan_sewing_qr_split c ON c.BARCODE_SERIAL = a.BARCODE_SERIAL
+        WHERE a.SCH_ID IN (SELECT SCH_ID FROM relevant_sch_ids)
+        GROUP BY a.SCH_ID, b.ORDER_SIZE, a.BARCODE_MAIN
+    ) temp
+    GROUP BY SCH_ID, ORDER_SIZE
+)
+SELECT a.SCH_ID, 
+       a.SCH_SITE,
+       d.SIZE_CODE, 
+       IFNULL(d.SCH_SIZE_QTY, 0) AS SCH_SIZE_QTY,
+       IFNULL(e.TTL_SEWING_IN, 0) AS TTL_SEWING_IN,
+		 IFNULL(f.TTL_QC_QTY, 0) AS TTL_QC_QTY,
+	    IFNULL(g.TTL_SEWING_OUT, 0) AS TTL_SEWING_OUT,
+	    IFNULL(h.TTL_PACKING_IN, 0) AS TTL_PACKING_IN
+FROM weekly_prod_schedule a
+-- LEFT JOIN viewcapacity b ON a.SCH_CAPACITY_ID = b.ID_CAPACITY
+-- LEFT JOIN item_siteline c ON a.SCH_ID_SITELINE = c.ID_SITELINE
+LEFT JOIN size_data d ON d.SCH_ID = a.SCH_ID
+LEFT JOIN sewing_in_data e ON e.SCH_ID = a.SCH_ID AND e.ORDER_SIZE = d.SIZE_CODE
+LEFT JOIN qc_data f ON f.SCH_ID = a.SCH_ID AND f.SIZE_CODE = d.SIZE_CODE
+LEFT JOIN sewing_out_data g ON g.SCH_ID = a.SCH_ID AND g.ORDER_SIZE = d.SIZE_CODE
+LEFT JOIN packing_in_data h ON h.SCH_ID = a.SCH_ID AND h.ORDER_SIZE = d.SIZE_CODE
+WHERE a.SCH_ID IN (SELECT SCH_ID FROM relevant_sch_ids)
+  AND (d.SCH_SIZE_QTY + IFNULL(e.TTL_SEWING_IN, 0) <> 0)
+ORDER BY a.SCH_ID_SITELINE, a.SCH_START_PROD ASC;
+`
 
 export const LogSewingWipMonitoring = db.define(
   "log_sewing_wip_monitoring",
