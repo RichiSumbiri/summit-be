@@ -6,6 +6,7 @@ SELECT
 	md.NameDept AS SPL_DEPT_NAME,
 	ssm.spl_section AS SPL_SECTION,
 	ssm.spl_line AS SPL_LINE,
+	ms.Name AS SPL_LINE_NAME,
 	ssm.spl_foremanspv AS SPL_FOREMANSPV_NIK,
 	se.NamaLengkap AS SPL_FOREMANSPV_NAME,
 	ssm.spl_approve_foreman AS SPL_FOREMANSPV_APPROVE,
@@ -32,6 +33,7 @@ SELECT
 FROM
 	sumbiri_spl_main ssm
 LEFT JOIN master_department md ON md.IdDept = ssm.spl_dept 
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = ssm.spl_line 
 LEFT JOIN sumbiri_employee se ON se.Nik = ssm.spl_foremanspv 
 LEFT JOIN sumbiri_employee se2 ON se2.Nik = ssm.spl_head
 LEFT JOIN sumbiri_employee se3 ON se3.Nik = ssm.spl_manager 
@@ -43,6 +45,7 @@ export const queryLemburanCreated = queryLemburan + `
 WHERE
 ssm.spl_createdby = :userId
 AND ssm.spl_active = 1
+AND ssm.spl_version = 1
 `;
 
 
@@ -54,6 +57,7 @@ AND ssm.spl_approve_head IS NULL
 AND ssm.spl_approve_manager IS NULL
 AND ssm.spl_approve_hrd IS NULL
 AND ssm.spl_active = 1
+AND ssm.spl_version = 1
 `;
 
 
@@ -62,6 +66,7 @@ WHERE
 ssm.spl_approve_foreman = 1 AND 
 ( ssm.spl_approve_head IS NULL OR ssm.spl_approve_manager IS NULL OR ssm.spl_approve_hrd IS NULL )
 AND ssm.spl_active = 1
+AND ssm.spl_version = 1
 `;
 
 
@@ -74,6 +79,7 @@ AND ssm.spl_approve_head IS NULL
 AND ssm.spl_approve_manager IS NULL
 AND ssm.spl_approve_hrd IS NULL
 AND ssm.spl_active = 1
+AND ssm.spl_version = 1
 `;
 
 
@@ -85,7 +91,7 @@ AND ssm.spl_approve_head IS NULL
 AND ssm.spl_approve_manager IS NULL
 AND ssm.spl_approve_hrd IS NULL
 AND ssm.spl_active = 1
-
+AND ssm.spl_version = 1
 `;
 
 export const queryLemburanPendingManager = queryLemburan + `
@@ -96,7 +102,7 @@ AND ssm.spl_approve_head = 1
 AND ssm.spl_approve_manager IS NULL
 AND ssm.spl_approve_hrd IS NULL
 AND ssm.spl_active = 1
-
+AND ssm.spl_version = 1
 `;
 
 export const queryLemburanPendingHRD = queryLemburan + `
@@ -106,7 +112,7 @@ AND ssm.spl_approve_head = 1
 AND ssm.spl_approve_manager = 1
 AND ssm.spl_approve_hrd IS NULL
 AND ssm.spl_active = 1
-
+AND ssm.spl_version = 1
 `;
 
 
@@ -118,5 +124,5 @@ AND ssm.spl_approve_head = 1
 AND ssm.spl_approve_manager = 1
 AND ssm.spl_approve_hrd = 1
 AND ssm.spl_active = 1
-
+AND ssm.spl_version = 1
 `;
