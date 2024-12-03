@@ -14,8 +14,17 @@ import {
   funcUpdateDate,
   postSewToCutSchdSize,
 } from "../controllers/production/planning/CutSchedule.js";
-import { LogCuttingDept, queryLogCutDept } from "../models/production/cutting.mod.js";
+import {
+  LogCuttingDept,
+  queryLogCutDept,
+} from "../models/production/cutting.mod.js";
 import moment from "moment";
+import pkg from "moment-range";
+
+const { extendMoment } = pkg;
+
+// Extend moment dengan moment-range
+const momentRange = extendMoment(moment);
 
 export async function mainCutReSchedule() {
   try {
@@ -188,32 +197,72 @@ async function resSchDataNoSize(arrOfObjDtlSize) {
 export async function recapLogDepCut(date) {
   try {
     // const today = moment().format('YYYY-MM-DD')
-    const getSampleData =   await LogCuttingDept.findOne({
-      where : {
-        TRANS_DATE : date
+    const getSampleData = await LogCuttingDept.findOne({
+      where: {
+        TRANS_DATE: date,
       },
-      raw: true
+      raw: true,
     });
 
-    if(getSampleData){
+    if (getSampleData) {
       await LogCuttingDept.destroy({
-        where : {
-          TRANS_DATE : date
+        where: {
+          TRANS_DATE: date,
         },
-      })
+      });
     }
 
+    const today = moment(date, "YYYY-MM-DD");
+    const startDateTime = today.format("YYYY-MM-DD") + " 06:00:00";
+    const endDateTime = today.add(1, "days").format("YYYY-MM-DD") + " 05:59:59";
+    // const startDate = today.format("YYYY-MM-DD");
+    // console.log({startDateTime, endDateTime, date});
+    
     const getCutLogs = await db.query(queryLogCutDept, {
+      replacements: {
+        startDateTime,
+        endDateTime,
+        startDate : date,
+      },
       type: QueryTypes.SELECT,
     });
 
     if (getCutLogs.length > 0) {
       await LogCuttingDept.bulkCreate(getCutLogs);
 
-      console.log("success recap cuting dept log")
-    } 
-
+      console.log("success recap cuting dept log "+date);
+    }
   } catch (error) {
     console.log(error);
+  }
+}
+
+function getDatesInMonth(monthYear) {
+  const format = "MMMM/YYYY";
+  const startOfMonth = moment(monthYear, format).startOf("month");
+  const endOfMonth = moment(monthYear, format).endOf("month");
+
+  if (!startOfMonth.isValid()) {
+    throw new Error(
+      'Format bulan/tahun tidak valid. Gunakan format "MMMM/YYYY", seperti "October/2024".'
+    );
+  }
+
+  // Buat range dan hasilkan array tanggal
+  const range = momentRange.range(startOfMonth, endOfMonth);
+  return Array.from(range.by("day")).map((date) => date.format("YYYY-MM-DD"));
+}
+
+export async function recapCutDepManual(monthString) {
+  const arrDate = getDatesInMonth(monthString);
+// console.log(arrDate);
+
+  if (arrDate.length) {
+    for (const [i, date] of arrDate.entries()) {
+      await recapLogDepCut(date);
+      if (i + 1 === arrDate.length) {
+        return console.log(`Success recap bulan ${monthString}`);
+      }
+    }
   }
 }

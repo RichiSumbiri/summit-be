@@ -57,6 +57,7 @@ import {
   QRScanSuperMarketIn,
   QRScanSuperMarketOut,
 } from "../../controllers/production/planning/CutSchedule.js";
+import { getDataDashCutting } from "../../controllers/production/dashAnalitycs/DashCutting.js";
 
 // ROUTE CUTTING
 
@@ -151,5 +152,10 @@ router.get("/molding-report/:startDate/:endDate", getMolReport);
 //cutting po status report
 router.get("/cutting-po-status/:poNum/:date", getCuttingPOstatus);
 router.get("/cutting-po-status-detail/:poId/:size", getCuttingPOStatdtl);
+
+
+//cutting dashboard
+router.get("/cutting-dashboard", getDataDashCutting);
+
 
 export default router;
