@@ -176,5 +176,5 @@ LEFT JOIN master_alamat_provinsi map3 ON map3.id_prov = sp.AddressDOMProvID
 LEFT JOIN master_alamat_kabkota mak3 ON mak3.id_kabkota = sp.AddressDOMKabKotaID 
 LEFT JOIN master_alamat_kecamatan mak4 ON mak4.id_kecamatan = sp.AddressDOMKecamatanID 
 LEFT JOIN sumbiri_employee se ON se.NikKTP = sp.NikKTP
-WHERE DATE(ApprovalTime) BETWEEN :startDate AND :endDate AND ApprovalStatus=0
+WHERE DATE(ApprovalTime) BETWEEN :startDate AND :endDate AND ApprovalStatus=0 AND se.TanggalKeluar ='0000-00-00'
 `;
