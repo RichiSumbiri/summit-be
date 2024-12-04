@@ -227,7 +227,8 @@ export async function postSewToCutSchdSize(arraySize, schId, cutId) {
 
 export const PostDetailCutSch = async (req, res) => {
   try {
-    const dataPost = req.body;
+    const datBody = req.body;
+    const dataPost = {...datBody, SCH_QTY : datBody.CUT_SCH_QTY};
     const findDataAll = await CuttingSchDetails.findAll({
       where: {
         CUT_SCH_ID: dataPost.CUT_SCH_ID,

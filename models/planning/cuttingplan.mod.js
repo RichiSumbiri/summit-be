@@ -391,6 +391,10 @@ export const CuttingSchDetails = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    SCH_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     CUT_SEW_SIZE_CODE: {
       type: DataTypes.STRING,
       allowNull: true,
