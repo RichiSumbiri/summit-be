@@ -362,6 +362,9 @@ SELECT
 	seg.groupId,
 	sgs.groupName ,
 	IFNULL(emp.Photos,"") AS Photos,
+	ss.id_spk AS IDSPK,
+	ss.FlagReason,
+	ss.Remark,
 	emp.CreateBy,
 	emp.CreateDate
 FROM sumbiri_employee emp
@@ -374,6 +377,7 @@ LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi
 LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
+LEFT JOIN sumbiri_spk ss ON ss.Nik = emp.Nik 
 `;
 
 export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;

@@ -225,7 +225,9 @@ export const getEmpKontrak = async(req,res) => {
 export const updateEmp = async(req,res) => {
   try {
     const data          = req.body.dataEmp;
-    const postEmp     = await modelSumbiriEmployee.update(
+    
+    // update profil karyawan
+    const postEmp       = await modelSumbiriEmployee.update(
       {
         NamaLengkap: data.NamaLengkap.toUpperCase(),
         NikKTP: data.NikKTP.toString(),
@@ -271,6 +273,8 @@ export const updateEmp = async(req,res) => {
         Nik: data.Nik
       }
     });
+    
+    // jadwal dan group schedule
     if(data.groupId){
       if(checkEmpGroup.length===0 || checkEmpGroup===null){
         await EmpGroup.create({
@@ -290,6 +294,8 @@ export const updateEmp = async(req,res) => {
       }  
     }
     
+    
+
     if(postEmp){
       return res.status(200).json({
         success: true,
