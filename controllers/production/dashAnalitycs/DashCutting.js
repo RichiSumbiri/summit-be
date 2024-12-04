@@ -1,11 +1,15 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 //dashboard cutting
-import { CheckNilai, totalCol } from "../../util/Utility.js";
+import { CheckNilai, CheckNilaiToint, totalCol } from "../../util/Utility.js";
 import moment from "moment/moment.js";
 import {
   createQueryDash,
   qryGetCutLastDate,
+  qryGetWipSite,
+  qryLoadingPlanVsActual,
+  qryPrepBalance,
+  qryWipQtyDept,
 } from "../../../models/production/cutting.mod.js";
 import { SumByColoum } from "./DashYtd.js";
 
@@ -57,11 +61,25 @@ export const getDataDashCutting = async (req, res) => {
       lastnonBraInQty: getDatLastDate.nonBraInQty,
     };
 
+    const cutOutDiff =
+      CheckNilai((currentData.cutOutQty / lastDateData.lastcutOutQty) * 100) -
+      100;
+    const molOutDiff =
+      CheckNilai((currentData.molOutQty / lastDateData.lastmolOutQty) * 100) -
+      100;
+    const supOutDiff =
+      CheckNilai((currentData.supOutQty / lastDateData.lastsupOutQty) * 100) -
+      100;
+    const sewInDiff =
+      CheckNilai((currentData.sewIn / lastDateData.lastsewIn) * 100) - 100;
 
     const joinDataDash = {
       ...currentData,
       ...lastDateData,
-      // cutOutDiff : (currentData.cutOutQty/lastDateData.cutOutQty)
+      cutOutDiff,
+      molOutDiff,
+      supOutDiff,
+      sewInDiff,
     };
 
     return res.status(200).json({
@@ -142,7 +160,7 @@ function getDataBanner(dataDash) {
       return item;
     }
   });
-  console.log(globalCutOutput);
+  // console.log(globalCutOutput);
 
   const arrBra = globalCutOutput.filter(
     (item) => !productTypeMol.includes(item.PRODUCT_TYPE)
@@ -187,3 +205,193 @@ function getDataBanner(dataDash) {
 
   return dataBaner;
 }
+
+export const getLoadPlanVsActual = async (req, res) => {
+  try {
+    const { date, site } = req.query;
+    let stringQryPlan = `cs.CUT_LOAD_DATE = '${date}'`;
+    let stringQryActual = `lcd.TRANS_DATE = '${date}'`;
+
+    if (site) {
+      stringQryPlan = stringQryPlan + ` csl.CUT_SITE_NAME '${site}'`;
+      stringQryActual = stringQryActual + ` lcd.CUT_SITE '${site}' `;
+    }
+
+    const qryPlanActual = qryLoadingPlanVsActual(
+      stringQryPlan,
+      stringQryActual
+    );
+
+    const getPlanVsAct = await db.query(qryPlanActual, {
+      type: QueryTypes.SELECT,
+    });
+
+    if (getPlanVsAct) {
+      const actualQty = SumByColoum(getPlanVsAct, "ACTUAL_QTY");
+      const planQty = SumByColoum(getPlanVsAct, "PLAN_QTY");
+
+      const dataResp = {
+        actualQty,
+        planQty,
+        percent: (CheckNilai(actualQty) / CheckNilai(planQty)) * 100,
+        planVsActual: getPlanVsAct,
+      };
+
+      return res.status(200).json({
+        data: dataResp,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data cut dashboard",
+      data: error,
+    });
+  }
+};
+
+export const getCutDeptSewingWip = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    if (!date) return res.status(404).json({ message: "Pls select date" });
+
+    const getSewingWip = await db.query(qryGetWipSite, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    if (getSewingWip.length > 0) {
+      let dataChart = [
+        {
+          name: "Qty",
+          data: getSewingWip.map((item) => ({
+            x: item.SITE,
+            y: item.WIP,
+          })),
+        },
+      ];
+
+      const arrColor = getSewingWip.map((item) =>
+        CheckNilaiToint(item.WIP) < CheckNilaiToint(item.TARGET_WIP)
+          ? "#ffc521"
+          : "#2164ff"
+      );
+
+      return res.status(200).json({
+        data: { dataChart, arrColor },
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data wip sewing",
+      data: error,
+    });
+  }
+};
+
+export const getCutDeptPrepWip = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    if (!date) return res.status(404).json({ message: "Pls select date" });
+
+    const prepBlc = await db.query(qryPrepBalance, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    if (prepBlc.length > 0) {
+      let dataChart = [
+        {
+          name: "Qty",
+          data: prepBlc.map((item) => ({
+            x: item.SITE,
+            y: CheckNilaiToint(item.WIP),
+            goals: [
+              {
+                name: "Min Qty",
+                value: parseInt(item.TARGET_WIP),
+                strokeHeight: 5,
+                strokeColor: "#ff1010",
+              },
+            ],
+          })),
+        },
+      ];
+
+      const arrColor = prepBlc.map((item) =>
+        CheckNilaiToint(item.WIP) < CheckNilaiToint(item.TARGET_WIP)
+          ? "#ffc521"
+          : "#2164ff"
+      );
+
+      return res.status(200).json({
+        data: { dataChart, arrColor },
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data wip sewing",
+      data: error,
+    });
+  }
+};
+
+export const getCutDeptWipProccess = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    if (!date) return res.status(404).json({ message: "Pls select date" });
+
+    const getCutWip = await db.query(qryWipQtyDept, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    if (getCutWip.length > 0) {
+      const wipMol = SumByColoum(getCutWip, "MOL_WIP");
+      const supWip = SumByColoum(getCutWip, "SUP_WIP");
+      const loadMol = SumByColoum(getCutWip, "LOAD_WIP");
+
+      let dataChart = [ {
+        name: "Qty",
+        data: [ {
+          x: "Molding",
+          y: wipMol,
+        },
+        {
+          x: "Spr.Mrkt",
+          y: supWip,
+        },
+        {
+          x: "Preparation",
+          y: loadMol,
+        },],
+      }
+      ];
+
+      const arrColor = dataChart.map((item) => "#2164ff");
+
+      return res.status(200).json({
+        data: { dataChart, arrColor, wipBySite : getCutWip},
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data wip sewing",
+      data: error,
+    });
+  }
+};

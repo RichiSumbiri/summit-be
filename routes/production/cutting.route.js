@@ -57,7 +57,7 @@ import {
   QRScanSuperMarketIn,
   QRScanSuperMarketOut,
 } from "../../controllers/production/planning/CutSchedule.js";
-import { getDataDashCutting } from "../../controllers/production/dashAnalitycs/DashCutting.js";
+import { getCutDeptPrepWip, getCutDeptSewingWip, getCutDeptWipProccess, getDataDashCutting, getLoadPlanVsActual } from "../../controllers/production/dashAnalitycs/DashCutting.js";
 
 // ROUTE CUTTING
 
@@ -156,6 +156,10 @@ router.get("/cutting-po-status-detail/:poId/:size", getCuttingPOStatdtl);
 
 //cutting dashboard
 router.get("/cutting-dashboard", getDataDashCutting);
+router.get("/cutting-dashboard-plan-vs-actual", getLoadPlanVsActual);
+router.get("/cutting-dashboard-sewing-wip/:date", getCutDeptSewingWip);
+router.get("/cutting-dashboard-prep-wip/:date", getCutDeptPrepWip);
+router.get("/cutting-dashboard-cut-wip/:date", getCutDeptWipProccess);
 
 
 export default router;
