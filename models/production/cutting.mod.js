@@ -672,12 +672,12 @@ export function qryLoadingPlanVsActual (paramsPlan, paramsActual)  {
   return `SELECT 
     sewin.CUT_LOAD_DATE,
     sewin.CUT_SITE_NAME SITE,
-    SUM(sewin.CUT_SCH_QTY) AS  PLAN_QTY,
+    SUM(sewin.SCH_QTY) AS  PLAN_QTY,
     SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
 FROM (
 	SELECT cs.CUT_LOAD_DATE,
 		csl.CUT_SITE_NAME, 
-	 	SUM(cs.CUT_SCH_QTY) AS  CUT_SCH_QTY,
+	 	SUM(cs.SCH_QTY) AS  SCH_QTY,
 	 	0 AS ACTUAL_QTY
 	FROM cuting_loading_sch_detail cs 
 	JOIN cuting_loading_schedule csl ON csl.CUT_ID = cs.CUT_ID
@@ -687,14 +687,14 @@ FROM (
 	SELECT 
 		lcd.TRANS_DATE, 
 		lcd.CUT_SITE, 
-		0 AS CUT_SCH_QTY,
+		0 AS SCH_QTY,
 		SUM(lcd.ORDER_QTY) AS ACTUAL_QTY
 	FROM log_cutting_dept lcd 
 	WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
 	GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
 ) AS sewin
 GROUP BY 
- sewin.CUT_SITE_NAME;`}
+ sewin.CUT_SITE_NAME`}
 
  export const qryGetWipSite = `SELECT 
 	wp.SITE,
@@ -804,3 +804,34 @@ export const qryWipQtyDept = `
       GROUP BY smo.CUT_SITE
     ) wp GROUP BY wp.SITE
 `
+
+export const findSiteLineLowWipPrep = `SELECT 
+	ind.SITE,
+--	ind.SCH_ID_SITELINE,
+	COUNT(ind.SCH_ID_SITELINE) AS COUNT_LINE
+--	ind.WIP
+FROM (
+	SELECT smo.CUT_SITE AS SITE, wps.SCH_ID_SITELINE, smo.SCH_ID,  SUM(od.ORDER_QTY) WIP
+	FROM scan_supermarket_out smo
+	JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+	JOIN weekly_prod_schedule wps ON wps.SCH_ID = smo.SCH_ID
+	WHERE NOT EXISTS (
+	    SELECT 1
+	    FROM scan_sewing_in ssi
+	    WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= '2024-12-05'
+	) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+	GROUP BY smo.CUT_SITE, wps.SCH_ID_SITELINE
+) ind WHERE  ind.WIP <= 50
+	GROUP BY 
+	ind.SITE
+-- 	ind.SCH_ID_SITELINE`
+
+export const qrySiteLineCount = `SELECT
+	st.SITE AS SITE_ID,
+	st.SITE_NAME AS SITE,
+	COUNT(st.LINE_NAME) LINE 
+FROM (
+	SELECT DISTINCT  a.SITE, a.SITE_NAME, a.LINE_NAME
+	FROM item_siteline a GROUP BY a.SITE, a.LINE_NAME
+) st GROUP BY st.SITE_NAME
+ORDER BY st.SITE`

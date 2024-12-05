@@ -5,10 +5,12 @@ import { CheckNilai, CheckNilaiToint, totalCol } from "../../util/Utility.js";
 import moment from "moment/moment.js";
 import {
   createQueryDash,
+  findSiteLineLowWipPrep,
   qryGetCutLastDate,
   qryGetWipSite,
   qryLoadingPlanVsActual,
   qryPrepBalance,
+  qrySiteLineCount,
   qryWipQtyDept,
 } from "../../../models/production/cutting.mod.js";
 import { SumByColoum } from "./DashYtd.js";
@@ -266,7 +268,7 @@ export const getCutDeptSewingWip = async (req, res) => {
     if (getSewingWip.length > 0) {
       let dataChart = [
         {
-          name: "Qty",
+          name: "Pcs",
           data: getSewingWip.map((item) => ({
             x: item.SITE,
             y: item.WIP,
@@ -309,7 +311,7 @@ export const getCutDeptPrepWip = async (req, res) => {
     if (prepBlc.length > 0) {
       let dataChart = [
         {
-          name: "Qty",
+          name: "Pcs",
           data: prepBlc.map((item) => ({
             x: item.SITE,
             y: CheckNilaiToint(item.WIP),
@@ -362,27 +364,30 @@ export const getCutDeptWipProccess = async (req, res) => {
       const supWip = SumByColoum(getCutWip, "SUP_WIP");
       const loadMol = SumByColoum(getCutWip, "LOAD_WIP");
 
-      let dataChart = [ {
-        name: "Qty",
-        data: [ {
-          x: "Molding",
-          y: wipMol,
-        },
+      let dataChart = [
         {
-          x: "Spr.Mrkt",
-          y: supWip,
+          name: "Pcs",
+          data: [
+            {
+              x: "Molding",
+              y: wipMol,
+            },
+            {
+              x: "Spr.Mrkt",
+              y: supWip,
+            },
+            {
+              x: "Preparation",
+              y: loadMol,
+            },
+          ],
         },
-        {
-          x: "Preparation",
-          y: loadMol,
-        },],
-      }
       ];
 
       const arrColor = dataChart.map((item) => "#2164ff");
 
       return res.status(200).json({
-        data: { dataChart, arrColor, wipBySite : getCutWip},
+        data: { dataChart, arrColor, wipBySite: getCutWip },
       });
     }
   } catch (error) {
@@ -391,6 +396,53 @@ export const getCutDeptWipProccess = async (req, res) => {
     res.status(404).json({
       success: false,
       message: "error request get data wip sewing",
+      data: error,
+    });
+  }
+};
+
+
+
+export const getLowWipLoad = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    if (!date) return res.status(404).json({ message: "Pls select date" });
+
+    const getWipLoadLine = await db.query(findSiteLineLowWipPrep, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    const siteLine = await db.query(qrySiteLineCount, {
+      type: QueryTypes.SELECT,
+    });
+
+    if (getWipLoadLine.length > 0) {
+      let dataChart = [
+        {
+          name: "Pcs",
+          data: siteLine.map(st => ({
+            x: st.SITE,
+            y: getWipLoadLine.find(item => item.SITE === st.SITE )?.COUNT_LINE || 0,
+          }))
+        },
+      ];
+
+      const countLine = Math.max(...getWipLoadLine.map(item => item.LINE));
+
+      const arrColor = dataChart.map((item) => "#FFAE22");
+
+      return res.status(200).json({
+        data: { dataChart, arrColor, countLine },
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data wip loading line",
       data: error,
     });
   }
