@@ -502,96 +502,86 @@ GROUP BY
     a.BARCODE_SERIAL
 `;
 
-
-
-
-export const LogCuttingDept = db.define('log_cutting_dept', {
-  TRANS_DATE: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
+export const LogCuttingDept = db.define(
+  "log_cutting_dept",
+  {
+    TRANS_DATE: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    TRANS_DATE_ACTUAL: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    TRANSACTION: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    CATEGORY: {
+      type: DataTypes.STRING(5),
+      allowNull: false,
+    },
+    SCH_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      defaultValue: null,
+    },
+    SCHD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      defaultValue: null,
+    },
+    CUT_SITE: {
+      type: DataTypes.STRING(15),
+      allowNull: false,
+    },
+    BUYER_CODE: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    ORDER_STYLE: {
+      type: DataTypes.STRING(200),
+      allowNull: false,
+    },
+    PRODUCT_TYPE: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    ORDER_NO: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    BUYER_PO: {
+      type: DataTypes.STRING(200),
+      allowNull: false,
+    },
+    ORDER_COLOR: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    ORDER_SIZE: {
+      type: DataTypes.STRING(25),
+      allowNull: false,
+    },
+    ORDER_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
   },
-  TRANS_DATE_ACTUAL: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
-  },
-  TRANSACTION: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  
-  },
-  CATEGORY: {
-    type: DataTypes.STRING(5),
-    allowNull: false,
-  
-  },
-  SCH_ID: {
-    type: DataTypes.BIGINT,
-    allowNull: true,
-    defaultValue: null,
-  },
-  SCHD_ID: {
-    type: DataTypes.BIGINT,
-    allowNull: true,
-    defaultValue: null,
-  },
-  CUT_SITE: {
-    type: DataTypes.STRING(15),
-    allowNull: false,
-  
-  },
-  BUYER_CODE: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  
-  },
-  ORDER_STYLE: {
-    type: DataTypes.STRING(200),
-    allowNull: false,
-  
-  },
-  PRODUCT_TYPE: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  
-  },
-  ORDER_NO: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  
-  },
-  BUYER_PO: {
-    type: DataTypes.STRING(200),
-    allowNull: false,
-  
-  },
-  ORDER_COLOR: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-  
-  },
-  ORDER_SIZE: {
-    type: DataTypes.STRING(25),
-    allowNull: false,
-  
-  },
-  ORDER_QTY: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  },
-  createdAt: {
-    type: DataTypes.DATE
-  },
-  updatedAt: {
-    type: DataTypes.DATE
+  {
+    tableName: "log_cutting_dept",
+    timestamps: true,
   }
-}, {
-  tableName: 'log_cutting_dept',
-  timestamps: true,
-});
+);
 
-LogCuttingDept.removeAttribute('id')
-
+LogCuttingDept.removeAttribute("id");
 
 export const queryLogCutDept = `-- QUERY RECAP DEPT CUTING
 SELECT 
@@ -605,6 +595,7 @@ SELECT
 	GRP.BUYER_CODE,
 	GRP.PRODUCT_TYPE,
 	GRP.ORDER_NO,
+	GRP.ORDER_STYLE,
 	GRP.BUYER_PO,
 	GRP.ORDER_COLOR,
 	GRP.ORDER_SIZE,
@@ -650,188 +641,191 @@ FROM (
     WHERE DATE(swi.SEWING_SCAN_TIME) =  :startDate
     GROUP BY swi.SCH_ID, swi.SCHD_ID, swi.SEWING_SCAN_LOCATION, od.BUYER_CODE, od.PRODUCT_TYPE, od.ORDER_COLOR, od.ORDER_SIZE
 ) AS GRP
-    `
-
+    `;
 
 // dashboard query
 
-export function createQueryDash(params){
-  if(!params) return false;
+export function createQueryDash(params) {
+  if (!params) return false;
 
-  return `SELECT * FROM log_cutting_dept lcd WHERE ${params} `
+  return `SELECT * FROM log_cutting_dept lcd WHERE ${params} `;
 }
 
 export const qryGetCutLastDate = `SELECT * FROM log_cutting_dept lcd WHERE lcd.TRANS_DATE < :date
-ORDER BY  lcd.TRANS_DATE DESC LIMIT 1`
+ORDER BY  lcd.TRANS_DATE DESC LIMIT 1`;
 
-
-
-export function qryLoadingPlanVsActual (paramsPlan, paramsActual)  {
-  if(!paramsPlan && !paramsActual) return false;
+export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
+  if (!paramsPlan && !paramsActual) return false;
 
   return `SELECT 
-    sewin.CUT_LOAD_DATE,
-    sewin.CUT_SITE_NAME SITE,
-    SUM(sewin.SCH_QTY) AS  PLAN_QTY,
-    SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
-FROM (
-	SELECT cs.CUT_LOAD_DATE,
+  sewin.CUT_LOAD_DATE,
+  sewin.CUT_SITE_NAME SITE,
+  SUM(sewin.SCH_QTY) AS  PLAN_QTY,
+  SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
+  FROM (
+    SELECT cs.CUT_LOAD_DATE,
 		csl.CUT_SITE_NAME, 
-	 	SUM(cs.SCH_QTY) AS  SCH_QTY,
-	 	0 AS ACTUAL_QTY
-	FROM cuting_loading_sch_detail cs 
-	JOIN cuting_loading_schedule csl ON csl.CUT_ID = cs.CUT_ID
-	WHERE  ${paramsPlan}
-	GROUP BY cs.CUT_LOAD_DATE, csl.CUT_SITE_NAME
-	UNION ALL 
-	SELECT 
+    SUM(cs.SCH_QTY) AS  SCH_QTY,
+    0 AS ACTUAL_QTY
+    FROM cuting_loading_sch_detail cs 
+    JOIN cuting_loading_schedule csl ON csl.CUT_ID = cs.CUT_ID
+    WHERE  ${paramsPlan}
+    GROUP BY cs.CUT_LOAD_DATE, csl.CUT_SITE_NAME
+    UNION ALL 
+    SELECT 
 		lcd.TRANS_DATE, 
 		lcd.CUT_SITE, 
 		0 AS SCH_QTY,
 		SUM(lcd.ORDER_QTY) AS ACTUAL_QTY
-	FROM log_cutting_dept lcd 
-	WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
-	GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
-) AS sewin
-GROUP BY 
- sewin.CUT_SITE_NAME`}
+    FROM log_cutting_dept lcd 
+    WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
+    GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
+    ) AS sewin
+    GROUP BY 
+    sewin.CUT_SITE_NAME`;
+}
 
- export const qryGetWipSite = `SELECT 
-	wp.SITE,
-	MAX(wp.TARGET_WIP) TARGET_WIP,
-	MAX(wp.WIP) WIP
-FROM (
-		-- QUERY TARGET WIP BERDASRKAN LINE YANG JALAN / MEMILIKI SCHEDULE
-		SELECT 
+export const qryGetWipSite = `SELECT 
+    wp.SITE,
+    MAX(wp.TARGET_WIP) TARGET_WIP,
+    MAX(wp.WIP) WIP
+    FROM (
+      -- QUERY TARGET WIP BERDASRKAN LINE YANG JALAN / MEMILIKI SCHEDULE
+      SELECT 
 			tw.SITE,
 			SUM(tw.TARGET_WIP) TARGET_WIP,
 			0 WIP
-		FROM (
-			SELECT DISTINCT a.SCHD_SITE AS SITE, a.SCHD_ID_SITELINE, 500 AS TARGET_WIP 
-			FROM weekly_prod_sch_detail a 
-			WHERE a.SCHD_PROD_DATE = :date
-			AND a.SCHD_QTY != 0
-			ORDER BY a.SCHD_SITE, a.SCHD_ID_SITELINE
-		) tw
-		GROUP BY tw.SITE
-	UNION ALL 
-		SELECT 
-			wip.SCH_SITE SITE,
-			 0 TARGET_WIP,
-			SUM(wip.WIP) AS WIP
-		FROM (
-			SELECT 
-			a.SCH_SITE, 
-			a.TTL_SEWING_IN - a.TTL_QC_QTY AS WIP
-			FROM log_sewing_wip_monitoring a 
-			 JOIN weekly_prod_schedule b ON b.SCH_ID = a.SCH_ID -- antisipasi yang tidak ada schnya
-			WHERE a.TTL_SEWING_IN > a.TTL_QC_QTY
-		) wip
-		GROUP BY wip.SCH_SITE
-) wp GROUP BY wp.SITE`
-
+      FROM (
+        SELECT DISTINCT a.SCHD_SITE AS SITE, a.SCHD_ID_SITELINE, 500 AS TARGET_WIP 
+        FROM weekly_prod_sch_detail a 
+        WHERE a.SCHD_PROD_DATE = :date
+        AND a.SCHD_QTY != 0
+        ORDER BY a.SCHD_SITE, a.SCHD_ID_SITELINE
+        ) tw
+        GROUP BY tw.SITE
+        UNION ALL 
+        SELECT 
+        wip.SCH_SITE SITE,
+        0 TARGET_WIP,
+        SUM(wip.WIP) AS WIP
+        FROM (
+          SELECT 
+          a.SCH_SITE, 
+          a.TTL_SEWING_IN - a.TTL_QC_QTY AS WIP
+          FROM log_sewing_wip_monitoring a 
+          JOIN weekly_prod_schedule b ON b.SCH_ID = a.SCH_ID -- antisipasi yang tidak ada schnya
+          WHERE a.TTL_SEWING_IN > a.TTL_QC_QTY
+          ) wip
+          GROUP BY wip.SCH_SITE
+          ) wp GROUP BY wp.SITE`;
 
 export const qryPrepBalance = `SELECT 
-	wp.SITE,
-	MAX(wp.TARGET_WIP) TARGET_WIP,
-	MAX(wp.WIP) WIP
-FROM (
-	-- QUERY TARGET WIP BERDASRKAN LINE YANG JALAN / MEMILIKI SCHEDULE
-	SELECT 
-		tw.SITE,
-		SUM(tw.TARGET_WIP) TARGET_WIP,
-		0 WIP
-	FROM (
-		SELECT DISTINCT a.SCHD_SITE AS SITE, a.SCHD_ID_SITELINE, 250 AS TARGET_WIP 
-		FROM weekly_prod_sch_detail a 
-		WHERE a.SCHD_PROD_DATE = :date
-		AND a.SCHD_QTY != 0
-		ORDER BY a.SCHD_SITE, a.SCHD_ID_SITELINE
-	) tw
-	GROUP BY tw.SITE
-	UNION ALL 
-	-- loading wip
-	SELECT smo.CUT_SITE AS SITE, 0 TARGET_WIP, SUM(od.ORDER_QTY) WIP
-	FROM scan_supermarket_out smo
-	JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
-	WHERE NOT EXISTS (
-	    SELECT 1
-	    FROM scan_sewing_in ssi
-	    WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
-	) AND DATE(smo.CUT_SCAN_TIME)  <= :date
-	GROUP BY smo.CUT_SITE
-) wp GROUP BY wp.SITE`
-
-
-
+          wp.SITE,
+          MAX(wp.TARGET_WIP) TARGET_WIP,
+          MAX(wp.WIP) WIP
+          FROM (
+            -- QUERY TARGET WIP BERDASRKAN LINE YANG JALAN / MEMILIKI SCHEDULE
+            SELECT 
+            tw.SITE,
+            SUM(tw.TARGET_WIP) TARGET_WIP,
+            0 WIP
+            FROM (
+              SELECT DISTINCT a.SCHD_SITE AS SITE, a.SCHD_ID_SITELINE, 250 AS TARGET_WIP 
+              FROM weekly_prod_sch_detail a 
+              WHERE a.SCHD_PROD_DATE = :date
+              AND a.SCHD_QTY != 0
+              ORDER BY a.SCHD_SITE, a.SCHD_ID_SITELINE
+              ) tw
+              GROUP BY tw.SITE
+              UNION ALL 
+              -- loading wip
+              SELECT smo.CUT_SITE AS SITE, 0 TARGET_WIP, SUM(od.ORDER_QTY) WIP
+              FROM scan_supermarket_out smo
+              JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+              WHERE NOT EXISTS (
+                SELECT 1
+                FROM scan_sewing_in ssi
+                WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
+                ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                GROUP BY smo.CUT_SITE
+                ) wp GROUP BY wp.SITE`;
 
 //awas query lemot untuk chart wip
 export const qryWipQtyDept = `
-    SELECT 
-      wp.SITE,
-      MAX(wp.MOL_WIP) MOL_WIP,
-      MAX(wp.SUP_WIP) SUP_WIP,
-      MAX(wp.LOAD_WIP) LOAD_WIP
-    FROM (
-      SELECT smo.CUT_SITE AS SITE, SUM(od.ORDER_QTY) MOL_WIP, 0 SUP_WIP, 0 LOAD_WIP
-      FROM scan_molding_in smo
-      JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM scan_molding_out sso
-          WHERE sso.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(sso.CUT_SCAN_TIME) <= :date
-      ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
-      GROUP BY smo.CUT_SITE
-      UNION ALL
-      SELECT smo.CUT_SITE AS SITE, 0 MOL_WIP, SUM(od.ORDER_QTY) SUP_WIP, 0 LOAD_WIP
-      FROM scan_supermarket_in smo
-      JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM scan_supermarket_out sso
-          WHERE sso.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(sso.CUT_SCAN_TIME) <= :date
-      ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
-      GROUP BY smo.CUT_SITE
-      UNION ALL 
-      SELECT smo.CUT_SITE AS SITE, 0 MOL_WIP, 0 SUP_WIP, SUM(od.ORDER_QTY) LOAD_WIP
-      FROM scan_supermarket_out smo
-      JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM scan_sewing_in ssi
-          WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
-      ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
-      GROUP BY smo.CUT_SITE
-    ) wp GROUP BY wp.SITE
-`
+                SELECT 
+                wp.SITE,
+                MAX(wp.MOL_WIP) MOL_WIP,
+                MAX(wp.SUP_WIP) SUP_WIP,
+                MAX(wp.LOAD_WIP) LOAD_WIP
+                FROM (
+                  SELECT smo.CUT_SITE AS SITE, SUM(od.ORDER_QTY) MOL_WIP, 0 SUP_WIP, 0 LOAD_WIP
+                  FROM scan_molding_in smo
+                  JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+                  WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM scan_molding_out sso
+                    WHERE sso.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(sso.CUT_SCAN_TIME) <= :date
+                    ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                    GROUP BY smo.CUT_SITE
+                    UNION ALL
+                    SELECT smo.CUT_SITE AS SITE, 0 MOL_WIP, SUM(od.ORDER_QTY) SUP_WIP, 0 LOAD_WIP
+                    FROM scan_supermarket_in smo
+                    JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+                    WHERE NOT EXISTS (
+                      SELECT 1
+                      FROM scan_supermarket_out sso
+                      WHERE sso.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(sso.CUT_SCAN_TIME) <= :date
+                      ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                      GROUP BY smo.CUT_SITE
+                      UNION ALL 
+                      SELECT smo.CUT_SITE AS SITE, 0 MOL_WIP, 0 SUP_WIP, SUM(od.ORDER_QTY) LOAD_WIP
+                      FROM scan_supermarket_out smo
+                      JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+                      WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM scan_sewing_in ssi
+                        WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
+                        ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                        GROUP BY smo.CUT_SITE
+                        ) wp GROUP BY wp.SITE
+                        `;
 
 export const findSiteLineLowWipPrep = `SELECT 
-	ind.SITE,
---	ind.SCH_ID_SITELINE,
-	COUNT(ind.SCH_ID_SITELINE) AS COUNT_LINE
---	ind.WIP
-FROM (
-	SELECT smo.CUT_SITE AS SITE, wps.SCH_ID_SITELINE, smo.SCH_ID,  SUM(od.ORDER_QTY) WIP
-	FROM scan_supermarket_out smo
-	JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
-	JOIN weekly_prod_schedule wps ON wps.SCH_ID = smo.SCH_ID
-	WHERE NOT EXISTS (
-	    SELECT 1
-	    FROM scan_sewing_in ssi
-	    WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
-	) AND DATE(smo.CUT_SCAN_TIME)  <= :date
-	GROUP BY smo.CUT_SITE, wps.SCH_ID_SITELINE
-) ind WHERE  ind.WIP <= 50
-	GROUP BY 
-	ind.SITE
--- 	ind.SCH_ID_SITELINE`
+                        ind.SITE,
+                        --	ind.SCH_ID_SITELINE,
+                        COUNT(ind.SCH_ID_SITELINE) AS COUNT_LINE
+                        --	ind.WIP
+                        FROM (
+                          SELECT smo.CUT_SITE AS SITE, wps.SCH_ID_SITELINE, smo.SCH_ID,  SUM(od.ORDER_QTY) WIP
+                          FROM scan_supermarket_out smo
+                          JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+                          JOIN weekly_prod_schedule wps ON wps.SCH_ID = smo.SCH_ID
+                          WHERE NOT EXISTS (
+                            SELECT 1
+                            FROM scan_sewing_in ssi
+                            WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
+                            ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                            GROUP BY smo.CUT_SITE, wps.SCH_ID_SITELINE
+                            ) ind WHERE  ind.WIP <= 50
+                            GROUP BY 
+                            ind.SITE
+                            -- 	ind.SCH_ID_SITELINE`;
 
 export const qrySiteLineCount = `SELECT
-	st.SITE AS SITE_ID,
-	st.SITE_NAME AS SITE,
-	COUNT(st.LINE_NAME) LINE 
-FROM (
-	SELECT DISTINCT  a.SITE, a.SITE_NAME, a.LINE_NAME
-	FROM item_siteline a GROUP BY a.SITE, a.LINE_NAME
-) st GROUP BY st.SITE_NAME
-ORDER BY st.SITE`
+                            st.SITE AS SITE_ID,
+                            st.SITE_NAME AS SITE,
+                            COUNT(st.LINE_NAME) LINE 
+                            FROM (
+                              SELECT DISTINCT  a.SITE, a.SITE_NAME, a.LINE_NAME
+                              FROM item_siteline a GROUP BY a.SITE, a.LINE_NAME
+                              ) st GROUP BY st.SITE_NAME
+                              ORDER BY st.SITE`;
+
+export function qryBaseDtailBanner(params) {
+  if (!params) return false;
+
+  return `SELECT 	* FROM log_cutting_dept lcd 
+    WHERE lcd.CATEGORY = 'IN'
+    AND (lcd.TRANSACTION = 'MOLDING' OR lcd.TRANSACTION = 'SUPERMARKET')
+    AND ${params} `;
+}
