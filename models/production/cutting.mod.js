@@ -660,6 +660,7 @@ export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
   return `SELECT 
   sewin.CUT_LOAD_DATE,
   sewin.CUT_SITE_NAME SITE,
+  il.SITE SITE_FX,
   SUM(sewin.SCH_QTY) AS  PLAN_QTY,
   SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
   FROM (
@@ -681,8 +682,50 @@ export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
     WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
     GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
     ) AS sewin
-    GROUP BY 
-    sewin.CUT_SITE_NAME`;
+    JOIN item_siteline il ON il.SITE_NAME = sewin.CUT_SITE_NAME
+    GROUP BY sewin.CUT_SITE_NAME
+    ORDER BY il.SITE
+    `;
+}
+
+
+export function qrySewInSiePerLine(paramsPlan, paramsActual) {
+  if (!paramsPlan && !paramsActual) return false;
+
+  return `SELECT 
+  sewin.CUT_LOAD_DATE,
+  sewin.CUT_SITE_NAME SITE,
+  il.ID_SITELINE,
+  il.LINE_NAME,
+-- sewin.SCH_ID,
+  SUM(sewin.SCH_QTY) AS  PLAN_QTY,
+  SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
+  FROM (
+  -- kenapa di group by sch_id karena untuk memastikan atau join kedua query union all secara tidak langsung
+		   SELECT cs.CUT_LOAD_DATE, 
+			csl.CUT_SITE_NAME, cs.CUT_SCH_ID AS SCH_ID,
+			SUM(cs.SCH_QTY) AS  SCH_QTY,
+			0 AS ACTUAL_QTY
+			FROM cuting_loading_sch_detail cs 
+			JOIN cuting_loading_schedule csl ON csl.CUT_ID = cs.CUT_ID
+			WHERE   ${paramsPlan} 
+			GROUP BY cs.CUT_LOAD_DATE, csl.CUT_SITE_NAME, cs.CUT_SCH_ID
+			UNION ALL 
+			SELECT 
+			lcd.TRANS_DATE, 
+			lcd.CUT_SITE, 
+			lcd.SCH_ID,
+			0 AS SCH_QTY,
+			SUM(lcd.ORDER_QTY) AS ACTUAL_QTY
+			FROM log_cutting_dept lcd 
+			WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual}
+			GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE, lcd.SCH_ID
+	 ) AS sewin
+ LEFT JOIN cuting_loading_schedule cls2 ON cls2.CUT_SCH_ID = sewin.SCH_ID
+ JOIN item_siteline il ON il.ID_SITELINE = cls2.CUT_ID_SITELINE
+ GROUP BY 
+ sewin.CUT_SITE_NAME,  il.ID_SITELINE -- sewin.SCH_ID
+ ORDER BY  sewin.CUT_SITE_NAME, il.ID_SITELINE`;
 }
 
 export const qryGetWipSite = `SELECT 

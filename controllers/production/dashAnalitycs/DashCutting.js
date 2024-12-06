@@ -6,10 +6,12 @@ import moment from "moment/moment.js";
 import {
   createQueryDash,
   findSiteLineLowWipPrep,
+  qryBaseDtailBanner,
   qryGetCutLastDate,
   qryGetWipSite,
   qryLoadingPlanVsActual,
   qryPrepBalance,
+  qrySewInSiePerLine,
   qrySiteLineCount,
   qryWipQtyDept,
 } from "../../../models/production/cutting.mod.js";
@@ -99,7 +101,7 @@ export const getDataDashCutting = async (req, res) => {
 };
 
 export function getQueryStringCutDept(query) {
-  const { date, site, shift, customers, style, line } = query;
+  const { date, site, type, customers, style, line } = query;
 
   let queryString = `lcd.TRANS_DATE = '${date}'`;
 
@@ -110,12 +112,22 @@ export function getQueryStringCutDept(query) {
       .join(",");
     queryString = queryString + ` AND lcd.SITE_NAME IN (${sites})`;
   }
-  if (shift) {
-    const shifts = shift
-      .split(",")
-      .map((st) => `'${st}'`)
-      .join(",");
-    queryString = queryString + ` AND lcd.SHIFT IN (${shifts})`;
+  if (type) {
+    if (type === "Molding Output") {
+      queryString =
+        queryString +
+        ` AND lcd.CATEGORY = 'OUT' AND lcd.TRANSACTION = 'MOLDING'`;
+    }
+    if (type === "Spr.Mrkt Output") {
+      queryString =
+        queryString +
+        ` AND lcd.CATEGORY = 'OUT' AND lcd.TRANSACTION = 'SUPERMARKET'`;
+    }
+    if (type === "Sewing In") {
+      queryString =
+        queryString +
+        ` AND lcd.CATEGORY = 'IN' AND lcd.TRANSACTION = 'SEWING_IN'`;
+    }
   }
   if (customers) {
     const customerx = customers
@@ -156,8 +168,9 @@ function getDataBanner(dataDash) {
       return item;
     }
     if (
-      item.TRANSACTION === "MOLDING" &&
-      productTypeMol.includes(item.PRODUCT_TYPE)
+      item.TRANSACTION === "MOLDING"
+      //  &&
+      // productTypeMol.includes(item.PRODUCT_TYPE)
     ) {
       return item;
     }
@@ -401,8 +414,6 @@ export const getCutDeptWipProccess = async (req, res) => {
   }
 };
 
-
-
 export const getLowWipLoad = async (req, res) => {
   try {
     const { date } = req.params;
@@ -422,14 +433,16 @@ export const getLowWipLoad = async (req, res) => {
       let dataChart = [
         {
           name: "Pcs",
-          data: siteLine.map(st => ({
+          data: siteLine.map((st) => ({
             x: st.SITE,
-            y: getWipLoadLine.find(item => item.SITE === st.SITE )?.COUNT_LINE || 0,
-          }))
+            y:
+              getWipLoadLine.find((item) => item.SITE === st.SITE)
+                ?.COUNT_LINE || 0,
+          })),
         },
       ];
 
-      const countLine = Math.max(...getWipLoadLine.map(item => item.LINE));
+      const countLine = Math.max(...getWipLoadLine.map((item) => item.LINE));
 
       const arrColor = dataChart.map((item) => "#FFAE22");
 
@@ -443,6 +456,146 @@ export const getLowWipLoad = async (req, res) => {
     res.status(404).json({
       success: false,
       message: "error request get data wip loading line",
+      data: error,
+    });
+  }
+};
+
+export const getDetailCutOutput = async (req, res) => {
+  try {
+    // const { date, site, shift, customers, style, line } = req.query;
+
+    //gunakan query untuk mendapatkan string query params(handle filter site dll)
+    const queryString = getQueryStringCutDept(req.query);
+    //dapatkan full query
+    const whereQuery = qryBaseDtailBanner(queryString);
+
+    //dapatkan data hari ini
+    const dataDash = await db.query(whereQuery, {
+      type: QueryTypes.SELECT,
+    });
+
+    if (dataDash.length > 0) {
+      const productTypeMol = ["BRA", "SHAPEWEAR", "BODY"];
+      const globalCutOutput = dataDash.filter((item) => {
+        if (
+          item.TRANSACTION === "SUPERMARKET" &&
+          !productTypeMol.includes(item.PRODUCT_TYPE)
+        ) {
+          return item;
+        }
+        if (
+          item.TRANSACTION === "MOLDING"
+          //  &&
+          // productTypeMol.includes(item.PRODUCT_TYPE)
+        ) {
+          return item;
+        }
+      });
+
+      return res.status(200).json({
+        data: globalCutOutput,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data cut dashboard detail",
+      data: error,
+    });
+  }
+};
+
+export const getMolSupSewDtl = async (req, res) => {
+  try {
+    // const { date, site, shift, customers, style, line } = req.query;
+
+    //gunakan query untuk mendapatkan string query params(handle filter site dll)
+    const queryString = getQueryStringCutDept(req.query);
+    //dapatkan full query
+    const whereQuery = createQueryDash(queryString);
+
+    //dapatkan data hari ini
+    const dataDash = await db.query(whereQuery, {
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({
+      data: dataDash,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data cut dashboard detail",
+      data: error,
+    });
+  }
+};
+
+export const getPlanVSactDtl = async (req, res) => {
+  try {
+    const { date, site } = req.query;
+    let stringQryPlan = `cs.CUT_LOAD_DATE = '${date}'`;
+    let stringQryActual = `lcd.TRANS_DATE = '${date}'`;
+
+    if (site) {
+      stringQryPlan = stringQryPlan + ` AND csl.CUT_SITE_NAME = '${site}'`;
+      stringQryActual = stringQryActual + ` AND lcd.CUT_SITE ='${site}' `;
+    }
+
+    const qryPlanActual = qrySewInSiePerLine(stringQryPlan, stringQryActual);
+
+    const getPlanVsAct = await db.query(qryPlanActual, {
+      type: QueryTypes.SELECT,
+    });
+
+    if (getPlanVsAct.length > 0) {
+      const baseD = getPlanVsAct.map((item) => ({
+        x: item.LINE_NAME,
+        y: item.ACTUAL_QTY,
+        fillColor:
+          parseInt(CheckNilai(item.ACTUAL_QTY)) <
+          parseInt(CheckNilai(item.PLAN_QTY))
+            ? "#D7263D"
+            : "#4CAF50",
+      }));
+
+      const dataTarget = getPlanVsAct.map((item) => ({
+        x: item.SITE,
+        y: item.PLAN_QTY,
+        fillColor: "#4CAF50",
+      }));
+
+      const dataChart = [
+        {
+          name: "Sewing IN QTY",
+          type: "column",
+          data: baseD,
+        },
+        {
+          name: "Target Qty",
+          type: "scatter",
+          data: dataTarget,
+        },
+      ];
+      return res.status(200).json({
+        data: dataChart,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Data not found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data cut dashboard detail",
       data: error,
     });
   }
