@@ -57,7 +57,7 @@ import {
   QRScanSuperMarketIn,
   QRScanSuperMarketOut,
 } from "../../controllers/production/planning/CutSchedule.js";
-import { getCutDeptPrepWip, getCutDeptSewingWip, getCutDeptWipProccess, getDataDashCutting, getDetailCutOutput, getLoadPlanVsActual, getLowWipLoad, getMolSupSewDtl, getPlanVSactDtl } from "../../controllers/production/dashAnalitycs/DashCutting.js";
+import { getCutDeptPrepWip, getCutDeptSewingWip, getCutDeptWipProccess, getDataDashCutting, getDetailCutOutput, getLoadPlanVsActual, getLowWipLoad, getMolSupSewDtl, getPlanVSactDtl, getWipPrepDtl } from "../../controllers/production/dashAnalitycs/DashCutting.js";
 
 // ROUTE CUTTING
 
@@ -166,6 +166,7 @@ router.get("/cutting-dashboard-prepline-wip/:date", getLowWipLoad);
 router.get("/cutting-dashboard-detail-output", getDetailCutOutput);
 router.get("/cutting-dashboard-dtl-out-excuting", getMolSupSewDtl);
 router.get("/cutting-dashboard-dtl-plan-vs-actual", getPlanVSactDtl);
+router.get("/cutting-dashboard-dtl-prep-and-sewing", getWipPrepDtl);
 
 
 export default router;

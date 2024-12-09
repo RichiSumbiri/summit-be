@@ -633,3 +633,47 @@ export const LogSewingWipMonitoring = db.define(
     timestamps: true, // Sequelize will manage createdAt and updatedAt
   }
 );
+
+
+export const qryGetWipPrepDtl = `-- query wip loading one site 
+SELECT 
+ind.SITE,
+ind.SCH_ID_SITELINE,
+il.LINE_NAME,
+ind.WIP,
+ws.WIP_SEWING
+FROM (
+  SELECT smo.CUT_SITE AS SITE, wps.SCH_ID_SITELINE,  SUM(od.ORDER_QTY) WIP
+  FROM scan_supermarket_out smo
+  JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+  JOIN weekly_prod_schedule wps ON wps.SCH_ID = smo.SCH_ID
+  WHERE NOT EXISTS (
+          SELECT 1
+          FROM scan_sewing_in ssi
+          WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date AND ssi.SEWING_SCAN_LOCATION = :site
+	 ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+	AND smo.CUT_SITE = :site
+	GROUP BY smo.CUT_SITE, wps.SCH_ID_SITELINE
+) ind
+LEFT JOIN (
+		SELECT 
+		wip.SITE,
+		wip.SCHD_ID_SITELINE,
+		SUM(wip.WIP_SEWING) AS WIP_SEWING
+		FROM (
+				SELECT a.SCHD_SITE AS SITE, a.SCHD_ID_SITELINE, a.SCH_ID, b.TTL_SEWING_IN-b.TTL_QC_QTY AS WIP_SEWING
+				FROM weekly_prod_sch_detail a 
+				JOIN log_sewing_wip_monitoring b ON a.SCH_ID = b.SCH_ID AND b.TTL_SEWING_IN > b.TTL_QC_QTY
+				WHERE a.SCHD_PROD_DATE = :date  AND a.SCHD_SITE = :site
+				AND a.SCHD_QTY != 0 
+		) AS wip
+		GROUP BY 
+		wip.SITE,
+		wip.SCHD_ID_SITELINE
+) ws ON ws.SCHD_ID_SITELINE = ind.SCH_ID_SITELINE
+LEFT JOIN item_siteline il ON il.ID_SITELINE = ind.SCH_ID_SITELINE
+-- WHERE  ind.WIP <= 50 
+GROUP BY 
+ind.SITE,
+ind.SCH_ID_SITELINE
+ORDER BY ind.SCH_ID_SITELINE`

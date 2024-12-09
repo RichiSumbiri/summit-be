@@ -16,6 +16,7 @@ import {
   qryWipQtyDept,
 } from "../../../models/production/cutting.mod.js";
 import { SumByColoum } from "./DashYtd.js";
+import { qryGetWipPrepDtl } from "../../../models/reports/sewWipMonitor.mod.js";
 
 export const getDataDashCutting = async (req, res) => {
   try {
@@ -236,7 +237,7 @@ export const getLoadPlanVsActual = async (req, res) => {
       stringQryPlan,
       stringQryActual
     );
-// console.log(qryPlanActual);
+    // console.log(qryPlanActual);
 
     const getPlanVsAct = await db.query(qryPlanActual, {
       type: QueryTypes.SELECT,
@@ -585,6 +586,65 @@ export const getPlanVSactDtl = async (req, res) => {
       ];
       return res.status(200).json({
         data: dataChart,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Data not found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data cut dashboard detail",
+      data: error,
+    });
+  }
+};
+
+export const getWipPrepDtl = async (req, res) => {
+  try {
+    const { date, site } = req.query;
+
+    const getWipPrepDtl = await db.query(qryGetWipPrepDtl, {
+      replacements: {
+        date,
+        site,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (getWipPrepDtl.length > 0) {
+
+      const dataCategory = getWipPrepDtl.map((item) => item.LINE_NAME);
+      const dataSerWip = getWipPrepDtl.map((item) => ({
+        x: "WIP Preparation",
+        y: CheckNilaiToint(item.WIP),
+        fillColor: parseInt(CheckNilai(item.WIP)) <= 50 ? "#D7263D" : "#FEB019",
+      }));
+
+
+      const dataSerWipSew = getWipPrepDtl.map((item) => ({
+        x: "WIP Sewing",
+        y: CheckNilaiToint(item.WIP_SEWING),
+        fillColor: parseInt(CheckNilai(item.WIP_SEWING)) <= 50 ? "#D7263D" : "#008FFB",
+      }));
+
+      const series = [
+        {
+          name: "WIP Preparation",
+          data: dataSerWip,
+        },
+        {
+          name: "WIP Sewing",
+          data: dataSerWipSew,
+        },
+      ];
+       getWipPrepDtl.sort((a, b) => a.WIP - b.WIP);
+
+      return res.status(200).json({
+        data: { series, dataCategory, sourceData : getWipPrepDtl },
       });
     } else {
       return res.status(404).json({
