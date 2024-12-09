@@ -236,6 +236,7 @@ export const getLoadPlanVsActual = async (req, res) => {
       stringQryPlan,
       stringQryActual
     );
+console.log(qryPlanActual);
 
     const getPlanVsAct = await db.query(qryPlanActual, {
       type: QueryTypes.SELECT,

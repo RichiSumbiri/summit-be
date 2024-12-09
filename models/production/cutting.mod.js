@@ -682,7 +682,11 @@ export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
     WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
     GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
     ) AS sewin
-    JOIN item_siteline il ON il.SITE_NAME = sewin.CUT_SITE_NAME
+    LEFT JOIN (
+      SELECT DISTINCT 
+      il.SITE, il.SITE_NAME
+      FROM item_siteline il
+    ) il ON il.SITE_NAME = sewin.CUT_SITE_NAME
     GROUP BY sewin.CUT_SITE_NAME
     ORDER BY il.SITE
     `;
