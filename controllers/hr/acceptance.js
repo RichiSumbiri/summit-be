@@ -67,7 +67,6 @@ export const postNewEmp = async(req,res) => {
                 IDSection: dataNewEmp.IDSection,
                 JenisUpah: dataNewEmp.JenisUpah,
                 TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
-                TanggalKeluar: '0000-00-00',
                 StatusKaryawan: dataNewEmp.StatusKaryawan,
                 StatusAktif: 0,
                 CreateDate: new Date(),
