@@ -183,6 +183,28 @@ export const getMasterAlamat = async(req,res) => {
     }
 }
 
+
+export const getMasterAgama = async(req,res) => {
+    try {
+        const result = await dbSPL.query("SELECT id_agama, name_agama FROM master_agama", { type: QueryTypes.SELECT });
+        res.status(200).json({
+            success: true,
+            message: "success get master agama",
+            data: result
+        });
+
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error get master alamat",
+        });
+    }
+}
+
+
+
+
 export const getLamaranByDate = async(req,res) => {
     try {
         const startDate     = req.params.startDate;

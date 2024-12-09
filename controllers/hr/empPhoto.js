@@ -9,9 +9,10 @@ const __dirname = path.dirname(__filename);
 
 export const uploadPhotosEmp = async(req, res) => {
   try {
+    console.log(req.files);
     const fileBuffer    = req.files.file.data; // This is the buffer containing the file data
     const fileName      = req.files.file.name;
-    const NikEmp        = req.body.Nik;
+    const { nikEmp }    = req.params;
     const filePath      = path.join(__dirname, "../../assets/images/photos", fileName );
     
     fs.writeFile(filePath, fileBuffer, (err) => {
@@ -22,7 +23,7 @@ export const uploadPhotosEmp = async(req, res) => {
     
       const updatePhotoDB = modelSumbiriEmployee.update({ Photos: fileName }, {
             where: {
-              Nik: NikEmp 
+              Nik: nikEmp 
           }
       });
     
@@ -31,7 +32,8 @@ export const uploadPhotosEmp = async(req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Error uploading file", error: err });
+    console.error(error);
+    res.status(500).json({ message: "Error uploading file", error: error });
   }
 };
 

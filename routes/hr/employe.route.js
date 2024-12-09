@@ -18,6 +18,7 @@ import {
   CheckPassKey,
   GeneratePassKey,
   getLamaranByDate,
+  getMasterAgama,
   getMasterAlamat,
   getMasterKabkota,
   getMasterKecamatan,
@@ -76,6 +77,7 @@ const router = express.Router();
 
 
 // master hr
+router.get("/master-agama", getMasterAgama);
 router.get("/master-address", getMasterAlamat);
 router.get("/master-address-provinsi", getMasterProv);
 router.get("/master-address-kabkota", getMasterKabkota);
@@ -152,10 +154,10 @@ router.get("/cuti-delete/:cutiid", deleteCuti);
 // lemburan / spl overtime
 router.get("/lemburan-access/:userId", getSPLAccess);
 router.get("/lemburan-detail/:splnumber", getLemburanDetail);
-router.get("/lemburan-approval/:posisi/:nik");
 router.post("/lemburan-new", postLemburan);
 router.put("/lemburan-update/:splNumber");
 router.delete("/lemburan-delete/:splNumber")
+router.post("/lemburan-approve");
 router.get("/lemburan-pending", getLemburanPending);
 router.get("/lemburan-created/:userId", getLemburanCreated);
 router.get("/lemburan-pending-all", getLemburanPendingAll);
