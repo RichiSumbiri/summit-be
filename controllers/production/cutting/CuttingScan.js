@@ -34,6 +34,7 @@ import {
   qryCheckTtlSewScanIn,
   qryCheckTtlSupScanIn,
 } from "../../../models/planning/cuttingplan.mod.js";
+import { recapLogDepCut } from "../../../cronjob/cronCutingSchd.js";
 
 // CONTROLLER SCAN CUTTING
 export const QRScanCutting = async (req, res) => {
