@@ -165,7 +165,8 @@ SELECT
 	sp.ApprovalStatus,
   sp.ApprovalTime,
   sp.ApprovalRemark,
-  sp.ApprovalBy
+  sp.ApprovalBy,
+  se.CreateDate AS TanggalAcceptance
 FROM
 	sumbiri_pelamar sp
 LEFT JOIN master_alamat_kabkota mak5 ON mak5.id_kabkota = sp.BirthPlace 
