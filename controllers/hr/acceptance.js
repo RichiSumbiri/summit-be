@@ -202,9 +202,7 @@ export const postNewEmp = async(req,res) => {
                         username: USER_WDMS,
                         password: PASS_WDMS
                     }, {
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
+                        headers: { "Content-Type": "application/json" }
                     });
                     if(loginWdms){
                         await axios.post(`${HOST_WDMS}/personnel/api/employees/`,  
@@ -220,26 +218,17 @@ export const postNewEmp = async(req,res) => {
                             }
                             ,
                             {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `JWT ${loginWdms.data.token}`,
-                                }
+                                headers: { "Content-Type": "application/json", Authorization: `JWT ${loginWdms.data.token}`}
                             });    
                     }
                 }
             }
-            
-
-
         }
-
-        
         res.status(200).json({
             success: true,
             message: "success post new emp"
         });
     } catch(err){
-        console.log(err);
         res.status(404).json({
             success: false,
             data: err,
