@@ -8,6 +8,8 @@ import {
   findSiteLineLowWipPrep,
   qryBaseDtailBanner,
   qryGetCutLastDate,
+  qryGetDtlWipMolSite,
+  qryGetDtlWipSupSite,
   qryGetWipSite,
   qryLoadingPlanVsActual,
   qryPrepBalance,
@@ -616,7 +618,6 @@ export const getWipPrepDtl = async (req, res) => {
     });
 
     if (getWipPrepDtl.length > 0) {
-
       const dataCategory = getWipPrepDtl.map((item) => item.LINE_NAME);
       const dataSerWip = getWipPrepDtl.map((item) => ({
         x: "WIP Preparation",
@@ -624,11 +625,11 @@ export const getWipPrepDtl = async (req, res) => {
         fillColor: parseInt(CheckNilai(item.WIP)) <= 50 ? "#D7263D" : "#FEB019",
       }));
 
-
       const dataSerWipSew = getWipPrepDtl.map((item) => ({
         x: "WIP Sewing",
         y: CheckNilaiToint(item.WIP_SEWING),
-        fillColor: parseInt(CheckNilai(item.WIP_SEWING)) <= 50 ? "#D7263D" : "#008FFB",
+        fillColor:
+          parseInt(CheckNilai(item.WIP_SEWING)) <= 50 ? "#D7263D" : "#008FFB",
       }));
 
       const series = [
@@ -641,10 +642,10 @@ export const getWipPrepDtl = async (req, res) => {
           data: dataSerWipSew,
         },
       ];
-       getWipPrepDtl.sort((a, b) => a.WIP - b.WIP);
+      getWipPrepDtl.sort((a, b) => a.WIP - b.WIP);
 
       return res.status(200).json({
-        data: { series, dataCategory, sourceData : getWipPrepDtl },
+        data: { series, dataCategory, sourceData: getWipPrepDtl },
       });
     } else {
       return res.status(404).json({
@@ -657,6 +658,66 @@ export const getWipPrepDtl = async (req, res) => {
     res.status(404).json({
       success: false,
       message: "error request get data cut dashboard detail",
+      data: error,
+    });
+  }
+};
+
+// get view when click wip molding bar
+
+export const getWipMolChartClick = async (req, res) => {
+  try {
+    const { date, type } = req.query;
+
+    if (!date) return res.status(404).json({ message: "Pls select date" });
+    if (!type) return res.status(404).json({ message: "Pls select type" });
+  
+    let queryWip = qryGetDtlWipMolSite; //default molding
+
+    if (type === "supermarket") {
+      queryWip = qryGetDtlWipSupSite;
+    }
+
+    if (type === "preparation") {
+      queryWip = qryGetDtlWipSupSite;
+    }
+
+    const getWipLoadLine = await db.query(queryWip, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    const siteLine = await db.query(qrySiteLineCount, {
+      type: QueryTypes.SELECT,
+    });
+
+    if (getWipLoadLine.length > 0) {
+      let dataChart = [
+        {
+          name: "Qty",
+          data: siteLine.map((st) => ({
+            x: st.SITE,
+            y:
+             CheckNilaiToint( getWipLoadLine.find((item) => item.SITE === st.SITE)
+                ?.WIP) || 0,
+          })),
+        },
+      ];
+
+      // const countLine = Math.max(...getWipLoadLine.map((item) => item.LINE));
+
+      const arrColor = dataChart.map((item) => "#FFAE22");
+
+      return res.status(200).json({
+        data: { dataChart, arrColor },
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({
+      success: false,
+      message: "error request get data wip cut",
       data: error,
     });
   }

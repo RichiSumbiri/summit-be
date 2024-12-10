@@ -692,7 +692,6 @@ export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
     `;
 }
 
-
 export function qrySewInSiePerLine(paramsPlan, paramsActual) {
   if (!paramsPlan && !paramsActual) return false;
 
@@ -876,3 +875,33 @@ export function qryBaseDtailBanner(params) {
     AND (lcd.TRANSACTION = 'MOLDING' OR lcd.TRANSACTION = 'SUPERMARKET')
     AND ${params} `;
 }
+
+export const qryGetDtlWipMolSite = `SELECT smo.CUT_SITE AS SITE, SUM(od.ORDER_QTY) WIP
+FROM scan_molding_in smo
+JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+WHERE NOT EXISTS (
+	SELECT 1
+	FROM scan_molding_out sso
+	WHERE sso.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(sso.CUT_SCAN_TIME) <= :date
+) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+GROUP BY smo.CUT_SITE`;
+
+export const qryGetDtlWipSupSite = ` SELECT smo.CUT_SITE AS SITE, SUM(od.ORDER_QTY) WIP
+                    FROM scan_supermarket_in smo
+                    JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+                    WHERE NOT EXISTS (
+                      SELECT 1
+                      FROM scan_supermarket_out sso
+                      WHERE sso.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(sso.CUT_SCAN_TIME) <= :date
+                      ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                      GROUP BY smo.CUT_SITE`;
+
+export const qryGetDtlWipSewInSite = `SELECT smo.CUT_SITE AS SITE, SUM(od.ORDER_QTY) WIP
+                      FROM scan_supermarket_out smo
+                      JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+                      WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM scan_sewing_in ssi
+                        WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
+                        ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
+                        GROUP BY smo.CUT_SITE`;
