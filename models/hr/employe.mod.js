@@ -365,6 +365,24 @@ SELECT
 	ss.id_spk AS IDSPK,
 	ss.FlagReason,
 	ss.Remark,
+	UPPER(sp.Work1Name) AS Work1Name,
+	UPPER(sp.Work1Position) AS Work1Position,
+	UPPER(sp.Work1Place) AS Work1Place,
+	UPPER(sp.Work1Periode) AS Work1Periode,
+	UPPER(sp.Work1Salary) AS Work1Salary,
+	UPPER(sp.Work1Reason) AS Work1Reason,
+	sp.Work2Name,
+	sp.Work2Position,
+	sp.Work2Place,
+	sp.Work2Periode,
+	sp.Work2Salary,
+	sp.Work2Reason,
+	sp.Work3Name,
+	sp.Work3Position,
+	sp.Work3Place,
+	sp.Work3Periode,
+	sp.Work3Salary,
+	sp.Work3Reason,
 	emp.CreateBy,
 	emp.CreateDate
 FROM sumbiri_employee emp
@@ -378,6 +396,7 @@ LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
 LEFT JOIN sumbiri_spk ss ON ss.Nik = emp.Nik 
+LEFT JOIN sumbiri_pelamar sp ON sp.NikKTP = emp.NikKTP 
 `;
 
 export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
