@@ -35,7 +35,6 @@ export const postNewEmp = async(req,res) => {
     try {
         const dataNewEmp            = req.body.dataNewEmp;
         const checkExistingEMP      = await modelSumbiriEmployee.findAll({ where: { NikKTP: dataNewEmp.NikKTP, Nik: dataNewEmp.Nik }});
-
         let postEmp;
 
         if(checkExistingEMP.length !== 0){
@@ -81,7 +80,7 @@ export const postNewEmp = async(req,res) => {
                 const queryCheckEmp = `SELECT emp_code FROM personnel_employee WHERE emp_code = :empNik`;
                 const checkEmpWDMS  = await dbWdms.query(queryCheckEmp, {
                     replacements: {
-                        empNik: newNik
+                        empNik: dataNewEmp.Nik
                     },
                     type: QueryTypes.SELECT
                 });
@@ -97,7 +96,7 @@ export const postNewEmp = async(req,res) => {
                     if(loginWdms){
                         await axios.post(`${HOST_WDMS}/personnel/api/employees/`,  
                             {
-                                "emp_code": newNik,
+                                "emp_code": dataNewEmp.Nik,
                                 "first_name": dataNewEmp.NamaLengkap,
                                 "hire_date": dataNewEmp.TanggalMasuk,
                                 "birthday": dataNewEmp.TanggalLahir,
