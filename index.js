@@ -59,12 +59,19 @@ runDb();
 
 
 // cron.schedule(" 1 * * * * *", () => {
-// const date = moment().format("YYYY-MM-DD");
-//   console.log("running a task log");
-//   recapLogDepCut(date)
+//   const now = moment();
+//   // Tentukan tanggal kerja berdasarkan waktu
+//   let workDate = now.clone();
+//   if (now.hour() < 6) {
+//       workDate = workDate.subtract(1, 'day'); // Ambil hari sebelumnya jika sebelum pukul 06:00
+//   }
+//   const date = workDate.format("YYYY-MM-DD");
+
+//   console.log(`Running a task log for workDate: ${date}`);
+//   recapLogDepCut(date);
 // });
 
-// recapCutDepManual('November/2024')
+// recapCutDepManual('December/2024')
 
 
 // app.use(cors());
