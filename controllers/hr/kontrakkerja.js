@@ -1,6 +1,6 @@
 import { QueryTypes, DataTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryLastSPKK, querySPKKbyNIK, querySPKKbyRange, sumbiriKontrakKerja } from "../../models/hr/kontrakkerja.mod.js";
+import { queryExistingSPKK, queryLastSPKK, querySPKKbyNIK, querySPKKbyRange, sumbiriKontrakKerja } from "../../models/hr/kontrakkerja.mod.js";
 import moment from "moment";
 import { convertMonthToRoman } from "../util/Utility.js";
 
@@ -114,52 +114,54 @@ export const newKontrakKerja = async(req,res) => {
         const yearNow       = moment().format('YYYY');
         const monthNow      = convertMonthToRoman(moment().format('MM'));
         const formatIDSPKK  = `/HRD/SBR/${monthNow}/${yearNow}`;
+        const KKversion     = `KK${dataSPKK.Versi}`;
         
-        
-        let lastSPKID;
-        let nomorUrut;
-        
-        const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
+        const findSPKKexisting  = await dbSPL.query(queryExistingSPKK, {
             replacements: {
-                formatSPKK: '%'+formatIDSPKK
+                formatSPKK: `${KKversion}-%`,
+                empNik: dataSPKK.Nik
             }, type: QueryTypes.SELECT
         });
         
-        
-        if(findLastSPKK.length===0){
-            nomorUrut   = 1;
-        } else {
-            lastSPKID       = findLastSPKK[0].IDSPKK;
-            const lastCount = lastSPKID.match(/-(\d{3})\//);
-            nomorUrut   = parseInt(lastCount[1]) + 1;
-        }
-        
-        const newNoUrut     = nomorUrut.toString().padStart(3, '0');
-        
-        const CountSPKK     = await sumbiriKontrakKerja.count({
-            where: {
-                Nik: dataSPKK.Nik,
-                NikKTP: dataSPKK.NikKTP,    
+        if(findSPKKexisting.length===0){
+            let lastSPKID;
+            let nomorUrut;
+            
+            const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
+                replacements: {
+                    formatSPKK: '%'+formatIDSPKK
+                }, type: QueryTypes.SELECT
+            });
+            
+            if(findLastSPKK.length===0){
+                nomorUrut   = 1;
+            } else {
+                lastSPKID       = findLastSPKK[0].IDSPKK;
+                const lastCount = lastSPKID.match(/-(\d{3})\//);
+                nomorUrut   = parseInt(lastCount[1]) + 1;
             }
-        });
-        
-        const stringSPKK    = `KK${convertMonthToRoman(parseInt(CountSPKK)+1)}-`;
-        const newIdSPKK     = stringSPKK + newNoUrut + formatIDSPKK;
-        const newSPKK       = await sumbiriKontrakKerja.create({
-            IDSPKK: newIdSPKK,
-            Nik: dataSPKK.Nik.toString(),
-            NikKTP: dataSPKK.NikKTP.toString(),
-            PeriodeKontrak: dataSPKK.PeriodeKontrak,
-            StartKontrak: dataSPKK.StartKontrak,
-            FinishKontrak: dataSPKK.FinishKontrak,
-            isActive: 'Y',
-            CreateBy: moment().format('YYYY-MM-DD hh:mm:ss')
-        });
-        if(newSPKK){
-            res.status(200).json({
+            
+            const newSPKK       = await sumbiriKontrakKerja.create({
+                IDSPKK: `${KKversion}-${nomorUrut.toString().padStart(3, '0')}${formatIDSPKK}`,
+                Nik: dataSPKK.Nik.toString(),
+                NikKTP: dataSPKK.NikKTP.toString(),
+                PeriodeKontrak: dataSPKK.PeriodeKontrak,
+                StartKontrak: dataSPKK.StartKontrak,
+                FinishKontrak: dataSPKK.FinishKontrak,
+                isActive: 'Y',
+                CreateBy: moment().format('YYYY-MM-DD hh:mm:ss')
+            });
+            if(newSPKK){
+                res.status(200).json({
+                    success: true,
+                    message: "success post new kontrak kerja "
+                });  
+            }
+        } else {
+            res.status(409).json({
                 success: true,
-                message: "success post new kontrak kerja "
-            });  
+                message: `fail post new kontrak kerja, KK version for NIK ${dataSPKK.Nik} is exist!`
+            });
         }
     } catch(err){
         res.status(404).json({
