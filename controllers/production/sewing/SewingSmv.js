@@ -100,39 +100,28 @@ export const postSewingSmvDetail = async (req, res) => {
       });
     }
 
-    dataSmv.forEach(async (smvData, i) => {
-      const checkSmvDetail = await SewingSmvDetail.findOne({
-        where: {
-          ORDER_NO: smvData.ORDER_NO,
-          PRODUCT_ID: smvData.PRODUCT_ID,
-          SIZE_ID: smvData.SIZE_ID,
-        },
-      });
-
-      if (checkSmvDetail) {
-        delete smvData.SMV_DETAIL_ADD_ID;
-        await SewingSmvDetail.update(smvData, {
-          where: {
-            ORDER_NO: smvData.ORDER_NO,
-            PRODUCT_ID: smvData.PRODUCT_ID,
-            SIZE_ID: smvData.SIZE_ID,
-          },
-        }).catch(error => console.error(error));
-      } else {
-        delete smvData.SMV_DETAIL_MOD_ID;
-        const action = await SewingSmvDetail.create(smvData).catch(error => console.error(error));
-      
-      }
-
-      if (i + 1 === dataSmv.length)
-        return res.status(201).json({
-          success: true,
-          message: "SMV Data Added Successfully",
-          data: smvData,
-          // duplicate: existData,
-        });
+    await SewingSmvDetail.destroy({
+      where: {
+        ORDER_NO: dataSmv[0].ORDER_NO,
+        PRODUCT_ID: dataSmv[0].PRODUCT_ID,
+      },
     });
+
+    const action = await SewingSmvDetail.bulkCreate(dataSmv).catch((error) =>
+      console.error(error)
+    );
+
+    if (action) {
+      return res.status(201).json({
+        success: true,
+        message: "SMV Data Added Successfully",
+        data: dataSmv,
+        // duplicate: existData,
+      });
+    }
   } catch (error) {
+    console.log(error);
+    
     res.status(404).json({
       success: false,
       message: "error processing request",

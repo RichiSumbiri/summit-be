@@ -34,6 +34,7 @@ import mechanicsRoute from "./mechanics/mechanics.route.js";
 import listRoute from "./list/list.route.js";
 import hrRoute from "./hr/employe.route.js";
 import attandance from "./hr/attandance.router.js";
+import absen from "./hr/absens.router.js";
 
 const router = express.Router();
 
@@ -68,6 +69,7 @@ router.use("/mechanics", mechanicsRoute);
 router.use("/list", listRoute);
 router.use("/hr", hrRoute);
 router.use("/attandance", attandance);
+router.use("/absensi", absen);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));

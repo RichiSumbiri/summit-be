@@ -4,6 +4,7 @@ import {
   Attandance,
   LogAttandance,
   LogFromWdms,
+  qryLogForPunch,
   qrySbrLogAttd,
   qrySchAttdComp,
   qrySplData,
@@ -196,7 +197,7 @@ export const getWdmsToAmano = async (req, res) => {
       const dataLog = getLog.map((item) => {
         const baseTime = moment(item.punch_time, "DD-MMM-YY h:mm A");
 
-        const noMesin = (item.terminal_id+20).toString().padStart(4, "0");
+        const noMesin = (item.terminal_id + 20).toString().padStart(4, "0");
         const log_status = item.punch_state === "1" ? "IN" : "OUT";
         return {
           log_id: `31${baseTime.format("YYYYMMDD")}${baseTime.format(
@@ -206,7 +207,7 @@ export const getWdmsToAmano = async (req, res) => {
           // log_time: baseTime.format("HH:mm"),
           log_status: log_status,
           Nik: item.emp_code,
-          log_machine_id: item.terminal_id+20,
+          log_machine_id: item.terminal_id + 20,
           log_machine_name: item.terminal_alias,
           NamaLengkap: item.first_name,
           log_by: "S",
@@ -265,65 +266,89 @@ export const punchAttdLog = async (req, res) => {
     // console.log(getSchAttd[0]);
 
     //ambil log attd hasil upload atau dari mesin
-    const getLogs = await LogAttandance.findAll({
-      where: {
-        log_date: {
-          [Op.between]: [dates.start, dates.end],
-        },
-        log_punch: 0,
-      },
-      raw: true,
+    const getLogs = await dbSPL.query(qryLogForPunch, {
+      replacements: { startDate: stringStart, endDate: stringEnd },
+      type: QueryTypes.SELECT,
     });
     // console.log(getLogs);
 
     if (getLogs.length > 0) {
       for (const [i, logs] of getLogs.entries()) {
+        // loping log
+
         // if(i === 0) console.log(logs)
-        const logDate = moment(logs.log_date);
-        const logDateString = logDate.format("YYYY-MM-DD");
-        const logTimeString = logDate.format("HH:mm") + ":00";
+        const logDate = logs.logDate;
+        const logTime = logs.logTime;
 
         //jika terdapat log status in makan lakukan logic IN
         if (logs.log_status === "IN") {
-          //cari schedule
-          const findSch = getSchAttd.find(
-            (items) =>
-              logs.Nik === items.Nik.toString() &&
-              logDateString === items.scheduleDate
-          );
-
-          //jika schedule ada check time dan tidak ada keterangan/tidak ada id
-          if (findSch && !findSch.id && findSch.jk_id !== null) {
-            // const scanInAwa = moment(findSch.jk_scan_in_start, "HH:mm:ss");
-            const jamPulang = moment(findSch.jk_scan_out_start, "HH:mm:ss");
-            const jamMasuk = moment(findSch.jk_in, "HH:mm:ss");
-
-            // Waktu yang akan diperiksa
-            const checkTime = moment(logTimeString, "HH:mm:ss");
-            const checkLate = checkTime.isAfter(jamMasuk);
-            //check apakah scan in ada dalam range
-            const isInRange = checkTime.isBefore(jamPulang);
-
-            let ket_in = findSch.ket_in ? findSch.ket_in : null;
-
-            const dataAbsen = {
+          //sebelum melakukan punch cek terlebih dahulu
+          const checkExist = await Attandance.findOne({
+            where: {
+              tanggal_in: logDate,
               Nik: logs.Nik,
-              groupId: findSch.groupId,
-              jk_id: findSch.jk_id,
-              tanggal_in: findSch.scheduleDate,
-              tanggal_out: findSch.scanOutDate,
-              keterangan: "H",
-              scan_in: isInRange ? logTimeString : null,
-              ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
-            };
+            },
+          });
 
-            // console.log(dataAbsen);
+          if (checkExist) {
+            await LogAttandance.update(
+              { log_punch: 2 }, //kalo ada schedule id berarti double punch kd 2, klo tdk ada berarti kd 4 no schdule
+              {
+                where: {
+                  log_id: logs.log_id,
+                },
+              }
+            );
+          } else {
+            //kalo tidak ada coba cari schedule
+            const findSch = getSchAttd.find(
+              (items) =>
+                logs.Nik === items.Nik.toString() &&
+                logDate === items.scheduleDate
+            );
 
-            const postAbsen = await Attandance.create(dataAbsen);
+            //jika schedule ada check time dan tidak ada keterangan
+            if (findSch && findSch.jk_id !== null) {
+              // const scanInAwa = moment(findSch.jk_scan_in_start, "HH:mm:ss");
+              const jamPulang = moment(findSch.jk_scan_out_start, "HH:mm:ss");
+              const jamMasuk = moment(findSch.jk_in, "HH:mm:ss");
 
-            if (postAbsen) {
+              // Waktu yang akan diperiksa
+              const checkTime = moment(logTime, "HH:mm:ss");
+              const checkLate = checkTime.isAfter(jamMasuk);
+              //check apakah scan in ada dalam range
+              const isInRange = checkTime.isBefore(jamPulang);
+
+              let ket_in = findSch.ket_in ? findSch.ket_in : null;
+
+              const dataAbsen = {
+                Nik: logs.Nik,
+                groupId: findSch.groupId,
+                jk_id: findSch.jk_id,
+                tanggal_in: findSch.scheduleDate,
+                tanggal_out: findSch.scanOutDate,
+                keterangan: "H",
+                scan_in: isInRange ? logTime : null,
+                ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
+              };
+
+              // console.log(dataAbsen);
+
+              const postAbsen = await Attandance.create(dataAbsen);
+
+              if (postAbsen) {
+                const updateLog = await LogAttandance.update(
+                  { log_punch: 1 }, // log punch 1 success
+                  {
+                    where: {
+                      log_id: logs.log_id,
+                    },
+                  }
+                );
+              }
+            } else {
               const updateLog = await LogAttandance.update(
-                { log_punch: 1 },
+                { log_punch:  4 }, // klo tdk ada berarti kd 4 no schdule
                 {
                   where: {
                     log_id: logs.log_id,
@@ -331,23 +356,13 @@ export const punchAttdLog = async (req, res) => {
                 }
               );
             }
-          } else {
-            const updateLog = await LogAttandance.update(
-              { log_punch: findSch?.id ? 2 : 4 }, //kalo ada schedule id berarti double punch kd 2, klo tdk ada berarti kd 4 no schdule
-              {
-                where: {
-                  log_id: logs.log_id,
-                },
-              }
-            );
           }
         }
         if (logs.log_status === "OUT") {
           //jika log status OUT
           const findSch = getSchAttd.find(
             (items) =>
-              logs.Nik === items.Nik.toString() &&
-              logDateString === items.scanOutDate
+              logs.Nik === items.Nik.toString() && logDate === items.scanOutDate
           );
 
           if (findSch && !findSch.scan_out) {
@@ -356,7 +371,7 @@ export const punchAttdLog = async (req, res) => {
             const jamPulang = moment(findSch.jk_out, "HH:mm:ss");
 
             // Waktu yang akan diperiksa
-            const checkTime = moment(logTimeString, "HH:mm:ss");
+            const checkTime = moment(logTime, "HH:mm:ss");
             const checkEarly = checkTime.isBefore(jamPulang);
 
             let ket_out = findSch.ket_out ? findSch.ket_out : null;
@@ -364,7 +379,7 @@ export const punchAttdLog = async (req, res) => {
             const dataAbsen = {
               // Nik: logs.Nik,
               // tanggal_out: findSch.scanOutDate,
-              scan_out: logTimeString,
+              scan_out: logTime,
               ket_out: ket_out ? ket_out : checkEarly ? "Early" : null,
             };
 
@@ -462,11 +477,9 @@ export const getWdmsToSummit = async (req, res) => {
       if (bulk) {
         return res.json({ message: "succcess Sync" });
       }
-    }else{
-
+    } else {
       res.status(202).json({ data: getLog, message: "tidak ada data log" });
     }
-
   } catch (error) {
     console.log(error);
 
@@ -476,82 +489,79 @@ export const getWdmsToSummit = async (req, res) => {
   }
 };
 
-
-// schedule Punch Attd 
-export const getSchPunchAttd = async (req, res) =>{
+// schedule Punch Attd
+export const getSchPunchAttd = async (req, res) => {
   try {
-    const getSch = await SchedulePunchAttd.findAll({})
+    const getSch = await SchedulePunchAttd.findAll({});
 
-    res.json({data: getSch})
+    res.json({ data: getSch });
   } catch (error) {
     console.log(error);
-    
+
     res
       .status(500)
       .json({ error, message: "Terdapat error get data schedule attd" });
   }
-}
+};
 
-
-export const getListMasterPunch = async (req, res) =>{
+export const getListMasterPunch = async (req, res) => {
   try {
-    const listMasterPunch = await dbSPL.query('SELECT * FROM master_log_punch', {
-      type: QueryTypes.SELECT,
-    });
+    const listMasterPunch = await dbSPL.query(
+      "SELECT * FROM master_log_punch",
+      {
+        type: QueryTypes.SELECT,
+      }
+    );
 
-    res.json({data: listMasterPunch})
+    res.json({ data: listMasterPunch });
   } catch (error) {
     console.log(error);
-    
+
     res
       .status(500)
       .json({ error, message: "Terdapat error get list master punch" });
   }
-}
+};
 
-
-export const postSchPunchAttd = async (req, res) =>{
+export const postSchPunchAttd = async (req, res) => {
   try {
+    const data = req.body;
+    const postSch = await SchedulePunchAttd.upsert(data);
 
-    const data = req.body
-    const postSch = await SchedulePunchAttd.upsert(data)
-
-    if(postSch){
-      return res.json({message: "succcess create/update schedule attd" })
-    }else{
-      return res.status(202).json({message: "gagal create schedule attd" })
+    if (postSch) {
+      return res.json({ message: "succcess create/update schedule attd" });
+    } else {
+      return res.status(202).json({ message: "gagal create schedule attd" });
     }
   } catch (error) {
     console.log(error);
-    
+
     res
       .status(500)
       .json({ error, message: "Terdapat error post data schedule attd" });
   }
-}
+};
 
-
-export const deltSchPunchAttd = async (req, res) =>{
+export const deltSchPunchAttd = async (req, res) => {
   try {
-
-    const {id} = req.params
+    const { id } = req.params;
 
     const deleteSch = await SchedulePunchAttd.destroy({
-      where : {
-        id: id
-      }
-    })
+      where: {
+        id: id,
+      },
+    });
 
-    if(deleteSch){
-      return res.json({message: "succcessdelete schedule attd" })
-    }else{
-      return res.status(202).json({message: "gagal delete schedule attd" })
+    if (deleteSch) {
+      return res.json({ message: "succcessdelete schedule attd" });
+    } else {
+      return res.status(202).json({ message: "gagal delete schedule attd" });
     }
   } catch (error) {
     console.log(error);
-    
+
     res
       .status(500)
       .json({ error, message: "Terdapat error delete  schedule attd" });
   }
-}
+};

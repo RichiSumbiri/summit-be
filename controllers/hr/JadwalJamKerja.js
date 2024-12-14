@@ -618,6 +618,7 @@ export async function postSchIndividu(req, res) {
     const arrDestroy = dataArr.filter(
       (item) => !item.jk_id && item.jadwalId_inv
     );
+    
     if (arrDestroy.length > 0) {
       const arrIdDestroy = arrDestroy.map((item) => item.jadwalId_inv);
       const destData = IndividuJadwal.destroy({

@@ -135,6 +135,14 @@ LEFT JOIN sumbiri_absens d ON d.Nik = fn.Nik
 	AND d.tanggal_in = fn.scheduleDate 
 `;
 
+//query get log untuk punch attd
+export const qryLogForPunch =`SELECT 
+a.*, DATE(a.log_date) logDate, TIME(a.log_date) logTime
+FROM sumbiri_log_attd a 
+WHERE date(a.log_date) BETWEEN :startDate AND :endDate
+AND log_punch = 0
+GROUP BY date(a.log_date), a.Nik, a.log_status`
+
 export const Attandance = dbSPL.define(
   "sumbiri_absens",
   {
@@ -292,3 +300,64 @@ export const SchedulePunchAttd = dbSPL.define('sumbiri_schedule_punch', {
   tableName: 'sumbiri_schedule_punch',
   timestamps: false,
 });
+
+
+
+export const qryDailyAbsensi = `WITH base_absen AS (
+	SELECT 
+	    se.Nik, 
+		  se.NamaLengkap,
+		  se.IDDepartemen,
+		  se.IDSubDepartemen,
+		  se.IDSection,
+      msd.Name subDeptName,
+	    md.NameDept,
+	    sgs.groupId,
+	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
+	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
+	FROM sumbiri_employee se
+	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
+	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
+	WHERE se.StatusAktif = 0 -- Karyawan saat ini tidak aktif
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
+	  AND se.TanggalMasuk <= :date
+)
+SELECT 
+ba.Nik, 
+ba.NamaLengkap,
+ba.NameDept,
+ba.IDDepartemen,
+ba.IDSubDepartemen,
+ba.subDeptName,
+ba.IDSection,
+ba.groupId,
+sgs.groupName,
+ba.jk_id,
+mjk.jk_nama,
+ba.calendar,
+sa.jk_id jk_id_absen,
+sa.id, 
+sa.tanggal_in,
+sa.tanggal_out,
+sa.scan_in,
+sa.scan_out,
+sa.ket_in,
+sa.ket_out,
+sa.keterangan
+FROM base_absen ba
+LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+`
+
+export const getLemburForAbsen = `
+  SELECT 
+ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start
+FROM sumbiri_spl_main ssm
+JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
+WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1
+GROUP BY ssm.spl_date, spl.Nik
+`
