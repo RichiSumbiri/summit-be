@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryGetCutiDate, queryMasterCuti, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
+import { queryGetCutiDate, queryGetQuotaCuti, queryMasterCuti, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
 import moment from "moment";
 import { EmpGroup, GroupJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 import { Attandance, MasterAbsentee } from "../../models/hr/attandance.mod.js";
@@ -270,6 +270,30 @@ export const getCutiSummary = async(req,res) => {
             success: false,
             data: err,
             message: "error get cuti summary",
+        });
+    }
+}
+
+export const getCutiQuota = async(req,res) => {
+    try {
+        const { empNik } = req.params;
+        const data = await dbSPL.query(queryGetQuotaCuti, {
+            replacements: {
+                empNik: empNik
+            }, type: QueryTypes.SELECT
+        });
+        if(data){
+            res.status(200).json({
+                success: true,
+                data: data,
+                message: `success get cuti quota for emp ${empNik}`,
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error get cuti quota",
         });
     }
 }

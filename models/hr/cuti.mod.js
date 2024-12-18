@@ -126,3 +126,55 @@ FROM
 	master_absentee
 WHERE type_absen !='ABSEN'
 `;
+
+export const queryGetQuotaCuti = `
+SELECT 
+    e.Nik AS employee_id,
+    e.NamaLengkap AS employee_name,
+    e.TanggalMasuk,
+    YEAR(CURDATE()) AS current_year,
+    CASE
+        WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
+        ELSE YEAR(CURDATE())
+    END AS leave_reset_year,
+    MONTH(e.TanggalMasuk) AS leave_reset_month,
+    12 AS yearly_quota,
+    IFNULL(SUM(
+        CASE 
+            WHEN 
+                (YEAR(l.cuti_date_start) > CASE 
+                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
+                    ELSE YEAR(CURDATE())
+                END OR
+                (YEAR(l.cuti_date_start) = CASE 
+                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
+                    ELSE YEAR(CURDATE())
+                END AND MONTH(l.cuti_date_start) >= MONTH(e.TanggalMasuk)))
+            THEN l.cuti_length
+            ELSE 0
+        END
+    ), 0) AS used_leaves,
+    (12 - IFNULL(SUM(
+        CASE 
+            WHEN 
+                (YEAR(l.cuti_date_start) > CASE 
+                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
+                    ELSE YEAR(CURDATE())
+                END OR
+                (YEAR(l.cuti_date_start) = CASE 
+                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
+                    ELSE YEAR(CURDATE())
+                END AND MONTH(l.cuti_date_start) >= MONTH(e.TanggalMasuk)))
+            THEN l.cuti_length
+            ELSE 0
+        END
+    ), 0)) AS remaining_leaves
+FROM 
+    sumbiri_employee e
+LEFT JOIN 
+    sumbiri_cuti_main l ON e.Nik = l.cuti_emp_nik 
+WHERE l.cuti_purpose ='CUTI TAHUNAN' AND l.cuti_emp_nik = :empNik
+GROUP BY 
+    e.Nik, e.NamaLengkap, YEAR(CURDATE()), MONTH(e.TanggalMasuk);
+
+`;

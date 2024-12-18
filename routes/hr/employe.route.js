@@ -54,6 +54,7 @@ import {
 import {
   deleteCuti,
   getCutiByDate,
+  getCutiQuota,
   getCutiSummary,
   getMasterCuti,
   postCutiNew,
@@ -147,6 +148,7 @@ router.put("/mutasi-employee", updateMutasi);
 // cuti karyawan
 router.get("/cuti-employee/:startDate/:endDate", getCutiByDate);
 router.get("/cuti-summary", getCutiSummary);
+router.get("/cuti-quota/:empNik", getCutiQuota);
 router.post("/cuti-employee", postCutiNew);
 router.get("/cuti-delete/:cutiid", deleteCuti);
 
