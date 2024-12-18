@@ -86,7 +86,19 @@ export const SumbiriCutiMain =  dbSPL.define('sumbiri_cuti_main', {
   });
   
 
-export const queryGetCutiDate = `SELECT * FROM sumbiri_cuti_main WHERE cuti_active="Y" AND DATE(cuti_createdate) BETWEEN :startDate AND :endDate ORDER BY cuti_createdate DESC`;
+export const queryGetCutiDate = `
+SELECT
+	scm.*,
+	se.TanggalMasuk
+FROM
+	sumbiri_cuti_main scm
+LEFT JOIN sumbiri_employee se ON se.Nik = scm.cuti_emp_nik 
+WHERE
+	cuti_active = "Y"
+	AND DATE(cuti_createdate) BETWEEN :startDate AND :endDate
+ORDER BY
+	cuti_createdate DESC
+`;
 
 
 export const querySummaryCuti = `
