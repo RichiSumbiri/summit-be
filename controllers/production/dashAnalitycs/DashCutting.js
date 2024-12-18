@@ -10,6 +10,7 @@ import {
   qryGetCutLastDate,
   qryGetDtlWipMolSite,
   qryGetDtlWipSupSite,
+  qryGetTargetLoading,
   qryGetWipSite,
   qryLoadingPlanVsActual,
   qryPrepBalance,
@@ -227,11 +228,11 @@ function getDataBanner(dataDash) {
 export const getLoadPlanVsActual = async (req, res) => {
   try {
     const { date, site } = req.query;
-    let stringQryPlan = `cs.CUT_LOAD_DATE = '${date}'`;
+    let stringQryPlan = `a.CUT_LOAD_DATE = '${date}'`;
     let stringQryActual = `lcd.TRANS_DATE = '${date}'`;
 
     if (site) {
-      stringQryPlan = stringQryPlan + ` csl.CUT_SITE_NAME '${site}'`;
+      stringQryPlan = stringQryPlan + ` a.CUT_SITE_NAME '${site}'`;
       stringQryActual = stringQryActual + ` lcd.CUT_SITE '${site}' `;
     }
 
@@ -239,7 +240,6 @@ export const getLoadPlanVsActual = async (req, res) => {
       stringQryPlan,
       stringQryActual
     );
-    // console.log(qryPlanActual);
 
     const getPlanVsAct = await db.query(qryPlanActual, {
       type: QueryTypes.SELECT,
@@ -671,7 +671,7 @@ export const getWipMolChartClick = async (req, res) => {
 
     if (!date) return res.status(404).json({ message: "Pls select date" });
     if (!type) return res.status(404).json({ message: "Pls select type" });
-  
+
     let queryWip = qryGetDtlWipMolSite; //default molding
 
     if (type === "supermarket") {
@@ -698,8 +698,9 @@ export const getWipMolChartClick = async (req, res) => {
           data: siteLine.map((st) => ({
             x: st.SITE,
             y:
-             CheckNilaiToint( getWipLoadLine.find((item) => item.SITE === st.SITE)
-                ?.WIP) || 0,
+              CheckNilaiToint(
+                getWipLoadLine.find((item) => item.SITE === st.SITE)?.WIP
+              ) || 0,
           })),
         },
       ];

@@ -654,43 +654,80 @@ export function createQueryDash(params) {
 export const qryGetCutLastDate = `SELECT * FROM log_cutting_dept lcd WHERE lcd.TRANS_DATE < :date
 ORDER BY  lcd.TRANS_DATE DESC LIMIT 1`;
 
+
+export const qryGetTargetLoading = `SELECT b.CUT_LOAD_DATE , b.TARGET
+FROM cutting_target_cap b 
+WHERE b.CUT_LOAD_DATE = :date`
+
 export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
   if (!paramsPlan && !paramsActual) return false;
 
   return `SELECT 
   sewin.CUT_LOAD_DATE,
-  sewin.CUT_SITE_NAME SITE,
+  sewin.CUT_SITE SITE,
   il.SITE SITE_FX,
-  SUM(sewin.SCH_QTY) AS  PLAN_QTY,
+  SUM(tgt.TARGET) AS  PLAN_QTY,
   SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
   FROM (
-    SELECT cs.CUT_LOAD_DATE,
-		csl.CUT_SITE_NAME, 
-    SUM(cs.SCH_QTY) AS  SCH_QTY,
-    0 AS ACTUAL_QTY
-    FROM cuting_loading_sch_detail cs 
-    JOIN cuting_loading_schedule csl ON csl.CUT_ID = cs.CUT_ID
-    WHERE  ${paramsPlan}
-    GROUP BY cs.CUT_LOAD_DATE, csl.CUT_SITE_NAME
-    UNION ALL 
-    SELECT 
-		lcd.TRANS_DATE, 
-		lcd.CUT_SITE, 
-		0 AS SCH_QTY,
-		SUM(lcd.ORDER_QTY) AS ACTUAL_QTY
-    FROM log_cutting_dept lcd 
-    WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
-    GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
+		    SELECT 
+				lcd.TRANS_DATE CUT_LOAD_DATE,
+				lcd.CUT_SITE, 
+				SUM(lcd.ORDER_QTY) AS ACTUAL_QTY
+		    FROM log_cutting_dept lcd 
+		    WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual}
+		    GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
     ) AS sewin
+    LEFT JOIN (
+ 		SELECT a.CUT_LOAD_DATE, a.SITE, a.TARGET
+	 	FROM cutting_target_cap a WHERE ${paramsPlan}
+	 	GROUP BY  a.CUT_LOAD_DATE, a.SITE
+	 ) tgt ON tgt.SITE =  sewin.CUT_SITE
     LEFT JOIN (
       SELECT DISTINCT 
       il.SITE, il.SITE_NAME
       FROM item_siteline il
-    ) il ON il.SITE_NAME = sewin.CUT_SITE_NAME
-    GROUP BY sewin.CUT_SITE_NAME
+    ) il ON il.SITE_NAME = sewin.CUT_SITE
+    GROUP BY sewin.CUT_SITE
     ORDER BY il.SITE
     `;
 }
+// export function qryLoadingPlanVsActual(paramsPlan, paramsActual) {
+//   if (!paramsPlan && !paramsActual) return false;
+
+//   return `SELECT 
+//   sewin.CUT_LOAD_DATE,
+//   sewin.CUT_SITE_NAME SITE,
+//   il.SITE SITE_FX,
+//   SUM(sewin.SCH_QTY) AS  PLAN_QTY,
+//   SUM(sewin.ACTUAL_QTY) AS  ACTUAL_QTY
+//   FROM (
+//     SELECT cs.CUT_LOAD_DATE,
+// 		csl.CUT_SITE_NAME, 
+//     SUM(cs.SCH_QTY) AS  SCH_QTY,
+//     0 AS ACTUAL_QTY
+//     FROM cuting_loading_sch_detail cs 
+//     JOIN cuting_loading_schedule csl ON csl.CUT_ID = cs.CUT_ID
+//     WHERE  ${paramsPlan}
+//     GROUP BY cs.CUT_LOAD_DATE, csl.CUT_SITE_NAME
+//     UNION ALL 
+//     SELECT 
+// 		lcd.TRANS_DATE, 
+// 		lcd.CUT_SITE, 
+// 		0 AS SCH_QTY,
+// 		SUM(lcd.ORDER_QTY) AS ACTUAL_QTY
+//     FROM log_cutting_dept lcd 
+//     WHERE  lcd.TRANSACTION = 'SEWING_IN' AND ${paramsActual} 
+//     GROUP BY lcd.TRANS_DATE, lcd.CUT_SITE
+//     ) AS sewin
+//     LEFT JOIN (
+//       SELECT DISTINCT 
+//       il.SITE, il.SITE_NAME
+//       FROM item_siteline il
+//     ) il ON il.SITE_NAME = sewin.CUT_SITE_NAME
+//     GROUP BY sewin.CUT_SITE_NAME
+//     ORDER BY il.SITE
+//     `;
+// }
 
 export function qrySewInSiePerLine(paramsPlan, paramsActual) {
   if (!paramsPlan && !paramsActual) return false;
