@@ -65,5 +65,5 @@ LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
 `;
 
-
-export const queryGetLastSPKT = queryListSPKT + ` WHERE ss.IDSPKT LIKE :formatSPKT ORDER BY ss.CreateDate DESC LIMIT 1`;
+export const queryGetSPKTByRange  = queryListSPKT + ` WHERE DATE(ss.CreateDate) BETWEEN :startDate AND :endDate ORDER BY ss.CreateDate DESC`;
+export const queryGetLastSPKT     = queryListSPKT + ` WHERE ss.IDSPKT LIKE :formatSPKT ORDER BY ss.CreateDate DESC LIMIT 1`;

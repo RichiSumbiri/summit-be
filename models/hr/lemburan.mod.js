@@ -153,6 +153,10 @@ export const ModelSPLData = dbSPL.define('sumbiri_spl_data', {
     type: DataTypes.CHAR(13),
     allowNull: true,
   },
+  spl_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
   Nik: {
     type: DataTypes.INTEGER(10).UNSIGNED,
     allowNull: true,

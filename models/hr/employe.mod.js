@@ -49,7 +49,25 @@ SELECT
 	se.StatusKaryawan,
 	se.StatusAktif,
 	seg.groupId,
-	CONCAT(sgs.groupCode, " - ", sgs.groupName) AS GroupEmp
+	CONCAT(sgs.groupCode, " - ", sgs.groupName) AS GroupEmp,
+	sp.Work1Name,
+	sp.Work1Position,
+	sp.Work1Place,
+	sp.Work1Periode,
+	sp.Work1Salary,
+	sp.Work1Reason,
+	sp.Work2Name,
+	sp.Work2Position,
+	sp.Work2Place,
+	sp.Work2Periode,
+	sp.Work2Salary,
+	sp.Work2Reason,
+	sp.Work3Name,
+	sp.Work3Position,
+	sp.Work3Place,
+	sp.Work3Periode,
+	sp.Work3Salary,
+	sp.Work3Reason
 FROM sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
@@ -60,6 +78,7 @@ LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
+LEFT JOIN sumbiri_pelamar sp ON sp.NikKTP = se.NikKTP 
 WHERE se.StatusAktif = 0
 `;
 

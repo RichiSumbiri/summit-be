@@ -169,7 +169,7 @@ router.get("/lemburan-approval-complete/:startDate/:endDate", getLemburanApprova
 
 
 // set pengangkatan karyawan tetap
-router.get("/get-kartap", getKarTap);
+router.get("/get-kartap/:startDate/:endDate", getKarTap);
 router.post("/new-kartap", newKarTap);
 router.put("/update-kartap", updateKarTap);
 

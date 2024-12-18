@@ -1,13 +1,20 @@
 import { QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryGetLastSPKT, queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
+import { queryGetLastSPKT, queryGetSPKTByRange, queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
 import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 import moment from "moment";
 import { convertMonthToRoman } from "../util/Utility.js";
 
 export const getKarTap = async(req,res) => {
     try {
-        const listKarTap = await dbSPL.query(queryListSPKT, { type: QueryTypes.SELECT});
+        const { startDate, endDate }    = req.params;
+        const listKarTap = await dbSPL.query(queryGetSPKTByRange, { 
+            replacements: {
+                startDate: startDate,
+                endDate: endDate
+            },
+            type: QueryTypes.SELECT
+        });
         if(listKarTap){
             res.status(200).json({
                 success: true,
@@ -31,7 +38,7 @@ export const updateKarTap = async(req,res) => {
             }, {
                 where: {
                     IDSPKT: dataSPKT.IDSPKT,
-                    Nik: dataSPKT.Nik
+                    Nik: parseInt(dataSPKT.Nik)
                 }
             });
         if(putAction){
@@ -51,16 +58,14 @@ export const updateKarTap = async(req,res) => {
 export const newKarTap = async(req,res) => {
     try {
         const dataSPKT      = req.body.dataSPKT;
-        const yearNow       = moment().format('YYYY');
-        const monthNow      = convertMonthToRoman(moment().format('M'));
-        const formatNoSPKT  = `/HRD-SBR/${monthNow}/${yearNow}`; 
+        const formatNoSPKT  = `/HRD-SBR/${convertMonthToRoman(moment().format('M'))}/${moment().format('YYYY')}`; 
         
         let lastSPKT;
         let nomorUrut       = 1;
         
         const findLastSPKT  = await dbSPL.query(queryGetLastSPKT, {
             replacements: {
-                formatSPKT: '%'+formatNoSPKT
+                formatSPKT: `%${formatNoSPKT}`
             }, type: QueryTypes.SELECT
         })
         
@@ -71,14 +76,13 @@ export const newKarTap = async(req,res) => {
             nomorUrut   = parseInt(lastSPKT.substring(0, 3)) + 1;
         }
         
-        const newNoUrut     = nomorUrut.toString().padStart(3, '0');
-        const newIdSPKT     = newNoUrut + formatNoSPKT;
+        const newIdSPKT     = nomorUrut.toString().padStart(3, '0') + formatNoSPKT;
         
         const postSPKT = await sumbiriSPKT.create({
-            Nik: dataSPKT.Nik,
+            Nik: parseInt(dataSPKT.Nik),
             IDSPKT: newIdSPKT,
             DateSPKT: dataSPKT.DateSPKT,
-            CreateBy: 'system',
+            CreateBy: dataSPKT.CreateBy,
             CreateDate: moment().format('YYYY-MM-DD hh:mm:ss') 
         });
 

@@ -225,6 +225,7 @@ export const getLemburanDetail = async(req,res) => {
 export const postLemburan = async(req,res) => {
     try {
         let dataSPL         = req.body.dataSPL;
+        console.log(dataSPL);
         const getIDManager  = await modelMasterDepartment.findOne({
             where: {
                 IdDept: dataSPL.SPLDept
@@ -270,6 +271,7 @@ export const postLemburan = async(req,res) => {
         for (const emp of dataSPL.SPLEmp) {
             await ModelSPLData.create({
                 spl_number: newQueueSPL,
+                spl_date: dataSPL.SPLDate,
                 Nik: emp.Nik,
                 nama: emp.NamaLengkap,
                 start: emp.StartTime,
@@ -285,6 +287,7 @@ export const postLemburan = async(req,res) => {
             message: "success post new lemburan"
         });
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
