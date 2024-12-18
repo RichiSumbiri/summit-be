@@ -1,5 +1,5 @@
 import { QueryTypes, Op } from "sequelize";
-import { modelMasterDepartment, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
@@ -226,6 +226,17 @@ export const updateEmp = async(req,res) => {
   try {
     const data          = req.body.dataEmp;
     
+    // check emp siteline
+    const checkEmpSiteline = await modelMasterSiteline.findOne({
+      where: {
+        IDSection: data.IDSection,
+        IDDept: data.IDDepartemen,
+        IDSubDept: data.IDSubDepartemen
+      }
+    });
+
+    const EmpIDSiteline = checkEmpSiteline===null ? null : checkEmpSiteline.IDSiteline;
+
     // update profil karyawan
     const postEmp       = await modelSumbiriEmployee.update(
       {
@@ -256,6 +267,7 @@ export const updateEmp = async(req,res) => {
         IDSubDepartemen: data.IDSubDepartemen,
         IDPosisi: data.IDPosisi,
         IDSection: data.IDSection,
+        IDSiteline: EmpIDSiteline,
         JenisUpah: data.JenisUpah,
         StatusKaryawan: data.StatusKaryawan,
         TanggalMasuk: data.TanggalMasuk,
@@ -273,6 +285,8 @@ export const updateEmp = async(req,res) => {
         Nik: data.Nik
       }
     });
+
+    
     
     // jadwal dan group schedule
     if(data.groupId){
@@ -303,6 +317,7 @@ export const updateEmp = async(req,res) => {
       });
     }
   } catch(err){
+    console.error(err);
     res.status(404).json({
       success: false,
       data: err,

@@ -119,6 +119,34 @@ export const modelMasterSubDepartment = dbSPL.define('master_subdepartment',
 	collate: 'utf8mb4_general_ci',
 });
 
+export const modelMasterSiteline = dbSPL.define('master_siteline', {
+	IDSiteline: {
+		type: DataTypes.CHAR(10),
+		allowNull: false,
+		primaryKey: true,
+	  },
+	  IDSection: {
+		type: DataTypes.STRING(200),
+		allowNull: false,
+	  },
+	  IDDept: {
+		type: DataTypes.STRING(200),
+		allowNull: false,
+	  },
+	  IDSubDept: {
+		type: DataTypes.STRING(200),
+		allowNull: true,
+	  },
+	  Shift: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+	  },
+	}, {
+	  tableName: 'master_siteline',
+	  timestamps: false,
+	  charset: 'utf8mb4',
+	  collate: 'utf8mb4_general_ci',
+	});
 
 export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	Nik: {
@@ -182,7 +210,11 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		type: DataTypes.STRING(20),
 		allowNull: true
 	  },
-	Posisi: {
+	IDSiteline: {
+		type: DataTypes.CHAR(10),
+		allowNull: true
+	  },
+	  Posisi: {
 	  type: DataTypes.STRING(50),
 	  allowNull: true,
 	  charset: 'utf8mb4',
