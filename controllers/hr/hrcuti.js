@@ -274,18 +274,25 @@ export const getCutiSummary = async(req,res) => {
 export const getCutiQuota = async(req,res) => {
     try {
         const { empNik } = req.params;
-        const data = await dbSPL.query(queryGetQuotaCuti, {
+        let data;
+        data = await dbSPL.query(queryGetQuotaCuti, {
             replacements: {
                 empNik: empNik
             }, type: QueryTypes.SELECT
         });
-        if(data){
-            res.status(200).json({
-                success: true,
-                data: data,
-                message: `success get cuti quota for emp ${empNik}`,
-            });
+        if(data.length===0){
+            data = [{
+                "employee_id": empNik,
+                "remaining_leaves": 12
+            }]
         }
+        res.status(200).json({
+            success: true,
+            data: data,
+            message: `success get cuti quota for emp ${empNik}`,
+        });
+        
+        
     } catch(err){
         res.status(404).json({
             success: false,
