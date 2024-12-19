@@ -48,7 +48,7 @@ router.get("/daily/:startDate/:endDate/:site/:schId", getDayliSch);
 router.get("/group/:schId", getOneGroupDayliSch);
 
 //daily-planning
-// router.get("/planning-daily/:plannDate/:sitename/:shift", getDailyPlanning);
+router.get("/planning-daily/:plannDate/:sitename/:shift", getDailyPlanning);
 router.get("/planning-daily-one/:plannDate/:schdId/:shift", getOneSchDailyPlan);
 router.get("/planning-daily-ceheckholiday/:plannDate", getCheckHoliday);
 router.get("/planning-sycn-log/:schDate/:sitename/:shift", syncLogDailyOutput);
