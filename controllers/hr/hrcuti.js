@@ -45,7 +45,7 @@ export const deleteCuti = async(req,res) => {
                 }
             })
             if(getJKID){
-                const deleteAttd = await Attandance.destroy({
+                await Attandance.destroy({
                     where:{
                         Nik: DetailCuti.cuti_emp_nik,
                         groupId: getNikGroupId.groupId,
@@ -55,17 +55,14 @@ export const deleteCuti = async(req,res) => {
                         ket_in: DetailCuti.cuti_purpose.toUpperCase(),
                         validasi: 0
                 }});
-                if(deleteAttd){
-                    await SumbiriCutiMain.update({ cuti_active: "N" }, { where: { cuti_id: cutiID } });
+            }
+            await SumbiriCutiMain.update({ cuti_active: "N" }, { where: { cuti_id: cutiID } });
                     res.status(200).json({
                         success: true,
                         message: "success delete cuti",
-                    });
-                }
-            }
+            });
         }
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             data: err,
