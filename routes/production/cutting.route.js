@@ -159,7 +159,7 @@ router.get("/cutting-dashboard", getDataDashCutting);
 router.get("/cutting-dashboard-plan-vs-actual", getLoadPlanVsActual);
 router.get("/cutting-dashboard-sewing-wip/:date", getCutDeptSewingWip);
 router.get("/cutting-dashboard-prep-wip/:date", getCutDeptPrepWip);
-// router.get("/cutting-dashboard-cut-wip/:date", getCutDeptWipProccess);
+router.get("/cutting-dashboard-cut-wip/:date", getCutDeptWipProccess);
 router.get("/cutting-dashboard-prepline-wip/:date", getLowWipLoad);
 
 //cutting dashboard chart action
