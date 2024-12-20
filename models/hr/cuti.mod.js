@@ -185,7 +185,7 @@ FROM
     sumbiri_employee e
 LEFT JOIN 
     sumbiri_cuti_main l ON e.Nik = l.cuti_emp_nik 
-WHERE l.cuti_purpose ='CUTI TAHUNAN' AND l.cuti_emp_nik = :empNik
+WHERE l.cuti_purpose ='CUTI TAHUNAN' AND l.cuti_active='Y' AND l.cuti_emp_nik = :empNik
 GROUP BY 
     e.Nik, e.NamaLengkap, YEAR(CURDATE()), MONTH(e.TanggalMasuk);
 
