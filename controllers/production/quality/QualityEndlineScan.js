@@ -6,6 +6,7 @@ import { QueryTypes, Op } from "sequelize";
 // import moment from "moment";
 import {
   CheckQrExist,
+  CheckQtyBcdVsOut,
   CheckWipBfrOut,
   ManpowewrDailyDetail,
   QuerySewingInQr,
@@ -582,6 +583,22 @@ export async function sewingScanOut(req, res) {
         success: true,
         qrstatus: "danger",
         message: "Tidak ada QR Scan In",
+      });
+    }
+
+    const checkQtyBcdVsOutput = await db.query(CheckQtyBcdVsOut, {
+      type: QueryTypes.SELECT,
+      replacements: { barcodeSerial: dataQr.BARCODE_SERIAL },
+      raw: true,
+    });
+
+    //check qty
+    const { output, ORDER_QTY } = checkQtyBcdVsOutput[0].output;
+    if (output < ORDER_QTY) {
+      return res.status(200).json({
+        success: true,
+        qrstatus: "danger",
+        message: "Mohon Refresh Output Belum Full Qty",
       });
     }
 
