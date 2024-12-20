@@ -42,7 +42,7 @@ export const deleteCuti = async(req,res) => {
         }
 
         // jika hari berjalan kurang dari tanggal cuti selesai
-        if(dateNow < endDate){
+        if(dateNow <= endDate){
             for (const CutiDate of CutiDateList) {
                 // check jam kerja base on tanggel schedule dan group id
                 const getJKID   = await GroupJadwal.findOne({
