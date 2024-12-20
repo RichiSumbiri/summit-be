@@ -26,42 +26,55 @@ export const getMasterCuti = async(req,res) => {
 
 export const deleteCuti = async(req,res) => {
     try {
-        const cutiID = decodeURIComponent(req.params.cutiid);
-        const DetailCuti = await SumbiriCutiMain.findOne({ where: { cuti_id: cutiID } });
+        const cutiID            = decodeURIComponent(req.params.cutiid);
+        const DetailCuti        = await SumbiriCutiMain.findOne({ where: { cuti_id: cutiID } });
         const getNikGroupId     = await EmpGroup.findOne({ where: { Nik: DetailCuti.cuti_emp_nik } });
         const getCodeAbsen      = await MasterAbsentee.findOne({ where: { id_absen: DetailCuti.id_absen }}); 
+        const dateNow           = moment();
         const startDate         = moment(DetailCuti.cuti_date_start);
         const endDate           = moment(DetailCuti.cuti_date_end);
         const CutiDateList      = [];
+        
+        // isi list tanggal range cuti 
         while (startDate.isSameOrBefore(endDate)) {
             CutiDateList.push(startDate.format('YYYY-MM-DD'));
             startDate.add(1, 'day');
         }
-        for (const CutiDate of CutiDateList) {
-            const getJKID   = await GroupJadwal.findOne({
-                where: {
-                    scheduleDate: CutiDate,
-                    groupId: getNikGroupId.groupId
-                }
-            })
-            if(getJKID){
-                await Attandance.destroy({
-                    where:{
-                        Nik: DetailCuti.cuti_emp_nik,
-                        groupId: getNikGroupId.groupId,
-                        jk_id: getJKID.jk_id,
-                        tanggal_in: CutiDate,
-                        keterangan: getCodeAbsen.code_absen,
-                        ket_in: DetailCuti.cuti_purpose.toUpperCase(),
-                        validasi: 0
-                }});
+
+        // jika hari berjalan kurang dari tanggal cuti selesai
+        if(dateNow < endDate){
+            for (const CutiDate of CutiDateList) {
+                // check jam kerja base on tanggel schedule dan group id
+                const getJKID   = await GroupJadwal.findOne({
+                    where: {
+                        scheduleDate: CutiDate,
+                        groupId: getNikGroupId.groupId
+                    }
+                })
+                if(getJKID){
+                    // hapus dari sumbiri absen
+                    await Attandance.destroy({
+                        where:{
+                            Nik: DetailCuti.cuti_emp_nik,
+                            groupId: getNikGroupId.groupId,
+                            jk_id: getJKID.jk_id,
+                            tanggal_in: CutiDate,
+                            keterangan: getCodeAbsen.code_absen,
+                            ket_in: DetailCuti.cuti_purpose.toUpperCase(),
+                            validasi: 0
+                    }});
+                } 
             }
-            await SumbiriCutiMain.update({ cuti_active: "N" }, { where: { cuti_id: cutiID } });
-                    res.status(200).json({
-                        success: true,
-                        message: "success delete cuti",
+        }
+
+        const deactiveCuti = await SumbiriCutiMain.update({ cuti_active: "N" }, { where: { cuti_id: cutiID } });
+        if(deactiveCuti){
+            res.status(200).json({
+                success: true,
+                message: "success delete cuti",
             });
         }
+        
     } catch(err){
         res.status(404).json({
             success: false,
