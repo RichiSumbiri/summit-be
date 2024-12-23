@@ -215,5 +215,6 @@ GROUP BY ss.Nik
 ) kks ON kks.Nik = ss.Nik 
 `;
 
-export const queryGetSPKTByRange  = queryListSPKT + ` WHERE DATE(ss.CreateDate) BETWEEN :startDate AND :endDate ORDER BY ss.CreateDate DESC`;
-export const queryGetLastSPKT     = queryListSPKT + ` WHERE ss.IDSPKT LIKE :formatSPKT ORDER BY ss.CreateDate DESC LIMIT 1`;
+export const queryGetSPKTByRange  	= queryListSPKT + ` WHERE DATE(ss.CreateDate) BETWEEN :startDate AND :endDate ORDER BY ss.CreateDate DESC`;
+export const queryGetLastSPKT     	= queryListSPKT + ` WHERE ss.IDSPKT LIKE :formatSPKT ORDER BY ss.CreateDate DESC LIMIT 1`;
+export const queryGetSPKTByNIK		= queryListSPKT + ` WHERE ss.Nik = :Nik`;

@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryGetLastSPKT, queryGetSPKTByRange, queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
+import { queryGetLastSPKT, queryGetSPKTByNIK, queryGetSPKTByRange, queryListSPKT, sumbiriSPKT } from "../../models/hr/kartap.mod.js";
 import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 import moment from "moment";
 import { convertMonthToRoman } from "../util/Utility.js";
@@ -29,6 +29,32 @@ export const getKarTap = async(req,res) => {
         });
     }
 }
+
+export const getKarTapByNIK = async(req,res) => {
+    try {
+        const { empNik }    = req.params;
+        const listKarTap = await dbSPL.query(queryGetSPKTByNIK, { 
+            replacements: {
+                empNik: empNik
+            },
+            type: QueryTypes.SELECT
+        });
+        if(listKarTap){
+            res.status(200).json({
+                success: true,
+                message: `success get list kartap docs for NIk ${empNik}`,
+                data: listKarTap
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list kartap docs",
+        });
+    }
+}
+
+
 
 export const updateKarTap = async(req,res) => {
     try {

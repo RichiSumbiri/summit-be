@@ -71,7 +71,7 @@ import {
   patchJamKerja,
   postNewJamKerja,
 } from "../../controllers/hr/JadwalJamKerja.js";
-import { getKarTap, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
+import { getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
 
 const router = express.Router();
@@ -172,6 +172,7 @@ router.get("/lemburan-approval-complete/:startDate/:endDate", getLemburanApprova
 
 // set pengangkatan karyawan tetap
 router.get("/get-kartap/:startDate/:endDate", getKarTap);
+router.get("/get-kartap-emp/:empNik", getKarTapByNIK);
 router.post("/new-kartap", newKarTap);
 router.put("/update-kartap", updateKarTap);
 
