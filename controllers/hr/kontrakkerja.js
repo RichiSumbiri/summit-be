@@ -149,7 +149,7 @@ export const newKontrakKerja = async(req,res) => {
                 StartKontrak: dataSPKK.StartKontrak,
                 FinishKontrak: dataSPKK.FinishKontrak,
                 isActive: 'Y',
-                CreateBy: moment().format('YYYY-MM-DD hh:mm:ss')
+                CreateBy: dataSPKK.CreateBy
             });
             if(newSPKK){
                 res.status(200).json({

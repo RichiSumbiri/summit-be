@@ -3,45 +3,56 @@ import { DataTypes } from "sequelize";
 
 export const sumbiriKontrakKerja = dbSPL.define('sumbiri_spkk', {
 	IDSPKK: {
-		type: DataTypes.STRING(100),
+		type: DataTypes.STRING(100), // Represents 'varchar(100)'
 		allowNull: false,
-		primaryKey: true,
+		primaryKey: true, // Set as primary key
 	  },
 	  Nik: {
-		type: DataTypes.STRING(255),
+		type: DataTypes.INTEGER, // Represents 'int(10)'
 		allowNull: false,
 	  },
 	  NikKTP: {
-		type: DataTypes.STRING(255),
-		allowNull: false,
-	  }, 
+		type: DataTypes.STRING(17), // Represents 'varchar(17)'
+		allowNull: true, // DEFAULT NULL
+	  },
 	  PeriodeKontrak: {
-		type: DataTypes.INTEGER,
+		type: DataTypes.INTEGER, // Represents 'int(10)'
 		allowNull: true,
+		defaultValue: 3, // DEFAULT 3
 	  },
 	  StartKontrak: {
-		type: DataTypes.DATEONLY, // Use DATEONLY for date without time
+		type: DataTypes.DATEONLY, // Represents 'date'
 		allowNull: false,
 	  },
 	  FinishKontrak: {
-		type: DataTypes.DATEONLY,
+		type: DataTypes.DATEONLY, // Represents 'date'
 		allowNull: false,
 	  },
 	  isActive: {
-		type: DataTypes.ENUM('Y', 'N'),
+		type: DataTypes.ENUM('Y', 'N'), // Represents 'enum('Y','N')'
 		allowNull: false,
 	  },
 	  Penanda: {
-		type: DataTypes.STRING(100),
+		type: DataTypes.STRING(100), // Represents 'varchar(100)'
 		allowNull: true,
+		defaultValue: 'Puji Astuti,S.E', // DEFAULT 'Puji Astuti,S.E'
 	  },
 	  CreateBy: {
-		type: DataTypes.STRING(100),
-		allowNull: true,
+		type: DataTypes.STRING(100), // Represents 'varchar(100)'
+		allowNull: true, // DEFAULT NULL
 	  },
 	  CreateTime: {
-		type: DataTypes.DATE,
+		type: DataTypes.DATE, // Represents 'datetime'
 		allowNull: true,
+		defaultValue: DataTypes.NOW, // DEFAULT current_timestamp()
+	  },
+	  UpdateBy: {
+		type: DataTypes.STRING(100), // Represents 'varchar(100)'
+		allowNull: true, // DEFAULT NULL
+	  },
+	  UpdateTime: {
+		type: DataTypes.DATE, // Represents 'datetime'
+		allowNull: true, // DEFAULT NULL
 	  },
 	}, {
 	  modelName: 'SumbiriSpkk',
