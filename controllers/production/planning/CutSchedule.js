@@ -767,8 +767,10 @@ export const QRScanSuperMarketIn = async (req, res) => {
           message: "Sudah Discan",
         });
       }
+     ;
 
-      if (checkBarcodeSerial[0].PRODUCT_TYPE === "BRA") {
+      //Jika mol status  = 1 maka check molding
+      if (checkBarcodeSerial[0].MOL_STATUS) {
         const checkScan = await MoldingOut.findOne({
           where: {
             BARCODE_SERIAL: barcodeserial,
@@ -1034,8 +1036,8 @@ export const QRScanMolIn = async (req, res) => {
       });
     }
 
-    const productType = ["BRA", "SHAPEWEAR", "BODY"];
-    if (!productType.includes(checkBarcodeSerial[0].PRODUCT_TYPE)) {
+    // const productType = ["BRA", "SHAPEWEAR", "BODY"];
+    if (!checkBarcodeSerial[0].MOL_STATUS) {
       return res.status(200).json({
         success: true,
         qrstatus: "error",

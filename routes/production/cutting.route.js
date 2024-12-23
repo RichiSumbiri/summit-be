@@ -19,6 +19,7 @@ import {
 import {
   getCuttingOrder,
   getOrderByBLK,
+  updateMolStatus,
 } from "../../controllers/production/cutting/CuttingGetOrder.js";
 import {
   getBaseRepCutLoad,
@@ -96,6 +97,8 @@ router.get(
   "/qr/scan-sewing-in/:schDate/:sitename/:linename/:barcodeserial",
   QrListAftrSewingIn
 );
+
+router.patch('/order/switchMolStatus', updateMolStatus)
 
 router.post("/bundle/generate", generateBdlOrder);
 router.post("/order/qrgenerate", newQRCutting);

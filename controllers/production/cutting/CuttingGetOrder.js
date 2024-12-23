@@ -8,6 +8,7 @@ import {
   OrderDetailList,
   OrderDetailHeader,
 } from "../../../models/production/order.mod.js";
+import { MoldingIn } from "../../../models/production/cutting.mod.js";
 
 export const getCuttingOrder = async (req, res) => {
   try {
@@ -124,6 +125,61 @@ export const getOrderByBLK = async (req, res) => {
   } catch (error) {
     console.log(error);
 
+    res.status(404).json({
+      success: false,
+      message: "error processing request",
+      data: error,
+    });
+  }
+};
+
+export const updateMolStatus = async (req, res) => {
+  try {
+    let { arrBdl, molStatus } = req.body;
+
+    
+    if (!arrBdl)
+      return res.status(404).json({
+        success: false,
+        message: "NO data for update",
+        data: error,
+      });
+
+    //check jika barcode yang sudah molding in
+    const checkMolIn = await MoldingIn.findAll({
+      where: {
+        BARCODE_SERIAL: {
+          [Op.in]: arrBdl,
+        },
+      },
+      raw: true,
+    });
+    const arrMolin = checkMolIn.map(item=> item.BARCODE_SERIAL)
+    //jika ada maka jangan masukan
+    if (checkMolIn.length > 0) {
+      arrBdl = arrBdl.filter((bdl) => !arrMolin.includes(bdl));
+    }
+
+    const updateBdlMol = await Orders.update(
+      { MOL_STATUS: molStatus },
+      { where: { BARCODE_SERIAL: arrBdl } }
+    );
+
+    if (updateBdlMol) {
+      return res.status(200).json({
+        success: true,
+        message: "Success Update Mol Status",
+        bdlNonSuccess: arrMolin
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Gagal Update",
+        data: error,
+      });
+    }
+  } catch (error) {
+    console.log(error)
     res.status(404).json({
       success: false,
       message: "error processing request",
