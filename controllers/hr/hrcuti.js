@@ -125,7 +125,7 @@ export const postCutiNew = async(req,res) => {
                 }
             }
             const updateCuti = await SumbiriCutiMain.update({
-                cuti_emp_nik: dataCuti.cuti_emp_nik,
+                cuti_emp_nik: parseInt(dataCuti.cuti_emp_nik),
                 cuti_emp_tmb: dataCuti.cuti_emp_tmb,
                 cuti_emp_name: dataCuti.cuti_emp_name.toUpperCase(),
                 cuti_emp_dept: dataCuti.cuti_emp_dept.toUpperCase(),
@@ -189,7 +189,7 @@ export const postCutiNew = async(req,res) => {
             if(cuti_id){
                 const insertCuti = await SumbiriCutiMain.create({
                     cuti_id: cuti_id,
-                    cuti_emp_nik: dataCuti.cuti_emp_nik,
+                    cuti_emp_nik: parseInt(dataCuti.cuti_emp_nik),
                     cuti_emp_tmb: dataCuti.cuti_emp_tmb,
                     cuti_emp_name: dataCuti.cuti_emp_name.toUpperCase(),
                     cuti_emp_dept: dataCuti.cuti_emp_dept.toUpperCase(),
@@ -234,8 +234,8 @@ export const postCutiNew = async(req,res) => {
     } catch(err){
         res.status(404).json({
             success: false,
-            data: err,
             message: "error get cuti",
+            error: err
         });
     }
 }
@@ -252,15 +252,15 @@ export const getCutiByDate = async(req,res) => {
         if(dataCuti){
             res.status(200).json({
                 success: true,
-                data: dataCuti,
                 message: `success get cuti ${startDate} - ${endDate}`,
+                data: dataCuti
             });
         }
     } catch(err){
         res.status(404).json({
             success: false,
-            data: err,
             message: "error get cuti",
+            error: err
         });
     }
 }
@@ -271,15 +271,15 @@ export const getCutiSummary = async(req,res) => {
         if(actionGet){
             res.status(200).json({
                 success: true,
-                data: actionGet,
                 message: `success get cuti summary`,
+                data: actionGet
             });
         }
     } catch(err){
         res.status(404).json({
             success: false,
-            data: err,
             message: "error get cuti summary",
+            error: err
         });
     }
 }
@@ -290,12 +290,12 @@ export const getCutiQuota = async(req,res) => {
         let data;
         data = await dbSPL.query(queryGetQuotaCuti, {
             replacements: {
-                empNik: empNik
+                empNik: parseInt(empNik)
             }, type: QueryTypes.SELECT
         });
         if(data.length===0){
             data = [{
-                "employee_id": empNik,
+                "employee_id": parseInt(empNik),
                 "remaining_leaves": 12
             }]
         }
@@ -309,8 +309,8 @@ export const getCutiQuota = async(req,res) => {
     } catch(err){
         res.status(404).json({
             success: false,
-            data: err,
             message: "error get cuti quota",
+            error: err,
         });
     }
 }
