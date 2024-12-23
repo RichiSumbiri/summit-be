@@ -3,7 +3,7 @@ import { dbSPL } from "../../config/dbAudit.js";
 import { queryGetLastMutasi, queryGetMutasiByMutDate, sumbiriMutasiEmp } from "../../models/hr/mutasi.mod.js";
 import moment from "moment";
 import { convertMonthToRoman } from "../util/Utility.js";
-import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
+import { modelMasterSiteline, modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
 export const getMutasiEmpByDate = async(req,res) => {
     try {
@@ -73,11 +73,23 @@ export const newMutasi = async(req,res) => {
         });
 
         if(postMutasi){
+            // check emp siteline
+            const checkEmpSiteline = await modelMasterSiteline.findOne({
+                where: {
+                IDSection: dataMutasi.Destination_Section,
+                IDDept: dataMutasi.ID_Destination_Dept,
+                IDSubDept: dataMutasi.ID_Destination_SubDept
+                }
+            });
+
+            const EmpIDSiteline = checkEmpSiteline===null ? null : checkEmpSiteline.IDSiteline;
+  
             const updateEmp = await modelSumbiriEmployee.update({
                 IDDepartemen: dataMutasi.ID_Destination_Dept,
                 IDSubDepartemen: dataMutasi.ID_Destination_SubDept,
                 IDPosisi: dataMutasi.ID_Destination_Position,
-                IDSection: dataMutasi.Destination_Section
+                IDSection: dataMutasi.Destination_Section,
+                IDSiteline: EmpIDSiteline
             }, {
                 where: {
                     Nik: parseInt(dataMutasi.NIK)
@@ -147,11 +159,23 @@ export const newMutasiMass = async(req,res) => {
                  create_time: moment().format('YYYY-MM-DD hh:mm:ss') 
             });
             if(postMutasi){
+                // check emp siteline
+                const checkEmpSiteline = await modelMasterSiteline.findOne({
+                    where: {
+                    IDSection: dataMutasi.Destination_Section,
+                    IDDept: dataMutasi.ID_Destination_Dept,
+                    IDSubDept: dataMutasi.ID_Destination_SubDept
+                    }
+                });
+                
+                const EmpIDSiteline = checkEmpSiteline===null ? null : checkEmpSiteline.IDSiteline;
+
                 const updateEmp = await modelSumbiriEmployee.update({
                     IDDepartemen: parseInt(dataMutasi.destination_dept),
                     IDSubDepartemen: parseInt(dataMutasi.destination_subdept),
                     IDPosisi: parseInt(dataMutasi.destination_position),
-                    IDSection: dataMutasi.destination_section
+                    IDSection: dataMutasi.destination_section,
+                    IDSiteline: EmpIDSiteline
                 }, {
                     where: {
                         Nik: parseInt(row.Nik)
