@@ -21,7 +21,8 @@ export const getKontrakKerjaByRange = async(req,res) => {
     } catch(err){
         res.status(404).json({
             success: false,
-            message: "fail get kontrak kerja by range"
+            message: "fail get kontrak kerja by range",
+            error: err
         });
     }
 }
@@ -40,10 +41,10 @@ export const getKontrakKerjaByNik = async(req,res) => {
             data: dataSPKK
         });
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
-            message: "fail get kontrak kerja by nik"
+            message: "fail get kontrak kerja by NIK",
+            error: err
         });
     }
 }
@@ -72,7 +73,8 @@ export const updateKontrakKerja = async(req,res) => {
     } catch(err){
         res.status(404).json({
             success: false,
-            message: "fail update kontrak kerja"
+            message: "fail update kontrak kerja",
+            error: err
         });
     }    
 }
@@ -166,7 +168,8 @@ export const newKontrakKerja = async(req,res) => {
     } catch(err){
         res.status(404).json({
             success: false,
-            message: "fail create new kontrak kerja"
+            message: "fail create new kontrak kerja",
+            error: err
         });
     }
 }
@@ -209,7 +212,7 @@ export const newMassKontrakKerja = async(req,res) => {
             
             const CountSPKK     = await sumbiriKontrakKerja.count({
                 where: {
-                    Nik: row.Nik,
+                    Nik: parseInt(row.Nik),
                     NikKTP: row.NikKTP,    
                 }
             });
@@ -218,8 +221,8 @@ export const newMassKontrakKerja = async(req,res) => {
             const newIdSPKK     = stringSPKK + newNoUrut + formatIDSPKK;
             const newSPKK       = await sumbiriKontrakKerja.create({
                 IDSPKK: newIdSPKK,
-                Nik: row.Nik.toString(),
-                NikKTP: row.NikKTP.toString(),
+                Nik: parseInt(row.Nik),
+                NikKTP: row.NikKTP,
                 PeriodeKontrak: dataSPKK.PeriodeKontrak,
                 StartKontrak: dataSPKK.StartKontrak,
                 FinishKontrak: dataSPKK.FinishKontrak,
@@ -239,10 +242,10 @@ export const newMassKontrakKerja = async(req,res) => {
             });  
         }
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
-            message: "fail create new kontrak kerja"
+            message: "fail create new kontrak kerja",
+            error: err
         });
     }
 }
