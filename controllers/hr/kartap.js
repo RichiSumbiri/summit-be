@@ -47,9 +47,11 @@ export const getKarTapByNIK = async(req,res) => {
             });
         }
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list kartap docs",
+            error: err
         });
     }
 }
