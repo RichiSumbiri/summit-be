@@ -1,4 +1,4 @@
-import { QueryTypes, Op } from "sequelize";
+import { QueryTypes } from "sequelize";
 import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
@@ -8,7 +8,7 @@ import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
 // get master departement
 export const getDeptAll = async(req,res)=> {
   try {
-    const data = await dbSPL.query('SELECT * FROM master_department', { type: QueryTypes.SELECT });
+    const data = await modelMasterDepartment.findAll();
     return res.status(200).json({
       success: true,
       message: "success get master department",
@@ -17,7 +17,7 @@ export const getDeptAll = async(req,res)=> {
   } catch(error){
     res.status(404).json({
       success: false,
-      data: error,
+      error: error,
       message: "error get list department",
     });
   }
@@ -26,7 +26,7 @@ export const getDeptAll = async(req,res)=> {
 // get master subdepartement
 export const getSubDeptAll = async(req,res)=> {
   try {
-    const data = await dbSPL.query('SELECT * FROM master_subdepartment', { type: QueryTypes.SELECT });
+    const data = await modelMasterSubDepartment.findAll();
     return res.status(200).json({
       success: true,
       message: "success get master subdepartment",
@@ -35,7 +35,7 @@ export const getSubDeptAll = async(req,res)=> {
   } catch(error){
     res.status(404).json({
       success: false,
-      data: error,
+      error: error,
       message: "error get list department",
     });
   }
@@ -109,7 +109,7 @@ export const getEmpSummaryDept = async(req,res) => {
   } catch(err){
     res.status(404).json({
       success: false,
-      data: err,
+      error: err,
       message: "error get list employee",
     });
   }
@@ -151,7 +151,7 @@ export const getEmpByNIK = async(req,res) => {
   } catch(err){
     res.status(404).json({
       success: false,
-      data: err,
+      error: err,
       message: "error get employee with NIK",
     });
   }
@@ -175,7 +175,7 @@ export const getEmpLikeNIK = async(req,res) => {
   } catch(err){
     res.status(404).json({
       success: false,
-      data: err,
+      error: err,
       message: "error get employee with NIK or name",
     });
   }
@@ -198,7 +198,7 @@ export const getEmpByNIKKTP = async(req,res) => {
   } catch(err){
     res.status(404).json({
       success: false,
-      data: err,
+      error: err,
       message: "error get employee with NIK ktp",
     });
   }
@@ -215,7 +215,7 @@ export const getEmpKontrak = async(req,res) => {
   } catch(err){
     res.status(404).json({
       success: false,
-      data: err,
+      error: err,
       message: "error get employee kontrak",
     });
   }
@@ -317,7 +317,6 @@ export const updateEmp = async(req,res) => {
       });
     }
   } catch(err){
-    console.error(err);
     res.status(404).json({
       success: false,
       data: err,
@@ -361,7 +360,7 @@ export const updateEmpMassGroup = async(req,res) => {
   } catch(err){
     res.status(404).json({
       success: false,
-      data: err,
+      error: err,
       message: "error cannot update employee mass group",
     });
   }

@@ -86,9 +86,25 @@ WHERE se.StatusAktif = 0
 
 export const modelMasterDepartment = dbSPL.define('master_department', 
 	{
-		IdDept: { type: DataTypes.INTEGER(255), allowNull: false, primaryKey: true },
-		NameDept: { type: DataTypes.STRING(100), allowNull: false },
-		IDManager: { type: DataTypes.STRING(100), allowNull: true }
+		IdDept: {
+			type: DataTypes.INTEGER(6),
+			allowNull: false,
+			primaryKey: true,
+		  },
+		  NameDept: {
+			type: DataTypes.STRING(100),
+			allowNull: false,
+		  },
+		  GolDept: {
+			type: DataTypes.STRING(100),
+			allowNull: true,
+			defaultValue: null,
+		  },
+		  IDManager: {
+			type: DataTypes.STRING(100),
+			allowNull: true,
+			defaultValue: null,
+		  },
 	}, {
 		tableName: 'master_department',
 		timestamps: false,
@@ -99,19 +115,20 @@ export const modelMasterDepartment = dbSPL.define('master_department',
 
 export const modelMasterSubDepartment = dbSPL.define('master_subdepartment', 
 {
-	id_sub_dept: {
-		type: DataTypes.INTEGER(255),
+	IDDept: {
+		type: DataTypes.INTEGER(6),
+		allowNull: false,
+	  },
+	  IDSubDept: {
+		type: DataTypes.INTEGER(9),
 		allowNull: false,
 		primaryKey: true,
-	},
-	id_dept: {
-		type: DataTypes.INTEGER(255),
-		allowNull: false,
-	},
-	name_subdept: {
+	  },
+	  Name: {
 		type: DataTypes.STRING(255),
 		allowNull: true,
-	}
+		defaultValue: null,
+	  },
 }, {
 	tableName: 'master_subdepartment',
 	timestamps: false,
