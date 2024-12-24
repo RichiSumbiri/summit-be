@@ -167,216 +167,235 @@ export const modelMasterSiteline = dbSPL.define('master_siteline', {
 
 export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	Nik: {
-	  type: DataTypes.INTEGER,
-	  allowNull: false,
-	  primaryKey: true
-	},
-	NamaLengkap: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	NikKTP: {
-	  type: DataTypes.STRING(255),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	NPWP: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	BPJSKes: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	BPJSKet: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	KodeDepartemen: {
-	  type: DataTypes.INTEGER,
-	  allowNull: true
-	},
-	NamaDepartemen: {
-	  type: DataTypes.STRING(100),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	IDDepartemen: {
-	  type: DataTypes.INTEGER(50),
-	  allowNull: true
-	},
-	IDSubDepartemen: {
-	  type: DataTypes.INTEGER(50),
-	  allowNull: true
-	},
-	IDPosisi: {
-	  type: DataTypes.INTEGER,
-	  allowNull: true
-	},
-	IDSection: {
-		type: DataTypes.STRING(20),
-		allowNull: true
+		type: DataTypes.INTEGER(10),
+		allowNull: false,
+		primaryKey: true,
 	  },
-	IDSiteline: {
+	  NamaLengkap: {
+		type: DataTypes.STRING(150),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NikKTP: {
+		type: DataTypes.CHAR(17),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NPWP: {
+		type: DataTypes.STRING(255),
+		allowNull: true,
+		defaultValue: '0',
+	  },
+	  BPJSKes: {
+		type: DataTypes.STRING(255),
+		allowNull: true,
+		defaultValue: '0',
+	  },
+	  BPJSKet: {
+		type: DataTypes.STRING(255),
+		allowNull: true,
+		defaultValue: '0',
+	  },
+	  KodeDepartemen: {
+		type: DataTypes.INTEGER(50),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NamaDepartemen: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  IDDepartemen: {
+		type: DataTypes.INTEGER(6),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  IDSubDepartemen: {
+		type: DataTypes.INTEGER(9),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  IDPosisi: {
+		type: DataTypes.INTEGER(10),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  IDSection: {
+		type: DataTypes.STRING(50),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  IDSiteline: {
 		type: DataTypes.CHAR(10),
-		allowNull: true
+		allowNull: true,
+		defaultValue: null,
 	  },
 	  Posisi: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	JenisKelamin: {
-	  type: DataTypes.TINYINT,
-	  allowNull: true
-	},
-	TempatLahir: {
-	  type: DataTypes.STRING(100),
-	  allowNull: true,
-	},
-	TanggalLahir: {
-	  type: DataTypes.DATEONLY,
-	  allowNull: true
-	},
-	StatusPerkawinan: {
-	  type: DataTypes.STRING(20),
-	  allowNull: true,
-	},
-	Agama: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	JenjangPendidikan: {
-	  type: DataTypes.STRING(100),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	JenisUpah: {
-	  type: DataTypes.STRING(100),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	PeriodeKontrak: {
-	  type: DataTypes.INTEGER,
-	  allowNull: true
-	},
-	TanggalMasuk: {
-	  type: DataTypes.DATEONLY,
-	  allowNull: true
-	},
-	TanggalKeluar: {
-	  type: DataTypes.DATEONLY,
-	  allowNull: true
-	},
-	StatusAktif: {
-	  type: DataTypes.TINYINT,
-	  allowNull: true
-	},
-	StatusKaryawan: {
-	  type: DataTypes.STRING(10),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	NoTelp1: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	NoTelp2: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	NoTelp3: {
-	  type: DataTypes.STRING(50),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	Email: {
-		type: DataTypes.STRING(50),
-		allowNull: true
-	  },  
-	NamaAyah: {
 		type: DataTypes.STRING(50),
 		allowNull: true,
-	},
-	NamaIbu: {
+		defaultValue: null,
+	  },
+	  JenisKelamin: {
+		type: DataTypes.TINYINT(2),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  TempatLahir: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  TanggalLahir: {
+		type: DataTypes.DATEONLY,
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  StatusPerkawinan: {
+		type: DataTypes.STRING(20),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  Agama: {
 		type: DataTypes.STRING(50),
 		allowNull: true,
-	},
-	Alamat1: {
-	  type: DataTypes.STRING(200),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	Alamat2: {
-	  type: DataTypes.STRING(200),
-	  allowNull: true,
-	  charset: 'utf8mb4',
-	  collate: 'utf8mb4_general_ci'
-	},
-	AlamatIDProv: {
-	  type: DataTypes.INTEGER,
-	  allowNull: true
-	},
-	AlamatIDKabKota: {
-	  type: DataTypes.INTEGER,
-	  allowNull: true
-	},
-	AlamatIDKecamatan: {
-	  type: DataTypes.INTEGER,
-	  allowNull: true
-	},
-	AlamatKelurahan: {
-	  type: DataTypes.STRING(100),
-	  allowNull: true
-	},
-	AlamatRT: {
-		type: DataTypes.STRING(10),
-		allowNull: true
-	},
-	AlamatRW: {
-		type: DataTypes.STRING(10),
-		allowNull: true
-	},
-	AlamatDetail: {
+		defaultValue: null,
+	  },
+	  JenjangPendidikan: {
 		type: DataTypes.STRING(100),
-		allowNull: true
-	},
-	Photos: {
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  JenisUpah: {
 		type: DataTypes.STRING(100),
-		allowNull: true
-	},
-	CreateDate: {
-	  type: DataTypes.DATE,
-	  allowNull: true,
-	  defaultValue: null
-	},
-	UpdateDate: {
-	  type: DataTypes.DATE,
-	  allowNull: true,
-	  defaultValue: null
-	}
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  PeriodeKontrak: {
+		type: DataTypes.INTEGER(10),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  TanggalMasuk: {
+		type: DataTypes.DATEONLY,
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  TanggalKeluar: {
+		type: DataTypes.DATEONLY,
+		allowNull: true,
+		defaultValue: '0000-00-00',
+	  },
+	  StatusAktif: {
+		type: DataTypes.TINYINT(1),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  StatusKaryawan: {
+		type: DataTypes.STRING(10),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  GolonganDarah: {
+		type: DataTypes.STRING(10),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NamaIbu: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NamaAyah: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NoTelp1: {
+		type: DataTypes.STRING(50),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NoTelp2: {
+		type: DataTypes.STRING(50),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  NoTelp3: {
+		type: DataTypes.STRING(50),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  Email: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  Alamat1: {
+		type: DataTypes.STRING(200),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  Alamat2: {
+		type: DataTypes.STRING(200),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatIDProv: {
+		type: DataTypes.INTEGER(2),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatIDKabKota: {
+		type: DataTypes.INTEGER(4),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatIDKecamatan: {
+		type: DataTypes.INTEGER(7),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatKelurahan: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatRT: {
+		type: DataTypes.INTEGER(10),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatRW: {
+		type: DataTypes.INTEGER(10),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  AlamatDetail: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  Photos: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  CreateBy: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  CreateDate: {
+		type: DataTypes.DATE,
+		allowNull: true,
+		defaultValue: null,
+	  },
+	  UpdateDate: {
+		type: DataTypes.DATE,
+		allowNull: true,
+		defaultValue: null,
+	  },
   }, {
 	tableName: 'sumbiri_employee',
 	timestamps: false, // Set to true if you want to manage `createdAt` and `updatedAt`
