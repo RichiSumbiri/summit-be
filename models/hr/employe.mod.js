@@ -284,7 +284,6 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 	  TanggalKeluar: {
 		type: DataTypes.DATEONLY,
 		allowNull: true,
-		defaultValue: '0000-00-00',
 	  },
 	  StatusAktif: {
 		type: DataTypes.TINYINT(1),
