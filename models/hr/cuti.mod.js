@@ -190,3 +190,11 @@ GROUP BY
     e.Nik, e.NamaLengkap, YEAR(CURDATE()), MONTH(e.TanggalMasuk);
 
 `;
+
+
+export const queryMasterAbsentee = `SELECT 
+	a.id_absen,
+	a.code_absen,
+	a.name_absen,
+	CONCAT(a.code_absen, ' - ', a.name_absen) AS label
+FROM master_absentee a `

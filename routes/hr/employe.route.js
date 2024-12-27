@@ -56,6 +56,7 @@ import {
   getCutiByDate,
   getCutiQuota,
   getCutiSummary,
+  getMasterAbsentee,
   getMasterCuti,
   postCutiNew,
 } from "../../controllers/hr/hrcuti.js";
@@ -90,6 +91,7 @@ router.get("/master-position", getPositionAll);
 router.get("/master-saltype", getSalaryType);
 router.get("/master-section", getSection);
 router.get("/master-cuti", getMasterCuti);
+router.get("/master-absentee", getMasterAbsentee);
 
 //jam kerja
 router.get("/master-jam-kerja", getAllJamKerja);
