@@ -1,9 +1,12 @@
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import { Op, QueryTypes } from "sequelize";
 import {
+  Attandance,
   getLemburForAbsen,
   qryDailyAbsensi,
 } from "../../models/hr/attandance.mod.js";
+import moment from "moment";
+import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 
 export const getAbsenDaily = async (req, res) => {
   try {
@@ -35,10 +38,150 @@ export const getAbsenDaily = async (req, res) => {
 
     return res.json({ data: getAbsen, message: "succcess get data" });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
 
     res
       .status(500)
       .json({ error, message: "Terdapat error saat get data absen" });
   }
 };
+
+export async function updateAbsen(req, res) {
+  try {
+    // console.log(dataUpdate);
+    const { objEdit, arrAbs, tanggal_in, userId } = req.body;
+
+    if (objEdit.jam_kerja[0].jk_id) {
+      const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
+      const tanggal_out =
+        objEdit.jam_kerja[0].jk_out_day === "N"
+          ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
+          : tanggal_in;
+
+      let updateArrAbs = arrAbs.map((item) => ({
+        ...item,
+        scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
+        scan_out: objEdit.scan_out === "00:00" ? null : objEdit.scan_out,
+        jk_id: objEdit.jam_kerja[0].jk_id || null,
+        ket_in: objEdit.ket_in || null,
+        ket_out: objEdit.ket_out || null,
+        keterangan: objEdit.keterangan[0].code_absen || null,
+        tanggal_in: tanggal_in,
+        tanggal_out: tanggal_out,
+        scheduleDate_inv: tanggal_in,
+        mod_id: userId,
+      }));
+
+      
+      if (arrAbs.length > 1 && objEdit.keterangan[0].code_absen === "H") {
+        updateArrAbs = updateArrAbs.map((item) => ({
+          ...item,
+          scan_in: getRandomTimeIn5Minute(
+            objEdit.jam_kerja[0].jk_scan_in_audit,
+            // objEdit.jam_kerja[0].jk_in
+          ),
+          scan_out: getRandomTimeIn5Minute(
+            objEdit.jam_kerja[0].jk_out,
+            // objEdit.jam_kerja[0].jk_scan_out_end
+          ),
+        }));
+      }
+
+      const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
+        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
+        where: {
+          jadwalId: ["jadwalId_inv"],
+        },
+      });
+
+      const updatedAbsen = await Attandance.bulkCreate(updateArrAbs, {
+        updateOnDuplicate: [
+          "scan_in",
+          "scan_out",
+          "jk_id",
+          "ket_in",
+          "ket_out",
+          "keterangan",
+          "tanggal_in",
+          "tanggal_out",
+        ],
+
+        where: {
+          id: ["id"],
+        },
+      });
+
+      if (updatedAbsen) {
+        return res.json({
+          // data: absObj,
+          message: "succcess update data",
+        });
+      } else {
+        return res.status(500).json({ message: "Gagal Update" });
+      }
+    } else {
+      return res.status(404).json({ message: "Tidak ada data Update" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}
+
+//delete
+export async function deleteAbsen(req, res) {
+  try {
+    // console.log(dataUpdate);
+    const { objEdit, arrAbs, tanggal_in, userId } = req.body;
+
+    const arrAbsId = arrAbs.map(item => item.Nik)
+    const deleteAbsen = await Attandance.destroy({
+      where: {
+        Nik: arrAbsId,
+        tanggal_in: tanggal_in,
+      },
+    });
+    if (deleteAbsen) {
+      return res.json({
+        message: "succcess delete data",
+      });
+    } else {
+      return res.status(500).json({ message: "Gagal Delete" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}
+
+function timeToMilliseconds(time) {
+  const [hours, minutes, seconds] = time.split(":").map(Number);
+  return (hours * 60 * 60 + minutes * 60 + seconds) * 1000;
+}
+
+// Fungsi untuk mengonversi milidetik kembali ke waktu (HH:mm:ss)
+function millisecondsToTime(milliseconds) {
+  const hours = Math.floor(milliseconds / (1000 * 60 * 60)) % 24;
+  const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
+  const seconds = Math.floor(milliseconds / 1000) % 60;
+  return [hours, minutes, seconds]
+    .map((val) => String(val).padStart(2, "0"))
+    .join(":");
+}
+
+// Fungsi untuk mendapatkan waktu random dalam rentang
+export function getRandomTimeInRange(startTime, endTime) {
+  const start = timeToMilliseconds(startTime);
+  const end = timeToMilliseconds(endTime);
+  const randomTime = Math.floor(Math.random() * (end - start + 1)) + start;
+  return millisecondsToTime(randomTime);
+}
+
+
+// Fungsi untuk mendapatkan waktu random dalam rentang dengan endTime = startTime + 5 menit
+export function getRandomTimeIn5Minute(startTime) {
+  const start = timeToMilliseconds(startTime);
+  const end = start + 5 * 60 * 1000; // Tambah 5 menit dalam milidetik
+  const randomTime = Math.floor(Math.random() * (end - start + 1)) + start;
+  return millisecondsToTime(randomTime);
+}

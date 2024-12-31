@@ -65,6 +65,7 @@ export const qrySchAttdComp = `SELECT
 	mjk.jk_nama,
 	mjk.jk_in,
 	mjk.jk_out,
+	mjk.jk_scan_in_audit,
 	mjk.jk_scan_in_start,
 	mjk.jk_scan_in_end,
 	mjk.jk_scan_out_start,
@@ -313,6 +314,7 @@ export const qryDailyAbsensi = `WITH base_absen AS (
       msd.Name subDeptName,
 	    md.NameDept,
 	    sgs.groupId,
+      sis.jadwalId_inv,
 	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
 	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
 	FROM sumbiri_employee se
