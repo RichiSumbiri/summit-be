@@ -84,7 +84,7 @@ SELECT
       WHEN 11 THEN 'XI'
       WHEN 12 THEN 'XII'
   END AS RomanCreateMonth,
-  DATE_FORMAT('2024-12-13', '%d %M %Y') AS CreateDateFormatted,
+  DATE_FORMAT(ss.CreateDate, '%d %M %Y') AS CreateDateFormatted,
   YEAR(ss.CreateDate) AS CreateYear
 FROM
 	sumbiri_spkt ss
@@ -96,122 +96,39 @@ LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = se.AlamatIDProv
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota 
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
 LEFT JOIN (
-SELECT * FROM (
-SELECT
-	ss.Nik,
-	ss.StartKontrak AS StartKK1,
-	ss.FinishKontrak AS FinishKK1,
-	NULL AS StartKK2,
-	NULL AS FinishKK2,
-	NULL AS StartKK3,
-	NULL AS FinishKK3,
-	NULL AS StartKK4,
-	NULL AS FinishKK4,
-	NULL AS StartKK5,
-	NULL AS FinishKK5,
-	NULL AS StartKK6,
-	NULL AS FinishKK6
-FROM
-	sumbiri_spkk ss
-WHERE ss.IDSPKK LIKE 'KKI-%'
-GROUP BY ss.Nik 
-UNION ALL
-SELECT
-	ss.Nik,
-	NULL AS StartKK1,
-	NULL AS FinishKK1,
-	ss.StartKontrak AS StartKK2,
-	ss.FinishKontrak AS FinishKK2,
-	NULL AS StartKK3,
-	NULL AS FinishKK3,
-	NULL AS StartKK4,
-	NULL AS FinishKK4,
-	NULL AS StartKK5,
-	NULL AS FinishKK5,
-	NULL AS StartKK6,
-	NULL AS FinishKK6
-FROM
-	sumbiri_spkk ss
-WHERE ss.IDSPKK LIKE 'KKII-%'
-GROUP BY ss.Nik 
-UNION ALL 
-SELECT
-	ss.Nik,
-	NULL AS StartKK1,
-	NULL AS FinishKK1,
-	NULL AS StartKK2,
-	NULL AS FinishKK2,
-	ss.StartKontrak AS StartKK3,
-	ss.FinishKontrak AS FinishKK3,
-	NULL AS StartKK4,
-	NULL AS FinishKK4,
-	NULL AS StartKK5,
-	NULL AS FinishKK5,
-	NULL AS StartKK6,
-	NULL AS FinishKK6
-FROM
-	sumbiri_spkk ss
-WHERE ss.IDSPKK LIKE 'KKIII-%'
-GROUP BY ss.Nik 
-UNION ALL 
-SELECT
-	ss.Nik,
-	NULL AS StartKK1,
-	NULL AS FinishKK1,
-	NULL AS StartKK2,
-	NULL AS FinishKK2,
-	NULL AS StartKK3,
-	NULL AS FinishKK3,
-	ss.StartKontrak AS StartKK4,
-	ss.FinishKontrak AS FinishKK4,
-	NULL AS StartKK5,
-	NULL AS FinishKK5,
-	NULL AS StartKK6,
-	NULL AS FinishKK6
-FROM
-	sumbiri_spkk ss
-WHERE ss.IDSPKK LIKE 'KKIV-%'
-GROUP BY ss.Nik 
-UNION ALL 
-SELECT
-	ss.Nik,
-	NULL AS StartKK1,
-	NULL AS FinishKK1,
-	NULL AS StartKK2,
-	NULL AS FinishKK2,
-	NULL AS StartKK3,
-	NULL AS FinishKK3,
-	NULL AS StartKK4,
-	NULL AS FinishKK4,
-	ss.StartKontrak AS StartKK5,
-	ss.FinishKontrak AS FinishKK5,
-	NULL AS StartKK6,
-	NULL AS FinishKK6
-FROM
-	sumbiri_spkk ss
-WHERE ss.IDSPKK LIKE 'KKV-%'
-GROUP BY ss.Nik 
-UNION ALL 
-SELECT
-	ss.Nik,
-	NULL AS StartKK1,
-	NULL AS FinishKK1,
-	NULL AS StartKK2,
-	NULL AS FinishKK2,
-	NULL AS StartKK3,
-	NULL AS FinishKK3,
-	NULL AS StartKK4,
-	NULL AS FinishKK4,
-	NULL AS StartKK5,
-	NULL AS FinishKK5,
-	ss.StartKontrak AS StartKK6,
-	ss.FinishKontrak AS FinishKK6
-FROM
-	sumbiri_spkk ss
-WHERE ss.IDSPKK LIKE 'KKVI-%'
-GROUP BY ss.Nik 
-) AS TableSummaryKK
- GROUP BY TableSummaryKK.Nik
+	SELECT
+		Nik,
+		MAX(StartKK1) AS StartKK1,
+		MAX(FinishKK1) AS FinishKK1,
+		MAX(StartKK2) AS StartKK2,
+		MAX(FinishKK2) AS FinishKK2,
+		MAX(StartKK3) AS StartKK3,
+		MAX(FinishKK3) AS FinishKK3,
+		MAX(StartKK4) AS StartKK4,
+		MAX(FinishKK4) AS FinishKK4,
+		MAX(StartKK5) AS StartKK5,
+		MAX(FinishKK5) AS FinishKK5,
+		MAX(StartKK6) AS StartKK6,
+		MAX(FinishKK6) AS FinishKK6
+	FROM (
+		SELECT
+			ss.Nik,
+			CASE WHEN ss.IDSPKK LIKE 'KKI-%' THEN ss.StartKontrak ELSE NULL END AS StartKK1,
+			CASE WHEN ss.IDSPKK LIKE 'KKI-%' THEN ss.FinishKontrak ELSE NULL END AS FinishKK1,
+			CASE WHEN ss.IDSPKK LIKE 'KKII-%' THEN ss.StartKontrak ELSE NULL END AS StartKK2,
+			CASE WHEN ss.IDSPKK LIKE 'KKII-%' THEN ss.FinishKontrak ELSE NULL END AS FinishKK2,
+			CASE WHEN ss.IDSPKK LIKE 'KKIII-%' THEN ss.StartKontrak ELSE NULL END AS StartKK3,
+			CASE WHEN ss.IDSPKK LIKE 'KKIII-%' THEN ss.FinishKontrak ELSE NULL END AS FinishKK3,
+			CASE WHEN ss.IDSPKK LIKE 'KKIV-%' THEN ss.StartKontrak ELSE NULL END AS StartKK4,
+			CASE WHEN ss.IDSPKK LIKE 'KKIV-%' THEN ss.FinishKontrak ELSE NULL END AS FinishKK4,
+			CASE WHEN ss.IDSPKK LIKE 'KKV-%' THEN ss.StartKontrak ELSE NULL END AS StartKK5,
+			CASE WHEN ss.IDSPKK LIKE 'KKV-%' THEN ss.FinishKontrak ELSE NULL END AS FinishKK5,
+			CASE WHEN ss.IDSPKK LIKE 'KKVI-%' THEN ss.StartKontrak ELSE NULL END AS StartKK6,
+			CASE WHEN ss.IDSPKK LIKE 'KKVI-%' THEN ss.FinishKontrak ELSE NULL END AS FinishKK6
+		FROM
+			sumbiri_spkk ss
+	) AS CombinedData
+	GROUP BY Nik
 ) kks ON kks.Nik = ss.Nik 
 `;
 
