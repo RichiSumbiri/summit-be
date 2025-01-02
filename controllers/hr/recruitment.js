@@ -1,7 +1,7 @@
 import { QueryTypes, Op, fn, col, Sequelize } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import { findLamaranByDate, SumbiriPelamar, SumbiriRecruitmentPassKey } from "../../models/hr/recruitment.mod.js";
-import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
+// import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
 export const checkLokerLanding = async(req,res) => {
     try {
@@ -35,7 +35,7 @@ export const GeneratePassKey = async(req,res) => {
           
           const randomString = generateRandomString(6).toUpperCase();
           
-          const postPassKey = await SumbiriRecruitmentPassKey.create({
+          await SumbiriRecruitmentPassKey.create({
             PassKey: randomString,
             CreateBy: 'system'
           });

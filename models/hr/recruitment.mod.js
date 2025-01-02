@@ -433,7 +433,7 @@ SELECT
 	IFNULL(sp.NikKTP, '') AS NikKTP,
 	IFNULL(sp.PassKey, '') AS PassKey,
 	UPPER(IFNULL(sp.FullName, '')) AS FullName,
-	UPPER(IFNULL(sp.Position, '')) AS Position,
+	IFNULL(sp.Position, '') AS Position,
 	UPPER(sp.BirthPlace) AS BirthPlace,
 	IFNULL(sp.BirthDate, '') AS BirthDate,
 	IFNULL(sp.Phone, '') AS Phone,
@@ -684,7 +684,8 @@ SELECT
   sp.ApprovalStatus,
   sp.ApprovalTime,
   sp.ApprovalRemark,
-  sp.ApprovalBy
+  sp.ApprovalBy,
+  vcl.TotalCountLamaran
 FROM
 	sumbiri_pelamar sp
 LEFT JOIN master_alamat_kabkota mak5 ON mak5.id_kabkota = sp.BirthPlace 
@@ -694,6 +695,7 @@ LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = sp.AddressKTPKecam
 LEFT JOIN master_alamat_provinsi map3 ON map3.id_prov = sp.AddressDOMProvID 
 LEFT JOIN master_alamat_kabkota mak3 ON mak3.id_kabkota = sp.AddressDOMKabKotaID 
 LEFT JOIN master_alamat_kecamatan mak4 ON mak4.id_kecamatan = sp.AddressDOMKecamatanID 
+LEFT JOIN viewCountLamaran vcl ON vcl.NikKTP = sp.NikKTP
 WHERE DATE(sp.CreateDate) BETWEEN :startDate AND :endDate ;
 
 `;
