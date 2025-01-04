@@ -311,6 +311,10 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 		  se.IDDepartemen,
 		  se.IDSubDepartemen,
 		  se.IDSection,
+		  se.TanggalMasuk,
+		  se.TanggalKeluar,
+		  se.JenisKelamin,
+		  se.StatusKaryawan,
       msd.Name subDeptName,
 	    md.NameDept,
 	    sgs.groupId,
@@ -336,6 +340,10 @@ ba.IDSubDepartemen,
 ba.subDeptName,
 ba.IDSection,
 ba.groupId,
+ba.TanggalMasuk,
+ba.TanggalKeluar,
+ba.JenisKelamin,
+ba.StatusKaryawan,
 sgs.groupName,
 ba.jk_id,
 mjk.jk_nama,
@@ -363,3 +371,4 @@ JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
 WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1
 GROUP BY ssm.spl_date, spl.Nik
 `
+export const karyawanOut = `SELECT COUNT(*) AS karyawanOut FROM sumbiri_employee se WHERE se.TanggalKeluar = :date`
