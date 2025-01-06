@@ -1,5 +1,5 @@
 import { QueryTypes } from "sequelize";
-import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
@@ -114,6 +114,27 @@ export const getEmpSummaryDept = async(req,res) => {
     });
   }
 }
+
+// get employee all
+export const getEmployeAll = async (req, res) => {
+  try {
+    const listKaryawan = await dbSPL.query(qryEmployeAll, {
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: listKaryawan,
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error get list employee",
+    });
+  }
+};
+
 
 // get employee aktif
 export const getEmployeAktif = async (req, res) => {

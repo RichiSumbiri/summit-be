@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import { dbSPL } from "../../config/dbAudit.js";
 
-export const qryEmployeAktif = `
+export const qryEmploye = `
 SELECT
 	se.Nik,
 	se.NikKTP,
@@ -79,12 +79,11 @@ LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamat
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
 LEFT JOIN sumbiri_pelamar sp ON sp.NikKTP = se.NikKTP 
-WHERE 
-	se.StatusAktif = 0 
-	AND ( se.TanggalKeluar >= NOW() OR se.TanggalKeluar IS NULL )
-	AND se.TanggalMasuk <= NOW()
+
 `;
 
+export const qryEmployeAll = qryEmploye + `WHERE se.StatusAktif = 0`;
+export const qryEmployeAktif = qryEmploye + `WHERE se.StatusAktif = 0  AND ( se.TanggalKeluar >= NOW() OR se.TanggalKeluar IS NULL ) AND se.TanggalMasuk <= NOW()`;
 
 
 export const modelMasterDepartment = dbSPL.define('master_department', 

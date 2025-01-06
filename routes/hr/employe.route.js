@@ -6,6 +6,7 @@ import {
   getEmpKontrak,
   getEmpLikeNIK,
   getEmployeAktif,
+  getEmployeAll,
   getPositionAll,
   getSalaryType,
   getSection,
@@ -130,7 +131,8 @@ router.delete("/delete-kontrakkerja/:idspkk", deleteKontrakKerja);
 
 
 // employee management
-router.get("/all-employe", getEmployeAktif);
+router.get("/all-employe", getEmployeAll);
+router.get("/all-employe-active", getEmployeAktif);
 router.get("/all-employe-kontrak", getEmpKontrak);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-like/:inputQry", getEmpLikeNIK);
