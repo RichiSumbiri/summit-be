@@ -419,7 +419,7 @@ export const getGroupSchedule = async (req, res) => {
       };
     };
 
-    const today = moment().subtract(1, 'days').startOf("day");
+    const today = moment().subtract(1, "days").startOf("day");
 
     const listDates = Array.from(moment.range(start, end).by("days")).map(
       (day) => {
@@ -536,6 +536,7 @@ export const getSchIndividu = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
+    
     const checkHolidays = (date, data) => {
       const dayName = moment(date).format("dddd");
       if (holidays.length > 0) {
@@ -574,7 +575,7 @@ export const getSchIndividu = async (req, res) => {
     const listDates = Array.from(moment.range(start, end).by("days")).map(
       (day) => {
         const dateFormat = day.format("YYYY-MM-DD");
-        let dataExist = {};
+        let dataExist = {Nik: nik};
 
         if (groupSch.length > 0) {
           const checkIdx = groupSch.findIndex(
@@ -618,7 +619,7 @@ export async function postSchIndividu(req, res) {
     const arrDestroy = dataArr.filter(
       (item) => !item.jk_id && item.jadwalId_inv
     );
-    
+
     if (arrDestroy.length > 0) {
       const arrIdDestroy = arrDestroy.map((item) => item.jadwalId_inv);
       const destData = IndividuJadwal.destroy({
