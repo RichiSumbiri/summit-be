@@ -21,6 +21,7 @@ import {
   getLamaranByDate,
   getMasterAgama,
   getMasterAlamat,
+  getMasterEducation,
   getMasterKabkota,
   getMasterKecamatan,
   getMasterKelurahan,
@@ -81,6 +82,7 @@ const router = express.Router();
 
 // master hr
 router.get("/master-agama", getMasterAgama);
+router.get("/master-education", getMasterEducation);
 router.get("/master-address", getMasterAlamat);
 router.get("/master-address-provinsi", getMasterProv);
 router.get("/master-address-kabkota", getMasterKabkota);

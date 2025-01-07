@@ -197,11 +197,28 @@ export const getMasterAgama = async(req,res) => {
         res.status(404).json({
             success: false,
             data: err,
-            message: "error get master alamat",
+            message: "error get master agama",
         });
     }
 }
 
+export const getMasterEducation = async(req,res) => {
+    try {
+        const result = await dbSPL.query("SELECT id_edu, name_edu, title_edu FROM master_education ORDER BY id_edu ASC", { type: QueryTypes.SELECT });
+        res.status(200).json({
+            success: true,
+            message: "success get master education",
+            data: result
+        });
+
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            data: err,
+            message: "error get master education",
+        });
+    }
+}
 
 
 
