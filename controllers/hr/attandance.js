@@ -624,7 +624,7 @@ function correctionScanOut(logTime, findSch) {
 
   //check late dan jangan ganggu ket in manual
   let ket_out = null;
-  if (findSch.ket_in) {
+  if (findSch.ket_out) {
     ket_out = findSch.ket_out;
   } else {
     ket_out = checkEarly ? "EARLY" : null;
@@ -652,3 +652,219 @@ function correctionScanOut(logTime, findSch) {
 
 
 }
+
+
+export const punchAttdLogAccurate = async (req, res) => {
+  try {
+    const dates = req.body;
+
+    // const {start, end} = dates
+    const stringStart = moment(dates.start)
+      // .subtract(1, "days")
+      .format("YYYY-MM-DD");
+    const stringEnd = moment(dates.end).format("YYYY-MM-DD");
+
+    //ambil schedule absen
+    let getSchAttd = await dbSPL.query(qrySchAttdComp, {
+      replacements: { startDate: stringStart, endDate: stringEnd },
+      type: QueryTypes.SELECT,
+    });
+    // console.log(getSchAttd[0]);
+
+    const getLembur = await dbSPL.query(getLemburForAbsen, {
+      replacements: { date: stringStart },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    if (getLembur.length > 0) {
+      getSchAttd = getSchAttd.map((item) => {
+        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
+
+        if (lembur) {
+          return { ...item, ...lembur };
+        } else {
+          return item;
+        }
+      });
+    }
+
+    //ambil log attd hasil upload atau dari mesin
+    const getLogs = await dbSPL.query(qryLogForPunch, {
+      replacements: { startDate: stringStart, endDate: stringEnd },
+      type: QueryTypes.SELECT,
+    });
+    // console.log(getLogs);
+
+    if (getLogs.length > 0) {
+      for (const [i, logs] of getLogs.entries()) {
+        // loping log
+
+        // if(i === 0) console.log(logs)
+        const logDate = logs.logDate;
+        const logTime = logs.logTime;
+
+        //jika terdapat log status in makan lakukan logic IN
+        if (logs.log_status === "IN") {
+          //sebelum melakukan punch cek terlebih dahulu
+          const checkExist = await Attandance.findOne({
+            where: {
+              tanggal_in: logDate,
+              Nik: logs.Nik,
+            },
+          });
+
+          if (checkExist) {
+            await LogAttandance.update(
+              { log_punch: 2 }, //kalo ada schedule id berarti double punch kd 2, klo tdk ada berarti kd 4 no schdule
+              {
+                where: {
+                  log_id: logs.log_id,
+                },
+              }
+            );
+          } else {
+            //kalo tidak ada coba cari schedule
+            const findSch = getSchAttd.find(
+              (items) =>
+                logs.Nik === items.Nik.toString() &&
+                logDate === items.scheduleDate
+            );
+
+            
+            //jika schedule ada check time dan tidak ada keterangan
+            if (findSch && findSch.jk_id !== null) {
+              // const objScanIn = correctionScanIn(logTime, findSch)
+
+              const jamPulang = moment(findSch.jk_scan_out_start, "HH:mm:ss");
+              const jamMasuk = moment(findSch.jk_in, "HH:mm:ss");
+            
+              // Waktu yang akan diperiksa
+              const checkTime = moment(logTime, "HH:mm:ss");
+              const checkLate = checkTime.isAfter(jamMasuk);
+            
+              //check apakah scan in ada dalam range
+              const isInRange = checkTime.isBefore(jamPulang);
+            
+              //check late dan jangan ganggu ket in manual
+              let ket_in = null;
+              if (findSch.ket_in) {
+                ket_in = findSch.ket_in;
+              } else {
+                ket_in = checkLate ? "LATE" : null;
+              }
+              
+              const dataAbsen = {
+                Nik: logs.Nik,
+                groupId: findSch.groupId,
+                jk_id: findSch.jk_id,
+                tanggal_in: findSch.scheduleDate,
+                tanggal_out: findSch.scanOutDate,
+                keterangan: "H",
+                // ...objScanIn
+                scan_in: isInRange ? logTime : null,
+                ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
+              };
+
+              // console.log(dataAbsen);
+
+              const postAbsen = await Attandance.create(dataAbsen);
+
+              if (postAbsen) {
+                const updateLog = await LogAttandance.update(
+                  { log_punch: 1 }, // log punch 1 success
+                  {
+                    where: {
+                      log_id: logs.log_id,
+                    },
+                  }
+                );
+              }
+            } else {
+              const updateLog = await LogAttandance.update(
+                { log_punch: 4 }, // klo tdk ada berarti kd 4 no schdule
+                {
+                  where: {
+                    log_id: logs.log_id,
+                  },
+                }
+              );
+            }
+          }
+        }
+        if (logs.log_status === "OUT") {
+          //jika log status OUT
+          const findSch = getSchAttd.find(
+            (items) =>
+              logs.Nik === items.Nik.toString() && logDate === items.scanOutDate
+          );
+
+          if (findSch && !findSch.scan_out) {
+  
+            const jamPulang = moment(findSch.jk_out, "HH:mm:ss");
+            const jamOutAudit = moment(findSch.jk_scan_out_end, "HH:mm:ss");
+          
+            // Waktu yang akan diperiksa
+            const checkTime = moment(logTime, "HH:mm:ss");
+            const checkEarly = checkTime.isBefore(jamPulang);
+            const chkLogLebihJamAudit = checkTime.isAfter(jamOutAudit);
+          
+            //check late dan jangan ganggu ket in manual
+            let ket_out = null;
+            if (findSch.ket_out) {
+              ket_out = findSch.ket_out;
+            } else {
+              ket_out = checkEarly ? "EARLY" : null;
+            }
+          
+            const dataAbsen = {scan_out : logTime, ket_out}
+            const postAbsen = await Attandance.update(dataAbsen, {
+              where: {
+                tanggal_out: findSch.scanOutDate,
+                Nik: logs.Nik,
+              },
+            });
+            if (postAbsen) {
+              const updateLog = await LogAttandance.update(
+                { log_punch: 1 },
+                {
+                  where: {
+                    log_id: logs.log_id,
+                  },
+                }
+              );
+            }
+          } else {
+            const updateLog = await LogAttandance.update(
+              { log_punch: findSch?.scan_out ? 2 : 4 }, //kalo ada scan out berarti double punch kd 2, klo tdk ada berarti kd 4 no schdule
+              {
+                where: {
+                  log_id: logs.log_id,
+                },
+              }
+            );
+          }
+        }
+
+        if (i + 1 === getLogs.length) {
+          res.status(200).json({ message: "Success Punch Log Attandance" });
+        }
+      }
+    } else {
+      res.status(202).json({ message: "Belum ada data logs" });
+    }
+
+    // console.log();
+    // if (postAbsen) {
+    //   res.status(200).json({ message: "Success Punch Log Attandance" });
+    // } else {
+    //   res.status(500).json({ message: "Gagal Punch Log Attandance" });
+    // }
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat upload Log Attandance" });
+  }
+};

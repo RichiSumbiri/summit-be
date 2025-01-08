@@ -615,28 +615,30 @@ export async function postSchIndividu(req, res) {
     if (!dataArr) res.status(404).json({ message: "tidak ada data" });
 
     //cari jika tidak ada jam kerja tapi ada id maka destroy
-    let destroyCount = 0;
-    const arrDestroy = dataArr.filter(
-      (item) => !item.jk_id && item.jadwalId_inv
-    );
+    // let destroyCount = 0;
+    // const arrDestroy = dataArr.filter(
+    //   (item) => !item.jk_id && item.jadwalId_inv
+    // );
 
-    if (arrDestroy.length > 0) {
-      const arrIdDestroy = arrDestroy.map((item) => item.jadwalId_inv);
-      const destData = IndividuJadwal.destroy({
-        where: {
-          jadwalId_inv: arrIdDestroy,
-        },
-      });
-      destroyCount = destData;
-    }
+    // if (arrDestroy.length > 0) {
+    //   const arrIdDestroy = arrDestroy.map((item) => item.jadwalId_inv);
+    //   const destData = IndividuJadwal.destroy({
+    //     where: {
+    //       jadwalId_inv: arrIdDestroy,
+    //     },
+    //   });
+    //   destroyCount = destData;
+    // }
 
     // jika ada jam kerja maka create or update
     const datapost = dataArr
-      .filter((item) => item.jk_id)
+      // .filter((item) => item.jk_id)
       .map((items) => ({
         ...items,
         scheduleDate_inv: items.scheduleDate,
       }));
+      // console.log(datapost);
+      
     const bulk = await IndividuJadwal.bulkCreate(datapost, {
       updateOnDuplicate: ["jk_id", "calendar"],
       where: {
