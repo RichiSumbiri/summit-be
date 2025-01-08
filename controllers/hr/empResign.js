@@ -39,7 +39,6 @@ export const getEmpResignSPK = async(req,res) => {
 export const postNewEmpResignSPK = async(req,res) => {
     try {
         const dataEmpResign     = req.body.dataEmpResign;
-        console.log(dataEmpResign);
         if(dataEmpResign.id_spk){
             const putSPK        = await sumbiriSPK.update({
                 Nik: dataEmpResign.Nik,
