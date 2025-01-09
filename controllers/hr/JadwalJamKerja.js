@@ -438,7 +438,7 @@ export const getGroupSchedule = async (req, res) => {
         const objHoliday = checkHolidays(dateFormat, dataExist);
 
         return {
-          allowEdit: day.isAfter(today),
+          allowEdit: day.isSame(today, 'day') || day.isAfter(today, 'day'),
           scheduleDate: dateFormat,
           sortDate: day.format("MM-DD"),
           days: day.format("ddd"),
@@ -589,7 +589,7 @@ export const getSchIndividu = async (req, res) => {
         const objHoliday = checkHolidays(dateFormat, dataExist);
 
         return {
-          allowEdit: day.isAfter(today),
+          allowEdit: day.isSame(today, 'day') || day.isAfter(today, 'day'),
           scheduleDate: dateFormat,
           sortDate: day.format("MM-DD"),
           days: day.format("ddd"),
