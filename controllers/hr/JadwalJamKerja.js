@@ -419,7 +419,7 @@ export const getGroupSchedule = async (req, res) => {
       };
     };
 
-    const today = moment().subtract(1, "days").startOf("day");
+    const today = moment().startOf("day");
 
     const listDates = Array.from(moment.range(start, end).by("days")).map(
       (day) => {
