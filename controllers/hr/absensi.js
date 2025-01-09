@@ -7,6 +7,7 @@ import {
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
+import Users from "../../models/setup/users.mod.js";
 
 export const getAbsenDaily = async (req, res) => {
   try {
@@ -36,9 +37,22 @@ export const getAbsenDaily = async (req, res) => {
       });
     }
 
+    // const getUserId = getAbsen.map((items) => items.mod_id);
+
+    // if (getUserId.length > 0) {
+    //   const getListUser = await Users.findAll({
+    //     where: {
+    //       USER_ID: {
+    //         [Op.in]: getUserId,
+    //       },
+    //     },
+    //     attributes: ["id", "name"],
+    //   });
+    // }
+
     return res.json({ data: getAbsen, message: "succcess get data" });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
 
     res
       .status(500)
@@ -72,16 +86,15 @@ export async function updateAbsen(req, res) {
         mod_id: userId,
       }));
 
-      
       if (arrAbs.length > 1 && objEdit.keterangan[0].code_absen === "H") {
         updateArrAbs = updateArrAbs.map((item) => ({
           ...item,
           scan_in: getRandomTimeIn5Minute(
-            objEdit.jam_kerja[0].jk_scan_in_audit,
+            objEdit.jam_kerja[0].jk_scan_in_audit
             // objEdit.jam_kerja[0].jk_in
           ),
           scan_out: getRandomTimeIn5Minute(
-            objEdit.jam_kerja[0].jk_out,
+            objEdit.jam_kerja[0].jk_out
             // objEdit.jam_kerja[0].jk_scan_out_end
           ),
         }));
@@ -104,6 +117,7 @@ export async function updateAbsen(req, res) {
           "keterangan",
           "tanggal_in",
           "tanggal_out",
+          "mod_id",
         ],
 
         where: {
@@ -120,7 +134,7 @@ export async function updateAbsen(req, res) {
         return res.status(500).json({ message: "Gagal Update" });
       }
     } else {
-      return res.status(404).json({ message: "Tidak ada data Update" });
+      return res.status(404).json({ message: "Mohon set Jam kerja" });
     }
   } catch (error) {
     console.log(error);
@@ -134,7 +148,7 @@ export async function deleteAbsen(req, res) {
     // console.log(dataUpdate);
     const { objEdit, arrAbs, tanggal_in, userId } = req.body;
 
-    const arrAbsId = arrAbs.map(item => item.Nik)
+    const arrAbsId = arrAbs.map((item) => item.Nik);
     const deleteAbsen = await Attandance.destroy({
       where: {
         Nik: arrAbsId,
@@ -176,7 +190,6 @@ export function getRandomTimeInRange(startTime, endTime) {
   const randomTime = Math.floor(Math.random() * (end - start + 1)) + start;
   return millisecondsToTime(randomTime);
 }
-
 
 // Fungsi untuk mendapatkan waktu random dalam rentang dengan endTime = startTime + 5 menit
 export function getRandomTimeIn5Minute(startTime) {
