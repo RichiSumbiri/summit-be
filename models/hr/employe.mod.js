@@ -68,7 +68,11 @@ SELECT
 	UPPER(sp.Work3Place) AS Work3Place,
 	UPPER(sp.Work3Periode) AS Work3Periode,
 	UPPER(sp.Work3Salary) AS Work3Salary,
-	UPPER(sp.Work3Reason) AS Work3Reason
+	UPPER(sp.Work3Reason) AS Work3Reason,
+	se.CreateBy,
+	se.CreateDate,
+	se.UpdateBy,
+	se.UpdateDate
 FROM sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
@@ -480,7 +484,9 @@ SELECT
 	UPPER(sp.Work3Salary) AS Work3Salary,
 	UPPER(sp.Work3Reason) AS Work3Reason,
 	emp.CreateBy,
-	emp.CreateDate
+	emp.CreateDate,
+	emp.UpdateBy,
+	emp.UpdateDate
 FROM sumbiri_employee emp
 LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = emp.AlamatIDProv 
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = emp.AlamatIDKabKota 

@@ -68,8 +68,8 @@ export const postNewEmp = async(req,res) => {
                 TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
                 StatusKaryawan: dataNewEmp.StatusKaryawan,
                 StatusAktif: 0,
-                CreateDate: new Date(),
-                CreateBy: dataNewEmp.CreateBy
+                UpdateDate: new Date(),
+                UpdateBy: dataNewEmp.CreateBy
             }, {
                 where: {
                     NikKTP: dataNewEmp.NikKTP,

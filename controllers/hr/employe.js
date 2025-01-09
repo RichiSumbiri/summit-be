@@ -292,9 +292,9 @@ export const updateEmp = async(req,res) => {
         JenisUpah: data.JenisUpah,
         StatusKaryawan: data.StatusKaryawan,
         TanggalMasuk: data.TanggalMasuk,
-        // TanggalKeluar: data.TanggalKeluar==='0000-00-00' ? null: data.TanggalKeluar,
         StatusAktif: data.StatusAktif,
-        CreateDate: moment().format('YYYY-MM-DD HH:mm:ss')
+        UpdateBy: data.UpdateBy,
+        UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')
     }, {
       where: {
         Nik: parseInt(data.Nik)
