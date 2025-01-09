@@ -14,6 +14,7 @@ SELECT
 	se.TanggalLahir,
 	se.TanggalMasuk,
 	se.TanggalKeluar,
+	EndSPKK.FinishKontrak,
 	se.Agama,
 	se.JenjangPendidikan,
 	se.JenisUpah,
@@ -79,7 +80,13 @@ LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamat
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
 LEFT JOIN sumbiri_pelamar sp ON sp.NikKTP = se.NikKTP 
-
+LEFT JOIN (
+SELECT 
+	Nik,
+	MAX(FinishKontrak) AS FinishKontrak
+FROM sumbiri_spkk ss 
+GROUP BY Nik
+) EndSPKK ON EndSPKK.Nik = se.Nik
 `;
 
 export const qryEmployeAll = qryEmploye + `WHERE se.StatusAktif = 0`;
