@@ -20,7 +20,7 @@ export const postDataLogAttd = async (req, res) => {
     const dataLog = req.body;
 
     const bulk = await LogAttandance.bulkCreate(dataLog, {
-      updateOnDuplicate: ["log_date", "log_time", "mod_id"], //jika ada attd time tidak sesuai dengan rekap berarti ada edit
+      updateOnDuplicate: ["log_date", "log_time"], //jika ada attd time tidak sesuai dengan rekap berarti ada edit
       where: {
         jadwalId: ["log_id"],
       },
