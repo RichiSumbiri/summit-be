@@ -9,7 +9,6 @@ const __dirname = path.dirname(__filename);
 
 export const uploadPhotosEmp = async(req, res) => {
   try {
-    console.log(req.files);
     const fileBuffer    = req.files.file.data; // This is the buffer containing the file data
     const fileName      = req.files.file.name;
     const { nikEmp }    = req.params;
