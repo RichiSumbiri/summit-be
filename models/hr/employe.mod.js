@@ -452,6 +452,7 @@ SELECT
 	IFNULL(TRIM(emp.JenisUpah),"") AS JenisUpah,
 	IFNULL(TRIM(emp.StatusKaryawan),"") AS StatusKaryawan,
 	emp.TanggalMasuk,
+	EndSPKK.FinishKontrak,
 	IFNULL(emp.TanggalKeluar,"") AS TanggalKeluar,
 	emp.StatusAktif,
 	seg.groupId,
@@ -492,6 +493,14 @@ LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
 LEFT JOIN sumbiri_spk ss ON ss.Nik = emp.Nik 
 LEFT JOIN sumbiri_pelamar sp ON sp.NikKTP = emp.NikKTP 
+LEFT JOIN (
+SELECT 
+	Nik,
+	MAX(FinishKontrak) AS FinishKontrak
+FROM sumbiri_spkk ss 
+GROUP BY Nik
+) EndSPKK ON EndSPKK.Nik = emp.Nik
+
 `;
 
 export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
