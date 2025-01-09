@@ -72,6 +72,9 @@ export async function updateAbsen(req, res) {
           ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
           : tanggal_in;
 
+          // console.log(objEdit.keterangan);
+          
+
       let updateArrAbs = arrAbs.map((item) => ({
         ...item,
         scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
