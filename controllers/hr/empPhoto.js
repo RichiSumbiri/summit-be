@@ -10,17 +10,17 @@ const __dirname = path.dirname(__filename);
 export const uploadPhotosEmp = async(req, res) => {
   try {
     const fileBuffer    = req.files.file.data; // This is the buffer containing the file data
+    const UpdateBy      = req.body.UpdateBy;
     const fileName      = req.files.file.name;
     const { nikEmp }    = req.params;
     const filePath      = path.join(__dirname, "../../assets/images/photos", fileName );
-    
     fs.writeFile(filePath, fileBuffer, (err) => {
       if (err) {
         console.error("Error saving file:", err);
         return res.status(500).send("Error saving file");
       }
     
-      const updatePhotoDB = modelSumbiriEmployee.update({ Photos: fileName }, {
+      const updatePhotoDB = modelSumbiriEmployee.update({ Photos: fileName, UpdateBy: UpdateBy }, {
             where: {
               Nik: nikEmp 
           }
