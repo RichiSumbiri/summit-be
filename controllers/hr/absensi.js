@@ -30,25 +30,51 @@ export const getAbsenDaily = async (req, res) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
 
         if (lembur) {
-          return { ...item, ...lembur };
+          let ttlLembur = ''
+          if(lembur.type === 'BH'){
+            const scanin = moment(item.scan_in, 'HH:mm:ss')
+            const jam_in = moment(item.jk_in, 'HH:mm:ss')
+            ttlLembur = scanin.diff(jam_in, 'hours')
+          }else{
+            const scanout = moment(item.scan_out, 'HH:mm:ss')
+            let jam_out = moment(item.jk_out, 'HH:mm:ss')
+            
+            if(scanout.isBefore(jam_out)){
+              jam_out.add(1, 'day')
+            }
+            ttlLembur = scanout.diff(jam_out, 'hours')
+
+          }
+          return { ...item, ...lembur, ttlLembur };
         } else {
           return item;
         }
       });
     }
 
-    // const getUserId = getAbsen.map((items) => items.mod_id);
+    const getUserId = getAbsen.map((items) => items.mod_id);
 
-    // if (getUserId.length > 0) {
-    //   const getListUser = await Users.findAll({
-    //     where: {
-    //       USER_ID: {
-    //         [Op.in]: getUserId,
-    //       },
-    //     },
-    //     attributes: ["id", "name"],
-    //   });
-    // }
+    if (getUserId.length > 0) {
+      const getListUser = await Users.findAll({
+        where: {
+          USER_ID: {
+            [Op.in]: getUserId,
+          },
+        },
+        attributes: ["USER_ID", "USER_INISIAL"],
+        raw: true,
+      });
+
+      getAbsen = getAbsen.map((item) => {
+        const userName = getListUser.find((emp) => emp.USER_ID === item.mod_id);
+
+        if (userName) {
+          return { ...item, ...userName };
+        } else {
+          return item;
+        }
+      });
+    }
 
     return res.json({ data: getAbsen, message: "succcess get data" });
   } catch (error) {
@@ -72,8 +98,7 @@ export async function updateAbsen(req, res) {
           ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
           : tanggal_in;
 
-          // console.log(objEdit.keterangan);
-          
+      // console.log(objEdit.keterangan);
 
       let updateArrAbs = arrAbs.map((item) => ({
         ...item,
@@ -103,12 +128,12 @@ export async function updateAbsen(req, res) {
         }));
       }
 
-      const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
-        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
-        where: {
-          jadwalId: ["jadwalId_inv"],
-        },
-      });
+      // const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
+      //   updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
+      //   where: {
+      //     jadwalId: ["jadwalId_inv"],
+      //   },
+      // });
 
       const updatedAbsen = await Attandance.bulkCreate(updateArrAbs, {
         updateOnDuplicate: [

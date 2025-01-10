@@ -188,10 +188,17 @@ export const Attandance = dbSPL.define(
     mod_id: {
       type: DataTypes.INTEGER,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    }
   },
   {
     tableName: "sumbiri_absens",
-    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 );
 
@@ -348,6 +355,9 @@ ba.jadwalId_inv,
 sgs.groupName,
 ba.jk_id,
 mjk.jk_nama,
+mjk2.jk_nama jk_aktual,
+mjk2.jk_in,
+mjk2.jk_out,
 ba.calendar,
 sa.jk_id jk_id_absen,
 sa.id, 
@@ -364,6 +374,7 @@ sa.updatedAt
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
