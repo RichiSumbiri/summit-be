@@ -113,6 +113,7 @@ SELECT
 	sm.destination_position AS ID_Destination_Position,
 	mp2.Name AS Name_Destination_Position,
 	sm.destination_section AS Destination_Section,
+  sm.reason_mutasi AS Reason_Mutasi,
     sm.create_by AS CreateBy,
     sm.create_time AS CreateTime
 FROM

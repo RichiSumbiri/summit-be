@@ -68,7 +68,8 @@ export const newMutasi = async(req,res) => {
             destination_subdept: dataMutasi.ID_Destination_SubDept,
             destination_position: dataMutasi.ID_Destination_Position,
             destination_section: dataMutasi.Destination_Section,
-            CreateBy: dataMutasi.CreateBy,
+            reason_mutasi: dataMutasi.Reason_mutasi,
+            create_by: dataMutasi.CreateBy,
             create_time: moment().format('YYYY-MM-DD hh:mm:ss') 
         });
 
