@@ -46,6 +46,7 @@ SELECT
 	ms.Name AS NamaSubDepartemen,
 	se.IDPosisi,
 	mp.Name AS NamaPosisi,
+	se.IDSection,
 	ms2.Name AS NamaSection,
 	se.StatusKaryawan,
 	se.StatusAktif,
