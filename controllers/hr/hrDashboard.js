@@ -1,13 +1,18 @@
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import { Op, QueryTypes } from "sequelize";
 import {
+  allDeptTtl,
   Attandance,
+  baseMpSewing,
   getLemburForAbsen,
   karyawanOut,
+  karyawanOutSewing,
   qryDailyAbsensi,
+  SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { ChkNilaFlt } from "../util/Utility.js";
+import db from "../../config/database.js";
 
 export const getDailyHrDash = async (req, res) => {
   try {
@@ -182,3 +187,136 @@ function dataChartDept(dataByDept) {
     dataCategory,
   };
 }
+
+export const getDataDashSewMp = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    let getAbsen = await dbSPL.query(baseMpSewing, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    const getLembur = await dbSPL.query(getLemburForAbsen, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    if (getLembur.length > 0) {
+      getAbsen = getAbsen.map((item) => {
+        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
+
+        if (lembur) {
+          return { ...item, ...lembur };
+        } else {
+          return item;
+        }
+      });
+    }
+
+    const getEmpOut = await dbSPL.query(karyawanOutSewing, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+    const getHdCount = await dbSPL.query(allDeptTtl, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    const totalAttd = getAbsen.filter((item) => item.scan_in);
+    const totalEmpIn = getAbsen.filter((item) => item.TanggalMasuk === date);
+    const totalMale = getAbsen.filter((item) => item.JenisKelamin === 0);
+    const totalFemale = getAbsen.filter((item) => item.JenisKelamin === 1);
+    const totalTlo =
+      ChkNilaFlt(
+        getEmpOut[0].karyawanOut / (getAbsen.length + getEmpOut[0].karyawanOut)
+      ) * 100;
+
+    const dataEmpPerSec = getDataPerSection(getAbsen)
+    const dataChartDeptCount = dataChartSection(dataEmpPerSec);
+    const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
+
+    const dataDash = {
+      totalEmp: getHdCount[0].ttlemp,
+      totalEmpSew: getAbsen.length,
+      totalAttd: totalAttd.length,
+      totalEmpOut: getEmpOut[0].karyawanOut,
+      totalEmpIn: totalEmpIn.length,
+      totalMale: totalMale.length,
+      totalFemale: totalFemale.length,
+      // totalTetap: totalTetap.length,
+      // totalKontrak: totalKontrak.length,
+      totalTlo: totalTlo,
+      dataChartDeptCount,
+      dataChartDeptAttd,
+    };
+
+    return res.json({ data: dataDash, message: "succcess get data" });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data absen" });
+  }
+};
+
+
+const getDataPerSection = (employees) => {
+  const dataSection = employees.reduce((acc, employee) => {
+    const section = employee.CUS_NAME;
+    if (acc[section]) {
+      acc[section].count++;
+    } else {
+      acc[section] = { count: 1, scan_in: 0 };
+    }
+    if (employee.scan_in) {
+      acc[section].scan_in++;
+    }
+    return acc;
+  }, {});
+  Object.keys(dataSection).forEach((section) => {
+    if (!dataSection[section].hasOwnProperty("scan_in")) {
+      dataSection[section].scan_in = 0;
+    }
+  });
+  return dataSection;
+};
+
+
+
+function dataChartSection(dataBysec) {
+  let structurCat = [
+    {
+      name: "Head Count",
+      data: [],
+    },
+  ];
+
+  let dataCategory = [];
+
+  if (!dataBysec) {
+    return {
+      structurCat,
+      dataCategory,
+    };
+  }
+
+  dataCategory = Object.keys(dataBysec);
+  const dataCount = dataCategory.map(
+    (sec) => dataBysec[sec].count
+  );
+
+  structurCat[0].data = dataCount;
+
+  return {
+    structurCat,
+    dataCategory,
+  };
+}
+
+

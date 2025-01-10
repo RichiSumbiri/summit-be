@@ -51,9 +51,9 @@ LEFT JOIN personnel_employee b ON a.emp_id = b.id
 WHERE a.punch_time BETWEEN :startDateTime AND :endDateTime
 -- GROUP BY a.emp_code,  a.punch_state
 ORDER BY  a.terminal_id, a.punch_time
-`
+`;
 // export const LogFromWdms = `SELECT a.emp_code, a.punch_time, a.punch_state, a.terminal_id
-// FROM   iclock_transaction a 
+// FROM   iclock_transaction a
 // WHERE a.terminal_sn IN ('SYZ8240300054') AND DATE(a.punch_time) = '2024-11-20'
 // GROUP BY a.emp_code,  a.punch_state
 // ORDER BY a.punch_time`
@@ -137,12 +137,12 @@ LEFT JOIN sumbiri_absens d ON d.Nik = fn.Nik
 `;
 
 //query get log untuk punch attd
-export const qryLogForPunch =`SELECT 
+export const qryLogForPunch = `SELECT 
 a.*, DATE(a.log_date) logDate, TIME(a.log_date) logTime
 FROM sumbiri_log_attd a 
 WHERE date(a.log_date) BETWEEN :startDate AND :endDate
 AND log_punch = 0
-GROUP BY date(a.log_date), a.Nik, a.log_status`
+GROUP BY date(a.log_date), a.Nik, a.log_status`;
 
 export const Attandance = dbSPL.define(
   "sumbiri_absens",
@@ -185,70 +185,74 @@ export const Attandance = dbSPL.define(
     add_id: {
       type: DataTypes.INTEGER,
     },
-    add_id: {
-      type: DataTypes.INTEGER,
-    },
     mod_id: {
       type: DataTypes.INTEGER,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    }
   },
   {
     tableName: "sumbiri_absens",
-    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 );
 
-
-
-export const MasterAbsentee = dbSPL.define('master_absentee', {
-  id_absen: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-    allowNull: false,
+export const MasterAbsentee = dbSPL.define(
+  "master_absentee",
+  {
+    id_absen: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      allowNull: false,
+    },
+    code_absen: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    name_absen: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    type_absen: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    length_absen: {
+      type: DataTypes.INTEGER(20),
+      allowNull: true,
+      defaultValue: null,
+    },
+    daymonth_absen: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: null,
+    },
+    create_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
   },
-  code_absen: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  },
-  name_absen: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-  },
-  type_absen: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    defaultValue: null,
-  },
-  length_absen: {
-    type: DataTypes.INTEGER(20),
-    allowNull: true,
-    defaultValue: null,
-  },
-  daymonth_absen: {
-    type: DataTypes.STRING(50),
-    allowNull: true,
-    defaultValue: null,
-  },
-  create_date: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    defaultValue: null,
-  },
-}, {
-  tableName: 'master_absentee',
-  timestamps: false,
-  charset: 'utf8mb4',
-  collate: 'utf8mb4_general_ci',
-});
-
+  {
+    tableName: "master_absentee",
+    timestamps: false,
+    charset: "utf8mb4",
+    collate: "utf8mb4_general_ci",
+  }
+);
 
 export const qrySplData = `SELECT ssm.spl_number, ssm.spl_date, ssm.spl_type, ssd.Nik, ssd.minutes/60 spl_jam
 			FROM sumbiri_spl_main ssm
 			LEFT JOIN sumbiri_spl_data ssd ON ssd.spl_number = ssm.spl_number
 			WHERE  ssm.spl_date BETWEEN :startDate AND  :endDate  
-`
-
+`;
 
 export const qrySbrLogAttd = `-- query untuk view log
 SELECT 
@@ -266,43 +270,44 @@ FROM sumbiri_log_attd a
 LEFT JOIN sumbiri_employee se ON se.Nik = a.Nik
 LEFT JOIN master_log_punch b ON a.log_punch = b.log_punch_id
 WHERE a.log_date  BETWEEN :startDateTime AND  :endDateTime  
-ORDER BY a.log_machine_id,  a.log_date `
+ORDER BY a.log_machine_id,  a.log_date `;
 
-
-export const SchedulePunchAttd = dbSPL.define('sumbiri_schedule_punch', {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-    // allowNull: false,
+export const SchedulePunchAttd = dbSPL.define(
+  "sumbiri_schedule_punch",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      // allowNull: false,
+    },
+    punch_name: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    execute_time: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    day_start: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    start_time_log: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    until_time_log: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
   },
-  punch_name: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  },
-  execute_time: {
-    type: DataTypes.TIME,
-    allowNull: false,
-  },
-  day_start: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    defaultValue: null,
-  },
-  start_time_log: {
-    type: DataTypes.TIME,
-    allowNull: false,
-  },
-  until_time_log: {
-    type: DataTypes.TIME,
-    allowNull: false,
-  },
-}, {
-  tableName: 'sumbiri_schedule_punch',
-  timestamps: false,
-});
-
-
+  {
+    tableName: "sumbiri_schedule_punch",
+    timestamps: false,
+  }
+);
 
 export const qryDailyAbsensi = `WITH base_absen AS (
 	SELECT 
@@ -311,6 +316,7 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 		  se.IDDepartemen,
 		  se.IDSubDepartemen,
 		  se.IDSection,
+		  se.IDPosisi,
 		  se.TanggalMasuk,
 		  se.TanggalKeluar,
 		  se.JenisKelamin,
@@ -344,7 +350,97 @@ ba.TanggalMasuk,
 ba.TanggalKeluar,
 ba.JenisKelamin,
 ba.StatusKaryawan,
+mp.Name AS jabatan,
 ba.jadwalId_inv,
+sgs.groupName,
+ba.jk_id,
+mjk.jk_nama,
+mjk2.jk_nama jk_aktual,
+mjk2.jk_in,
+mjk2.jk_out,
+ba.calendar,
+sa.jk_id jk_id_absen,
+sa.id, 
+sa.tanggal_in,
+sa.tanggal_out,
+sa.scan_in,
+sa.scan_out,
+sa.ket_in,
+sa.ket_out,
+sa.keterangan,
+sa.createdAt,
+sa.mod_id,
+sa.updatedAt
+FROM base_absen ba
+LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+`;
+
+export const getLemburForAbsen = `
+  SELECT 
+ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start
+FROM sumbiri_spl_main ssm
+JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
+WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1
+GROUP BY ssm.spl_date, spl.Nik
+`;
+export const karyawanOut = `SELECT COUNT(*) AS karyawanOut FROM sumbiri_employee se WHERE se.TanggalKeluar = :date`;
+
+export const baseMpSewing = `WITH base_absen AS (
+	SELECT 
+	    se.Nik, 
+		  se.NamaLengkap,
+		  se.IDDepartemen,
+		  se.IDSubDepartemen,
+		  se.IDSection,
+		  se.TanggalMasuk,
+		  se.TanggalKeluar,
+		  se.JenisKelamin,
+		  se.StatusKaryawan,
+        msd.Name subDeptName,
+	     md.NameDept,
+	     sgs.groupId,
+        sis.jadwalId_inv,
+        se.IDSiteline,
+        se.IDPosisi,
+	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
+	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
+	FROM sumbiri_employee se
+	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
+	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
+	WHERE se.StatusAktif = 0 AND se.IDDepartemen = '100103'
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
+	  AND se.TanggalMasuk <= :date
+)
+-- msts AS (
+-- 	SELECT DISTINCT ms.IDSection, ms.SITE_NAME, ms.LINE_NAME, ms.CUS_NAME FROM master_siteline ms
+-- 	GROUP BY ms.IDSection
+-- )
+SELECT 
+ba.Nik, 
+ba.NamaLengkap,
+ba.NameDept,
+ba.IDDepartemen,
+ba.IDSubDepartemen,
+ba.subDeptName,
+ba.IDSection,
+ba.groupId,
+ba.TanggalMasuk,
+ba.TanggalKeluar,
+ba.JenisKelamin,
+ba.StatusKaryawan,
+ba.jadwalId_inv,
+ba.IDSiteline,
+msts.SiteName SITE_NAME,
+msts.CusName CUS_NAME,
+mst.LINE_NAME,
 sgs.groupName,
 ba.jk_id,
 mjk.jk_nama,
@@ -357,19 +453,24 @@ sa.scan_in,
 sa.scan_out,
 sa.ket_in,
 sa.ket_out,
-sa.keterangan
+sa.keterangan,
+mp.Name
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
-`
+LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+LEFT JOIN master_siteline mst ON mst.IDSiteline = ba.IDSiteline
+LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 
-export const getLemburForAbsen = `
-  SELECT 
-ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start
-FROM sumbiri_spl_main ssm
-JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
-WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1
-GROUP BY ssm.spl_date, spl.Nik
-`
-export const karyawanOut = `SELECT COUNT(*) AS karyawanOut FROM sumbiri_employee se WHERE se.TanggalKeluar = :date`
+`;
+
+export const karyawanOutSewing = `SELECT COUNT(*) AS karyawanOut FROM sumbiri_employee se WHERE se.TanggalKeluar = :date and se.IDDepartemen = '100103'`;
+export const allDeptTtl = `
+  SELECT COUNT(se.Nik) AS ttlemp
+  FROM sumbiri_employee se
+  WHERE se.StatusAktif = 0 
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
+	  AND se.TanggalMasuk <= :date`;
+
+export const SewingLineHR = `SELECT DISTINCT a.SITE, a.SITE_NAME,  a.CUS_NAME, a.LINE_NAME, a.ID_SITELINE FROM item_siteline a`;
