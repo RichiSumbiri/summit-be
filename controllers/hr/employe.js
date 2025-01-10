@@ -81,7 +81,7 @@ export const getSalaryType = async(req,res)=> {
 // get master section type
 export const getSection = async(req,res)=> {
   try {
-    const data = await dbSPL.query('SELECT * FROM master_section', { type: QueryTypes.SELECT });
+    const data = await dbSPL.query('SELECT * FROM master_section ORDER BY Name', { type: QueryTypes.SELECT });
     return res.status(200).json({
       success: true,
       message: "success get master section",
