@@ -71,6 +71,9 @@ export const qrySchAttdComp = `SELECT
 	mjk.jk_scan_out_start,
 	mjk.jk_scan_out_end,
 	mjk.jk_out_day, 
+	mjk.jk_ot_1,
+	mjk.jk_ot_2,
+	mjk.jk_ot_3,
 	d.id, 
 	d.keterangan,
 	d.scan_in,
@@ -382,7 +385,7 @@ LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 
 export const getLemburForAbsen = `
   SELECT 
-ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start
+ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
 FROM sumbiri_spl_main ssm
 JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
 WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1

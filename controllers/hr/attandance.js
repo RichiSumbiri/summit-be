@@ -13,7 +13,7 @@ import {
 } from "../../models/hr/attandance.mod.js";
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import moment from "moment";
-import { getRandomTimeIn5Minute, getRandomTimeInRange } from "./absensi.js";
+import { getRandomTimeIn5Minute, getRandomTimeInMinus5, getRandomTimeInRange } from "./absensi.js";
 
 export const postDataLogAttd = async (req, res) => {
   try {
@@ -278,7 +278,21 @@ export const punchAttdLog = async (req, res) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
 
         if (lembur) {
-          return { ...item, ...lembur };
+          let ttlLembur = "";
+          if (lembur.type === "BH") {
+            const scanin = moment(item.scan_in, "HH:mm:ss");
+            const jam_in = moment(item.jk_in, "HH:mm:ss");
+            ttlLembur = scanin.diff(jam_in, "hours");
+          } else {
+            const scanout = moment(item.scan_out, "HH:mm:ss");
+            let jam_out = moment(item.jk_out, "HH:mm:ss");
+
+            if (scanout.isBefore(jam_out)) {
+              jam_out.add(1, "day");
+            }
+            ttlLembur = scanout.diff(jam_out, "hours");
+          }
+          return { ...item, ...lembur, ttlLembur };
         } else {
           return item;
         }
@@ -327,12 +341,10 @@ export const punchAttdLog = async (req, res) => {
                 logDate === items.scheduleDate
             );
 
-            
             //jika schedule ada check time dan tidak ada keterangan
             if (findSch && findSch.jk_id !== null) {
-              const objScanIn = correctionScanIn(logTime, findSch)
+              const objScanIn = correctionScanIn(logTime, findSch);
 
-              
               const dataAbsen = {
                 Nik: logs.Nik,
                 groupId: findSch.groupId,
@@ -340,7 +352,7 @@ export const punchAttdLog = async (req, res) => {
                 tanggal_in: findSch.scheduleDate,
                 tanggal_out: findSch.scanOutDate,
                 keterangan: "H",
-                ...objScanIn
+                ...objScanIn,
                 // scan_in: isInRange ? logTime : null,
                 // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
               };
@@ -379,8 +391,7 @@ export const punchAttdLog = async (req, res) => {
           );
 
           if (findSch && !findSch.scan_out) {
-  
-            const dataAbsen = correctionScanOut(logTime, findSch)
+            const dataAbsen = correctionScanOut(logTime, findSch);
 
             const postAbsen = await Attandance.update(dataAbsen, {
               where: {
@@ -567,7 +578,7 @@ export const deltSchPunchAttd = async (req, res) => {
 
 function correctionScanIn(logTime, findSch) {
   // const scanInAwa = moment(findSch.jk_scan_in_start, "HH:mm:ss");
-  let scan_in = null
+  let scan_in = null;
   const jamPulang = moment(findSch.jk_scan_out_start, "HH:mm:ss");
   const jamMasuk = moment(findSch.jk_in, "HH:mm:ss");
   const jamMasukAudit = moment(findSch.jk_scan_in_audit, "HH:mm:ss");
@@ -587,33 +598,34 @@ function correctionScanIn(logTime, findSch) {
     ket_in = checkLate ? "LATE" : null;
   }
 
-  //jika ada lembur sebelum jam kerja maka jam nya langsung di eksekusi
-  if (findSch.spl_type === "BH" && findSch.jam) {
-    return {scan_in : logTime, ket_in};
+  //jika ada lembur sebelum jam kerja maka jam nya langsung di eksekusi //findSch.jam ini dari getlembur
+  if (findSch.spl_type === "BH" && findSch.jam && findSch.ttlLembur) {
+    //JIKA TERDAPATA LEMBUR AKTUAL MAKA UBAH SCAN IN
+    const scanInLembur = getRandomTimeInMinus5(findSch.start)
+    return { scan_in: scanInLembur, ket_in };
   }
 
   //jika tidak ada lembur maka check apakah log sebelum jam audit jika iya maka get randome tima
   if (checkTime.isBefore(jamMasukAudit)) {
     const rdmScanInTime = getRandomTimeIn5Minute(
-      findSch.jk_scan_in_audit,
+      findSch.jk_scan_in_audit
       // findSch.jk_in
     );
-    return {scan_in : rdmScanInTime, ket_in};
+    return { scan_in: rdmScanInTime, ket_in };
   }
 
   if (isInRange) {
-    return {scan_in : logTime, ket_in};
+    return { scan_in: logTime, ket_in };
   } else {
-    return {scan_in , ket_in};
+    return { scan_in, ket_in };
   }
 }
-
 
 function correctionScanOut(logTime, findSch) {
   // const scanInAwa = moment(findSch.jk_scan_in_start, "HH:mm:ss");
   // console.log('jalan');
-  
-  let scan_out = null
+
+  let scan_out = null;
   const jamPulang = moment(findSch.jk_out, "HH:mm:ss");
   const jamOutAudit = moment(findSch.jk_scan_out_end, "HH:mm:ss");
 
@@ -633,26 +645,23 @@ function correctionScanOut(logTime, findSch) {
   //jika ada lembur dan jam kerja melebihi jam scan out maka langsung return
   // if(findSch.Nik.toString() === '20110124' ) {
   //   console.log(findSch);
-    
+
   // }
   if (findSch.spl_type === "AH" && findSch.jam && chkLogLebihJamAudit) {
-    return {scan_out : logTime, ket_out};
+    return { scan_out: getRandomTimeIn5Minute(findSch.finish), ket_out };
   }
 
   //jika tidak ada lembur maka check apakah log sesudah jam audit jika iya maka get randome time
   if (chkLogLebihJamAudit && !findSch.jam) {
     const rdmScanInTime = getRandomTimeIn5Minute(
-      findSch.jk_out,
+      findSch.jk_out
       // findSch.jk_in
     );
-    return {scan_out : rdmScanInTime, ket_out};
-  }else{
-    return {scan_out : logTime, ket_out};
+    return { scan_out: rdmScanInTime, ket_out };
+  } else {
+    return { scan_out: logTime, ket_out };
   }
-
-
 }
-
 
 export const punchAttdLogAccurate = async (req, res) => {
   try {
@@ -731,21 +740,20 @@ export const punchAttdLogAccurate = async (req, res) => {
                 logDate === items.scheduleDate
             );
 
-            
             //jika schedule ada check time dan tidak ada keterangan
             if (findSch && findSch.jk_id !== null) {
               // const objScanIn = correctionScanIn(logTime, findSch)
 
               const jamPulang = moment(findSch.jk_scan_out_start, "HH:mm:ss");
               const jamMasuk = moment(findSch.jk_in, "HH:mm:ss");
-            
+
               // Waktu yang akan diperiksa
               const checkTime = moment(logTime, "HH:mm:ss");
               const checkLate = checkTime.isAfter(jamMasuk);
-            
+
               //check apakah scan in ada dalam range
               const isInRange = checkTime.isBefore(jamPulang);
-            
+
               //check late dan jangan ganggu ket in manual
               let ket_in = null;
               if (findSch.ket_in) {
@@ -753,7 +761,7 @@ export const punchAttdLogAccurate = async (req, res) => {
               } else {
                 ket_in = checkLate ? "LATE" : null;
               }
-              
+
               const dataAbsen = {
                 Nik: logs.Nik,
                 groupId: findSch.groupId,
@@ -800,15 +808,14 @@ export const punchAttdLogAccurate = async (req, res) => {
           );
 
           if (findSch && !findSch.scan_out) {
-  
             const jamPulang = moment(findSch.jk_out, "HH:mm:ss");
             const jamOutAudit = moment(findSch.jk_scan_out_end, "HH:mm:ss");
-          
+
             // Waktu yang akan diperiksa
             const checkTime = moment(logTime, "HH:mm:ss");
             const checkEarly = checkTime.isBefore(jamPulang);
             const chkLogLebihJamAudit = checkTime.isAfter(jamOutAudit);
-          
+
             //check late dan jangan ganggu ket in manual
             let ket_out = null;
             if (findSch.ket_out) {
@@ -816,8 +823,8 @@ export const punchAttdLogAccurate = async (req, res) => {
             } else {
               ket_out = checkEarly ? "EARLY" : null;
             }
-          
-            const dataAbsen = {scan_out : logTime, ket_out}
+
+            const dataAbsen = { scan_out: logTime, ket_out };
             const postAbsen = await Attandance.update(dataAbsen, {
               where: {
                 tanggal_out: findSch.scanOutDate,

@@ -129,6 +129,21 @@ export const MasterJamKerja = dbSPL.define(
       allowNull: true,
       defaultValue: null,
     },
+    jk_ot_1: {
+      type: DataTypes.TIME,
+      allowNull: true,
+      defaultValue: null,
+    },
+    jk_ot_2: {
+      type: DataTypes.TIME,
+      allowNull: true,
+      defaultValue: null,
+    },
+    jk_ot_3: {
+      type: DataTypes.TIME,
+      allowNull: true,
+      defaultValue: null,
+    },
     jk_rest_ot_type: {
       type: DataTypes.ENUM("BH", "AH"),
       allowNull: true,

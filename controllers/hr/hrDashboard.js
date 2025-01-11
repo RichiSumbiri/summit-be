@@ -11,7 +11,7 @@ import {
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
-import { ChkNilaFlt } from "../util/Utility.js";
+import { CheckNilai, ChkNilaFlt } from "../util/Utility.js";
 import db from "../../config/database.js";
 
 export const getDailyHrDash = async (req, res) => {
@@ -236,9 +236,9 @@ export const getDataDashSewMp = async (req, res) => {
         getEmpOut[0].karyawanOut / (getAbsen.length + getEmpOut[0].karyawanOut)
       ) * 100;
 
-    const dataEmpPerSec = getDataPerSection(getAbsen)
-    const dataChartDeptCount = dataChartSection(dataEmpPerSec);
-    const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
+    const dataEmpPerSec = getDataPerSection(getAbsen);
+    const dataChartDept = dataChartSection(dataEmpPerSec);
+    // const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
 
     const dataDash = {
       totalEmp: getHdCount[0].ttlemp,
@@ -251,8 +251,7 @@ export const getDataDashSewMp = async (req, res) => {
       // totalTetap: totalTetap.length,
       // totalKontrak: totalKontrak.length,
       totalTlo: totalTlo,
-      dataChartDeptCount,
-      dataChartDeptAttd,
+      dataChartDept
     };
 
     return res.json({ data: dataDash, message: "succcess get data" });
@@ -264,7 +263,6 @@ export const getDataDashSewMp = async (req, res) => {
       .json({ error, message: "Terdapat error saat get data absen" });
   }
 };
-
 
 const getDataPerSection = (employees) => {
   const dataSection = employees.reduce((acc, employee) => {
@@ -287,36 +285,41 @@ const getDataPerSection = (employees) => {
   return dataSection;
 };
 
-
-
 function dataChartSection(dataBysec) {
-  let structurCat = [
-    {
-      name: "Head Count",
-      data: [],
-    },
-  ];
+  if (dataBysec) {
+    const deptName = Object.keys(dataBysec);
+    const arrHc = deptName.map(item => dataBysec[item].count)
+    const arrAttd = deptName.map(item => dataBysec[item].scan_in)
+    // const arrHc = deptName.map((item) => ({
+    //   x: item,
+    //   y: dataBysec[item].count,
+    //   fillColor: "#4CAF50",
+    // }));
 
-  let dataCategory = [];
+    // const arrAttd = deptName.map((item) => ({
+    //   x: item,
+    //   y: dataBysec[item].scan_in,
+    //   fillColor:
+    //     parseInt(CheckNilai(dataBysec[item].scan_in)) <
+    //     parseInt(CheckNilai(dataBysec[item].count))
+    //       ?  "#4CAF50"
+    //       : "#D7263D",
+    // }));
 
-  if (!dataBysec) {
-    return {
-      structurCat,
-      dataCategory,
-    };
+    const based = [
+      {
+        name: "Head Count",
+        // type: "column",
+        data: arrHc,
+      },
+      {
+        name: "Attandance",
+        // type: "column",
+        data: arrAttd,
+      },
+    ]
+    return {deptName, based};
+  } else {
+    return {deptName, based};
   }
-
-  dataCategory = Object.keys(dataBysec);
-  const dataCount = dataCategory.map(
-    (sec) => dataBysec[sec].count
-  );
-
-  structurCat[0].data = dataCount;
-
-  return {
-    structurCat,
-    dataCategory,
-  };
 }
-
-

@@ -226,3 +226,12 @@ export function getRandomTimeIn5Minute(startTime) {
   const randomTime = Math.floor(Math.random() * (end - start + 1)) + start;
   return millisecondsToTime(randomTime);
 }
+
+
+// Fungsi untuk mendapatkan waktu random dalam rentang dengan endTime = startTime - 5 menit
+export function getRandomTimeInMinus5(startTime) {
+  const start = timeToMilliseconds(startTime);
+  const end = (start - 5 )* 60 * 1000; // Tambah 5 menit dalam milidetik
+  const randomTime = Math.floor(Math.random() * (end - start + 1)) + start;
+  return millisecondsToTime(randomTime);
+}
