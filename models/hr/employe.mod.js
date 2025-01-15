@@ -512,7 +512,7 @@ GROUP BY Nik
 
 export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
 export const sqlFindEmpLikeNIK 	= sqlFindEmp + ` WHERE emp.Nik LIKE :inputQry OR emp.NamaLengkap LIKE :inputQry `;
-export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP`;
+export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP AND emp.StatusAktif='0' LIMIT 1 `;
 export const sqlFindEmpKontrak 	= sqlFindEmp +  ` WHERE TRIM(emp.StatusKaryawan)='Kontrak'`;
 
 export const sqlSummaryEmpByDept = `
