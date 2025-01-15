@@ -182,6 +182,7 @@ export const newMassKontrakKerja = async(req,res) => {
         const yearNow       = moment().format('YYYY');
         const monthNow      = convertMonthToRoman(moment().format('MM'));
         const formatIDSPKK  = `/HRD/SBR/${monthNow}/${yearNow}`;
+        const KKversion     = `KK${dataSPKK.Versi}`;
         const SuccessSPKK   = [];
         const ListEmp       = dataSPKK.listEmp;
         
@@ -196,7 +197,7 @@ export const newMassKontrakKerja = async(req,res) => {
         for await (const row of ListEmp) {
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
-                    formatSPKK: '%'+formatIDSPKK
+                    formatSPKK: `${KKversion}-%`
                 }, type: QueryTypes.SELECT
             });
             
