@@ -131,7 +131,7 @@ export const newKontrakKerja = async(req,res) => {
             
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
-                    formatSPKK: '%'+formatIDSPKK
+                    formatSPKK: `${KKversion}-%`
                 }, type: QueryTypes.SELECT
             });
             
