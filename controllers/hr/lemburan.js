@@ -149,7 +149,8 @@ export const getLemburanPendingManager = async(req,res) => {
 
 export const getLemburanPendingHRD = async(req,res) => {
     try {
-        const listPending   = await dbSPL.query(queryLemburanPendingHRD, {type: QueryTypes.SELECT });
+        const Nik           = req.params.nik;
+        const listPending   = await dbSPL.query(queryLemburanPendingHRD, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -365,12 +366,12 @@ export const postApproveLemburan = async(req,res) => {
                 checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_hrd: empNik }});
                 if(checkSPL.length!==0){
                     actionApprove = await ModelSPLMain.update({
-                        spl_approve_head: 1,
-                        spl_head_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                        spl_approve_hrd: 1,
+                        spl_hrd_ts: moment().format('YYYY-MM-DD HH:mm:ss')
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_head: empNik
+                            spl_hrd: empNik
                         }
                     });
                     if(actionApprove){

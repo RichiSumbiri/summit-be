@@ -174,7 +174,7 @@ router.get("/lemburan-pending-all", getLemburanPendingAll);
 router.get("/lemburan-pending-spv/:nik", getLemburanPendingSPV);
 router.get("/lemburan-pending-head/:nik", getLemburanPendingHead);
 router.get("/lemburan-pending-manager/:nik", getLemburanPendingManager);
-router.get("/lemburan-pending-hrd", getLemburanPendingHRD);
+router.get("/lemburan-pending-hrd/:nik", getLemburanPendingHRD);
 router.get("/lemburan-approval-complete/:startDate/:endDate", getLemburanApprovalComplete);
 
 
