@@ -211,21 +211,11 @@ export const newMassKontrakKerja = async(req,res) => {
                 nomorUrut   = parseInt(lastCount[1]) + 1;
             }
             
-            const newNoUrut     = nomorUrut.toString().padStart(3, '0');
             
-            const CountSPKK     = await sumbiriKontrakKerja.count({
-                where: {
-                    Nik: parseInt(row.Nik),
-                    NikKTP: row.NikKTP,    
-                }
-            });
-            
-            const stringSPKK    = `KK${convertMonthToRoman(parseInt(CountSPKK)+1)}-`;
-            const newIdSPKK     = stringSPKK + newNoUrut + formatIDSPKK;
             const newSPKK       = await sumbiriKontrakKerja.create({
-                IDSPKK: newIdSPKK,
-                Nik: parseInt(row.Nik),
-                NikKTP: row.NikKTP,
+                IDSPKK: `${KKversion}-${nomorUrut.toString().padStart(3, '0')}${formatIDSPKK}`,
+                Nik: dataSPKK.Nik.toString(),
+                NikKTP: dataSPKK.NikKTP.toString(),
                 PeriodeKontrak: dataSPKK.PeriodeKontrak,
                 StartKontrak: dataSPKK.StartKontrak,
                 FinishKontrak: dataSPKK.FinishKontrak,
