@@ -123,78 +123,83 @@ export const newMutasiMass = async(req,res) => {
         const yearNow       = moment().format('YYYY');
         const monthNow      = convertMonthToRoman(moment().format('M'));
         const formatNoSPM   = `/SPM/HRD-SBR/${monthNow}/${yearNow}`; 
-        
+        // const jenisMutasi   = dataMutasi.jenisMutasi;
         let lastSPM;
         let nomorUrut       = 1;
         
-        for await (const row of ListEmp) {
-            const findLastSPM   = await dbSPL.query(queryGetLastMutasi, {
-                replacements: {
-                    formatMutasi: '%'+formatNoSPM
-                }, type: QueryTypes.SELECT
-            });
-
-            if(findLastSPM.length===0){
-                nomorUrut   = 1;
-            } else {
-                lastSPM     = findLastSPM[0].NoMutasi;
-                nomorUrut   = parseInt(lastSPM.substring(0, 3)) + 1;
-            }
         
-            const newNoUrut     = nomorUrut.toString().padStart(3, '0');
-            const newIdSPM      = newNoUrut + formatNoSPM;
-            const postMutasi = await sumbiriMutasiEmp.create({
-                 Nik: row.Nik,
-                 number_mutasi: newIdSPM,
-                 date_mutasi: dataMutasi.date_mutasi,
-                 reason_mutasi: dataMutasi.reason_mutasi,
-                 source_dept: parseInt(row.IDDepartemen),
-                 source_subdept: parseInt(row.IDSubDepartemen),
-                 source_position: parseInt(row.IDPosisi),
-                 source_section: row.NamaSection,
-                 destination_dept: dataMutasi.destination_dept,
-                 destination_subdept: dataMutasi.destination_subdept,
-                 destination_position: dataMutasi.destination_position,
-                 destination_section: dataMutasi.destination_section,
-                 CreateBy: dataMutasi.CreateBy,
-                 create_time: moment().format('YYYY-MM-DD hh:mm:ss') 
+        for await (const row of ListEmp) {
+            
+            if(dataMutasi.jenis_mutasi==="MUTASI"){
+                const findLastSPM   = await dbSPL.query(queryGetLastMutasi, {
+                    replacements: {
+                        formatMutasi: '%'+formatNoSPM
+                    }, type: QueryTypes.SELECT
+                });
+    
+                if(findLastSPM.length===0){
+                    nomorUrut   = 1;
+                } else {
+                    lastSPM     = findLastSPM[0].NoMutasi;
+                    nomorUrut   = parseInt(lastSPM.substring(0, 3)) + 1;
+                }
+            
+                const newNoUrut     = nomorUrut.toString().padStart(3, '0');
+                const newIdSPM      = newNoUrut + formatNoSPM;
+                await sumbiriMutasiEmp.create({
+                     Nik: row.Nik,
+                     number_mutasi: newIdSPM,
+                     date_mutasi: dataMutasi.date_mutasi,
+                     reason_mutasi: dataMutasi.reason_mutasi,
+                     source_dept: parseInt(row.IDDepartemen),
+                     source_subdept: parseInt(row.IDSubDepartemen),
+                     source_position: parseInt(row.IDPosisi),
+                     source_section: row.NamaSection,
+                     destination_dept: dataMutasi.destination_dept,
+                     destination_subdept: dataMutasi.destination_subdept,
+                     destination_position: dataMutasi.destination_position,
+                     destination_section: dataMutasi.destination_section,
+                     CreateBy: dataMutasi.CreateBy,
+                     create_time: moment().format('YYYY-MM-DD hh:mm:ss') 
+                });
+            } 
+            
+            // check emp siteline
+            const checkEmpSiteline = await modelMasterSiteline.findOne({
+                where: {
+                IDSection: dataMutasi.Destination_Section ? dataMutasi.Destination_Section : null,
+                IDDept: dataMutasi.ID_Destination_Dept ? dataMutasi.ID_Destination_Dept : null,
+                IDSubDept: dataMutasi.ID_Destination_SubDept ? dataMutasi.ID_Destination_SubDept : null
+                }
             });
-            if(postMutasi){
-                // check emp siteline
-                const checkEmpSiteline = await modelMasterSiteline.findOne({
-                    where: {
-                    IDSection: dataMutasi.Destination_Section,
-                    IDDept: dataMutasi.ID_Destination_Dept,
-                    IDSubDept: dataMutasi.ID_Destination_SubDept
-                    }
-                });
-                
-                const EmpIDSiteline = checkEmpSiteline===null ? null : checkEmpSiteline.IDSiteline;
+            
+            const EmpIDSiteline = checkEmpSiteline===null ? null : checkEmpSiteline.IDSiteline;
 
-                const updateEmp = await modelSumbiriEmployee.update({
-                    IDDepartemen: parseInt(dataMutasi.destination_dept),
-                    IDSubDepartemen: parseInt(dataMutasi.destination_subdept),
-                    IDPosisi: parseInt(dataMutasi.destination_position),
-                    IDSection: dataMutasi.destination_section,
-                    IDSiteline: EmpIDSiteline
-                }, {
-                    where: {
-                        Nik: parseInt(row.Nik)
-                    }
-                });
-                if(updateEmp){
-                    SuccessMutasi.push({Nik: row.Nik, status: true});
+            const updateEmp = await modelSumbiriEmployee.update({
+                IDDepartemen: parseInt(dataMutasi.destination_dept),
+                IDSubDepartemen: parseInt(dataMutasi.destination_subdept),
+                IDPosisi: parseInt(dataMutasi.destination_position),
+                IDSection: dataMutasi.destination_section,
+                IDSiteline: EmpIDSiteline
+            }, {
+                where: {
+                    Nik: parseInt(row.Nik)
+                }
+            });
+            if(updateEmp){
+                await SuccessMutasi.push({Nik: row.Nik, status: true});
+                if(SuccessMutasi.length===ListEmp.length){
+                    return res.status(200).json({
+                        success: true,
+                        message: `success post new mass mutasi emp`
+                    });
                 }
             }
         }
         
-        if(SuccessMutasi.length===ListEmp.length){
-            return res.status(200).json({
-                success: true,
-                message: `success post new mass mutasi emp`
-            });
-        }
+        
     } catch(err){
+        console.error(err);
         return res.status(404).json({
             success: false,
             message: "fail post new mutasi emp"
