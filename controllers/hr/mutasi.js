@@ -176,11 +176,11 @@ export const newMutasiMass = async(req,res) => {
             const EmpIDSiteline = checkEmpSiteline===null ? null : checkEmpSiteline.IDSiteline;
 
             const updateEmp = await modelSumbiriEmployee.update({
-                IDDepartemen: parseInt(dataMutasi.destination_dept),
-                IDSubDepartemen: parseInt(dataMutasi.destination_subdept),
-                IDPosisi: parseInt(dataMutasi.destination_position),
-                IDSection: dataMutasi.destination_section,
-                IDSiteline: EmpIDSiteline
+                IDDepartemen: dataMutasi.destination_dept ? dataMutasi.destination_dept : row.IDDepartemen,
+                IDSubDepartemen: dataMutasi.destination_subdept ? dataMutasi.destination_subdept : row.IDSubDepartemen,
+                IDPosisi: dataMutasi.destination_position ? dataMutasi.destination_position : row.IDPosisi,
+                IDSection: dataMutasi.destination_section ? dataMutasi.destination_section : row.IDSection,
+                IDSiteline: EmpIDSiteline ? EmpIDSiteline : row.IDSiteline
             }, {
                 where: {
                     Nik: parseInt(row.Nik)
