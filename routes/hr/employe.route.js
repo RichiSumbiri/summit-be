@@ -71,6 +71,7 @@ import { getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, get
 import {
   deleteJamKerja,
   getAllJamKerja,
+  getGroupJamKerja,
   patchJamKerja,
   postNewJamKerja,
 } from "../../controllers/hr/JadwalJamKerja.js";
@@ -97,6 +98,7 @@ router.get("/master-cuti", getMasterCuti);
 router.get("/master-absentee", getMasterAbsentee);
 
 //jam kerja
+router.get("/master-group-jam-kerja", getGroupJamKerja);
 router.get("/master-jam-kerja", getAllJamKerja);
 router.post("/master-jam-kerja", postNewJamKerja);
 router.patch("/master-jam-kerja", patchJamKerja);
