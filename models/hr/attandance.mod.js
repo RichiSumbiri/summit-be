@@ -268,9 +268,11 @@ SELECT
  a.log_machine_id,
  a.log_machine_name,
  a.log_punch,
- b.log_punch_description
+ b.log_punch_description,
+ md.NameDept
 FROM sumbiri_log_attd a 
 LEFT JOIN sumbiri_employee se ON se.Nik = a.Nik
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
 LEFT JOIN master_log_punch b ON a.log_punch = b.log_punch_id
 WHERE a.log_date  BETWEEN :startDateTime AND  :endDateTime  
 ORDER BY a.log_machine_id,  a.log_date `;
@@ -373,7 +375,8 @@ sa.ket_out,
 sa.keterangan,
 sa.createdAt,
 sa.mod_id,
-sa.updatedAt
+sa.updatedAt,
+msts.Name AS NamaSection
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
@@ -477,3 +480,66 @@ export const allDeptTtl = `
 	  AND se.TanggalMasuk <= :date`;
 
 export const SewingLineHR = `SELECT DISTINCT a.SITE, a.SITE_NAME,  a.CUS_NAME, a.LINE_NAME, a.ID_SITELINE FROM item_siteline a`;
+
+
+export const qryAbsVerif = `WITH base_absen AS (
+	SELECT 
+	    se.Nik, 
+		  se.NamaLengkap,
+		  se.IDDepartemen,
+		  se.IDSubDepartemen,
+		  se.IDSection,
+		  se.IDPosisi,
+        msd.Name subDeptName,
+	     md.NameDept,
+	    sgs.groupId,
+       sis.jadwalId_inv,
+	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
+	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
+	FROM sumbiri_employee se
+	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
+	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
+	WHERE se.StatusAktif = 0 -- Karyawan saat ini tidak aktif
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
+	  AND se.TanggalMasuk <= :date
+)
+SELECT 
+ba.Nik, 
+ba.NamaLengkap,
+ba.NameDept,
+ba.IDDepartemen,
+ba.IDSubDepartemen,
+ba.subDeptName,
+ba.IDSection,
+msts.Name AS NamaSection,
+ba.groupId,
+mp.Name AS jabatan,
+ba.jadwalId_inv,
+sgs.groupName,
+ba.jk_id,
+mjk.idGroup,
+mjk.jk_nama,
+ba.calendar,
+sa.jk_id jk_id_absen,
+sa.id, 
+sa.tanggal_in,
+sa.tanggal_out,
+sa.scan_in,
+sa.scan_out,
+sa.ket_in,
+sa.ket_out,
+sa.keterangan,
+sa.createdAt,
+sa.mod_id,
+sa.updatedAt
+FROM base_absen ba
+LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+-- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+`

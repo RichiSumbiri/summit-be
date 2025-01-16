@@ -3,6 +3,7 @@ import { Op, QueryTypes } from "sequelize";
 import {
   Attandance,
   getLemburForAbsen,
+  qryAbsVerif,
   qryDailyAbsensi,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
@@ -30,20 +31,19 @@ export const getAbsenDaily = async (req, res) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
 
         if (lembur) {
-          let ttlLembur = ''
-          if(lembur.type === 'BH'){
-            const scanin = moment(item.scan_in, 'HH:mm:ss')
-            const jam_in = moment(item.jk_in, 'HH:mm:ss')
-            ttlLembur = scanin.diff(jam_in, 'hours')
-          }else{
-            const scanout = moment(item.scan_out, 'HH:mm:ss')
-            let jam_out = moment(item.jk_out, 'HH:mm:ss')
-            
-            if(scanout.isBefore(jam_out)){
-              jam_out.add(1, 'day')
-            }
-            ttlLembur = scanout.diff(jam_out, 'hours')
+          let ttlLembur = "";
+          if (lembur.type === "BH") {
+            const scanin = moment(item.scan_in, "HH:mm:ss");
+            const jam_in = moment(item.jk_in, "HH:mm:ss");
+            ttlLembur = scanin.diff(jam_in, "hours");
+          } else {
+            const scanout = moment(item.scan_out, "HH:mm:ss");
+            let jam_out = moment(item.jk_out, "HH:mm:ss");
 
+            if (scanout.isBefore(jam_out)) {
+              jam_out.add(1, "day");
+            }
+            ttlLembur = scanout.diff(jam_out, "hours");
           }
           return { ...item, ...lembur, ttlLembur };
         } else {
@@ -227,11 +227,55 @@ export function getRandomTimeIn5Minute(startTime) {
   return millisecondsToTime(randomTime);
 }
 
-
 // Fungsi untuk mendapatkan waktu random dalam rentang dengan endTime = startTime - 5 menit
 export function getRandomTimeInMinus5(startTime) {
   const start = timeToMilliseconds(startTime);
-  const end = (start - 5 )* 60 * 1000; // Tambah 5 menit dalam milidetik
+  const end = (start - 5) * 60 * 1000; // Tambah 5 menit dalam milidetik
   const randomTime = Math.floor(Math.random() * (end - start + 1)) + start;
   return millisecondsToTime(randomTime);
 }
+
+export const getVerifAbsenDaily = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    let getAbsen = await dbSPL.query(qryAbsVerif, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    getAbsen = getAbsen.filter((item) => !item.scan_in || !item.scan_out);
+    const getUserId = getAbsen.map((items) => items.mod_id);
+
+    if (getUserId.length > 0) {
+      const getListUser = await Users.findAll({
+        where: {
+          USER_ID: {
+            [Op.in]: getUserId,
+          },
+        },
+        attributes: ["USER_ID", "USER_INISIAL"],
+        raw: true,
+      });
+
+      getAbsen = getAbsen.map((item) => {
+        const userName = getListUser.find((emp) => emp.USER_ID === item.mod_id);
+
+        if (userName) {
+          return { ...item, ...userName };
+        } else {
+          return item;
+        }
+      });
+    }
+
+    return res.json({ data: getAbsen, message: "succcess get data" });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data absen" });
+  }
+};

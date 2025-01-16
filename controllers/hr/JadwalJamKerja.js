@@ -4,6 +4,7 @@ import {
   EmpGroup,
   getGroupSCh,
   GroupJadwal,
+  GroupJamKerja,
   GroupShift,
   IndividuJadwal,
   MasterJamKerja,
@@ -46,12 +47,39 @@ export const postNewJamKerja = async (req, res) => {
   }
 };
 
+
+
+export const getGroupJamKerja = async (req, res) => {
+  try {
+    const listGroupJamKerja = await GroupJamKerja.findAll({
+      raw: true,
+      order: [["idGroup", "ASC"]],
+    });
+
+      res.status(200).json({
+        data: listGroupJamKerja,
+        message: "Success Menambahkan Group Jam Kerja",
+      });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan Jam Kerja" });
+  }
+};
+
 export const getAllJamKerja = async (req, res) => {
   try {
     const listJamKerja = await MasterJamKerja.findAll({
       raw: true,
       order: [["jk_nama", "ASC"]],
     });
+
+    listJamKerja.sort((a, b) => {
+      const getStartHour = (str) => parseInt(str.split('-')[0], 10);
+
+      return getStartHour(a.jk_nama) - getStartHour(b.jk_nama);;
+    });
+
     if (listJamKerja.length > 0) {
       const listUserId = listJamKerja
         .map((item) => [item.add_id, item.mod_id])

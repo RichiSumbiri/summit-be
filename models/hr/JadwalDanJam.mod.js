@@ -21,9 +21,32 @@ export const MasterTypeCal = dbSPL.define(
   }
 );
 
+export const GroupJamKerja = dbSPL.define(
+  "master_group_jam",
+  {
+    idGroup : {
+      type: DataTypes.INTEGER, 
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    NamaGroup : {
+      type: DataTypes.STRING(50),
+      unique: true,
+      allowNull: true,
+      defaultValue: null,    }
+  } ,
+   {
+    tableName: "master_group_jam",
+    timestamps: false,
+  }
+)
+
 export const MasterJamKerja = dbSPL.define(
   "master_jam_kerja",
   {
+    idGroup: {
+      type: DataTypes.INTEGER,
+    },
     jk_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
