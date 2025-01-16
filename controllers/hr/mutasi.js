@@ -188,16 +188,15 @@ export const newMutasiMass = async(req,res) => {
             });
             if(updateEmp){
                 await SuccessMutasi.push({Nik: row.Nik, status: true});
-                if(SuccessMutasi.length===ListEmp.length){
-                    return res.status(200).json({
-                        success: true,
-                        message: `success post new mass mutasi emp`
-                    });
-                }
             }
         }
         
-        
+        if(SuccessMutasi.length===ListEmp.length){
+            return res.status(200).json({
+                success: true,
+                message: `success post new mass mutasi emp`
+            });
+        }
     } catch(err){
         console.error(err);
         return res.status(404).json({
