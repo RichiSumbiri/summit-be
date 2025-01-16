@@ -131,7 +131,8 @@ export const newKontrakKerja = async(req,res) => {
             
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
-                    formatSPKK: `${KKversion}-%`
+                    formatStartSPKK: `${KKversion}-%`,
+                    formatEndSPKK: formatIDSPKK
                 }, type: QueryTypes.SELECT
             });
             
@@ -197,7 +198,8 @@ export const newMassKontrakKerja = async(req,res) => {
         for await (const row of ListEmp) {
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
-                    formatSPKK: `${KKversion}-%`
+                    formatStartSPKK: `${KKversion}-%`,
+                    formatEndSPKK: formatIDSPKK
                 }, type: QueryTypes.SELECT
             });
             
