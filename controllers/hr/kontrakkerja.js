@@ -132,7 +132,7 @@ export const newKontrakKerja = async(req,res) => {
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
                     formatStartSPKK: `${KKversion}-%`,
-                    formatEndSPKK: formatIDSPKK
+                    formatEndSPKK: `%${formatIDSPKK}`
                 }, type: QueryTypes.SELECT
             });
             
@@ -167,6 +167,7 @@ export const newKontrakKerja = async(req,res) => {
             });
         }
     } catch(err){
+        console.log(err);
         res.status(404).json({
             success: false,
             message: "fail create new kontrak kerja",
@@ -199,10 +200,10 @@ export const newMassKontrakKerja = async(req,res) => {
             const findLastSPKK  = await dbSPL.query(queryLastSPKK, {
                 replacements: {
                     formatStartSPKK: `${KKversion}-%`,
-                    formatEndSPKK: formatIDSPKK
+                    formatEndSPKK: `%${formatIDSPKK}`
                 }, type: QueryTypes.SELECT
             });
-            
+            console.log(KKversion);
             if(findLastSPKK.length===0){
                 nomorUrut   = 1;
             } else {
@@ -235,6 +236,7 @@ export const newMassKontrakKerja = async(req,res) => {
             });  
         }
     } catch(err){
+        console.log(err);
         res.status(404).json({
             success: false,
             message: "fail create new kontrak kerja",
