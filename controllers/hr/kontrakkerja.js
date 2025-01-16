@@ -203,7 +203,6 @@ export const newMassKontrakKerja = async(req,res) => {
                     formatEndSPKK: `%${formatIDSPKK}`
                 }, type: QueryTypes.SELECT
             });
-            console.log(KKversion);
             if(findLastSPKK.length===0){
                 nomorUrut   = 1;
             } else {
@@ -212,11 +211,10 @@ export const newMassKontrakKerja = async(req,res) => {
                 nomorUrut   = parseInt(lastCount[1]) + 1;
             }
             
-            
             const newSPKK       = await sumbiriKontrakKerja.create({
                 IDSPKK: `${KKversion}-${nomorUrut.toString().padStart(3, '0')}${formatIDSPKK}`,
-                Nik: dataSPKK.Nik.toString(),
-                NikKTP: dataSPKK.NikKTP.toString(),
+                Nik: row.Nik,
+                NikKTP: row.NikKTP,
                 PeriodeKontrak: dataSPKK.PeriodeKontrak,
                 StartKontrak: dataSPKK.StartKontrak,
                 FinishKontrak: dataSPKK.FinishKontrak,
