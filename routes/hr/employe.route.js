@@ -67,7 +67,7 @@ import {
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
 // import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
-import { getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingSPV, getSPLAccess, postApproveLemburan, postLemburan } from "../../controllers/hr/lemburan.js";
+import { getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingSPV, getSPLAccess, postApproveLemburan, postLemburan, postRejectLemburan } from "../../controllers/hr/lemburan.js";
 import {
   deleteJamKerja,
   getAllJamKerja,
@@ -168,6 +168,7 @@ router.post("/lemburan-new", postLemburan);
 router.put("/lemburan-update/:splNumber");
 router.delete("/lemburan-delete/:splNumber")
 router.post("/lemburan-approve", postApproveLemburan);
+router.post("/lemburan-reject", postRejectLemburan);
 router.get("/lemburan-pending", getLemburanPending);
 router.get("/lemburan-created/:userId", getLemburanCreated);
 router.get("/lemburan-pending-all", getLemburanPendingAll);

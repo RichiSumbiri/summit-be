@@ -400,3 +400,106 @@ export const postApproveLemburan = async(req,res) => {
         });
     }
 }
+
+export const postRejectLemburan = async(req,res) => {
+    try {
+        const { empNik, Level, SPLNumber } = req.body;
+        let checkSPL;
+        let resultCheckSPL;
+        let actionApprove;
+        switch(Level){
+            case 'PENDING-SPV':
+                checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_foremanspv: empNik }});
+                if(checkSPL.length!==0){
+                    actionApprove = await ModelSPLMain.update({
+                        spl_approve_foremanspv: 0,
+                        spl_foremanspv_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }, {
+                        where: {
+                            spl_number: SPLNumber,
+                            spl_foremanspv: empNik
+                        }
+                    });
+                    if(actionApprove){
+                        resultCheckSPL = true;
+                    }
+                } else {
+                    resultCheckSPL = false;
+                }
+            break;            
+            case 'PENDING-HEAD':
+                checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_head: empNik }});
+                if(checkSPL.length!==0){
+                    actionApprove = await ModelSPLMain.update({
+                        spl_approve_head: 0,
+                        spl_head_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }, {
+                        where: {
+                            spl_number: SPLNumber,
+                            spl_head: empNik
+                        }
+                    });
+                    if(actionApprove){
+                        resultCheckSPL = true;
+                    }
+                } else {
+                    resultCheckSPL = false;
+                }
+            break;
+            case 'PENDING-MANAGER':
+                checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_manager: empNik }});
+                if(checkSPL.length!==0){
+                    actionApprove = await ModelSPLMain.update({
+                        spl_approve_manager: 0,
+                        spl_manager_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }, {
+                        where: {
+                            spl_number: SPLNumber,
+                            spl_manager: empNik
+                        }
+                    });
+                    if(actionApprove){
+                        resultCheckSPL = true;
+                    }
+                } else {
+                    resultCheckSPL = false;
+                }
+            break;
+            case 'PENDING-HRD':
+                checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_hrd: empNik }});
+                if(checkSPL.length!==0){
+                    actionApprove = await ModelSPLMain.update({
+                        spl_approve_hrd: 0,
+                        spl_hrd_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }, {
+                        where: {
+                            spl_number: SPLNumber,
+                            spl_hrd: empNik
+                        }
+                    });
+                    if(actionApprove){
+                        resultCheckSPL = true;
+                    }
+                } else {
+                    resultCheckSPL = false;
+                }
+            break;
+        }
+        if(resultCheckSPL===true){
+            res.status(200).json({
+                success: true,
+                message: "success post approve lemburan"
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: "fail post approve lemburan"
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error approve pending lemburan",
+        });
+    }
+}
