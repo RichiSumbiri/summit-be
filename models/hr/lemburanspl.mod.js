@@ -96,7 +96,7 @@ AND ssm.spl_version = 1
 
 export const queryLemburanPendingManager = queryLemburan + `
 WHERE
-ssm.spl_head = :empNik
+ssm.spl_manager = :empNik
 AND ssm.spl_approve_foreman = 1
 AND ssm.spl_approve_head = 1
 AND ssm.spl_approve_manager IS NULL
