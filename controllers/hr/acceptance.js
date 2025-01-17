@@ -34,7 +34,7 @@ export const getApprovedPelamar = async(req,res) => {
 export const postNewEmp = async(req,res) => {
     try {
         const dataNewEmp            = req.body.dataNewEmp;
-        const checkExistingEMP      = await modelSumbiriEmployee.findAll({ where: { NikKTP: dataNewEmp.NikKTP, Nik: dataNewEmp.Nik }, raw: true });
+        const checkExistingEMP      = await modelSumbiriEmployee.findAll({ where: { Nik: dataNewEmp.Nik }, raw: true });
         let postEmp;
 
         if(checkExistingEMP.length !== 0){
@@ -72,7 +72,6 @@ export const postNewEmp = async(req,res) => {
                 UpdateBy: dataNewEmp.CreateBy
             }, {
                 where: {
-                    NikKTP: dataNewEmp.NikKTP,
                     Nik: dataNewEmp.Nik
                 }
             });
