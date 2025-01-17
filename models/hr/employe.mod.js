@@ -394,6 +394,10 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		allowNull: true,
 		defaultValue: null,
 	  },
+	  CancelMasuk: {
+		type: DataTypes.ENUM('Y', 'N'),
+		allowNull: true
+	  },
 	  CreateBy: {
 		type: DataTypes.STRING(100),
 		allowNull: true,
@@ -510,9 +514,9 @@ GROUP BY Nik
 
 `;
 
-export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik`;
+export const sqlFindEmpByNIK 	= sqlFindEmp + ` WHERE emp.Nik = :empnik AND emp.StatusAktif='0' AND emp.CancelMasuk='N' `;
 export const sqlFindEmpLikeNIK 	= sqlFindEmp + ` WHERE emp.Nik LIKE :inputQry OR emp.NamaLengkap LIKE :inputQry `;
-export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP AND emp.StatusAktif='0' LIMIT 1 `;
+export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP AND emp.StatusAktif='0' AND emp.CancelMasuk='N' LIMIT 1 `;
 export const sqlFindEmpKontrak 	= sqlFindEmp +  ` WHERE TRIM(emp.StatusKaryawan)='Kontrak'`;
 
 export const sqlSummaryEmpByDept = `
@@ -527,7 +531,7 @@ FROM
 	sumbiri_employee se
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen 
-WHERE se.StatusAktif = 0
+WHERE se.StatusAktif = 0 AND se.CancelMasuk='N'
 GROUP BY se.IDSubDepartemen 
 `;
 

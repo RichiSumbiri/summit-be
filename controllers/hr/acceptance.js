@@ -31,6 +31,34 @@ export const getApprovedPelamar = async(req,res) => {
     }
 }
 
+
+export const postCancelEmp = async(req,res) => {
+    try {
+        const dataNewEmp            = req.body.dataNewEmp;
+        const checkExistingEMP      = await modelSumbiriEmployee.findAll({ where: { Nik: dataNewEmp.Nik }, raw: true });
+        if(checkExistingEMP.length !== 0){
+            const action = await modelSumbiriEmployee.update({
+                StatusAktif: 1,
+                CancelMasuk: 'Y'
+            }, {
+                where: {
+                    Nik: dataNewEmp.Nik
+                }
+            });
+            if(action){
+                res.status(200).json({
+                    success: true,
+                    message: "success cancel new emp"
+                });
+            }
+        }
+    } catch(err){
+
+    }
+
+}
+
+
 export const postNewEmp = async(req,res) => {
     try {
         const dataNewEmp            = req.body.dataNewEmp;

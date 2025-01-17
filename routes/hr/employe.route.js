@@ -37,6 +37,7 @@ import {
 } from "../../controllers/hr/jobposting.js";
 import {
   getApprovedPelamar,
+  postCancelEmp,
   postNewEmp,
 } from "../../controllers/hr/acceptance.js";
 import {
@@ -123,7 +124,7 @@ router.get("/get-lamaran/:startDate/:endDate", getLamaranByDate);
 // acceptance
 router.get("/get-approved-pelamar/:startDate/:endDate", getApprovedPelamar);
 router.post("/new-emp", postNewEmp);
-
+router.post("/cancel-emp", postCancelEmp);
 
 // kontrak kerj
 router.get( "/get-kontrakkerja-range/:startDate/:endDate", getKontrakKerjaByRange);
