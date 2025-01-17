@@ -5,6 +5,7 @@ import {
   getLemburForAbsen,
   qryAbsVerif,
   qryDailyAbsensi,
+  VerifAbsen,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -270,6 +271,24 @@ export const getVerifAbsenDaily = async (req, res) => {
       });
     }
 
+    const getLembur = await dbSPL.query(getLemburForAbsen, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    if (getLembur.length > 0) {
+      getAbsen = getAbsen.map((item) => {
+        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
+
+        if (lembur) {
+          return { ...item, ...lembur };
+        } else {
+          return item;
+        }
+      });
+    }
+
     return res.json({ data: getAbsen, message: "succcess get data" });
   } catch (error) {
     console.log(error);
@@ -279,3 +298,89 @@ export const getVerifAbsenDaily = async (req, res) => {
       .json({ error, message: "Terdapat error saat get data absen" });
   }
 };
+
+
+
+export async function verifAbsenCtr(req, res) {
+  try {
+    // console.log(dataUpdate);
+    const { objEdit, arrAbs, tanggal_in, userId, autoIn, autoOut } = req.body;
+
+    if (objEdit.jam_kerja[0].jk_id) {
+      const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
+      const tanggal_out =
+        objEdit.jam_kerja[0].jk_out_day === "N"
+          ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
+          : tanggal_in;
+
+      // console.log(objEdit.keterangan);
+
+      let updateArrAbs = arrAbs.map((item) => ({
+        ...item,
+        scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
+        scan_out: objEdit.scan_out === "00:00" ? null : objEdit.scan_out,
+        jk_id: objEdit.jam_kerja[0].jk_id || null,
+        ket_in: objEdit.ket_in || null,
+        ket_out: objEdit.ket_out || null,
+        keterangan: objEdit.keterangan[0].code_absen || null,
+        tanggal_in: tanggal_in,
+        tanggal_out: tanggal_out,
+        scheduleDate_inv: tanggal_in,
+        mod_id: userId,
+      }));
+
+      if (arrAbs.length > 1 && objEdit.keterangan[0].code_absen === "H") {
+        updateArrAbs = updateArrAbs.map((item) => ({
+          ...item,
+          scan_in: autoIn ? getRandomTimeIn5Minute(
+            objEdit.jam_kerja[0].jk_scan_in_audit
+            // objEdit.jam_kerja[0].jk_in
+          ) : item.scan_in,
+          scan_out: autoOut ? getRandomTimeIn5Minute(
+            objEdit.jam_kerja[0].jk_out
+            // objEdit.jam_kerja[0].jk_scan_out_end
+          ) : item.scan_out,
+        }));
+      }
+
+      // const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
+      //   updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
+      //   where: {
+      //     jadwalId: ["jadwalId_inv"],
+      //   },
+      // });
+
+      const verifAbsenProsess = await VerifAbsen.bulkCreate(updateArrAbs, {
+        updateOnDuplicate: [
+          "scan_in",
+          "scan_out",
+          "jk_id",
+          "ket_in",
+          "ket_out",
+          "keterangan",
+          "tanggal_in",
+          "tanggal_out",
+          "mod_id",
+        ],
+
+        where: {
+          id: ["id"],
+        },
+      });
+
+      if (verifAbsenProsess) {
+        return res.json({
+          // data: absObj,
+          message: "succcess save data",
+        });
+      } else {
+        return res.status(500).json({ message: "Gagal save" });
+      }
+    } else {
+      return res.status(404).json({ message: "Mohon set Jam kerja" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}

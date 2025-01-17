@@ -8,11 +8,14 @@ import {
   karyawanOut,
   karyawanOutSewing,
   qryDailyAbsensi,
+  qryGetEmpInExpand,
+  qryGetEmpOutExpand,
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
-import { CheckNilai, ChkNilaFlt } from "../util/Utility.js";
+import { CheckNilai, ChkNilaFlt, totalCol } from "../util/Utility.js";
 import db from "../../config/database.js";
+import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
 export const getDailyHrDash = async (req, res) => {
   try {
@@ -45,7 +48,16 @@ export const getDailyHrDash = async (req, res) => {
     const getEmpOut = await dbSPL.query(karyawanOut, {
       replacements: { date },
       type: QueryTypes.SELECT,
-      // logging: console.log
+      // logging: conso
+      // le.log
+    });
+
+    const detailEmpOut = await modelSumbiriEmployee.findAll({
+      where: {
+        TanggalKeluar: date,
+        IDDepartemen: "100103",
+      },
+      raw: true,
     });
 
     const totalAttd = getAbsen.filter((item) => item.scan_in);
@@ -198,6 +210,16 @@ export const getDataDashSewMp = async (req, res) => {
       // logging: console.log
     });
 
+    getAbsen.sort((a, b) => {
+      if (a.SITE_NAME < b.SITE_NAME) {
+        return -1;
+      }
+      if (a.SITE_NAME > b.SITE_NAME) {
+        return 1;
+      }
+      return 0;
+    });
+
     const getLembur = await dbSPL.query(getLemburForAbsen, {
       replacements: { date },
       type: QueryTypes.SELECT,
@@ -221,37 +243,69 @@ export const getDataDashSewMp = async (req, res) => {
       type: QueryTypes.SELECT,
       // logging: console.log
     });
+
     const getHdCount = await dbSPL.query(allDeptTtl, {
       replacements: { date },
       type: QueryTypes.SELECT,
       // logging: console.log
     });
 
+    const ttlEmpOut = totalCol(getEmpOut, "karyawanOut");
+
     const totalAttd = getAbsen.filter((item) => item.scan_in);
     const totalEmpIn = getAbsen.filter((item) => item.TanggalMasuk === date);
     const totalMale = getAbsen.filter((item) => item.JenisKelamin === 0);
     const totalFemale = getAbsen.filter((item) => item.JenisKelamin === 1);
     const totalTlo =
-      ChkNilaFlt(
-        getEmpOut[0].karyawanOut / (getAbsen.length + getEmpOut[0].karyawanOut)
-      ) * 100;
+      ChkNilaFlt(ttlEmpOut / (getAbsen.length + ttlEmpOut)) * 100;
 
     const dataEmpPerSec = getDataPerSection(getAbsen);
     const dataChartDept = dataChartSection(dataEmpPerSec);
+    const dataTtlHcVsAbs = getTotalCountAndVariance(dataEmpPerSec);
     // const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
+
+    const joinResult = { ...dataEmpPerSec };
+
+    // Inisialisasi lto = 0 untuk semua data
+    Object.keys(joinResult).forEach((key) => {
+      joinResult[key] = { ...joinResult[key], lto: 0, karyawanOut: 0 };
+    });
+
+    if (getEmpOut.length > 0 && dataEmpPerSec) {
+      getEmpOut.forEach((item) => {
+        if (joinResult[item.CusName]) {
+          const count = joinResult[item.CusName].count || 0;
+          const karyawanOut = item.karyawanOut || 0;
+          const ltoValue =
+            karyawanOut > 0
+              ? ChkNilaFlt(karyawanOut / (count + karyawanOut)) * 100
+              : 0;
+
+          joinResult[item.CusName] = {
+            ...joinResult[item.CusName],
+            karyawanOut: karyawanOut,
+            lto: ltoValue,
+          };
+        }
+      });
+    }
+
+    //console.log(joinResult);
 
     const dataDash = {
       totalEmp: getHdCount[0].ttlemp,
       totalEmpSew: getAbsen.length,
       totalAttd: totalAttd.length,
-      totalEmpOut: getEmpOut[0].karyawanOut,
+      totalEmpOut: ttlEmpOut,
       totalEmpIn: totalEmpIn.length,
       totalMale: totalMale.length,
       totalFemale: totalFemale.length,
       // totalTetap: totalTetap.length,
       // totalKontrak: totalKontrak.length,
+      dataPerSec: joinResult,
       totalTlo: totalTlo,
-      dataChartDept
+      dataChartDept,
+      dataTtlHcVsAbs,
     };
 
     return res.json({ data: dataDash, message: "succcess get data" });
@@ -277,34 +331,24 @@ const getDataPerSection = (employees) => {
     }
     return acc;
   }, {});
+
   Object.keys(dataSection).forEach((section) => {
     if (!dataSection[section].hasOwnProperty("scan_in")) {
       dataSection[section].scan_in = 0;
     }
+    dataSection[section].variance =
+      dataSection[section].count - dataSection[section].scan_in;
   });
+
   return dataSection;
 };
 
 function dataChartSection(dataBysec) {
+  const deptName = Object.keys(dataBysec) || [];
   if (dataBysec) {
-    const deptName = Object.keys(dataBysec);
-    const arrHc = deptName.map(item => dataBysec[item].count)
-    const arrAttd = deptName.map(item => dataBysec[item].scan_in)
-    // const arrHc = deptName.map((item) => ({
-    //   x: item,
-    //   y: dataBysec[item].count,
-    //   fillColor: "#4CAF50",
-    // }));
-
-    // const arrAttd = deptName.map((item) => ({
-    //   x: item,
-    //   y: dataBysec[item].scan_in,
-    //   fillColor:
-    //     parseInt(CheckNilai(dataBysec[item].scan_in)) <
-    //     parseInt(CheckNilai(dataBysec[item].count))
-    //       ?  "#4CAF50"
-    //       : "#D7263D",
-    // }));
+    const arrHc = deptName.map((item) => dataBysec[item].count);
+    const absente = deptName.map((item) => dataBysec[item].variance);
+    // const arrAttd = deptName.map(item => dataBysec[item].scan_in)
 
     const based = [
       {
@@ -313,13 +357,46 @@ function dataChartSection(dataBysec) {
         data: arrHc,
       },
       {
-        name: "Attandance",
+        name: "Absenteeism",
         // type: "column",
-        data: arrAttd,
+        data: absente,
       },
-    ]
-    return {deptName, based};
+    ];
+    return { deptName, based };
   } else {
-    return {deptName, based};
+    return { deptName, based };
   }
 }
+
+const getTotalCountAndVariance = (data) => {
+  return Object.keys(data).reduce(
+    (totals, section) => {
+      totals.total_count += data[section].count;
+      totals.total_variance += data[section].variance;
+      return totals;
+    },
+    { total_count: 0, total_variance: 0 }
+  );
+};
+
+export const getExpandEmpIn = async (req, res) => {
+  try {
+    const { date, type } = req.params;
+    let query = qryGetEmpInExpand;
+    if (type === "empOut") {
+      query = qryGetEmpOutExpand;
+    }
+    const dataEmpIn = await dbSPL.query(query, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    res.json({ data: dataEmpIn, message: "success get data emp in" });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data emp in" });
+  }
+};
