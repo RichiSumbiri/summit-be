@@ -131,7 +131,6 @@ export const getLemburanPendingManager = async(req,res) => {
     try {
         const Nik           = req.params.nik;
         const listPending   = await dbSPL.query(queryLemburanPendingManager, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
-        console.log(listPending);
         if(listPending){
             res.status(200).json({
                 success: true,
