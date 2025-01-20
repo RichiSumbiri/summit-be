@@ -196,12 +196,12 @@ export const Attandance = dbSPL.define(
     },
     updatedAt: {
       type: DataTypes.DATE,
-    }
+    },
   },
   {
     tableName: "sumbiri_absens",
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
   }
 );
 
@@ -338,7 +338,7 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
 	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0 -- Karyawan saat ini tidak aktif
+	WHERE se.StatusAktif = 0 AND se.CancelMasuk = 'N' -- Karyawan saat ini tidak aktif
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date
 )
@@ -421,7 +421,7 @@ export const baseMpSewing = `WITH base_absen AS (
 	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
 	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0 AND se.IDDepartemen = '100103'
+	WHERE se.StatusAktif = 0  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date
 )
@@ -471,16 +471,23 @@ LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 
 `;
 
-export const karyawanOutSewing = `SELECT COUNT(*) AS karyawanOut FROM sumbiri_employee se WHERE se.TanggalKeluar = :date and se.IDDepartemen = '100103'`;
+export const karyawanOutSewing = `SELECT 
+    se.IDSection, ms.SiteName, ms.CusName,
+    COUNT(se.TanggalKeluar) AS karyawanOut -- ,
+    -- COUNT(CASE WHEN se.TanggalMasuk = :date THEN 1 END) AS karyawanIn
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+WHERE se.TanggalKeluar = :date AND se.IDDepartemen = '100103'
+GROUP BY se.IDSection`;
+
 export const allDeptTtl = `
   SELECT COUNT(se.Nik) AS ttlemp
   FROM sumbiri_employee se
-  WHERE se.StatusAktif = 0 
+  WHERE se.StatusAktif = 0   AND se.CancelMasuk = 'N'
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date`;
 
 export const SewingLineHR = `SELECT DISTINCT a.SITE, a.SITE_NAME,  a.CUS_NAME, a.LINE_NAME, a.ID_SITELINE FROM item_siteline a`;
-
 
 export const qryAbsVerif = `WITH base_absen AS (
 	SELECT 
@@ -502,9 +509,24 @@ export const qryAbsVerif = `WITH base_absen AS (
 	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
 	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0 -- Karyawan saat ini tidak aktif
-	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
+	WHERE se.StatusAktif = 0  AND se.CancelMasuk = 'N' -- Karyawan saat ini tidak aktif
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date) -- Belum keluar pada tlocalanggal tertentu
 	  AND se.TanggalMasuk <= :date
+),
+absente AS (
+	SELECT 
+		sa.id, 
+		sa.Nik,
+		sa.tanggal_in,
+		sa.tanggal_out,
+		sa.scan_in,
+		sa.scan_out,
+		sa.ket_in,
+		sa.ket_out,
+		sa.keterangan
+	FROM sumbiri_absens sa 
+	WHERE  sa.tanggal_in= :date
+	AND (sa.scan_in IS NULL OR sa.scan_out IS NULL)
 )
 SELECT 
 ba.Nik, 
@@ -523,23 +545,106 @@ ba.jk_id,
 mjk.idGroup,
 mjk.jk_nama,
 ba.calendar,
-sa.jk_id jk_id_absen,
 sa.id, 
+sa.Nik,
 sa.tanggal_in,
 sa.tanggal_out,
+sa.id AS id_absen,
 sa.scan_in,
 sa.scan_out,
 sa.ket_in,
 sa.ket_out,
 sa.keterangan,
-sa.createdAt,
-sa.mod_id,
-sa.updatedAt
+sav.scan_in AS scan_in_ver,
+sav.scan_out AS scan_out_ver,
+sav.keterangan AS keterangan_ver,
+sav.ket_in AS ket_in_ver,
+sav.ket_out AS ket_out_ver,
+sav.id,
+sav.verifikasi,
+sav.add_id,
+sav.mod_id,
+sav.createdAt,
+sav.updatedAt
 FROM base_absen ba
-LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+LEFT JOIN absente AS sa ON sa.Nik = ba.Nik 
+LEFT JOIN sumbiri_absen_verif sav ON sav.Nik = ba.Nik AND sa.tanggal_in = :date
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 -- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
-`
+
+`;
+
+export const VerifAbsen = dbSPL.define(
+  "sumbiri_absen_verif",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    Nik: {
+      type: DataTypes.INTEGER,
+    },
+    jk_id: {
+      type: DataTypes.INTEGER,
+    },
+    tanggal_in: {
+      type: DataTypes.DATE,
+    },
+    tanggal_out: {
+      type: DataTypes.DATE,
+    },
+    scan_in: {
+      type: DataTypes.TIME,
+    },
+    scan_out: {
+      type: DataTypes.TIME,
+    },
+    keterangan: {
+      type: DataTypes.STRING,
+    },
+    ket_in: {
+      type: DataTypes.STRING,
+    },
+    ket_out: {
+      type: DataTypes.STRING,
+    },
+    verifikasi: {
+      type: DataTypes.INTEGER,
+    },
+    add_id: {
+      type: DataTypes.INTEGER,
+    },
+    mod_id: {
+      type: DataTypes.INTEGER,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  },
+  {
+    tableName: "sumbiri_absen_verif",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  }
+);
+
+
+export const qryGetEmpInExpand = `SELECT 
+    se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+WHERE se.TanggalMasuk = :date AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'`
+export const qryGetEmpOutExpand = `SELECT 
+    se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+WHERE se.TanggalKeluar = :date AND se.IDDepartemen = '100103'`
