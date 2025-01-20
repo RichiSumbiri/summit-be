@@ -222,6 +222,31 @@ export const getLemburanDetail = async(req,res) => {
     }
 }
 
+export const getCheckEmpLemburan = async(req,res) => {
+    try {
+        const { splDate, empNik } = req.params;
+        const empNIKZero    = empNik.padStart(10, "0");
+        const queryCheck    = `SELECT * FROM sumbiri_spl_data WHERE spl_date=:splDate AND Nik=:empNik `;
+        const dataCheck     = await dbSPL.query(queryCheck, {
+            replacements: {
+                splDate: splDate,
+                empNik: empNIKZero
+        }, type:QueryTypes.SELECT});
+        if(dataCheck){
+            res.status(200).json({
+                success: true,
+                message: "success chec data lemburan for spl",
+                data: dataCheck
+            }); 
+        } 
+    } catch(err){
+        console.error(err);
+        res.status(404).json({
+            success: false,
+            message: "error check emp for lemburan",
+        });
+    }
+}
 
 export const postLemburan = async(req,res) => {
     try {
