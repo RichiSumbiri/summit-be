@@ -226,7 +226,6 @@ export const getLemburanDetail = async(req,res) => {
 export const postLemburan = async(req,res) => {
     try {
         let dataSPL         = req.body.dataSPL;
-        console.log(dataSPL);
         const getIDManager  = await modelMasterDepartment.findOne({
             where: {
                 IdDept: dataSPL.SPLDept
@@ -248,40 +247,82 @@ export const postLemburan = async(req,res) => {
         });
         
         const newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');;
-        
-        const createNewSPL = await ModelSPLMain.create({
-            spl_number: newQueueSPL,
-            spl_date: dataSPL.SPLDate,
-            spl_dept: parseInt(dataSPL.SPLDept),
-            spl_section: dataSPL.SPLSection,
-            spl_line: parseInt(dataSPL.SPLSubDept),
-            spl_foremanspv: parseInt(dataSPL.SPLForemanSPV),
-            spl_head: parseInt(dataSPL.SPLHead),
-            spl_manager: parseInt(getIDManager.IDManager),
-            spl_hrd: 101707004,
-            spl_approve_foreman: 1,
-            spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
-            spl_type: dataSPL.SPLType,
-            spl_release: 1,
-            spl_createdby: parseInt(dataSPL.CreateBy),
-            spl_createddate: moment().format('YYYY-MM-DD HH:mm:ss'),
-            spl_active: 1,
-            spl_version: 1
-        });
-        
-        for (const emp of dataSPL.SPLEmp) {
-            await ModelSPLData.create({
+        if(dataSPL.SPLNumber){
+            await ModelSPLMain.update({
+                spl_date: dataSPL.SPLDate,
+                spl_dept: parseInt(dataSPL.SPLDept),
+                spl_section: dataSPL.SPLSection,
+                spl_line: parseInt(dataSPL.SPLSubDept),
+                spl_foremanspv: parseInt(dataSPL.SPLForemanSPV),
+                spl_head: parseInt(dataSPL.SPLHead),
+                spl_manager: parseInt(getIDManager.IDManager),
+                spl_hrd: 101707004,
+                spl_approve_foreman: 1,
+                spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+                spl_type: dataSPL.SPLType,
+                spl_release: 1,
+                spl_updatedby: dataSPL.SPLCreatedBy,
+                spl_updateddate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                spl_active: 1,
+                spl_version: 1
+            }, {
+                where: {
+                    spl_number: dataSPL.SPLNumber
+                }
+            });
+            
+            for (const emp of dataSPL.SPLEmp) {
+                await ModelSPLData.update({
+                    spl_date: dataSPL.SPLDate,
+                    Nik: emp.Nik,
+                    nama: emp.NamaLengkap,
+                    start: emp.StartTime,
+                    finish: emp.FinishTime,
+                    minutes: emp.Minutes,
+                    status: 0,
+                    time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
+                }, {
+                    where: {
+                        spl_number: dataSPL.SPLNumber
+                    }
+                });       
+            }
+        } else {
+            await ModelSPLMain.create({
                 spl_number: newQueueSPL,
                 spl_date: dataSPL.SPLDate,
-                Nik: emp.Nik,
-                nama: emp.NamaLengkap,
-                start: emp.StartTime,
-                finish: emp.FinishTime,
-                minutes: emp.Minutes,
-                status: 0,
-                time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-            });       
+                spl_dept: parseInt(dataSPL.SPLDept),
+                spl_section: dataSPL.SPLSection,
+                spl_line: parseInt(dataSPL.SPLSubDept),
+                spl_foremanspv: parseInt(dataSPL.SPLForemanSPV),
+                spl_head: parseInt(dataSPL.SPLHead),
+                spl_manager: parseInt(getIDManager.IDManager),
+                spl_hrd: 101707004,
+                spl_approve_foreman: 1,
+                spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+                spl_type: dataSPL.SPLType,
+                spl_release: 1,
+                spl_createdby: dataSPL.SPLCreatedBy,
+                spl_createddate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                spl_active: 1,
+                spl_version: 1
+            });
+            
+            for (const emp of dataSPL.SPLEmp) {
+                await ModelSPLData.create({
+                    spl_number: newQueueSPL,
+                    spl_date: dataSPL.SPLDate,
+                    Nik: emp.Nik,
+                    nama: emp.NamaLengkap,
+                    start: emp.StartTime,
+                    finish: emp.FinishTime,
+                    minutes: emp.Minutes,
+                    status: 0,
+                    time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
+                });       
+            }
         }
+        
         
         res.status(200).json({
             success: true,
