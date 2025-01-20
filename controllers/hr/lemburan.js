@@ -544,3 +544,45 @@ export const postRejectLemburan = async(req,res) => {
         });
     }
 }
+
+
+
+export const getLemburanExportAmano = async(req,res) => {
+    try {
+        const { startDate, endDate }    = req.params;
+        const queryAmano = `
+        SELECT
+            sumbiri_spl_data.Nik AS EmpCode,
+            CAST(DATE_FORMAT(sumbiri_spl_main.spl_date, '%Y%m%d') AS UNSIGNED INTEGER) AS ProDay,
+            IF(sumbiri_spl_main.spl_type = 'BH',sumbiri_spl_mcsetting.mc_id,0) AS InMC,
+            IF(sumbiri_spl_main.spl_type != 'BH',sumbiri_spl_mcsetting.mc_id,0) AS OutMC,
+            IF(sumbiri_spl_mcsetting.mc_id > 1200, 0, 1) AS DailyCalculation
+        FROM
+            sumbiri_spl_main
+        JOIN sumbiri_spl_data ON
+            sumbiri_spl_main.spl_number = sumbiri_spl_data.spl_number
+        JOIN sumbiri_spl_mcsetting ON
+            ( sumbiri_spl_mcsetting.mc_minutes = sumbiri_spl_data.minutes
+                AND sumbiri_spl_mcsetting.mc_type = sumbiri_spl_main.spl_type )
+        WHERE
+            sumbiri_spl_main.spl_hrd_ts IS NOT NULL
+            AND sumbiri_spl_main.spl_release = '1'
+            AND sumbiri_spl_main.spl_version = '1'
+            AND sumbiri_spl_main.spl_date BETWEEN :startDate AND :endDate
+        
+        `;
+        const dataExport = await dbSPL.query(queryAmano, { replacements: { startDate: startDate, endDate: endDate }, type: QueryTypes.SELECT });
+        if(dataExport){
+            res.status(200).json({
+                success: true,
+                message: "success get data calculation lemburan for amano",
+                data: dataExport
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list pending lemburan",
+        });
+    }
+}
