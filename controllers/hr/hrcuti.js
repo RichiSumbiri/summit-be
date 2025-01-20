@@ -211,18 +211,30 @@ export const postCutiNew = async(req,res) => {
                                 scheduleDate: CutiDate,
                                 groupId: getNikGroupId.groupId
                             }
-                        })
+                        });
                         if(getJKID){
                             await Attandance.create({
                                 Nik: dataCuti.cuti_emp_nik,
                                 groupId: getNikGroupId.groupId,
-                                jk_id: getJKID.jk_id ? getJKID.jk_id : 0,
+                                jk_id: getJKID.jk_id || 0,
+                                tanggal_in: CutiDate,
+                                keterangan: getCodeAbsen.code_absen,
+                                ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                                validasi: 0
+                            });
+                        } else {
+                            await Attandance.create({
+                                Nik: dataCuti.cuti_emp_nik,
+                                groupId: getNikGroupId.groupId,
+                                jk_id: 0,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
                                 ket_in: dataCuti.cuti_purpose.toUpperCase(),
                                 validasi: 0
                             });
                         }
+                        
+                        
                     }
                     res.status(200).json({
                         success: true,
@@ -232,6 +244,7 @@ export const postCutiNew = async(req,res) => {
             }
         }
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get cuti",
