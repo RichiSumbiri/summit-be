@@ -338,7 +338,7 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
 	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0 -- Karyawan saat ini tidak aktif
+	WHERE se.StatusAktif = 0 AND se.CancelMasuk = 'N' -- Karyawan saat ini tidak aktif
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date
 )
@@ -421,7 +421,7 @@ export const baseMpSewing = `WITH base_absen AS (
 	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
 	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0 AND se.IDDepartemen = '100103'
+	WHERE se.StatusAktif = 0  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date
 )
@@ -483,7 +483,7 @@ GROUP BY se.IDSection`;
 export const allDeptTtl = `
   SELECT COUNT(se.Nik) AS ttlemp
   FROM sumbiri_employee se
-  WHERE se.StatusAktif = 0 
+  WHERE se.StatusAktif = 0   AND se.CancelMasuk = 'N'
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date`;
 
@@ -509,8 +509,8 @@ export const qryAbsVerif = `WITH base_absen AS (
 	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
 	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0 -- Karyawan saat ini tidak aktif
-	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date) -- Belum keluar pada tanggal tertentu
+	WHERE se.StatusAktif = 0  AND se.CancelMasuk = 'N' -- Karyawan saat ini tidak aktif
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date) -- Belum keluar pada tlocalanggal tertentu
 	  AND se.TanggalMasuk <= :date
 ),
 absente AS (
@@ -641,7 +641,7 @@ export const qryGetEmpInExpand = `SELECT
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE se.TanggalMasuk = :date AND se.IDDepartemen = '100103'`
+WHERE se.TanggalMasuk = :date AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'`
 export const qryGetEmpOutExpand = `SELECT 
     se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
 FROM sumbiri_employee se
