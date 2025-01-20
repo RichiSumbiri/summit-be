@@ -47,6 +47,7 @@ SELECT
 	IFNULL(sp.MotherJob, '') AS PekerjaanIbu,
 	IFNULL(sp.ParentAddress, '') AS ParentAddress,
 	IFNULL(sp.ParentPhone, '') AS ParentPhone,
+	IFNULL(sp.ParentPhone, '') AS NoTelp2,
 	sp.EduLastLevel,
 	sp.EduLastName,
 	sp.EduLastCity,
