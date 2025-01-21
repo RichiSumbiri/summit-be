@@ -407,12 +407,12 @@ export const baseMpSewing = `WITH base_absen AS (
 		  se.TanggalKeluar,
 		  se.JenisKelamin,
 		  se.StatusKaryawan,
-        msd.Name subDeptName,
-	     md.NameDept,
-	     sgs.groupId,
-        sis.jadwalId_inv,
-        se.IDSiteline,
-        se.IDPosisi,
+      msd.Name subDeptName,
+      md.NameDept,
+      sgs.groupId,
+      sis.jadwalId_inv,
+      se.IDSiteline,
+      se.IDPosisi,
 	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
 	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
 	FROM sumbiri_employee se
@@ -450,6 +450,7 @@ mst.LINE_NAME,
 sgs.groupName,
 ba.jk_id,
 mjk.jk_nama,
+mjk.jk_in,
 ba.calendar,
 sa.jk_id jk_id_absen,
 sa.id, 
@@ -468,7 +469,7 @@ LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_siteline mst ON mst.IDSiteline = ba.IDSiteline
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
-
+WHERE mjk.jk_in < CURTIME()
 `;
 
 export const karyawanOutSewing = `SELECT 
@@ -648,3 +649,31 @@ FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
 WHERE se.TanggalKeluar = :date AND se.IDDepartemen = '100103'`
+
+
+export const qryDtlMpByLine = `
+      SELECT 
+        n.*, n.total_emp - n.total_hadir AS total_absen
+      FROM (
+        SELECT 
+        --	se.Nik, se.NamaLengkap, 
+          msts.SiteName SITE_NAME,
+          msts.CusName CUS_NAME,
+        --	msl.LINE_NAME,
+          msd.Name AS sub_dept,
+          COUNT(se.Nik) total_emp,
+          COUNT(sa.scan_in) total_hadir
+        FROM sumbiri_employee se
+        JOIN master_section msts ON msts.IDSection = se.IDSection
+        -- LEFT JOIN master_siteline msl ON msl.IDSiteline = se.IDSiteline
+        LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+        LEFT JOIN sumbiri_absens sa ON sa.Nik = se.Nik AND sa.tanggal_in= :date
+        WHERE se.StatusAktif = 0 
+        AND se.CancelMasuk = 'N' 
+        AND se.IDDepartemen = '100103'
+        AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
+        AND se.TanggalMasuk <= :date
+        AND msts.CusName = :cusName
+        GROUP BY 	msts.SiteName, msts.CusName, se.IDSubDepartemen
+      ) n
+`

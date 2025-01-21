@@ -8,6 +8,7 @@ import {
   karyawanOut,
   karyawanOutSewing,
   qryDailyAbsensi,
+  qryDtlMpByLine,
   qryGetEmpInExpand,
   qryGetEmpOutExpand,
   SewingLineHR,
@@ -219,6 +220,7 @@ export const getDataDashSewMp = async (req, res) => {
       }
       return 0;
     });
+    
 
     const getLembur = await dbSPL.query(getLemburForAbsen, {
       replacements: { date },
@@ -250,10 +252,16 @@ export const getDataDashSewMp = async (req, res) => {
       // logging: console.log
     });
 
+    const dataEmpIn = await dbSPL.query(qryGetEmpInExpand, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+
     const ttlEmpOut = totalCol(getEmpOut, "karyawanOut");
 
     const totalAttd = getAbsen.filter((item) => item.scan_in);
-    const totalEmpIn = getAbsen.filter((item) => item.TanggalMasuk === date);
+    // const totalEmpIn = getAbsen.filter((item) => item.TanggalMasuk === date);
     const totalMale = getAbsen.filter((item) => item.JenisKelamin === 0);
     const totalFemale = getAbsen.filter((item) => item.JenisKelamin === 1);
     const totalTlo =
@@ -297,7 +305,7 @@ export const getDataDashSewMp = async (req, res) => {
       totalEmpSew: getAbsen.length,
       totalAttd: totalAttd.length,
       totalEmpOut: ttlEmpOut,
-      totalEmpIn: totalEmpIn.length,
+      totalEmpIn: dataEmpIn.length,
       totalMale: totalMale.length,
       totalFemale: totalFemale.length,
       // totalTetap: totalTetap.length,
@@ -398,5 +406,26 @@ export const getExpandEmpIn = async (req, res) => {
     res
       .status(500)
       .json({ error, message: "Terdapat error saat get data emp in" });
+  }
+};
+
+
+export const getChartMpDtlByLine = async (req, res) => {
+  try {
+    const { date, site } = req.params;
+    let query = qryDtlMpByLine;
+  
+    const dataEmpIn = await dbSPL.query(query, {
+      replacements: { date, cusName : site },
+      type: QueryTypes.SELECT,
+    });
+
+    res.json({ data: dataEmpIn, message: "success get data emp detail by line" });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data emp detail by line" });
   }
 };
