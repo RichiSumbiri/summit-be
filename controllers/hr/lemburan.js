@@ -270,7 +270,6 @@ export const postLemburan = async(req,res) => {
                 ['spl_number', 'DESC'] // Replace 'spl_number' with the column you want to order by
               ]
         });
-        
         const newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');;
         if(dataSPL.SPLNumber){
             await ModelSPLMain.update({
@@ -286,7 +285,7 @@ export const postLemburan = async(req,res) => {
                 spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_type: dataSPL.SPLType,
                 spl_release: 1,
-                spl_updatedby: dataSPL.SPLCreatedBy,
+                spl_updatedby: dataSPL.CreatedBy,
                 spl_updateddate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_active: 1,
                 spl_version: 1
@@ -327,7 +326,7 @@ export const postLemburan = async(req,res) => {
                 spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_type: dataSPL.SPLType,
                 spl_release: 1,
-                spl_createdby: dataSPL.SPLCreatedBy,
+                spl_createdby: dataSPL.CreatedBy,
                 spl_createddate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_active: 1,
                 spl_version: 1
