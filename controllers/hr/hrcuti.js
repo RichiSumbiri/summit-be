@@ -225,7 +225,7 @@ export const postCutiNew = async(req,res) => {
                         } else {
                             await Attandance.create({
                                 Nik: dataCuti.cuti_emp_nik,
-                                groupId: getNikGroupId.groupId,
+                                groupId: 0,
                                 jk_id: 0,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
