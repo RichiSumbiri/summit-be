@@ -8,7 +8,8 @@ import {
   karyawanOut,
   karyawanOutSewing,
   qryDailyAbsensi,
-  qryDtlMpByLine,
+  qryDtlMpByLinePast,
+  qryDtlMpByLineToday,
   qryGetEmpInExpand,
   qryGetEmpOutExpand,
   SewingLineHR,
@@ -220,25 +221,24 @@ export const getDataDashSewMp = async (req, res) => {
       }
       return 0;
     });
-    
 
-    const getLembur = await dbSPL.query(getLemburForAbsen, {
-      replacements: { date },
-      type: QueryTypes.SELECT,
-      // logging: console.log
-    });
+    // const getLembur = await dbSPL.query(getLemburForAbsen, {
+    //   replacements: { date },
+    //   type: QueryTypes.SELECT,
+    //   // logging: console.log
+    // });
 
-    if (getLembur.length > 0) {
-      getAbsen = getAbsen.map((item) => {
-        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
+    // if (getLembur.length > 0) {
+    //   getAbsen = getAbsen.map((item) => {
+    //     const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
 
-        if (lembur) {
-          return { ...item, ...lembur };
-        } else {
-          return item;
-        }
-      });
-    }
+    //     if (lembur) {
+    //       return { ...item, ...lembur };
+    //     } else {
+    //       return item;
+    //     }
+    //   });
+    // }
 
     const getEmpOut = await dbSPL.query(karyawanOutSewing, {
       replacements: { date },
@@ -256,7 +256,6 @@ export const getDataDashSewMp = async (req, res) => {
       replacements: { date },
       type: QueryTypes.SELECT,
     });
-
 
     const ttlEmpOut = totalCol(getEmpOut, "karyawanOut");
 
@@ -409,23 +408,41 @@ export const getExpandEmpIn = async (req, res) => {
   }
 };
 
-
 export const getChartMpDtlByLine = async (req, res) => {
   try {
     const { date, site } = req.params;
-    let query = qryDtlMpByLine;
-  
+    const { line } = req.query;
+    const cusName = decodeURIComponent(site)
+
+    let strings = `AND msts.CusName = '${cusName}'`
+
+    if(line){
+      strings += ` msd.Name = '${line}'`
+    }
+
+    let query = qryDtlMpByLineToday(strings);
+    const today = moment().startOf("day");
+    const parDate = moment(date, "YYYY-MM-DD").startOf("day");
+    if (parDate.isBefore(today)) {
+      query = qryDtlMpByLinePast(strings)
+    }
     const dataEmpIn = await dbSPL.query(query, {
-      replacements: { date, cusName : site },
+      replacements: { date, cusName },
       type: QueryTypes.SELECT,
     });
 
-    res.json({ data: dataEmpIn, message: "success get data emp detail by line" });
+    res.json({
+      data: dataEmpIn,
+      message: "success get data emp detail by line",
+    });
   } catch (error) {
     console.log(error);
 
     res
       .status(500)
-      .json({ error, message: "Terdapat error saat get data emp detail by line" });
+      .json({
+        error,
+        message: "Terdapat error saat get data emp detail by line",
+      });
   }
 };

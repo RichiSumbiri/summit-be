@@ -13,7 +13,11 @@ import {
 } from "../../models/hr/attandance.mod.js";
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import moment from "moment";
-import { getRandomTimeIn5Minute, getRandomTimeInMinus5, getRandomTimeInRange } from "./absensi.js";
+import {
+  getRandomTimeIn5Minute,
+  getRandomTimeInMinus5,
+  getRandomTimeInRange,
+} from "./absensi.js";
 
 export const postDataLogAttd = async (req, res) => {
   try {
@@ -579,12 +583,30 @@ export const deltSchPunchAttd = async (req, res) => {
 function correctionScanIn(logTime, findSch) {
   // const scanInAwa = moment(findSch.jk_scan_in_start, "HH:mm:ss");
   let scan_in = null;
-  const jamPulang = moment(findSch.jk_scan_out_start, "HH:mm:ss");
-  const jamMasuk = moment(findSch.jk_in, "HH:mm:ss");
-  const jamMasukAudit = moment(findSch.jk_scan_in_audit, "HH:mm:ss");
+  const jamPulang = moment(
+    `${findSch.scanOutDate} ${findSch.jk_scan_out_start}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  const jamMasuk = moment(
+    `${findSch.scheduleDate} ${findSch.jk_in}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  const jamMasukAudit = moment(
+    `${findSch.scheduleDate} ${findSch.jk_scan_in_audit}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
 
   // Waktu yang akan diperiksa
-  const checkTime = moment(logTime, "HH:mm:ss");
+  const checkTime = moment(`${findSch.scheduleDate} ${logTime}`, "YYYY-MM-DD HH:mm:ss");
+
+  // console.log({
+  //   jamLog : checkTime.format("YYYY-MM-DD HH:mm:ss"),
+  //   jamMasuk : jamMasuk.format("YYYY-MM-DD HH:mm:ss"),
+  //   jamPulang : jamPulang.format("YYYY-MM-DD HH:mm:ss"),
+
+  // });
+  
+
   const checkLate = checkTime.isAfter(jamMasuk);
 
   //check apakah scan in ada dalam range
@@ -601,7 +623,7 @@ function correctionScanIn(logTime, findSch) {
   //jika ada lembur sebelum jam kerja maka jam nya langsung di eksekusi //findSch.jam ini dari getlembur
   if (findSch.spl_type === "BH" && findSch.jam && findSch.ttlLembur) {
     //JIKA TERDAPATA LEMBUR AKTUAL MAKA UBAH SCAN IN
-    const scanInLembur = getRandomTimeInMinus5(findSch.start)
+    const scanInLembur = getRandomTimeInMinus5(findSch.start);
     return { scan_in: scanInLembur, ket_in };
   }
 
