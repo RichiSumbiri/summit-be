@@ -1,35 +1,35 @@
 export const queryLemburan = `
 SELECT
-	ssm.spl_number AS SPL_ID,
-	ssm.spl_date AS SPL_DATE,
-	ssm.spl_dept AS SPL_DEPT_ID,
-	md.NameDept AS SPL_DEPT_NAME,
-	ssm.spl_section AS SPL_SECTION,
-	ssm.spl_line AS SPL_LINE,
-	ms.Name AS SPL_LINE_NAME,
-	ssm.spl_foremanspv AS SPL_FOREMANSPV_NIK,
-	se.NamaLengkap AS SPL_FOREMANSPV_NAME,
-	ssm.spl_approve_foreman AS SPL_FOREMANSPV_APPROVE,
-	ssm.spl_foreman_ts AS SPL_FOREMANSPV_TS,
-	ssm.spl_head AS SPL_HEAD_NIK,
-	se2.NamaLengkap AS SPL_HEAD_NAME,
-	ssm.spl_approve_head AS SPL_HEAD_APPROVE,
-	ssm.spl_head_ts AS SPL_HEAD_TS,
-	ssm.spl_manager AS SPL_MANAGER_NIK,
-	se3.NamaLengkap AS SPL_MANAGER_NAME,
-	ssm.spl_approve_manager AS SPL_MANAGER_APPROVE,
-	ssm.spl_manager_ts AS SPL_MANAGER_TS,
-	ssm.spl_hrd AS SPL_HRD_NIK,
-	se4.NamaLengkap AS SPL_HRD_NAME,
-	ssm.spl_approve_hrd AS SPL_HRD_APPROVE,
-	ssm.spl_hrd_ts AS SPL_HRD_TS,
-	ssm.spl_type AS SPL_TYPE,
-	ssm.spl_release AS SPL_RELEASE,
-	ssm.spl_createdby AS SPL_CREATEDBY,
-	ssm.spl_createddate AS SPL_CREATEDDATE,
-	ssm.spl_updatedby AS SPL_UPDATEDBY,
-	ssm.spl_updateddate AS SPL_UPDATEDDATE,
-	ssm.spl_active AS SPL_ACTIVE
+	ssm.spl_number AS SPLID,
+	ssm.spl_date AS SPLDate,
+	ssm.spl_dept AS SPLDept,
+	md.NameDept AS SPLDeptName,
+	ssm.spl_section AS SPLSection,
+	ssm.spl_line AS SPLLine,
+	ms.Name AS SPLLineName,
+	ssm.spl_foremanspv AS SPLForemanSPV,
+	se.NamaLengkap AS SPLForemanSPVName,
+	ssm.spl_approve_foreman AS SPLApproveForemanSPV,
+	ssm.spl_foreman_ts AS SPLTSForemanSPV,
+	ssm.spl_head AS SPLHead,
+	se2.NamaLengkap AS SPLHeadName,
+	ssm.spl_approve_head AS SPLApproveHead,
+	ssm.spl_head_ts AS SPLTSHead,
+	ssm.spl_manager AS SPLManager,
+	se3.NamaLengkap AS SPLManagerName,
+	ssm.spl_approve_manager AS SPLApproveManager,
+	ssm.spl_manager_ts AS SPLTSManager,
+	ssm.spl_hrd AS SPLHRD,
+	se4.NamaLengkap AS SPLHRDName,
+	ssm.spl_approve_hrd AS SPLApproveHRD,
+	ssm.spl_hrd_ts AS SPLTSHRD,
+	ssm.spl_type AS SPLType,
+	ssm.spl_release AS SPLRelease,
+	ssm.spl_createdby AS SPLCreatedBy,
+	ssm.spl_createddate AS SPLCreatedDate,
+	ssm.spl_updatedby AS SPLUpdatedBy,
+	ssm.spl_updateddate AS SPLUpdatedDate,
+	ssm.spl_active AS SPLActive
 FROM
 	sumbiri_spl_main ssm
 LEFT JOIN master_department md ON md.IdDept = ssm.spl_dept 
@@ -127,3 +127,20 @@ AND ssm.spl_approve_hrd = 1
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
 `;
+
+
+
+
+export const queryLemburanDetail      = `
+        SELECT
+            spl_number AS SPLNumber,
+            Nik AS Nik,
+            nama AS NamaLengkap,
+            start AS StartTime,
+            finish AS FinishTime,
+            minutes AS Minutes
+        FROM
+            sumbiri_spl_data
+        WHERE spl_number = :splnumber
+        `;
+        

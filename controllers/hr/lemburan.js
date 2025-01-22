@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryLemburanComplete, queryLemburanCreated, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV } from "../../models/hr/lemburanspl.mod.js";
+import { queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -33,7 +33,19 @@ export const getSPLAccess = async(req,res) => {
 export const getLemburanCreated = async(req,res) => {
     try {
         const { userId }    = req.params;
-        const listSPL       = await dbSPL.query(queryLemburanCreated, { replacements: { userId: userId }, type: QueryTypes.SELECT });
+        let listSPL         = await dbSPL.query(queryLemburanCreated, { replacements: { userId: userId }, type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listSPL) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listSPL[index].SPLEmp = action 
+        }
+
         if(listSPL){
             res.status(200).json({
                 success: true,
@@ -53,7 +65,19 @@ export const getLemburanCreated = async(req,res) => {
 
 export const getLemburanPending = async(req,res) => {
     try {
-        const listPending = await dbSPL.query(queryLemburanPending, { type: QueryTypes.SELECT });
+        let listPending = await dbSPL.query(queryLemburanPending, { type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -71,7 +95,19 @@ export const getLemburanPending = async(req,res) => {
 
 export const getLemburanPendingAll = async(req,res) => {
     try {
-        const listPending = await dbSPL.query(queryLemburanPendingAll, { type: QueryTypes.SELECT });
+        let listPending = await dbSPL.query(queryLemburanPendingAll, { type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -91,7 +127,19 @@ export const getLemburanPendingAll = async(req,res) => {
 export const getLemburanPendingSPV = async(req,res) => {
     try {
         const Nik           = req.params.nik;
-        const listPending   = await dbSPL.query(queryLemburanPendingSPV, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let listPending   = await dbSPL.query(queryLemburanPendingSPV, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -111,7 +159,19 @@ export const getLemburanPendingSPV = async(req,res) => {
 export const getLemburanPendingHead = async(req,res) => {
     try {
         const Nik           = req.params.nik;
-        const listPending   = await dbSPL.query(queryLemburanPendingHead, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let listPending   = await dbSPL.query(queryLemburanPendingHead, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -130,7 +190,19 @@ export const getLemburanPendingHead = async(req,res) => {
 export const getLemburanPendingManager = async(req,res) => {
     try {
         const Nik           = req.params.nik;
-        const listPending   = await dbSPL.query(queryLemburanPendingManager, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let listPending   = await dbSPL.query(queryLemburanPendingManager, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -150,7 +222,19 @@ export const getLemburanPendingManager = async(req,res) => {
 export const getLemburanPendingHRD = async(req,res) => {
     try {
         const Nik           = req.params.nik;
-        const listPending   = await dbSPL.query(queryLemburanPendingHRD, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let listPending   = await dbSPL.query(queryLemburanPendingHRD, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
         if(listPending){
             res.status(200).json({
                 success: true,
@@ -159,7 +243,6 @@ export const getLemburanPendingHRD = async(req,res) => {
             });
         }
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
@@ -171,7 +254,19 @@ export const getLemburanPendingHRD = async(req,res) => {
 export const getLemburanApprovalComplete = async(req,res) => {
     try {
         const { startDate, endDate }    = req.params;
-        const listComplete              = await dbSPL.query(queryLemburanComplete, { replacements: { startDate: startDate, endDate: endDate }, type: QueryTypes.SELECT });
+        let listComplete              = await dbSPL.query(queryLemburanComplete, { replacements: { startDate: startDate, endDate: endDate }, type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listComplete[index].SPLEmp = action 
+        }
+        
         if(listComplete){
             res.status(200).json({
                 success: true,
@@ -180,7 +275,6 @@ export const getLemburanApprovalComplete = async(req,res) => {
             });
         }
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list complete lemburan",
@@ -192,19 +286,7 @@ export const getLemburanApprovalComplete = async(req,res) => {
 export const getLemburanDetail = async(req,res) => {
     try {
         const { splnumber }     = req.params;
-        const querySPL          = `
-        SELECT
-            spl_number AS SPLNumber,
-            Nik AS Nik,
-            nama AS NamaLengkap,
-            start AS StartTime,
-            finish AS FinishTime,
-            minutes AS Minutes
-        FROM
-	        sumbiri_spl_data
-        WHERE spl_number = :splnumber
-        `;
-        const action            = await dbSPL.query(querySPL, {
+        const action            = await dbSPL.query(queryLemburanDetail, {
             replacements: {
                 splnumber: splnumber
             }, type: QueryTypes.SELECT
