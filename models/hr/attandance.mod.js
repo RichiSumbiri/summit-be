@@ -652,7 +652,7 @@ LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
 WHERE se.TanggalKeluar = :date AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`
 
 
-export const qryDtlMpByLineToday = (strings) => {return `WITH base_absen AS (
+export const qryDtlMpByLineToday = (strings, aditional) => {return `WITH base_absen AS (
 	SELECT 
 	    se.Nik, 
 		  se.NamaLengkap,
@@ -684,7 +684,10 @@ export const qryDtlMpByLineToday = (strings) => {return `WITH base_absen AS (
 	  AND se.TanggalMasuk <= :date
     ${strings}
 )
-SELECT 
+${aditional}
+`}
+
+export const additonalToday = `SELECT 
 msts.SiteName SITE_NAME,
 msts.CusName CUS_NAME,	
 ba.IDSubDepartemen,
@@ -699,41 +702,9 @@ LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 WHERE mjk.jk_in < CURTIME()
 GROUP BY msts.SiteName ,
-msts.CusName, ba.subDeptName
-`}
+msts.CusName, ba.subDeptName`
 
-export const qryDtlMpByLinePast = (strings) => {return `WITH base_absen AS (
-	SELECT 
-	    se.Nik, 
-		  se.NamaLengkap,
-		  se.IDDepartemen,
-		  se.IDSubDepartemen,
-		  se.IDSection,
-		  se.TanggalMasuk,
-		  se.TanggalKeluar,
-		  se.JenisKelamin,
-		  se.StatusKaryawan,
-        msd.Name subDeptName,
-	     md.NameDept,
-	     sgs.groupId,
-        sis.jadwalId_inv,
-        se.IDSiteline,
-        se.IDPosisi,
-	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
-	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
-	FROM sumbiri_employee se
-	JOIN master_section msts ON msts.IDSection = se.IDSection
-	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
-	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
-	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :date
-	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :date
-	WHERE se.StatusAktif = 0  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'
-    AND se.IDPosisi = 6
-	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
-	  AND se.TanggalMasuk <= :date
-	  ${strings}
-)
+export const additonalPast = `
 SELECT 
 msts.SiteName SITE_NAME,
 msts.CusName CUS_NAME,	
@@ -748,5 +719,37 @@ LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 GROUP BY msts.SiteName ,
-msts.CusName, ba.subDeptName
-`}
+msts.CusName, ba.subDeptName`
+
+export const additonalLineNoCountTod = `SELECT 
+ba.IDSubDepartemen,
+ba.subDeptName,	
+ba.Nik,
+ba.NamaLengkap,
+sa.scan_in, 
+sa.scan_out,
+sa.keterangan
+FROM base_absen ba
+LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+WHERE mjk.jk_in < CURTIME()
+`
+
+export const additonalLineNoCountPast = `SELECT 
+ba.IDSubDepartemen,
+ba.subDeptName,	
+ba.Nik,
+ba.NamaLengkap,
+sa.scan_in, 
+sa.scan_out,
+sa.keterangan
+FROM base_absen ba
+LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+`
