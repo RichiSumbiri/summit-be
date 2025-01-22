@@ -92,10 +92,12 @@ export const postCutiNew = async(req,res) => {
         const startDate         = moment(dataCuti.cuti_date_start);
         const endDate           = moment(dataCuti.cuti_date_end);
         const CutiDateList      = [];
+        console.log(getNikGroupId);
         while (startDate.isSameOrBefore(endDate)) {
             CutiDateList.push(startDate.format('YYYY-MM-DD'));
             startDate.add(1, 'day');
         }
+        
         if(dataCuti.cuti_id){
             const getPreviousData   = await SumbiriCutiMain.findOne({ where: { cuti_id: dataCuti.cuti_id }});
             const startDatePrev     = moment(getPreviousData.cuti_date_start);
@@ -147,7 +149,7 @@ export const postCutiNew = async(req,res) => {
                     const getJKID   = await GroupJadwal.findOne({
                         where: {
                             scheduleDate: CutiDate,
-                            groupId: getNikGroupId.groupId
+                            groupId: getNikGroupId.groupId===null ? 0 : getNikGroupId.groupId
                         }
                     })
                     if(getJKID){
@@ -155,6 +157,16 @@ export const postCutiNew = async(req,res) => {
                             Nik: dataCuti.cuti_emp_nik,
                             groupId: getNikGroupId.groupId,
                             jk_id: getJKID.jk_id,
+                            tanggal_in: CutiDate,
+                            keterangan: getCodeAbsen.code_absen,
+                            ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                            validasi: 0
+                        });
+                    } else {
+                        await Attandance.create({
+                            Nik: dataCuti.cuti_emp_nik,
+                            groupId: 0,
+                            jk_id: 0,
                             tanggal_in: CutiDate,
                             keterangan: getCodeAbsen.code_absen,
                             ket_in: dataCuti.cuti_purpose.toUpperCase(),
@@ -206,16 +218,26 @@ export const postCutiNew = async(req,res) => {
                 });
                 if(insertCuti){
                     for (const CutiDate of CutiDateList) {
-                        const getJKID   = await GroupJadwal.findOne({
-                            where: {
-                                scheduleDate: CutiDate,
-                                groupId: getNikGroupId.groupId
-                            }
-                        });
+                        let getJKID;
+                        if(getNikGroupId === null){
+                            getJKID   = await GroupJadwal.findOne({
+                                where: {
+                                    scheduleDate: CutiDate
+                                }
+                            });
+                        } else {
+                            getJKID   = await GroupJadwal.findOne({
+                                where: {
+                                    scheduleDate: CutiDate,
+                                    groupId: getNikGroupId.groupId
+                                }
+                            });
+                        }
+                        
                         if(getJKID){
                             await Attandance.create({
                                 Nik: dataCuti.cuti_emp_nik,
-                                groupId: getNikGroupId.groupId,
+                                groupId: getNikGroupId ? getNikGroupId.groupId: 0,
                                 jk_id: getJKID.jk_id || 0,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
