@@ -1,6 +1,10 @@
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import { Op, QueryTypes } from "sequelize";
 import {
+  additonalLineNoCountPast,
+  additonalLineNoCountTod,
+  additonalPast,
+  additonalToday,
   allDeptTtl,
   Attandance,
   baseMpSewing,
@@ -8,7 +12,7 @@ import {
   karyawanOut,
   karyawanOutSewing,
   qryDailyAbsensi,
-  qryDtlMpByLinePast,
+  // qryDtlMpByLinePast,
   qryDtlMpByLineToday,
   qryGetEmpInExpand,
   qryGetEmpOutExpand,
@@ -412,20 +416,11 @@ export const getChartMpDtlByLine = async (req, res) => {
   try {
     const { date, site } = req.params;
     const { line } = req.query;
+    
     const cusName = decodeURIComponent(site)
 
-    let strings = `AND msts.CusName = '${cusName}'`
-
-    if(line){
-      strings += ` msd.Name = '${line}'`
-    }
-
-    let query = qryDtlMpByLineToday(strings);
-    const today = moment().startOf("day");
-    const parDate = moment(date, "YYYY-MM-DD").startOf("day");
-    if (parDate.isBefore(today)) {
-      query = qryDtlMpByLinePast(strings)
-    }
+    const query = findQuery(cusName, date, line)
+    
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date, cusName },
       type: QueryTypes.SELECT,
@@ -446,3 +441,28 @@ export const getChartMpDtlByLine = async (req, res) => {
       });
   }
 };
+
+
+
+function findQuery(cusName, date, line){
+  let strings = `AND msts.CusName = '${cusName}'`
+  const today = moment().startOf("day");
+  const parDate = moment(date, "YYYY-MM-DD").startOf("day");
+
+  if(!line){
+  
+    let query = qryDtlMpByLineToday(strings, additonalToday);
+    if (parDate.isBefore(today)) {      
+      query = qryDtlMpByLineToday(strings, additonalPast)
+    }
+    return query
+  }else{
+    strings += `AND msd.Name = '${line}'`
+    let query = qryDtlMpByLineToday(strings, additonalLineNoCountTod);
+    if (parDate.isBefore(today)) {      
+      query = qryDtlMpByLineToday(strings, additonalLineNoCountPast)
+    }
+    return query
+  } 
+
+}
