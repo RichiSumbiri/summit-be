@@ -92,7 +92,6 @@ export const postCutiNew = async(req,res) => {
         const startDate         = moment(dataCuti.cuti_date_start);
         const endDate           = moment(dataCuti.cuti_date_end);
         const CutiDateList      = [];
-        console.log(getNikGroupId);
         while (startDate.isSameOrBefore(endDate)) {
             CutiDateList.push(startDate.format('YYYY-MM-DD'));
             startDate.add(1, 'day');
