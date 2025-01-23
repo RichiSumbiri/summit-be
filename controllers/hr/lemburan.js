@@ -358,7 +358,7 @@ export const postLemburan = async(req,res) => {
                 spl_date: dataSPL.SPLDate,
                 spl_dept: parseInt(dataSPL.SPLDept),
                 spl_section: dataSPL.SPLSection,
-                spl_line: parseInt(dataSPL.SPLSubDept),
+                spl_line: dataSPL.SPLSubDept || dataSPL.SPLLine,
                 spl_foremanspv: parseInt(dataSPL.SPLForemanSPV),
                 spl_head: parseInt(dataSPL.SPLHead),
                 spl_manager: parseInt(getIDManager.IDManager),
@@ -399,7 +399,7 @@ export const postLemburan = async(req,res) => {
                 spl_date: dataSPL.SPLDate,
                 spl_dept: parseInt(dataSPL.SPLDept),
                 spl_section: dataSPL.SPLSection,
-                spl_line: parseInt(dataSPL.SPLSubDept),
+                spl_line: dataSPL.SPLSubDept || dataSPL.SPLLine,
                 spl_foremanspv: parseInt(dataSPL.SPLForemanSPV),
                 spl_head: parseInt(dataSPL.SPLHead),
                 spl_manager: parseInt(getIDManager.IDManager),
@@ -669,7 +669,6 @@ export const postDeleteLemburan = async(req,res) => {
             });
         }
     } catch(err){
-        console.log(err);
         res.status(404).json({
             success: false,
             message: "error cannot delete lemburan",
