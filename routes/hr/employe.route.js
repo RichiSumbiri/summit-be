@@ -163,7 +163,7 @@ router.get("/cuti-delete/:cutiid", deleteCuti);
 
 
 // lemburan / spl overtime
-router.get("/lemburan-access/:userId", getSPLAccess);
+router.get("/lemburan-access/:userName", getSPLAccess);
 router.get("/lemburan-detail/:splnumber", getLemburanDetail);
 router.post("/lemburan-new", postLemburan);
 router.get("/lemburan-check-emp/:splDate/:empNik", getCheckEmpLemburan);
@@ -171,7 +171,7 @@ router.post("/lemburan-approve", postApproveLemburan);
 router.post("/lemburan-reject", postRejectLemburan);
 router.post("/lemburan-delete/:SPLID", postDeleteLemburan);
 router.get("/lemburan-pending", getLemburanPending);
-router.get("/lemburan-created/:userId", getLemburanCreated);
+router.get("/lemburan-created/:userName", getLemburanCreated);
 router.get("/lemburan-pending-all", getLemburanPendingAll);
 router.get("/lemburan-pending-spv/:nik", getLemburanPendingSPV);
 router.get("/lemburan-pending-head/:nik", getLemburanPendingHead);

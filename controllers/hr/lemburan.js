@@ -7,8 +7,8 @@ import moment from "moment";
 
 export const getSPLAccess = async(req,res) => {
     try {
-        const { userId }    = req.params;
-        const checkAccess   = await sumbiriUserSummitNIK.findAll({ where: { USER_ID: userId }});
+        const { userName }    = req.params;
+        const checkAccess   = await sumbiriUserSummitNIK.findAll({ where: { username: userName }, raw: true});
         if(checkAccess.length !== 0){
             res.status(200).json({
                 success: true,
@@ -22,6 +22,7 @@ export const getSPLAccess = async(req,res) => {
             });
         }
     } catch(err){
+        console.log(err);
         res.status(404).json({
             success: false,
             message: "error get spl access",
@@ -32,8 +33,8 @@ export const getSPLAccess = async(req,res) => {
 
 export const getLemburanCreated = async(req,res) => {
     try {
-        const { userId }    = req.params;
-        let listSPL         = await dbSPL.query(queryLemburanCreated, { replacements: { userId: userId }, type: QueryTypes.SELECT });
+        const { userName }    = req.params;
+        let listSPL         = await dbSPL.query(queryLemburanCreated, { replacements: { userId: userName }, type: QueryTypes.SELECT });
         let i = 0;
             
         for await (const row of listSPL) {   

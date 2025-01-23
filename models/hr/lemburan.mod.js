@@ -8,6 +8,10 @@ export const sumbiriUserSummitNIK = dbSPL.define('sumbiri_user_summit_nik', {
       primaryKey: true,
       allowNull: false,
     },
+    username: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
     Nik: {
       type: DataTypes.INTEGER,
       allowNull: true,
