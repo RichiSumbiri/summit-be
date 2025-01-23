@@ -699,6 +699,7 @@ export const getLemburanExportAmano = async(req,res) => {
             sumbiri_spl_main.spl_hrd_ts IS NOT NULL
             AND sumbiri_spl_main.spl_release = '1'
             AND sumbiri_spl_main.spl_version = '1'
+            AND sumbiri_spl_main.spl_active = '1'
             AND sumbiri_spl_main.spl_date BETWEEN :startDate AND :endDate
         
         `;
