@@ -5,6 +5,7 @@ import {
   getLemburForAbsen,
   qryAbsVerif,
   qryDailyAbsensi,
+  queryPureVerifAbs,
   VerifAbsen,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
@@ -236,6 +237,24 @@ export function getRandomTimeInMinus5(startTime) {
   return millisecondsToTime(randomTime);
 }
 
+const arrKet = [
+  "A",
+  "CD",
+  "I",
+  "CT",
+  "CM",
+  "CH",
+  "CK1",
+  "CK2",
+  "CK3",
+  "CK4",
+  "CK5",
+  "CK6",
+  "CK7",
+  "CG",
+  "DL",
+];
+
 export const getVerifAbsenDaily = async (req, res) => {
   try {
     const { date } = req.params;
@@ -247,6 +266,8 @@ export const getVerifAbsenDaily = async (req, res) => {
     });
 
     getAbsen = getAbsen.filter((item) => !item.scan_in || !item.scan_out);
+
+    getAbsen = getAbsen.filter((item) => !arrKet.includes(item.keterangan));
     const getUserId = getAbsen.map((items) => items.mod_id);
 
     if (getUserId.length > 0) {
@@ -299,7 +320,45 @@ export const getVerifAbsenDaily = async (req, res) => {
   }
 };
 
+export const getTblConfirm = async (req, res) => {
+  try {
+    const { date } = req.params;
 
+    let getConfirmAbsen = await dbSPL.query(queryPureVerifAbs, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+    });
+
+    const getLembur = await dbSPL.query(getLemburForAbsen, {
+      replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    if (getLembur.length > 0) {
+      getConfirmAbsen = getConfirmAbsen.map((item) => {
+        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
+
+        if (lembur) {
+          return { ...item, ...lembur };
+        } else {
+          return item;
+        }
+      });
+    }
+
+    return res.json({ data: getConfirmAbsen, message: "succcess get data" });
+
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data confirm" });
+  
+    
+  }
+};
 
 export async function verifAbsenCtr(req, res) {
   try {
@@ -317,6 +376,8 @@ export async function verifAbsenCtr(req, res) {
 
       let updateArrAbs = arrAbs.map((item) => ({
         ...item,
+        id: item.id_verif,
+        id_absen: item.id_absen,
         scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
         scan_out: objEdit.scan_out === "00:00" ? null : objEdit.scan_out,
         jk_id: objEdit.jam_kerja[0].jk_id || null,
@@ -326,20 +387,25 @@ export async function verifAbsenCtr(req, res) {
         tanggal_in: tanggal_in,
         tanggal_out: tanggal_out,
         scheduleDate_inv: tanggal_in,
-        mod_id: userId,
+        add_id: !item.id_verif ? userId : null,
+        mod_id: item.id_verif ? userId : null,
       }));
 
       if (arrAbs.length > 1 && objEdit.keterangan[0].code_absen === "H") {
         updateArrAbs = updateArrAbs.map((item) => ({
           ...item,
-          scan_in: autoIn ? getRandomTimeIn5Minute(
-            objEdit.jam_kerja[0].jk_scan_in_audit
-            // objEdit.jam_kerja[0].jk_in
-          ) : item.scan_in,
-          scan_out: autoOut ? getRandomTimeIn5Minute(
-            objEdit.jam_kerja[0].jk_out
-            // objEdit.jam_kerja[0].jk_scan_out_end
-          ) : item.scan_out,
+          scan_in: autoIn
+            ? getRandomTimeIn5Minute(
+                objEdit.jam_kerja[0].jk_scan_in_audit
+                // objEdit.jam_kerja[0].jk_in
+              )
+            : item.scan_in,
+          scan_out: autoOut
+            ? getRandomTimeIn5Minute(
+                objEdit.jam_kerja[0].jk_out
+                // objEdit.jam_kerja[0].jk_scan_out_end
+              )
+            : item.scan_out,
         }));
       }
 
@@ -352,6 +418,7 @@ export async function verifAbsenCtr(req, res) {
 
       const verifAbsenProsess = await VerifAbsen.bulkCreate(updateArrAbs, {
         updateOnDuplicate: [
+          "id_absen",
           "scan_in",
           "scan_out",
           "jk_id",
@@ -384,3 +451,83 @@ export async function verifAbsenCtr(req, res) {
     return res.status(500).json({ message: "Terjadi kesalahan" });
   }
 }
+
+export const delteHrVerifAbs = async (req, res) => {
+  try {
+    const arrIdVer = req.body.IDVerif;
+
+    if (!arrIdVer)
+      return res.status(202).json({ message: "No Data ID for Delete" });
+
+    const deleteArrIdVerif = await VerifAbsen.destroy({
+      where: {
+        id: arrIdVer,
+      },
+    });
+
+    if (deleteArrIdVerif) {
+      return res.json({ message: "Success Deleted Data" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+};
+
+export const ConfirmVerifAbs = async (req, res) => {
+  try {
+    const { arrConfirm, userId } = req.body;
+
+    if (!arrConfirm)
+      return res.status(202).json({ message: "No Data ID for Confirm" });
+
+    const dataPost = arrConfirm.map((item) => {
+      let datas = { ...item, mod_id: userId };
+      if (item.id_absen) {
+        datas.id = item.id_absen;
+      }
+      return datas;
+    });
+
+    const updatedAbsen = await Attandance.bulkCreate(dataPost, {
+      updateOnDuplicate: [
+        "scan_in",
+        "scan_out",
+        "jk_id",
+        "ket_in",
+        "ket_out",
+        "keterangan",
+        "tanggal_in",
+        "tanggal_out",
+        "mod_id",
+      ],
+
+      where: {
+        id: ["id"],
+      },
+    });
+
+    if (updatedAbsen) {
+      const idVerif = arrConfirm.map((item) => item.id_verif);
+
+      const updateVerif = await VerifAbsen.update(
+        { verifikasi: 1 },
+        {
+          where: {
+            id: idVerif,
+          },
+        }
+      );
+      if (updateVerif) {
+        return res.json({ message: "Success Verifikasi Absen" });
+      }
+    } else {
+      return res
+        .status(500)
+        .json({ message: "Terjadi kesalahan saat confirm absen" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+};

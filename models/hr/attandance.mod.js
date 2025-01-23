@@ -129,7 +129,7 @@ FROM (
 			    WHERE sis.scheduleDate_inv BETWEEN :startDate AND  :endDate 
 			) nm 
 			GROUP BY 
-			    nm.scheduleDate, nm.Nik,  nm.groupId
+			    nm.scheduleDate, nm.Nik -- ,  nm.groupId dihapus karena untuk skip jadwal individu yang kosong
 
 	) nx
 ) fn
@@ -528,7 +528,8 @@ absente AS (
 		sa.keterangan
 	FROM sumbiri_absens sa 
 	WHERE  sa.tanggal_in= :date
-	AND (sa.scan_in IS NULL OR sa.scan_out IS NULL)
+--	AND (sa.scan_in IS NULL OR sa.scan_out IS NULL)
+  -- AND sa.keterangan IS NULL
 )
 SELECT 
 ba.Nik, 
@@ -547,8 +548,6 @@ ba.jk_id,
 mjk.idGroup,
 mjk.jk_nama,
 ba.calendar,
-sa.id, 
-sa.Nik,
 sa.tanggal_in,
 sa.tanggal_out,
 sa.id AS id_absen,
@@ -562,15 +561,15 @@ sav.scan_out AS scan_out_ver,
 sav.keterangan AS keterangan_ver,
 sav.ket_in AS ket_in_ver,
 sav.ket_out AS ket_out_ver,
-sav.id,
-sav.verifikasi,
-sav.add_id,
-sav.mod_id,
-sav.createdAt,
-sav.updatedAt
+sav.id id_verif,
+sav.verifikasi -- ,
+-- sav.add_id,
+-- sav.mod_id,
+-- sav.createdAt,
+-- sav.updatedAt
 FROM base_absen ba
 LEFT JOIN absente AS sa ON sa.Nik = ba.Nik 
-LEFT JOIN sumbiri_absen_verif sav ON sav.Nik = ba.Nik AND sa.tanggal_in = :date
+LEFT JOIN sumbiri_absen_verif sav ON sav.Nik = ba.Nik AND sav.tanggal_in = :date
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 -- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
@@ -578,6 +577,33 @@ LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 
 `;
+
+export const queryPureVerifAbs = `SELECT 
+sav.id id_verif,
+sa.id AS id_absen,
+se.Nik,
+se.NamaLengkap,
+sav.jk_id,
+sav.tanggal_in,
+sav.scan_in,
+sav.tanggal_out,
+sav.scan_out,
+sav.keterangan,
+sav.ket_in,
+sav.ket_out,
+sav.verifikasi,
+mjk.jk_nama,
+mjk.idGroup,
+ms.Name AS NamaSection,
+msd.Name AS subDeptName
+FROM 
+sumbiri_absen_verif sav
+LEFT JOIN sumbiri_employee se ON se.Nik = sav.Nik
+LEFT JOIN sumbiri_absens sa ON sa.Nik = sav.Nik AND sa.tanggal_in = :date
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = sav.jk_id 
+WHERE sav.tanggal_in = :date`
 
 export const VerifAbsen = dbSPL.define(
   "sumbiri_absen_verif",
