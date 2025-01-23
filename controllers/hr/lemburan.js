@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV } from "../../models/hr/lemburanspl.mod.js";
+import { modelSPLMain, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -651,6 +651,32 @@ export const postRejectLemburan = async(req,res) => {
     }
 }
 
+
+export const postDeleteLemburan = async(req,res) => {
+    try {
+        const { SPLID }     = req.params;
+        const actionDelete  = await modelSPLMain.update({
+            spl_active: 0
+        }, { 
+            where: {
+                spl_number: SPLID
+            }
+        });
+        if(actionDelete){
+            res.status(200).json({
+                success: true,
+                message: `success delete spl ${SPLID}`
+            });
+        }
+    } catch(err){
+        console.log(err);
+        res.status(404).json({
+            success: false,
+            message: "error cannot delete lemburan",
+            error: err
+        });
+    }
+}
 
 
 export const getLemburanExportAmano = async(req,res) => {

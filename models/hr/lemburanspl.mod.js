@@ -1,3 +1,6 @@
+import { DataTypes } from "sequelize";
+import { dbSPL } from "../../config/dbAudit.js";
+
 export const queryLemburan = `
 SELECT
 	ssm.spl_number AS SPLID,
@@ -132,15 +135,127 @@ AND ssm.spl_version = 1
 
 
 export const queryLemburanDetail      = `
-        SELECT
-            spl_number AS SPLNumber,
-            Nik AS Nik,
-            nama AS NamaLengkap,
-            start AS StartTime,
-            finish AS FinishTime,
-            minutes AS Minutes
-        FROM
-            sumbiri_spl_data
-        WHERE spl_number = :splnumber
-        `;
+SELECT
+	spl_number AS SPLNumber,
+	Nik AS Nik,
+	nama AS NamaLengkap,
+	start AS StartTime,
+	finish AS FinishTime,
+	minutes AS Minutes
+FROM
+	sumbiri_spl_data
+WHERE spl_number = :splnumber
+`;
         
+
+export const modelSPLMain = dbSPL.define('sumbiri_spl_main',
+	{
+		spl_number: {
+		  type: DataTypes.CHAR(13),
+		  allowNull: false,
+		  primaryKey: true,
+		},
+		spl_date: {
+		  type: DataTypes.DATEONLY,
+		  allowNull: true,
+		},
+		spl_dept: {
+		  type: DataTypes.CHAR(7),
+		  allowNull: true,
+		},
+		spl_section: {
+		  type: DataTypes.STRING(15),
+		  allowNull: true,
+		},
+		spl_line: {
+		  type: DataTypes.STRING(20),
+		  allowNull: false,
+		  defaultValue: "NONE",
+		},
+		spl_foremanspv: {
+		  type: DataTypes.INTEGER(10),
+		  allowNull: true,
+		},
+		spl_head: {
+		  type: DataTypes.INTEGER(10),
+		  allowNull: true,
+		},
+		spl_manager: {
+		  type: DataTypes.INTEGER(10),
+		  allowNull: true,
+		},
+		spl_hrd: {
+		  type: DataTypes.INTEGER(10),
+		  allowNull: true,
+		},
+		spl_approve_foreman: {
+		  type: DataTypes.TINYINT(1),
+		  allowNull: true,
+		},
+		spl_approve_head: {
+		  type: DataTypes.TINYINT(1),
+		  allowNull: true,
+		},
+		spl_approve_manager: {
+		  type: DataTypes.TINYINT(1),
+		  allowNull: true,
+		},
+		spl_approve_hrd: {
+		  type: DataTypes.TINYINT(1),
+		  allowNull: true,
+		},
+		spl_foreman_ts: {
+		  type: DataTypes.DATE,
+		  allowNull: true,
+		},
+		spl_head_ts: {
+		  type: DataTypes.DATE,
+		  allowNull: true,
+		},
+		spl_manager_ts: {
+		  type: DataTypes.DATE,
+		  allowNull: true,
+		},
+		spl_hrd_ts: {
+		  type: DataTypes.DATE,
+		  allowNull: true,
+		},
+		spl_type: {
+		  type: DataTypes.CHAR(2),
+		  allowNull: true,
+		},
+		spl_release: {
+		  type: DataTypes.TINYINT(1),
+		  allowNull: false,
+		  defaultValue: 0,
+		},
+		spl_createdby: {
+		  type: DataTypes.STRING(100),
+		  allowNull: true,
+		},
+		spl_createddate: {
+		  type: DataTypes.DATE,
+		  allowNull: true,
+		},
+		spl_updatedby: {
+		  type: DataTypes.STRING(100),
+		  allowNull: true,
+		},
+		spl_updateddate: {
+		  type: DataTypes.DATE,
+		  allowNull: true,
+		},
+		spl_active: {
+		  type: DataTypes.TINYINT(1),
+		  allowNull: false,
+		  defaultValue: 1,
+		},
+		spl_version: {
+		  type: DataTypes.INTEGER(2),
+		  allowNull: true,
+		  defaultValue: 0,
+		},
+	}, {
+		tableName: "sumbiri_spl_main",
+		timestamps: false, // Disable Sequelize's default timestamps if not used
+});
