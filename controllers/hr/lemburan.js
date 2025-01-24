@@ -255,10 +255,17 @@ export const getLemburanPendingHRD = async(req,res) => {
 export const getLemburanApprovalComplete = async(req,res) => {
     try {
         const { startDate, endDate }    = req.params;
-        let listComplete              = await dbSPL.query(queryLemburanComplete, { replacements: { startDate: startDate, endDate: endDate }, type: QueryTypes.SELECT });
+        let listComplete              = await dbSPL.query(queryLemburanComplete, 
+            { replacements: 
+                { 
+                    startTgl: startDate, 
+                    endTgl: endDate 
+                }, type: QueryTypes.SELECT 
+            }
+        );
         let i = 0;
             
-        for await (const row of listPending) {   
+        for await (const row of listComplete) {   
             let index = i++;
             const action            = await dbSPL.query(queryLemburanDetail, {
                 replacements: {
@@ -267,7 +274,6 @@ export const getLemburanApprovalComplete = async(req,res) => {
             });
             listComplete[index].SPLEmp = action 
         }
-        
         if(listComplete){
             res.status(200).json({
                 success: true,

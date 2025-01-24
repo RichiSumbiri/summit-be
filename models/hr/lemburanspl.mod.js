@@ -122,13 +122,13 @@ AND ssm.spl_version = 1
 
 export const queryLemburanComplete = queryLemburan + `
 WHERE
-ssm.spl_date BETWEEN :startDate AND :endDate
-AND ssm.spl_approve_foreman = 1
+ssm.spl_approve_foreman = 1
 AND ssm.spl_approve_head = 1
 AND ssm.spl_approve_manager = 1
 AND ssm.spl_approve_hrd = 1
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
+AND ssm.spl_date BETWEEN :startTgl AND :endTgl
 `;
 
 
