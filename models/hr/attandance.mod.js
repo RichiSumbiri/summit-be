@@ -391,7 +391,15 @@ export const getLemburForAbsen = `
 ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
 FROM sumbiri_spl_main ssm
 JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
-WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1
+WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1 AND ssm.spl_active = 1
+GROUP BY ssm.spl_date, spl.Nik
+`;
+export const getLemburForEmpOne = `
+  SELECT 
+ssm.spl_number, ssm.spl_date, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
+FROM sumbiri_spl_main ssm
+JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
+WHERE spl.Nik = :nik AND ssm.spl_date BETWEEN :startDate AND :endDate AND ssm.spl_approve_hrd = 1 AND ssm.spl_active = 1
 GROUP BY ssm.spl_date, spl.Nik
 `;
 export const karyawanOut = `SELECT COUNT(*) AS karyawanOut FROM sumbiri_employee se WHERE se.TanggalKeluar = :date`;
@@ -778,4 +786,79 @@ LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+`
+
+
+export const qryAbsenIndividu = `SELECT 
+	fn.*,
+	mjk.jk_nama,
+	mjk.jk_in,
+	mjk.jk_out,
+	sa.keterangan,
+	sa.scan_in,
+	sa.scan_out,
+	mjk.jk_color,
+	c.calendar_color
+FROM (
+	SELECT 
+		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.NamaLengkap, nx.groupId,
+		CASE WHEN  nx.groupId = 0 THEN nx.calendar_indv ELSE nx.calendar_group END AS calendar,
+		CASE WHEN  nx.groupId = 0 THEN nx.jadwal_indv ELSE nx.jadwal_group END AS jk_id
+	FROM (
+				SELECT 
+				 MAX(nm.jadwalId_inv) jadwalId_inv,
+				 MAX(nm.jadwalId) jadwalId,
+			    nm.scheduleDate, 
+			    nm.Nik, 
+			    nm.NamaLengkap, 
+			    nm.groupId,
+			    MAX(nm.calendar_group) AS calendar_group,
+			    MAX(nm.calendar_indv) AS calendar_indv, 
+			    MAX(nm.jadwal_group) AS jadwal_group,
+			    MAX(nm.jadwal_indv) AS jadwal_indv
+			FROM (
+			    SELECT  
+			    	  0 jadwalId_inv,
+			 		  sgs.jadwalId,
+			        se.Nik, 
+			        se.NamaLengkap, 
+			        sgs.scheduleDate, 
+			        seg.groupId, 
+			        sgs.jk_id AS jadwal_group,
+			        NULL AS jadwal_indv,
+			        sgs.calendar AS calendar_group,
+			        NULL AS calendar_indv
+			    FROM sumbiri_employee se 
+			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
+			    WHERE se.Nik = :nik 
+			      AND sgs.scheduleDate BETWEEN :startDate AND :endDate 
+			    
+			    UNION ALL 
+			
+				SELECT  
+			 		  sis.jadwalId_inv,
+			 		  0 jadwalId, 
+			        se.Nik, 
+			        se.NamaLengkap, 
+			        sis.scheduleDate_inv AS scheduleDate, 
+			        0 AS groupId, 
+			        NULL AS jadwal_group,
+			        sis.jk_id AS jadwal_indv,
+			        NULL AS calendar_group,
+			        sis.calendar AS calendar_indv
+			    FROM sumbiri_employee se 
+			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
+			    WHERE se.Nik = :nik  
+			      AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate 
+			) nm 
+			GROUP BY 
+			    nm.scheduleDate, nm.Nik, nm.NamaLengkap, nm.groupId
+
+	) nx
+) fn
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = fn.jk_id
+LEFT JOIN master_calendar_type c ON c.calendar_code = fn.calendar
+LEFT JOIN sumbiri_absens sa ON sa.Nik = fn.Nik AND sa.tanggal_in = fn.scheduleDate
+GROUP BY fn.scheduleDate
 `
