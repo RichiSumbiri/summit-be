@@ -259,3 +259,109 @@ export const modelSPLMain = dbSPL.define('sumbiri_spl_main',
 		tableName: "sumbiri_spl_main",
 		timestamps: false, // Disable Sequelize's default timestamps if not used
 });
+
+
+export const queryOvertimeReport = `
+WITH base_absen AS (
+SELECT 
+	    se.Nik, 
+		  se.NamaLengkap,
+		  se.IDDepartemen,
+		  se.IDSubDepartemen,
+		  se.IDSection,
+		  se.IDPosisi,
+		  se.TanggalMasuk,
+		  se.TanggalKeluar,
+		  se.JenisKelamin,
+		  se.StatusKaryawan,
+	msd.Name subDeptName,
+	    md.NameDept,
+	    sgs.groupId,
+	sis.jadwalId_inv,
+	    CASE
+		WHEN sis.jk_id THEN sis.jk_id
+		ELSE sgs.jk_id
+	END AS jk_id,
+	    CASE
+		WHEN sis.calendar THEN sis.calendar
+		ELSE sgs.calendar
+	END AS calendar
+FROM
+	sumbiri_employee se
+LEFT JOIN master_department md ON
+	md.IdDept = se.IDDepartemen
+LEFT JOIN master_subdepartment msd ON
+	msd.IDSubDept = se.IDSubDepartemen
+LEFT JOIN sumbiri_employee_group seg ON
+	seg.Nik = se.Nik
+LEFT JOIN sumbiri_group_schedule sgs ON
+	sgs.groupId = seg.groupId
+	AND sgs.scheduleDate = :dateNow
+LEFT JOIN sumbiri_individu_schedule sis ON
+	sis.Nik = se.Nik
+	AND sis.scheduleDate_inv = :dateNow
+WHERE
+	se.StatusAktif = 0
+	AND se.CancelMasuk = 'N'
+	-- Karyawan saat ini tidak aktif
+	AND (se.TanggalKeluar IS NULL
+		OR se.TanggalKeluar >= :dateNow )
+	-- Belum keluar pada tanggal tertentu
+	AND se.TanggalMasuk <= :dateNow
+)
+SELECT * FROM (
+SELECT
+	ba.IDSection,
+	ba.IDDepartemen,
+	ba.NameDept,
+	ba.Nik,
+	ba.NamaLengkap,
+	ba.calendar,
+	sa.tanggal_in,
+	sa.tanggal_out,
+	mjk2.jk_in,
+	sa.scan_in,
+	mjk2.jk_out,
+	sa.scan_out,
+	TblSPL.start AS StartSPL,
+	TblSPL.finish AS FinishSPL,
+	TblSPL.spl_type AS TypeSPL,
+	( TblSPL.minutes / 60 ) AS JamSPL,
+	sa.keterangan
+FROM
+	base_absen ba
+LEFT JOIN sumbiri_absens sa ON
+	sa.Nik = ba.Nik
+	AND sa.tanggal_in = :dateNow
+LEFT JOIN master_jam_kerja mjk ON
+	mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk2 ON
+	mjk2.jk_id = sa.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON
+	ba.groupId = sgs.groupId
+LEFT JOIN master_section msts ON
+	msts.IDSection = ba.IDSection
+LEFT JOIN master_position mp ON
+	mp.IDPosition = ba.IDPosisi
+LEFT JOIN (
+	SELECT
+		ssm.spl_type,
+		ssd.Nik,
+		ssd.spl_date,
+		ssd.start,
+		ssd.finish,
+		ssd.minutes 
+	FROM
+		sumbiri_spl_data ssd
+	LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = ssd.spl_number 
+	WHERE ssm.spl_active = '1' AND ssm.spl_date BETWEEN :startDate AND :endDate
+) AS TblSPL ON TblSPL.Nik = ba.Nik
+) AS TblOvertime 
+WHERE 
+(TIME_TO_SEC(TIMEDIFF(scan_out, jk_out)) / 60) > 30 
+OR (TIME_TO_SEC(TIMEDIFF(jk_in, scan_in)) / 60) > 30
+OR (TIME_TO_SEC(TIMEDIFF(scan_in, StartSPL)) / 60) < 30
+OR (TIME_TO_SEC(TIMEDIFF(scan_out, FinishSPL)) / 60) < 30
+ORDER BY tanggal_in, IDSection, IDDepartemen, Nik ASC
+
+`

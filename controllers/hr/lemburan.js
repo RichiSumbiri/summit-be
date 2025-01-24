@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { modelSPLMain, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV } from "../../models/hr/lemburanspl.mod.js";
+import { modelSPLMain, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV, queryOvertimeReport } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -722,6 +722,31 @@ export const getLemburanExportAmano = async(req,res) => {
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
+        });
+    }
+}
+
+
+export const getLemburanReport = async(req,res) => {
+    try {
+        const { startDate, endDate } = req.params;
+        const getData = await dbSPL.query(queryOvertimeReport, {
+            replacements: {
+                startDate: startDate,
+                endDate: endDate
+            }, type: QueryTypes.SELECT
+        });
+        if (getData) {
+            res.status(200).json({
+                success: true,
+                message: "success get data lemburan report",
+                data: getData
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get lemburan report",
         });
     }
 }
