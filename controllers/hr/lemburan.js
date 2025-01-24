@@ -744,6 +744,7 @@ export const getLemburanReport = async(req,res) => {
             });
         }
     } catch(err){
+        console.log(err);
         res.status(404).json({
             success: false,
             message: "error get lemburan report",

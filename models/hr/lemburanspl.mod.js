@@ -296,18 +296,13 @@ LEFT JOIN sumbiri_employee_group seg ON
 	seg.Nik = se.Nik
 LEFT JOIN sumbiri_group_schedule sgs ON
 	sgs.groupId = seg.groupId
-	AND sgs.scheduleDate = :dateNow
+	AND sgs.scheduleDate BETWEEN :startDate AND :endDate
 LEFT JOIN sumbiri_individu_schedule sis ON
 	sis.Nik = se.Nik
-	AND sis.scheduleDate_inv = :dateNow
+	AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate
 WHERE
 	se.StatusAktif = 0
 	AND se.CancelMasuk = 'N'
-	-- Karyawan saat ini tidak aktif
-	AND (se.TanggalKeluar IS NULL
-		OR se.TanggalKeluar >= :dateNow )
-	-- Belum keluar pada tanggal tertentu
-	AND se.TanggalMasuk <= :dateNow
 )
 SELECT * FROM (
 SELECT
@@ -332,7 +327,7 @@ FROM
 	base_absen ba
 LEFT JOIN sumbiri_absens sa ON
 	sa.Nik = ba.Nik
-	AND sa.tanggal_in = :dateNow
+	AND sa.tanggal_in  BETWEEN :startDate AND :endDate
 LEFT JOIN master_jam_kerja mjk ON
 	mjk.jk_id = ba.jk_id
 LEFT JOIN master_jam_kerja mjk2 ON
