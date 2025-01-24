@@ -2,7 +2,9 @@ import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import { Op, QueryTypes } from "sequelize";
 import {
   Attandance,
+  qryAbsenIndividu,
   getLemburForAbsen,
+  getLemburForEmpOne,
   qryAbsVerif,
   qryDailyAbsensi,
   queryPureVerifAbs,
@@ -11,6 +13,8 @@ import {
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
+import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
+import db from "../../config/database.js";
 
 export const getAbsenDaily = async (req, res) => {
   try {
@@ -529,5 +533,132 @@ export const ConfirmVerifAbs = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+};
+
+
+//absensi individu
+//get jadwal individu
+export const getAbsenIndividu = async (req, res) => {
+  try {
+    const { nik, startDate, endDate } = req.params;
+
+    if (!nik || !startDate || !endDate)
+      return res.status(400).json({ message: "Tidak Terdapat Parameter" });
+
+    const start = moment(startDate);
+    const end = moment(endDate);
+
+    const holidays = await db.query(QueryGetHolidayByDate, {
+      replacements: { startDate, endDate },
+      type: QueryTypes.SELECT,
+    });
+
+    let indvAbs = await dbSPL.query(qryAbsenIndividu, {
+      replacements: { startDate, endDate, nik },
+      type: QueryTypes.SELECT,
+    });
+
+    const getLembur = await dbSPL.query(getLemburForEmpOne, {
+      replacements: { startDate, endDate, nik },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    if (getLembur.length > 0) {
+      indvAbs = indvAbs.map((item) => {
+        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik && lembur.spl_date === item.scheduleDate);
+
+        if (lembur) {
+          let ttlLembur = "";
+          if (lembur.type === "BH") {
+            const scanin = moment(item.scan_in, "HH:mm:ss");
+            const jam_in = moment(item.jk_in, "HH:mm:ss");
+            ttlLembur = scanin.diff(jam_in, "hours");
+          } else {
+            const scanout = moment(item.scan_out, "HH:mm:ss");
+            let jam_out = moment(item.jk_out, "HH:mm:ss");
+
+            if (scanout.isBefore(jam_out)) {
+              jam_out.add(1, "day");
+            }
+            ttlLembur = scanout.diff(jam_out, "hours");
+          }
+          return { ...item, ...lembur, ttlLembur };
+        } else {
+          return item;
+        }
+      });
+    }
+
+
+    
+    const checkHolidays = (date, data) => {
+      const dayName = moment(date).format("dddd");
+      if (holidays.length > 0) {
+        const findDate = holidays.find((item) => item.calendar_date === date);
+        if (findDate)
+          return {
+            calendar: findDate.calendar_holiday_type,
+            calendarName: findDate.calendar_holiday_reason,
+            color: "#ca2129",
+          };
+      }
+      if (dayName === "Sunday")
+        return {
+          calendar: data.calendar ? data.calendar : "HL",
+          calendarName: null,
+          colorDay: "#ca2129",
+          color: data.calendar_color ? data.calendar_color : "#ec0000",
+        };
+      if (dayName === "Saturday")
+        return {
+          calendar: data.calendar ? data.calendar : "WD",
+          calendarName: null,
+          colorDay: "#0144B7",
+          color: data.calendar_color ? data.calendar_color : "#97f65a",
+        };
+      return {
+        calendar: data.calendar ? data.calendar : "WD",
+        calendarName: null,
+        colorDay: "#000000",
+        color: data.calendar_color ? data.calendar_color : "#97f65a",
+      };
+    };
+
+    const today = moment().startOf("day");
+
+    const listDates = Array.from(moment.range(start, end).by("days")).map(
+      (day) => {
+        const dateFormat = day.format("YYYY-MM-DD");
+        let dataExist = {Nik: nik};
+
+        if (indvAbs.length > 0) {
+          const checkIdx = indvAbs.findIndex(
+            (items) => items.scheduleDate === dateFormat
+          );
+
+          if (checkIdx >= 0) {
+            dataExist = indvAbs[checkIdx];
+          }
+        }
+        const objHoliday = checkHolidays(dateFormat, dataExist);
+
+        return {
+          allowEdit: day.isSame(today, 'day') || day.isAfter(today, 'day'),
+          scheduleDate: dateFormat,
+          sortDate: day.format("MM-DD"),
+          days: day.format("ddd"),
+          ...objHoliday,
+          ...dataExist,
+        };
+      }
+    );
+
+    res.json({ data: listDates });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Mendapatakan data jadwal" });
   }
 };
