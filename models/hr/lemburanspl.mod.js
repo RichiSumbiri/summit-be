@@ -322,6 +322,7 @@ SELECT
 	TblSPL.finish AS FinishSPL,
 	TblSPL.spl_type AS TypeSPL,
 	( TblSPL.minutes / 60 ) AS JamSPL,
+	 TblSPL.spl_number AS SPLNumber,
 	sa.keterangan
 FROM
 	base_absen ba
@@ -341,11 +342,12 @@ LEFT JOIN master_position mp ON
 LEFT JOIN (
 	SELECT
 		ssm.spl_type,
+		ssm.spl_number,
 		ssd.Nik,
 		ssd.spl_date,
 		ssd.start,
 		ssd.finish,
-		ssd.minutes 
+		ssd.minutes                                                                                                                                                                                                                                                                                          
 	FROM
 		sumbiri_spl_data ssd
 	LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = ssd.spl_number 
