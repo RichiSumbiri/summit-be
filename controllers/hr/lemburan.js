@@ -740,7 +740,8 @@ export const getLemburanReport = async(req,res) => {
             res.status(200).json({
                 success: true,
                 message: "success get data lemburan report",
-                data: getData
+                data: getData,
+                count: getData.length
             });
         }
     } catch(err){
