@@ -304,61 +304,79 @@ WHERE
 	se.StatusAktif = 0
 	AND se.CancelMasuk = 'N'
 )
-SELECT * FROM (
-SELECT
-	ba.IDSection,
-	ba.IDDepartemen,
-	ba.NameDept,
-	ba.Nik,
-	ba.NamaLengkap,
-	ba.calendar,
-	sa.tanggal_in,
-	sa.tanggal_out,
-	mjk2.jk_in,
-	sa.scan_in,
-	mjk2.jk_out,
-	sa.scan_out,
-	TblSPL.start AS StartSPL,
-	TblSPL.finish AS FinishSPL,
-	TblSPL.spl_type AS TypeSPL,
-	( TblSPL.minutes / 60 ) AS JamSPL,
-	 TblSPL.spl_number AS SPLNumber,
-	sa.keterangan
-FROM
-	base_absen ba
-LEFT JOIN sumbiri_absens sa ON
-	sa.Nik = ba.Nik
-	AND sa.tanggal_in  BETWEEN :startDate AND :endDate
-LEFT JOIN master_jam_kerja mjk ON
-	mjk.jk_id = ba.jk_id
-LEFT JOIN master_jam_kerja mjk2 ON
-	mjk2.jk_id = sa.jk_id
-LEFT JOIN sumbiri_group_shift sgs ON
-	ba.groupId = sgs.groupId
-LEFT JOIN master_section msts ON
-	msts.IDSection = ba.IDSection
-LEFT JOIN master_position mp ON
-	mp.IDPosition = ba.IDPosisi
-LEFT JOIN (
-	SELECT
-		ssm.spl_type,
-		ssm.spl_number,
-		ssd.Nik,
-		ssd.spl_date,
-		ssd.start,
-		ssd.finish,
-		ssd.minutes                                                                                                                                                                                                                                                                                          
-	FROM
-		sumbiri_spl_data ssd
-	LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = ssd.spl_number 
-	WHERE ssm.spl_active = '1' AND ssm.spl_date BETWEEN :startDate AND :endDate
-) AS TblSPL ON TblSPL.Nik = ba.Nik
-) AS TblOvertime 
-WHERE 
-(TIME_TO_SEC(TIMEDIFF(scan_out, jk_out)) / 60) > 30 
-OR (TIME_TO_SEC(TIMEDIFF(jk_in, scan_in)) / 60) > 30
-OR (TIME_TO_SEC(TIMEDIFF(scan_in, StartSPL)) / 60) < 30
-OR (TIME_TO_SEC(TIMEDIFF(scan_out, FinishSPL)) / 60) < 30
-ORDER BY tanggal_in, IDSection, IDDepartemen, Nik ASC
 
+SELECT
+	*
+FROM
+	(
+	SELECT
+		*
+	FROM
+		(
+		SELECT
+			ba.IDSection,
+			ba.IDDepartemen,
+			ba.NameDept,
+			ba.Nik,
+			ba.NamaLengkap,
+			ba.calendar,
+			sa.tanggal_in,
+			sa.tanggal_out,
+			mjk2.jk_in,
+			sa.scan_in,
+			mjk2.jk_out,
+			sa.scan_out,
+			TblSPL.start AS StartSPL,
+			TblSPL.finish AS FinishSPL,
+			TblSPL.spl_type AS TypeSPL,
+			( TblSPL.minutes / 60 ) AS JamSPL,
+			TblSPL.spl_number AS SPLNumber,
+			sa.keterangan
+		FROM
+			base_absen ba
+		LEFT JOIN sumbiri_absens sa ON
+			sa.Nik = ba.Nik
+			AND sa.tanggal_in BETWEEN :startDate AND :endDate
+		LEFT JOIN master_jam_kerja mjk ON
+			mjk.jk_id = ba.jk_id
+		LEFT JOIN master_jam_kerja mjk2 ON
+			mjk2.jk_id = sa.jk_id
+		LEFT JOIN sumbiri_group_shift sgs ON
+			ba.groupId = sgs.groupId
+		LEFT JOIN master_section msts ON
+			msts.IDSection = ba.IDSection
+		LEFT JOIN master_position mp ON
+			mp.IDPosition = ba.IDPosisi
+		LEFT JOIN (
+			SELECT
+				ssm.spl_type,
+				ssm.spl_number,
+				ssd.Nik,
+				ssd.spl_date,
+				ssd.start,
+				ssd.finish,
+				ssd.minutes
+			FROM
+				sumbiri_spl_data ssd
+			LEFT JOIN sumbiri_spl_main ssm ON
+				ssm.spl_number = ssd.spl_number
+			WHERE
+				ssm.spl_active = '1'
+				AND ssm.spl_date BETWEEN :startDate AND :endDate
+) AS TblSPL ON
+			TblSPL.Nik = ba.Nik
+) AS TblOvertime
+	WHERE
+		(TIME_TO_SEC(TIMEDIFF(scan_out, jk_out)) / 60) > 30
+			OR (TIME_TO_SEC(TIMEDIFF(jk_in, scan_in)) / 60) > 30
+				OR (TIME_TO_SEC(TIMEDIFF(scan_in, StartSPL)) / 60) < 30
+					OR (TIME_TO_SEC(TIMEDIFF(scan_out, FinishSPL)) / 60) < 30
+				ORDER BY
+					tanggal_in,
+					IDSection,
+					IDDepartemen,
+					Nik ASC
+) AS RekapLemburan
+GROUP BY IDSection, IDDepartemen, NameDept, Nik, NamaLengkap, calendar, tanggal_in
+ORDER BY tanggal_in, IDSection, IDDepartemen  ASC
 `
