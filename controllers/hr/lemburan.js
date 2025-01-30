@@ -315,7 +315,13 @@ export const getCheckEmpLemburan = async(req,res) => {
     try {
         const { splDate, empNik } = req.params;
         const empNIKZero    = empNik.padStart(10, "0");
-        const queryCheck    = `SELECT * FROM sumbiri_spl_data WHERE spl_date=:splDate AND Nik=:empNik `;
+        const queryCheck    = `
+        SELECT
+	        sd.*
+        FROM
+	        sumbiri_spl_data sd
+        LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = sd.spl_number 
+        WHERE WHERE sd.spl_date=:splDate AND sd.Nik=:empNik AND ssm.spl_active = '1'`;
         const dataCheck     = await dbSPL.query(queryCheck, {
             replacements: {
                 splDate: splDate,
