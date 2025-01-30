@@ -366,6 +366,7 @@ export const postLemburan = async(req,res) => {
               ]
         });
         const newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');;
+        console.log(dataSPL);
         if(dataSPL.SPLNumber){
             await ModelSPLMain.update({
                 spl_date: dataSPL.SPLDate,
@@ -391,20 +392,41 @@ export const postLemburan = async(req,res) => {
             });
             
             for (const emp of dataSPL.SPLEmp) {
-                await ModelSPLData.update({
-                    spl_date: dataSPL.SPLDate,
-                    Nik: emp.Nik,
-                    nama: emp.NamaLengkap,
-                    start: emp.StartTime,
-                    finish: emp.FinishTime,
-                    minutes: emp.Minutes,
-                    status: 0,
-                    time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                }, {
+                const checkEmp = await ModelSPLData.findOne({
                     where: {
-                        spl_number: dataSPL.SPLNumber
+                        spl_number: dataSPL.SPLNumber,
+                        Nik: emp.Nik
                     }
-                });       
+                });
+                if(checkEmp===null){
+                    await ModelSPLData.create({
+                        spl_number: dataSPL.SPLNumber,
+                        spl_date: dataSPL.SPLDate,
+                        Nik: emp.Nik,
+                        nama: emp.NamaLengkap,
+                        start: emp.StartTime,
+                        finish: emp.FinishTime,
+                        minutes: emp.Minutes,
+                        status: 0,
+                        time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
+                    });
+                } else {
+                    await ModelSPLData.update({
+                        spl_date: dataSPL.SPLDate,
+                        Nik: emp.Nik,
+                        nama: emp.NamaLengkap,
+                        start: emp.StartTime,
+                        finish: emp.FinishTime,
+                        minutes: emp.Minutes,
+                        status: 0,
+                        time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }, {
+                        where: {
+                            spl_number: dataSPL.SPLNumber
+                        }
+                    });
+                }
+                       
             }
         } else {
             await ModelSPLMain.create({
