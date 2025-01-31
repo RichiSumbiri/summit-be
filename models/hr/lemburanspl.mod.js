@@ -4,6 +4,7 @@ import { dbSPL } from "../../config/dbAudit.js";
 export const queryLemburan = `
 SELECT
 	ssm.spl_number AS SPLID,
+	ssm.spl_printed AS SPLPrinted,
 	ssm.spl_date AS SPLDate,
 	ssm.spl_dept AS SPLDept,
 	md.NameDept AS SPLDeptName,
@@ -255,6 +256,10 @@ export const modelSPLMain = dbSPL.define('sumbiri_spl_main',
 		  allowNull: true,
 		  defaultValue: 0,
 		},
+		spl_printed: {
+			type: DataTypes.ENUM("Y", "N"),
+			allowNull: true,
+		  },
 	}, {
 		tableName: "sumbiri_spl_main",
 		timestamps: false, // Disable Sequelize's default timestamps if not used

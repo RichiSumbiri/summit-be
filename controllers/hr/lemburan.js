@@ -471,6 +471,40 @@ export const postLemburan = async(req,res) => {
     }
 }
 
+export const postPrintLemburan = async(req,res) => {
+    try {
+        const { splNumber }  = req.body;
+        const dataSPL = await ModelSPLMain.findOne({ 
+            where: { 
+                spl_number: splNumber,
+                spl_active: 1
+            }
+        });
+        if(dataSPL){
+            const setPrint = await modelSPLMain.update({
+                spl_printed: 1
+            }, {
+                where: {
+                    spl_number: splNumber,
+                    spl_active:1
+                }   
+            });
+            if(setPrint){
+                res.status(200).json({
+                    success: true,
+                    message: `success print spl ${splNumber}`
+                });
+            }
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error post print status lemburan",
+        });
+    }
+}
+
+
 
 
 export const postApproveLemburan = async(req,res) => {

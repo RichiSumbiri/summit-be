@@ -68,7 +68,7 @@ import {
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
 // import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
-import { getCheckEmpLemburan, getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanExportAmano, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingSPV, getLemburanReport, getSPLAccess, postApproveLemburan, postDeleteLemburan, postLemburan, postRejectLemburan } from "../../controllers/hr/lemburan.js";
+import { getCheckEmpLemburan, getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanExportAmano, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingSPV, getLemburanReport, getSPLAccess, postApproveLemburan, postDeleteLemburan, postLemburan, postPrintLemburan, postRejectLemburan } from "../../controllers/hr/lemburan.js";
 import {
   deleteJamKerja,
   deleteJamKerjaDtl,
@@ -175,6 +175,7 @@ router.get("/lemburan-access/:userName", getSPLAccess);
 router.get("/lemburan-detail/:splnumber", getLemburanDetail);
 router.post("/lemburan-new", postLemburan);
 router.get("/lemburan-check-emp/:splDate/:empNik", getCheckEmpLemburan);
+router.post("/lemburan-print", postPrintLemburan);
 router.post("/lemburan-approve", postApproveLemburan);
 router.post("/lemburan-reject", postRejectLemburan);
 router.post("/lemburan-delete/:SPLID", postDeleteLemburan);
