@@ -360,7 +360,7 @@ LEFT JOIN (
 			        a.ENDLINE_ID_SITELINE,
 			        a.ENDLINE_ACT_SCHD_ID,
 			        a.ENDLINE_PLAN_SIZE,	
-			        HOUR(a.ENDLINE_TIME) AS ENDLINE_TIME,
+			        HOUR(a.ENDLINE_ADD_TIME) AS ENDLINE_TIME,
 			        CASE
 			            WHEN a.ENDLINE_OUT_TYPE = 'RTT' AND IFNULL(a.ENDLINE_OUT_UNDO, 'OK') <> 'Y' THEN a.ENDLINE_OUT_QTY
 			            ELSE 0
@@ -435,7 +435,7 @@ JOIN
 			        a.ENDLINE_ID_SITELINE,
 			        a.ENDLINE_ACT_SCHD_ID,
 			        a.ENDLINE_PLAN_SIZE,	
-			        HOUR(a.ENDLINE_TIME) AS ENDLINE_TIME,
+			        HOUR(a.ENDLINE_ADD_TIME) AS ENDLINE_TIME,
 			        CASE
 			            WHEN a.ENDLINE_OUT_TYPE = 'RTT' AND IFNULL(a.ENDLINE_OUT_UNDO, 'OK') <> 'Y' THEN a.ENDLINE_OUT_QTY
 			            ELSE 0
