@@ -419,8 +419,7 @@ export const postLemburan = async(req,res) => {
                     minutes: emp.Minutes,
                     status: 0,
                     time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                });
-                await delay(1000);           
+                });           
             }
         } else {
             await ModelSPLMain.create({
@@ -454,8 +453,7 @@ export const postLemburan = async(req,res) => {
                     minutes: emp.Minutes,
                     status: 0,
                     time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                }); 
-                await delay(1000);      
+                });    
             }
         }
         
