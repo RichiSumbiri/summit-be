@@ -402,7 +402,8 @@ export const postLemburan = async(req,res) => {
             // reset spl data
             await ModelSPLData.destroy({
                 where: {
-                    spl_number: dataSPL.SPLNumber
+                    spl_number: dataSPL.SPLNumber,
+                    spl_date: dataSPL.SPLDate
                 }
             });
             
