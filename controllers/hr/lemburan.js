@@ -5,6 +5,12 @@ import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/h
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
 
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 export const getSPLAccess = async(req,res) => {
     try {
         const { userName }    = req.params;
@@ -366,7 +372,6 @@ export const postLemburan = async(req,res) => {
               ]
         });
         const newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');;
-        console.log(dataSPL);
         if(dataSPL.SPLNumber){
             await ModelSPLMain.update({
                 spl_date: dataSPL.SPLDate,
@@ -390,7 +395,6 @@ export const postLemburan = async(req,res) => {
                     spl_number: dataSPL.SPLNumber
                 }
             });
-            
             for (const emp of dataSPL.SPLEmp) {
                 const checkEmp = await ModelSPLData.findOne({
                     where: {
@@ -398,6 +402,7 @@ export const postLemburan = async(req,res) => {
                         Nik: emp.Nik
                     }
                 });
+                console.log(checkEmp);
                 if(checkEmp===null){
                     await ModelSPLData.create({
                         spl_number: dataSPL.SPLNumber,
@@ -413,7 +418,6 @@ export const postLemburan = async(req,res) => {
                 } else {
                     await ModelSPLData.update({
                         spl_date: dataSPL.SPLDate,
-                        Nik: emp.Nik,
                         nama: emp.NamaLengkap,
                         start: emp.StartTime,
                         finish: emp.FinishTime,
@@ -422,11 +426,12 @@ export const postLemburan = async(req,res) => {
                         time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
                     }, {
                         where: {
-                            spl_number: dataSPL.SPLNumber
+                            spl_number: dataSPL.SPLNumber,
+                            Nik: emp.Nik
                         }
                     });
                 }
-                       
+                await delay(1000);           
             }
         } else {
             await ModelSPLMain.create({
@@ -460,7 +465,8 @@ export const postLemburan = async(req,res) => {
                     minutes: emp.Minutes,
                     status: 0,
                     time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                });       
+                }); 
+                await delay(1000);      
             }
         }
         
