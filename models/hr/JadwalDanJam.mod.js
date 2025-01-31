@@ -152,21 +152,21 @@ export const MasterJamKerja = dbSPL.define(
       allowNull: true,
       defaultValue: null,
     },
-    jk_ot_1: {
-      type: DataTypes.TIME,
-      allowNull: true,
-      defaultValue: null,
-    },
-    jk_ot_2: {
-      type: DataTypes.TIME,
-      allowNull: true,
-      defaultValue: null,
-    },
-    jk_ot_3: {
-      type: DataTypes.TIME,
-      allowNull: true,
-      defaultValue: null,
-    },
+    // jk_ot_1: {
+    //   type: DataTypes.TIME,
+    //   allowNull: true,
+    //   defaultValue: null,
+    // },
+    // jk_ot_2: {
+    //   type: DataTypes.TIME,
+    //   allowNull: true,
+    //   defaultValue: null,
+    // },
+    // jk_ot_3: {
+    //   type: DataTypes.TIME,
+    //   allowNull: true,
+    //   defaultValue: null,
+    // },
     jk_rest_ot_type: {
       type: DataTypes.ENUM("BH", "AH"),
       allowNull: true,
@@ -490,3 +490,49 @@ FROM (
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = fn.jk_id
 LEFT JOIN master_calendar_type c ON c.calendar_code = fn.calendar
 GROUP BY fn.scheduleDate`;
+
+
+export const JamKerjaDetail = dbSPL.define(
+  "master_jam_kerja_detail",
+  {
+    jk_dtl_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    jk_id: {
+      type: DataTypes.INTEGER,
+    },
+    type_scan: {
+      type: DataTypes.STRING,
+    },
+    jk_dtl_name: {
+      type: DataTypes.STRING,
+    },
+    jk_dtl_start: {
+      type: DataTypes.TIME,
+    },
+    jk_dtl_end: {
+      type: DataTypes.TIME,
+    },
+    jk_dtl_rdm_st: {
+      type: DataTypes.TIME,
+    },
+    jk_dtl_rdm_end: {
+      type: DataTypes.TIME,
+    },
+    jk_dtl_ot: {
+      type: DataTypes.INTEGER,
+    },
+    add_id: {
+      type: DataTypes.INTEGER,
+    },
+    mod_id: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    tableName: "master_jam_kerja_detail",
+    timestamps: true,
+  }
+);

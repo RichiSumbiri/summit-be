@@ -71,10 +71,13 @@ import {
 import { getCheckEmpLemburan, getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanExportAmano, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingSPV, getLemburanReport, getSPLAccess, postApproveLemburan, postDeleteLemburan, postLemburan, postRejectLemburan } from "../../controllers/hr/lemburan.js";
 import {
   deleteJamKerja,
+  deleteJamKerjaDtl,
   getAllJamKerja,
   getGroupJamKerja,
+  getGroupJamKerjaDetail,
   patchJamKerja,
   postNewJamKerja,
+  postNewJamKerjaDetail,
 } from "../../controllers/hr/JadwalJamKerja.js";
 import { getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
@@ -104,6 +107,11 @@ router.get("/master-jam-kerja", getAllJamKerja);
 router.post("/master-jam-kerja", postNewJamKerja);
 router.patch("/master-jam-kerja", patchJamKerja);
 router.delete("/master-jam-kerja/:jkId", deleteJamKerja);
+
+//jam kerja detail
+router.get("/master-jam-kerja-detail/:jk_id", getGroupJamKerjaDetail);
+router.post("/master-jam-kerja-detail", postNewJamKerjaDetail);
+router.delete("/master-jam-kerja-detail/:jk_dtl_id", deleteJamKerjaDtl);
 
 
 // job posting

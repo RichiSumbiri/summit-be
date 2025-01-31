@@ -347,6 +347,8 @@ export const punchAttdLog = async (req, res) => {
 
             //jika schedule ada check time dan tidak ada keterangan
             if (findSch && findSch.jk_id !== null) {
+              //bisa masukan find ketentuan ini dari get detail/tabel baru
+
               const objScanIn = correctionScanIn(logTime, findSch);
 
               const dataAbsen = {
@@ -393,16 +395,25 @@ export const punchAttdLog = async (req, res) => {
             (items) =>
               logs.Nik === items.Nik.toString() && logDate === items.scanOutDate
           );
-
+          
           if (findSch && !findSch.scan_out) {
             const dataAbsen = correctionScanOut(logTime, findSch);
 
+            const finds = await Attandance.findAll( {
+              where: {
+                tanggal_out: findSch.scanOutDate,
+                Nik: logs.Nik,
+              },
+            });
+
+            
             const postAbsen = await Attandance.update(dataAbsen, {
               where: {
                 tanggal_out: findSch.scanOutDate,
                 Nik: logs.Nik,
               },
             });
+
             if (postAbsen) {
               const updateLog = await LogAttandance.update(
                 { log_punch: 1 },

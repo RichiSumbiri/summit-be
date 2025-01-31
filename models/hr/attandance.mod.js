@@ -599,11 +599,14 @@ sav.scan_out,
 sav.keterangan,
 sav.ket_in,
 sav.ket_out,
+sav.remark,
 sav.verifikasi,
 mjk.jk_nama,
 mjk.idGroup,
 ms.Name AS NamaSection,
-msd.Name AS subDeptName
+msd.Name AS subDeptName,
+ms.IDSection,
+mp.Name AS jabatan
 FROM 
 sumbiri_absen_verif sav
 LEFT JOIN sumbiri_employee se ON se.Nik = sav.Nik
@@ -611,6 +614,7 @@ LEFT JOIN sumbiri_absens sa ON sa.Nik = sav.Nik AND sa.tanggal_in = :date
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = sav.jk_id 
+LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi
 WHERE sav.tanggal_in = :date`
 
 export const VerifAbsen = dbSPL.define(
@@ -648,6 +652,9 @@ export const VerifAbsen = dbSPL.define(
     ket_out: {
       type: DataTypes.STRING,
     },
+    remark: {
+      type: DataTypes.STRING,
+    },
     verifikasi: {
       type: DataTypes.INTEGER,
     },
@@ -668,7 +675,14 @@ export const VerifAbsen = dbSPL.define(
     tableName: "sumbiri_absen_verif",
     createdAt: "createdAt",
     updatedAt: "updatedAt",
-  }
+  },
+  {
+    uniqueKeys: {
+      unique_absen: {
+        fields: ["Nik", "tanggal_in"]
+      }
+    }
+  },
 );
 
 

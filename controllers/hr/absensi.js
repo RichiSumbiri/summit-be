@@ -352,15 +352,12 @@ export const getTblConfirm = async (req, res) => {
     }
 
     return res.json({ data: getConfirmAbsen, message: "succcess get data" });
-
   } catch (error) {
     console.log(error);
 
     res
       .status(500)
       .json({ error, message: "Terdapat error saat get data confirm" });
-  
-    
   }
 };
 
@@ -387,6 +384,7 @@ export async function verifAbsenCtr(req, res) {
         jk_id: objEdit.jam_kerja[0].jk_id || null,
         ket_in: objEdit.ket_in || null,
         ket_out: objEdit.ket_out || null,
+        remark: objEdit.remark || null,
         keterangan: objEdit.keterangan[0].code_absen || null,
         tanggal_in: tanggal_in,
         tanggal_out: tanggal_out,
@@ -428,15 +426,12 @@ export async function verifAbsenCtr(req, res) {
           "jk_id",
           "ket_in",
           "ket_out",
+          "remark",
           "keterangan",
           "tanggal_in",
           "tanggal_out",
           "mod_id",
         ],
-
-        where: {
-          id: ["id"],
-        },
       });
 
       if (verifAbsenProsess) {
@@ -453,6 +448,87 @@ export async function verifAbsenCtr(req, res) {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}
+
+//revisi absen baru
+export async function verifAbsenCtr1(req, res) {
+  try {
+    // console.log(dataUpdate);
+    const { objEdit, arrAbs, tanggal_in, userId, autoIn, autoOut } = req.body;
+    if (!arrAbs) return res.status(404).json({ message: "No data post" });
+
+    for (const [i, item] of arrAbs.entries()) {
+      const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
+      const tanggal_out =
+        objEdit.jam_kerja[0]?.jk_out_day === "N"
+          ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
+          : tanggal_in;
+
+      let updateArrAbs = {
+        ...item,
+        id: item.id_verif,
+        id_absen: item.id_absen,
+        scan_in:
+          objEdit.scan_in === "00:00"
+            ? null
+            : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
+        scan_out:
+          objEdit.scan_out === "00:00"
+            ? null
+            : findScanTime(arrAbs.length, objEdit, "OUT", autoOutautoIn),
+        jk_id: objEdit.jam_kerja[0]?.jk_id || item.jk_id,
+        ket_in: objEdit.ket_in || null,
+        ket_out: objEdit.ket_out || null,
+        remark: objEdit.remark || null,
+        keterangan: objEdit.keterangan[0].code_absen || null,
+        tanggal_in: tanggal_in,
+        tanggal_out: tanggal_out,
+        scheduleDate_inv: tanggal_in,
+        add_id: !item.id_verif ? userId : null,
+        mod_id: item.id_verif ? userId : null,
+      };
+
+      const verifAbsenProsess = await VerifAbsen.upsert(updateArrAbs);
+      if (!verifAbsenProsess)
+        return res.status(500).json({ message: `Terdapat Error Saat Prosess Nik ${item.Nik}` });
+
+      if (i + 1 === arrAbs.length) {
+        return res.json({
+          // data: absObj,
+          message: "succcess save data",
+        });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}
+
+function findScanTime(lenghAbs, objEdit, type, auto) {
+  if (lenghAbs > 1 && objEdit.keterangan[0].code_absen === "H") {
+    if (type === "IN") {
+      if (auto) {
+        return getRandomTimeIn5Minute(objEdit.jam_kerja[0].jk_scan_in_audit);
+      } else {
+        return objEdit.scan_in;
+      }
+    }
+    if (type === "OUT") {
+      if (auto) {
+        return getRandomTimeIn5Minute(objEdit.jam_kerja[0].jk_out);
+      } else {
+        return objEdit.scan_out;
+      }
+    }
+  } else {
+    if (type === "IN") {
+      return objEdit.scan_in;
+    }
+    if (type === "OUT") {
+      return objEdit.scan_out;
+    }
   }
 }
 
@@ -536,7 +612,6 @@ export const ConfirmVerifAbs = async (req, res) => {
   }
 };
 
-
 //absensi individu
 //get jadwal individu
 export const getAbsenIndividu = async (req, res) => {
@@ -567,7 +642,10 @@ export const getAbsenIndividu = async (req, res) => {
 
     if (getLembur.length > 0) {
       indvAbs = indvAbs.map((item) => {
-        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik && lembur.spl_date === item.scheduleDate);
+        const lembur = getLembur.find(
+          (lembur) =>
+            lembur.Nik === item.Nik && lembur.spl_date === item.scheduleDate
+        );
 
         if (lembur) {
           let ttlLembur = "";
@@ -591,8 +669,6 @@ export const getAbsenIndividu = async (req, res) => {
       });
     }
 
-
-    
     const checkHolidays = (date, data) => {
       const dayName = moment(date).format("dddd");
       if (holidays.length > 0) {
@@ -631,7 +707,7 @@ export const getAbsenIndividu = async (req, res) => {
     const listDates = Array.from(moment.range(start, end).by("days")).map(
       (day) => {
         const dateFormat = day.format("YYYY-MM-DD");
-        let dataExist = {Nik: nik};
+        let dataExist = { Nik: nik };
 
         if (indvAbs.length > 0) {
           const checkIdx = indvAbs.findIndex(
@@ -645,7 +721,7 @@ export const getAbsenIndividu = async (req, res) => {
         const objHoliday = checkHolidays(dateFormat, dataExist);
 
         return {
-          allowEdit: day.isSame(today, 'day') || day.isAfter(today, 'day'),
+          allowEdit: day.isSame(today, "day") || day.isAfter(today, "day"),
           scheduleDate: dateFormat,
           sortDate: day.format("MM-DD"),
           days: day.format("ddd"),

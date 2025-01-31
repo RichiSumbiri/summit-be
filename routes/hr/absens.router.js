@@ -1,5 +1,5 @@
 import express from "express";
-import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsenDaily, updateAbsen, verifAbsenCtr } from "../../controllers/hr/absensi.js";
+import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1 } from "../../controllers/hr/absensi.js";
 const router = express.Router();
 
 //all absensi daily
@@ -10,7 +10,8 @@ router.patch("/delete-absen", deleteAbsen );
 //verifikasi absen
 router.get("/daily-verif/:date", getVerifAbsenDaily);
 router.get("/daily-confirm-tbl/:date", getTblConfirm);
-router.post("/verif-absen", verifAbsenCtr );
+router.post("/verif-absen", verifAbsenCtr1 );
+// router.post("/verif-absen", verifAbsenCtr );
 router.post("/delete-verif", delteHrVerifAbs );
 router.post("/confirm-verif", ConfirmVerifAbs );
 

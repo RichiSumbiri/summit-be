@@ -7,6 +7,7 @@ import {
   GroupJamKerja,
   GroupShift,
   IndividuJadwal,
+  JamKerjaDetail,
   MasterJamKerja,
   MasterTypeCal,
   qryGetEmpRef,
@@ -681,3 +682,81 @@ export async function postSchIndividu(req, res) {
     res.status(500).json({ message: "Terdapat error saat save schedule" });
   }
 }
+
+export const getGroupJamKerjaDetail = async (req, res) => {
+  try {
+    const listGroupJamKerja = await JamKerjaDetail.findAll({
+      where : {
+        jk_id: req.params.jk_id
+      },
+      raw: true,
+      order: [["jk_dtl_id", "ASC"]],
+    });
+
+      res.status(200).json({
+        data: listGroupJamKerja,
+        message: "Success Menambahkan Group Jam Kerja",
+      });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan Jam Kerja" });
+  }
+};
+
+export const postNewJamKerjaDetail = async (req, res) => {
+  try {
+    const dataJk = req.body;
+
+    // const findName = await JamKerjaDetail.findOne({
+    //   where: { jk_dtl_id: dataJk.jk_dtl_id },
+    // });
+
+    if (dataJk.jk_dtl_id) {
+      const updateJK = await JamKerjaDetail.update(dataJk, {
+        where: {
+          jk_dtl_id: dataJk.jk_dtl_id,
+          },
+      });
+      if(updateJK){
+        return res.status(200).json({ message: "Success Update" });
+
+      }
+    }
+    const createNewJk = await JamKerjaDetail.create(dataJk)
+
+
+    if (createNewJk) {
+      res.status(200).json({ message: "Success Menambahkan Jam Kerja detail" });
+    } else {
+      res.status(400).json({ message: "Gagal Menambahkan Jam Kerja detail" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Menambahkan Jam Kerja detail" });
+  }
+};
+
+//delete jam kerja
+export const deleteJamKerjaDtl = async (req, res) => {
+  try {
+    const { jk_dtl_id } = req.params;
+
+    const delteJk = await JamKerjaDetail.destroy({
+      where: {
+        jk_dtl_id: jk_dtl_id,
+      },
+    });
+
+    if (delteJk) {
+      res.status(200).json({ message: "Success Delete Jam Kerja detail" });
+    } else {
+      res.status(400).json({ message: "Gagal Delete Jam Kerja detail" });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ error, message: "Gagal Delete Jam Kerja detail" });
+  }
+};
