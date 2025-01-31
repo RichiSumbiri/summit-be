@@ -373,6 +373,8 @@ export const postLemburan = async(req,res) => {
         });
         const newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');;
         if(dataSPL.SPLNumber){
+            
+            // update spl main header
             await ModelSPLMain.update({
                 spl_date: dataSPL.SPLDate,
                 spl_dept: parseInt(dataSPL.SPLDept),
@@ -392,45 +394,31 @@ export const postLemburan = async(req,res) => {
                 spl_version: 1
             }, {
                 where: {
+                    spl_number: dataSPL.SPLNumber,
+                    spl_date: dataSPL.SPLDate
+                }
+            });
+            
+            // reset spl data
+            await ModelSPLData.destroy({
+                where: {
                     spl_number: dataSPL.SPLNumber
                 }
             });
+            
+            // insert spl data
             for (const emp of dataSPL.SPLEmp) {
-                const checkEmp = await ModelSPLData.findOne({
-                    where: {
-                        spl_number: dataSPL.SPLNumber,
-                        Nik: emp.Nik
-                    }
+                await ModelSPLData.create({
+                    spl_number: dataSPL.SPLNumber,
+                    spl_date: dataSPL.SPLDate,
+                    Nik: emp.Nik,
+                    nama: emp.NamaLengkap,
+                    start: emp.StartTime,
+                    finish: emp.FinishTime,
+                    minutes: emp.Minutes,
+                    status: 0,
+                    time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
                 });
-                console.log(checkEmp);
-                if(checkEmp===null){
-                    await ModelSPLData.create({
-                        spl_number: dataSPL.SPLNumber,
-                        spl_date: dataSPL.SPLDate,
-                        Nik: emp.Nik,
-                        nama: emp.NamaLengkap,
-                        start: emp.StartTime,
-                        finish: emp.FinishTime,
-                        minutes: emp.Minutes,
-                        status: 0,
-                        time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                    });
-                } else {
-                    await ModelSPLData.update({
-                        spl_date: dataSPL.SPLDate,
-                        nama: emp.NamaLengkap,
-                        start: emp.StartTime,
-                        finish: emp.FinishTime,
-                        minutes: emp.Minutes,
-                        status: 0,
-                        time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                    }, {
-                        where: {
-                            spl_number: dataSPL.SPLNumber,
-                            Nik: emp.Nik
-                        }
-                    });
-                }
                 await delay(1000);           
             }
         } else {
