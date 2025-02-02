@@ -185,6 +185,9 @@ export const Attandance = dbSPL.define(
     ket_out: {
       type: DataTypes.STRING,
     },
+    ot: {
+      type: DataTypes.INTEGER,
+    },
     add_id: {
       type: DataTypes.INTEGER,
     },
@@ -394,6 +397,18 @@ JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
 WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1 AND ssm.spl_active = 1
 GROUP BY ssm.spl_date, spl.Nik
 `;
+export function getLemburForAbsNik (date, arrNik) {
+  const stringNik = arrNik.map((st) => `'${st}'`)
+  .join(",");
+  return `
+  SELECT 
+ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
+FROM sumbiri_spl_main ssm
+JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
+WHERE ssm.spl_date = '${date}' AND spl.Nik IN (${stringNik})
+AND ssm.spl_approve_hrd = 1 AND ssm.spl_active = 1
+GROUP BY ssm.spl_date, spl.Nik
+`};
 export const getLemburForEmpOne = `
   SELECT 
 ssm.spl_number, ssm.spl_date, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
@@ -876,3 +891,93 @@ LEFT JOIN master_calendar_type c ON c.calendar_code = fn.calendar
 LEFT JOIN sumbiri_absens sa ON sa.Nik = fn.Nik AND sa.tanggal_in = fn.scheduleDate
 GROUP BY fn.scheduleDate
 `
+
+
+export function qryGetVerifByNik(date, arrNik){
+  const stringNik = arrNik.map((st) => `'${st}'`)
+  .join(",");
+  return `WITH base_absen AS (
+	SELECT 
+	    se.Nik, 
+		  se.NamaLengkap,
+		  se.IDDepartemen,
+		  se.IDSubDepartemen,
+		  se.IDSection,
+		  se.IDPosisi,
+        msd.Name subDeptName,
+	     md.NameDept,
+	    sgs.groupId,
+       sis.jadwalId_inv,
+	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
+	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
+	FROM sumbiri_employee se
+	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = '${date}'
+	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = '${date}'
+	WHERE se.Nik IN (${stringNik})
+),
+absente AS (
+	SELECT 
+		sa.id, 
+		sa.Nik,
+		sa.tanggal_in,
+		sa.tanggal_out,
+		sa.scan_in,
+		sa.scan_out,
+		sa.ket_in,
+		sa.ket_out,
+		sa.keterangan
+	FROM sumbiri_absens sa 
+	WHERE  sa.tanggal_in= '${date}' AND sa.Nik IN (${stringNik})
+--	AND (sa.scan_in IS NULL OR sa.scan_out IS NULL)
+  -- AND sa.keterangan IS NULL
+)
+SELECT 
+ba.Nik, 
+ba.NamaLengkap,
+ba.NameDept,
+ba.IDDepartemen,
+ba.IDSubDepartemen,
+ba.subDeptName,
+ba.IDSection,
+msts.Name AS NamaSection,
+ba.groupId,
+mp.Name AS jabatan,
+ba.jadwalId_inv,
+sgs.groupName,
+ba.jk_id,
+mjk.idGroup,
+mjk.jk_nama,
+ba.calendar,
+sa.tanggal_in,
+sa.tanggal_out,
+sa.id AS id_absen,
+sa.scan_in,
+sa.scan_out,
+sa.ket_in,
+sa.ket_out,
+sa.keterangan,
+sav.scan_in AS scan_in_ver,
+sav.scan_out AS scan_out_ver,
+sav.keterangan AS keterangan_ver,
+sav.ket_in AS ket_in_ver,
+sav.ket_out AS ket_out_ver,
+sav.id id_verif,
+sav.verifikasi -- ,
+-- sav.add_id,
+-- sav.mod_id,
+-- sav.createdAt,
+-- sav.updatedAt
+FROM base_absen ba
+LEFT JOIN absente AS sa ON sa.Nik = ba.Nik 
+LEFT JOIN sumbiri_absen_verif sav ON sav.Nik = ba.Nik AND sav.tanggal_in = '${date}'
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+-- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
+LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+
+`
+}

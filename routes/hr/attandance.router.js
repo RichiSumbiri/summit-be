@@ -26,6 +26,7 @@ import {
   punchAttdLog,
   punchAttdLogAccurate,
 } from "../../controllers/hr/attandance.js";
+import { punchAttdLog2 } from "../../controllers/hr/attandance2.js";
 
 const router = express.Router();
 
@@ -58,6 +59,7 @@ router.get("/lits-master-punch", getListMasterPunch);
 router.delete("/sch-attd/:id", deltSchPunchAttd);
 router.post("/sch-attd", postSchPunchAttd);
 router.post("/log-attd", postDataLogAttd);
-router.post("/punch-absens", punchAttdLog); //pakai skema audit
+router.post("/punch-absens", punchAttdLog2); //pakai skema audit
+// router.post("/punch-absens", punchAttdLog); //pakai skema audit
 // router.post("/punch-absens", punchAttdLogAccurate);
 export default router;

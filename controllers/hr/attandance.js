@@ -44,150 +44,6 @@ export const postDataLogAttd = async (req, res) => {
   }
 };
 
-// export const punchAttdLog = async (req, res) => {
-//   try {
-//     const { dates } = req.body;
-//     const arrDate = dates.map((st) => `'${st}'`).join(", ");
-
-//     const queryAttd = qrySchAttdComp(arrDate);
-
-//     //ambil schedule absen
-//     const getSchAttd = await dbSPL.query(queryAttd, {
-//       replacements: { arrDate },
-//       type: QueryTypes.SELECT,
-//     });
-
-//     //ambil log attd hasil upload atau dari mesin
-//     const getLogs = await LogAttandance.findAll({
-//       where: {
-//         log_date: {
-//           [Op.in]: dates,
-//         },
-//       },
-//       raw: true,
-//     });
-
-//     let logId = [];
-//     //looping absen
-//     const attdAbsens = getSchAttd.map((items, i) => {
-//       //cari log scan in berdsarkan nik tanggal dan status
-//       const findIn = getLogs.find(
-//         (logItm) =>
-//           logItm.Nik === items.Nik.toString() &&
-//           logItm.log_date === items.scheduleDate &&
-//           logItm.log_status === "IN"
-//       );
-
-//       const findOut = getLogs.find(
-//         (logItm) =>
-//           logItm.Nik === items.Nik.toString() &&
-//           logItm.log_date === items.scanOutDate &&
-//           logItm.log_status === "OUT"
-//       );
-
-//       //buat defaul scan in dan scan out
-//       let scanInTime = findIn ? findIn.log_time : null;
-//       let scanInKet = null;
-//       let scanOutTime = findOut ? findOut.log_time : null;
-//       let scanOutKet = null;
-
-//       //jika terdapat scan in maka cek apakah ada dalam range
-//       if (scanInTime) {
-//         //masukan log id untuk update
-//         logId.push(findIn.log_id);
-//         const scanInAwa = moment(items.jk_scan_in_start, "HH:mm:ss");
-//         const scanAkhirIn = moment(items.jk_scan_in_end, "HH:mm:ss");
-//         const jamMasuk = moment(items.jk_in, "HH:mm:ss");
-
-//         // Waktu yang akan diperiksa
-//         const checkTime = moment(scanInTime, "HH:mm:ss");
-//         const checkLate = checkTime.isAfter(jamMasuk);
-//         //check apakah scan in ada dalam range
-//         const isInRange = checkTime.isBetween(
-//           scanInAwa,
-//           scanAkhirIn,
-//           undefined,
-//           "[]"
-//         ); // '[]' untuk inklusif
-
-//         // jika tidak ada dalam range maka ubah scanIntime menjadi null
-//         if (!isInRange) {
-//           scanInTime = null;
-//         }
-//         if (checkLate) {
-//           scanInKet = "LATE";
-//         }
-//       }
-
-//       if (scanOutTime) {
-//         logId.push(findOut.log_id);
-
-//         const scanOutAwa = moment(items.jk_scan_out_start, "HH:mm:ss");
-//         const scanAkhirOut = moment(items.jk_scan_out_end, "HH:mm:ss");
-//         const jamKeluar = moment(items.jk_out, "HH:mm:ss");
-
-//         // Waktu yang akan diperiksa
-//         const checkTime = moment(scanOutTime, "HH:mm:ss");
-//         const checkEarly = checkTime.isBefore(jamKeluar);
-
-//         const isInRange = checkTime.isBetween(
-//           scanOutAwa,
-//           scanAkhirOut,
-//           undefined,
-//           "[]"
-//         ); // '[]' untuk inklusif
-//         // jika ada dalam range maka ubah scanIntime menjadi nilaitime
-//         if (!isInRange) {
-//           scanOutTime = null;
-//         }
-//         if (checkEarly) {
-//           scanOutKet = "EARLY";
-//         }
-//       }
-
-//       const dataAbsen = {
-//         Nik: items.Nik,
-//         groupId: items.groupId,
-//         jk_id: items.jk_id,
-//         tanggal_in: items.scheduleDate,
-//         tanggal_out: items.scanOutDate,
-//         scan_in: scanInTime,
-//         scan_out: scanOutTime,
-//         keterangan: scanInTime ? "H" : null,
-//         ket_in: scanInKet,
-//         ket_out: scanOutKet,
-//       };
-//       return dataAbsen;
-//     });
-
-//     const updateLog = await LogAttandance.update(
-//       { log_punch: 1 },
-//       {
-//         where: {
-//           log_id: logId,
-//         },
-//       }
-//     );
-
-//     const dataPostAbs = attdAbsens.filter((itm) => itm.scan_in && itm.jk_id);
-
-//     const postAbsen = await Attandance.bulkCreate(dataPostAbs);
-
-//     // console.log();
-//     if (postAbsen) {
-//       res.status(200).json({ message: "Success Punch Log Attandance" });
-//     } else {
-//       res.status(500).json({ message: "Gagal Punch Log Attandance" });
-//     }
-//   } catch (error) {
-//     console.log(error);
-
-//     res
-//       .status(500)
-//       .json({ error, message: "Terdapat error saat upload Log Attandance" });
-//   }
-// };
-
 export const getWdmsToAmano = async (req, res) => {
   try {
     const { start, end } = req.params;
@@ -395,18 +251,17 @@ export const punchAttdLog = async (req, res) => {
             (items) =>
               logs.Nik === items.Nik.toString() && logDate === items.scanOutDate
           );
-          
+
           if (findSch && !findSch.scan_out) {
             const dataAbsen = correctionScanOut(logTime, findSch);
 
-            const finds = await Attandance.findAll( {
+            const finds = await Attandance.findAll({
               where: {
                 tanggal_out: findSch.scanOutDate,
                 Nik: logs.Nik,
               },
             });
 
-            
             const postAbsen = await Attandance.update(dataAbsen, {
               where: {
                 tanggal_out: findSch.scanOutDate,
@@ -608,7 +463,10 @@ function correctionScanIn(logTime, findSch) {
   );
 
   // Waktu yang akan diperiksa
-  const checkTime = moment(`${findSch.scheduleDate} ${logTime}`, "YYYY-MM-DD HH:mm:ss");
+  const checkTime = moment(
+    `${findSch.scheduleDate} ${logTime}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
 
   // console.log({
   //   jamLog : checkTime.format("YYYY-MM-DD HH:mm:ss"),
@@ -616,7 +474,6 @@ function correctionScanIn(logTime, findSch) {
   //   jamPulang : jamPulang.format("YYYY-MM-DD HH:mm:ss"),
 
   // });
-  
 
   const checkLate = checkTime.isAfter(jamMasuk);
 
@@ -908,3 +765,4 @@ export const punchAttdLogAccurate = async (req, res) => {
       .json({ error, message: "Terdapat error saat upload Log Attandance" });
   }
 };
+

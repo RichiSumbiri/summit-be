@@ -9,6 +9,8 @@ import {
   qryDailyAbsensi,
   queryPureVerifAbs,
   VerifAbsen,
+  qryGetVerifByNik,
+  getLemburForAbsNik,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -35,8 +37,8 @@ export const getAbsenDaily = async (req, res) => {
     if (getLembur.length > 0) {
       getAbsen = getAbsen.map((item) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
-
         if (lembur) {
+
           let ttlLembur = "";
           if (lembur.type === "BH") {
             const scanin = moment(item.scan_in, "HH:mm:ss");
@@ -45,6 +47,11 @@ export const getAbsenDaily = async (req, res) => {
           } else {
             const scanout = moment(item.scan_out, "HH:mm:ss");
             let jam_out = moment(item.jk_out, "HH:mm:ss");
+
+            // if(lembur.Nik === 201603119){
+            //   console.log(scanout.format("HH:mm:ss"))
+            //   console.log(jam_out.format("HH:mm:ss"))
+            // }
 
             if (scanout.isBefore(jam_out)) {
               jam_out.add(1, "day");
@@ -452,7 +459,7 @@ export async function verifAbsenCtr(req, res) {
 }
 
 //revisi absen baru
-export async function verifAbsenCtr1(req, res) {
+export async function verifAbsenCtr1(req, res, next) {
   try {
     // console.log(dataUpdate);
     const { objEdit, arrAbs, tanggal_in, userId, autoIn, autoOut } = req.body;
@@ -494,10 +501,13 @@ export async function verifAbsenCtr1(req, res) {
         return res.status(500).json({ message: `Terdapat Error Saat Prosess Nik ${item.Nik}` });
 
       if (i + 1 === arrAbs.length) {
-        return res.json({
-          // data: absObj,
-          message: "succcess save data",
-        });
+        const arrNik = arrAbs.map(item => item.Nik)
+        req.data = {date : tanggal_in, arrNik}
+        next()
+        // return res.json({
+        //   // data: absObj,
+        //   message: "succcess save data",
+        // });
       }
     }
   } catch (error) {
@@ -736,5 +746,74 @@ export const getAbsenIndividu = async (req, res) => {
     console.log(error);
 
     res.status(500).json({ error, message: "Gagal Mendapatakan data jadwal" });
+  }
+};
+
+
+export const getVerifAbsDayNik = async (req, res) => {
+  try {
+    const {arrNik, date} = req.data;
+    
+    const query = qryGetVerifByNik(date, arrNik)
+
+    let getAbsen = await dbSPL.query(query, {
+      // replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    getAbsen = getAbsen.filter((item) => !item.scan_in || !item.scan_out);
+
+    getAbsen = getAbsen.filter((item) => !arrKet.includes(item.keterangan));
+    const getUserId = getAbsen.map((items) => items.mod_id);
+
+    if (getUserId.length > 0) {
+      const getListUser = await Users.findAll({
+        where: {
+          USER_ID: {
+            [Op.in]: getUserId,
+          },
+        },
+        attributes: ["USER_ID", "USER_INISIAL"],
+        raw: true,
+      });
+
+      getAbsen = getAbsen.map((item) => {
+        const userName = getListUser.find((emp) => emp.USER_ID === item.mod_id);
+
+        if (userName) {
+          return { ...item, ...userName };
+        } else {
+          return item;
+        }
+      });
+    }
+
+    const queryLembur = getLemburForAbsNik(date, arrNik)
+    const getLembur = await dbSPL.query(queryLembur, {
+      // replacements: { date },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    if (getLembur.length > 0) {
+      getAbsen = getAbsen.map((item) => {
+        const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
+
+        if (lembur) {
+          return { ...item, ...lembur };
+        } else {
+          return item;
+        }
+      });
+    }
+
+    return res.json({ data: getAbsen, message: "succcess get data" });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data absen" });
   }
 };
