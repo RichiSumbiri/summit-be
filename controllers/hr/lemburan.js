@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { modelSPLMain, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingSPV, queryOvertimeReport } from "../../models/hr/lemburanspl.mod.js";
+import { modelSPLMain, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingReject, queryLemburanPendingSPV, queryOvertimeReport } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -129,6 +129,37 @@ export const getLemburanPendingAll = async(req,res) => {
         });
     }
 }
+
+export const getLemburanPendingReject = async(req,res) => {
+    try {
+        let listPending = await dbSPL.query(queryLemburanPendingReject, { type: QueryTypes.SELECT });
+        let i = 0;
+            
+        for await (const row of listPending) {   
+            let index = i++;
+            const action            = await dbSPL.query(queryLemburanDetail, {
+                replacements: {
+                    splnumber: row.SPLID
+                }, type: QueryTypes.SELECT
+            });
+            listPending[index].SPLEmp = action 
+        }
+        
+        if(listPending){
+            res.status(200).json({
+                success: true,
+                message: "success get list lemburan reject",
+                data: listPending
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get list lemburan reject",
+        });
+    }
+}
+
 
 
 export const getLemburanPendingSPV = async(req,res) => {

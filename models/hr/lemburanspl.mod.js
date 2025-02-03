@@ -67,8 +67,9 @@ AND ssm.spl_version = 1
 
 export const queryLemburanPendingAll = queryLemburan + `
 WHERE
-ssm.spl_approve_foreman = 1 AND 
-( ssm.spl_approve_head IS NULL OR ssm.spl_approve_manager IS NULL OR ssm.spl_approve_hrd IS NULL )
+ssm.spl_approve_foreman = 1 
+AND ( ssm.spl_approve_head IS NULL OR ssm.spl_approve_manager IS NULL OR ssm.spl_approve_hrd IS NULL )
+AND ( ssm.spl_approve_head !='0' OR ssm.spl_approve_manager !='0' OR ssm.spl_approve_hrd !='0' )
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
 `;
@@ -119,6 +120,15 @@ AND ssm.spl_approve_hrd IS NULL
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
 `;
+
+export const queryLemburanPendingReject = queryLemburan + `
+WHERE
+ssm.spl_approve_foreman = 1 
+AND ( ssm.spl_approve_head ='0' OR ssm.spl_approve_manager ='0' OR ssm.spl_approve_hrd ='0' )
+AND ssm.spl_active = 1
+AND ssm.spl_version = 1
+`;
+
 
 
 export const queryLemburanComplete = queryLemburan + `
