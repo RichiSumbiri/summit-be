@@ -361,17 +361,6 @@ export const postLemburan = async(req,res) => {
         
         const splformat     = `SPL` + moment().format('YY') + moment().format('MM') + moment().format('DD');
         
-        const getLastSPL    = await ModelSPLMain.findOne({
-            where: {
-                spl_number: {
-                    [Op.like]: `${splformat}%`
-                }
-            },
-            order: [
-                ['spl_number', 'DESC'] // Replace 'spl_number' with the column you want to order by
-              ]
-        });
-        const newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');;
         if(dataSPL.SPLNumber){
             
             // update spl main header
@@ -422,6 +411,24 @@ export const postLemburan = async(req,res) => {
                 });           
             }
         } else {
+            const getLastSPL    = await ModelSPLMain.findOne({
+                where: {
+                    spl_number: {
+                        [Op.like]: `${splformat}%`
+                    }
+                },
+                order: [
+                    ['spl_number', 'DESC'] // Replace 'spl_number' with the column you want to order by
+                  ]
+            });
+            let newQueueSPL;
+            if(getLastSPL===null){
+                newQueueSPL   =  splformat + "0001";
+            } else {
+                newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');
+            
+            }
+            
             await ModelSPLMain.create({
                 spl_number: newQueueSPL,
                 spl_date: dataSPL.SPLDate,
