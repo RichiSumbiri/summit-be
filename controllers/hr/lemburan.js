@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { modelSPLMain, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingReject, queryLemburanPendingSPV, queryOvertimeReport } from "../../models/hr/lemburanspl.mod.js";
+import { modelSPLMain, queryCheckEmpLemburan, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingReject, queryLemburanPendingSPV, queryOvertimeReport } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -352,18 +352,12 @@ export const getCheckEmpLemburan = async(req,res) => {
     try {
         const { splDate, empNik } = req.params;
         const empNIKZero    = empNik.padStart(10, "0");
-        const queryCheck    = `
-        SELECT
-	        sd.*
-        FROM
-	        sumbiri_spl_data sd
-        LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = sd.spl_number 
-        WHERE WHERE sd.spl_date=:splDate AND sd.Nik=:empNik AND ssm.spl_active = '1'`;
-        const dataCheck     = await dbSPL.query(queryCheck, {
+        const dataCheck     = await dbSPL.query(queryCheckEmpLemburan, {
             replacements: {
                 splDate: splDate,
                 empNik: empNIKZero
         }, type:QueryTypes.SELECT});
+        console.log(dataCheck);
         if(dataCheck){
             res.status(200).json({
                 success: true,

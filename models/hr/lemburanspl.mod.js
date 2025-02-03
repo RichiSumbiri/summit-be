@@ -1,6 +1,16 @@
 import { DataTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 
+export const queryCheckEmpLemburan    = `
+        SELECT
+	        sd.*
+        FROM
+	        sumbiri_spl_data sd
+        LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = sd.spl_number 
+        WHERE sd.spl_date=:splDate AND sd.Nik=:empNik AND ssm.spl_active = '1'
+		`;
+        
+
 export const queryLemburan = `
 SELECT
 	ssm.spl_number AS SPLID,
