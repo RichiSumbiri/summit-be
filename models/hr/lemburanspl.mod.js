@@ -404,4 +404,36 @@ FROM
 ) AS RekapLemburan
 GROUP BY IDSection, IDDepartemen, NameDept, Nik, NamaLengkap, calendar, tanggal_in
 ORDER BY tanggal_in, IDSection, IDDepartemen  ASC
-`
+`;
+
+
+
+export const queryOvertimeSummaryReport = `
+SELECT
+	ssm.spl_section AS SPLSection,
+	md.NameDept AS SPLNameDepartment,
+	ms.Name AS SPLNameSubDepartment,
+	DAYNAME(ssm.spl_date) AS SPLDayName, 
+	ssm.spl_date AS SPLDate,
+	IF(ssm.spl_type='HH',"HL","WD") AS SPLWDType,
+	ssm.spl_type AS SPLType,
+	ssd.start AS SPLStart,
+	ssd.finish AS SPLFinish,
+	( ssd.minutes / 60 ) AS SPLHour,
+	COUNT(*) AS SPLCount
+FROM
+	sumbiri_spl_data ssd
+LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = ssd.spl_number
+LEFT JOIN master_department md ON md.IdDept = ssm.spl_dept
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = ssm.spl_line
+WHERE
+	ssm.spl_active = '1'
+	AND ssm.spl_version = '1'
+	AND ssm.spl_date BETWEEN :startDate AND :endDate
+GROUP BY 
+	md.IdDept, ms.IDSubDept, ssm.spl_section, ssm.spl_date, ssm.spl_type, ssd.start, ssd.finish
+ORDER BY
+	ssm.spl_section,
+	md.IdDept,
+	ms.IDSubDept ASC
+`;

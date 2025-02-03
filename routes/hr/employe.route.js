@@ -68,7 +68,7 @@ import {
   uploadPhotosEmp,
 } from "../../controllers/hr/empPhoto.js";
 // import { postNewJamKerja } from "../../controllers/hr/JadwalJamKerja.js";
-import { getCheckEmpLemburan, getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanExportAmano, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingReject, getLemburanPendingSPV, getLemburanReport, getSPLAccess, postApproveLemburan, postDeleteLemburan, postLemburan, postPrintLemburan, postRejectLemburan } from "../../controllers/hr/lemburan.js";
+import { getCheckEmpLemburan, getLemburanApprovalComplete, getLemburanCreated, getLemburanDetail, getLemburanExportAmano, getLemburanPending, getLemburanPendingAll, getLemburanPendingHead, getLemburanPendingHRD, getLemburanPendingManager, getLemburanPendingReject, getLemburanPendingSPV, getLemburanReport, getLemburanSummaryDeptReport, getSPLAccess, postApproveLemburan, postDeleteLemburan, postLemburan, postPrintLemburan, postRejectLemburan } from "../../controllers/hr/lemburan.js";
 import {
   deleteJamKerja,
   deleteJamKerjaDtl,
@@ -190,6 +190,8 @@ router.get("/lemburan-pending-reject", getLemburanPendingReject);
 router.get("/lemburan-approval-complete/:startDate/:endDate", getLemburanApprovalComplete);
 router.get("/lemburan-export-amano/:startDate/:endDate", getLemburanExportAmano);
 router.get("/lemburan-report/:startDate/:endDate", getLemburanReport);
+router.get("/lemburan-summary-report/:startDate/:endDate", getLemburanSummaryDeptReport);
+
 
 // set pengangkatan karyawan tetap
 router.get("/get-kartap/:startDate/:endDate", getKarTap);

@@ -1,6 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import { modelSPLMain, queryCheckEmpLemburan, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingReject, queryLemburanPendingSPV, queryOvertimeReport } from "../../models/hr/lemburanspl.mod.js";
+import { modelSPLMain, queryCheckEmpLemburan, queryLemburanComplete, queryLemburanCreated, queryLemburanDetail, queryLemburanPending, queryLemburanPendingAll, queryLemburanPendingHead, queryLemburanPendingHRD, queryLemburanPendingManager, queryLemburanPendingReject, queryLemburanPendingSPV, queryOvertimeReport, queryOvertimeSummaryReport } from "../../models/hr/lemburanspl.mod.js";
 import { ModelSPLData, ModelSPLMain, sumbiriUserSummitNIK } from "../../models/hr/lemburan.mod.js";
 import { modelMasterDepartment } from "../../models/hr/employe.mod.js";
 import moment from "moment";
@@ -831,6 +831,31 @@ export const getLemburanReport = async(req,res) => {
         res.status(404).json({
             success: false,
             message: "error get lemburan report",
+        });
+    }
+}
+
+export const getLemburanSummaryDeptReport = async(req,res) => {
+    try {
+        const { startDate, endDate } = req.params;
+        const getData = await dbSPL.query(queryOvertimeSummaryReport, {
+            replacements: {
+                startDate: startDate,
+                endDate: endDate
+            }, type: QueryTypes.SELECT
+        });
+        if (getData) {
+            res.status(200).json({
+                success: true,
+                message: "success get data lemburan summary dept report",
+                data: getData,
+                count: getData.length
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error get lemburan summary dept report",
         });
     }
 }
