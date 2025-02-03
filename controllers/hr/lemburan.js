@@ -28,7 +28,6 @@ export const getSPLAccess = async(req,res) => {
             });
         }
     } catch(err){
-        console.log(err);
         res.status(404).json({
             success: false,
             message: "error get spl access",
@@ -357,7 +356,6 @@ export const getCheckEmpLemburan = async(req,res) => {
                 splDate: splDate,
                 empNik: empNIKZero
         }, type:QueryTypes.SELECT});
-        console.log(dataCheck);
         if(dataCheck){
             res.status(200).json({
                 success: true,
@@ -366,7 +364,6 @@ export const getCheckEmpLemburan = async(req,res) => {
             }); 
         } 
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error check emp for lemburan",
@@ -495,7 +492,6 @@ export const postLemburan = async(req,res) => {
             message: "success post new lemburan"
         });
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
@@ -832,7 +828,6 @@ export const getLemburanReport = async(req,res) => {
             });
         }
     } catch(err){
-        console.log(err);
         res.status(404).json({
             success: false,
             message: "error get lemburan report",
