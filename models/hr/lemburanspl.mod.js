@@ -79,7 +79,6 @@ export const queryLemburanPendingAll = queryLemburan + `
 WHERE
 ssm.spl_approve_foreman = 1 
 AND ( ssm.spl_approve_head IS NULL OR ssm.spl_approve_manager IS NULL OR ssm.spl_approve_hrd IS NULL )
-AND ( ssm.spl_approve_head !='0' OR ssm.spl_approve_manager !='0' OR ssm.spl_approve_hrd !='0' )
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
 `;
@@ -436,4 +435,23 @@ ORDER BY
 	ssm.spl_section,
 	md.IdDept,
 	ms.IDSubDept ASC
+`;
+
+export const queryOvertimeDeptCountReport = `
+SELECT
+	ssm.spl_date AS SPLDate,	
+	md.NameDept AS SPLNameDepartment,
+	COUNT(*) AS SPLCount
+FROM
+	sumbiri_spl_data ssd
+LEFT JOIN sumbiri_spl_main ssm ON ssm.spl_number = ssd.spl_number
+LEFT JOIN master_department md ON md.IdDept = ssm.spl_dept
+WHERE
+	ssm.spl_active = '1'
+	AND ssm.spl_version = '1'
+	AND ssm.spl_date BETWEEN :startDate AND :endDate
+GROUP BY 
+	md.IdDept, ssm.spl_date
+ORDER BY
+	md.IdDept ASC
 `;
