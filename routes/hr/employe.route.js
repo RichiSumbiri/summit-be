@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getDeptAll,
+  getEmpBurekol,
   getEmpByNIK,
   getEmpByNIKKTP,
   getEmpKontrak,
@@ -150,6 +151,7 @@ router.get("/all-employe-kontrak", getEmpKontrak);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
 router.get("/find-emp-like/:inputQry", getEmpLikeNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
+router.get("/find-emp-burekol/:empnik", getEmpBurekol);
 router.post("/update-emp", updateEmp);
 router.post("/update-photos/:nikEmp", uploadPhotosEmp);
 router.get("/get-photos/:nik", downloadPhotosEmp);

@@ -1,5 +1,5 @@
 import { QueryTypes } from "sequelize";
-import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, queryEmpBurekol, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
@@ -381,6 +381,31 @@ export const updateEmpMassGroup = async(req,res) => {
       success: false,
       error: err,
       message: "error cannot update employee mass group",
+    });
+  }
+}
+
+
+export const getEmpBurekol = async(req,res) => {
+  try {
+    const empNik = req.params.empnik;
+    const dataBurekol = await dbSPL.query(queryEmpBurekol, {
+      replacements: {
+        empNik: empNik
+      }, type: QueryTypes.SELECT
+    });
+    if(dataBurekol){
+      return res.status(200).json({
+        success: true,
+        message: `success get employee burekol`,
+        data: dataBurekol
+      });
+    }
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "error cannot get employee burekol",
     });
   }
 }

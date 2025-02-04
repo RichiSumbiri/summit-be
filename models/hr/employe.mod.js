@@ -535,6 +535,71 @@ WHERE se.StatusAktif = 0 AND se.CancelMasuk='N'
 GROUP BY se.IDSubDepartemen 
 `;
 
+export const queryEmpBurekol = `
+SELECT 
+    "PT SUMBER BINTANG REJEKI" AS NAMA_INSTITUSI,
+    CONCAT("KRJ/", se.Nik, "/SUMBIRI") AS NO_INDUK,
+    "04" AS LINE,
+    SUBSTRING_INDEX(se.NamaLengkap , ' ', 1) AS NAMA_DEPAN,
+    SUBSTRING_INDEX(SUBSTRING_INDEX(se.NamaLengkap , ' ', 2), ' ', -1) AS NAMA_TENGAH,
+    SUBSTRING_INDEX(se.NamaLengkap , ' ', -1) AS NAMA_BELAKANG,
+    "01" AS JENIS_NASABAH,
+    IF(se.NPWP IS NULL, "N", "Y") AS MEMILIKI_NPWP,
+    se.NPWP NO_NPWP,
+    "ID" AS WARGA_NEGARA,
+    "4" AS BAHASA,
+    "ID" AS DOMISILI,
+    IF(se.Agama="ISLAM","1","2") AS KODE_AGAMA,
+    se.TanggalLahir AS TANGGAL_LAHIR,
+    se.TempatLahir AS TEMPAT_LAHIR,
+    IF(se.JenisKelamin="0" ,"M","F") AS JENIS_KELAMIN,
+    "L" AS STATUS_PERKAWINAN,
+    se.NamaIbu AS NAMA_GADIS,
+    "02" AS JENIS_PEKERJAAN,
+    "3" AS JENIS_PENDIDIKAN,
+    "1" AS JENIS_IDENTITAS,
+    se.NikKTP AS NO_IDENTITAS,
+    mak.nama_kabkota AS LOKASI_PENERBITAN_ID,
+    "2099-12-31" AS TANGGAL_EXPIRE_ID,
+    se.AlamatDetail AS ALAMAT_JALAN,
+    CONCAT(LPAD(se.AlamatRT, 3, '0'), "/", LPAD(se.AlamatRW, 3, '0')) AS ALAMAT_RT_PERUM,
+    se.AlamatKelurahan AS ALAMAT_KELURAHAN,
+    mak2.nama_kecamatan AS ALAMAT_KECAMATAN,
+    "50552" AS KODE_POS,
+    "99999999" AS NO_TLP_RMH,
+    "0298525530" AS NO_TLP_KNTR,
+    se.NoTelp1 AS NO_TLP_HP,
+    "0298525530" AS NO_FAX,
+    IF(se.Email IS NULL, "TIDAK MEMILIKI", se.Email) ALAMAT_EMAIL,
+    se.AlamatDetail AS ALAMAT_JALAN_TERKINI,
+    CONCAT(LPAD(se.AlamatRT, 3, '0'), "/", LPAD(se.AlamatRW, 3, '0')) AS ALAMAT_RT_PERUM_TERKINI,
+    se.AlamatKelurahan AS ALAMAT_KELURAHAN_TERKINI,
+    mak2.nama_kecamatan AS ALAMAT_KECAMATAN_TERKINI,
+    "50552" AS KODE_POS_TERKINI,
+    "99999999" NO_TLPN_RMH_TERKINI,
+    se.NoTelp1 AS NO_TLPN_HP_TERKINI,
+    "0901" AS LOKASI_BI_TERKINI,
+    "" AS TANGGAL_BERLAKU,
+    "2099-12-31" AS TANGGAL_JATUH_TEMPO,
+    "2" AS ALASAN,
+    "1" AS SUMBER_DANA,
+    "" AS NAMA_ALIAS,
+    "JL RAYA TEGALPANAS JIMBARAN KM 1 RT001 RW 001 KANDANGAN SEMARANG" AS ALMT_PEMBERI_KERJA_1,
+    "JL RAYA TEGALPANAS JIMBARAN KM 1 RT001 RW 001 KANDANGAN SEMARANG" AS ALMT_PEMBERI_KERJA_2,
+    CONCAT(mp.Name, " ", md.NameDept) AS DESKRIPSI_PEKERJAAN,
+    "1" AS PENGHASILAN,
+    "M" AS FREK_PENGHASILAN,
+    "" AS CIF
+FROM sumbiri_employee se 
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota
+LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan 
+LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
+WHERE se.Nik = :empNik
+`;
+
+
+
 modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");
 modelSumbiriEmployee.removeAttribute("id");
