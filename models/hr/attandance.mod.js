@@ -373,6 +373,7 @@ sa.tanggal_in,
 sa.tanggal_out,
 sa.scan_in,
 sa.scan_out,
+sa.ot,
 sa.ket_in,
 sa.ket_out,
 sa.keterangan,
@@ -481,6 +482,7 @@ sa.id,
 sa.tanggal_in,
 sa.tanggal_out,
 sa.scan_in,
+sa.ot,
 sa.scan_out,
 sa.ket_in,
 sa.ket_out,
@@ -548,6 +550,7 @@ absente AS (
 		sa.scan_out,
 		sa.ket_in,
 		sa.ket_out,
+		sa.ot,
 		sa.keterangan
 	FROM sumbiri_absens sa 
 	WHERE  sa.tanggal_in= :date

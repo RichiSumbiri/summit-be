@@ -58,9 +58,9 @@ export const getAbsenDaily = async (req, res) => {
             }
             ttlLembur = scanout.diff(jam_out, "hours");
           }
-          return { ...item, ...lembur, ttlLembur };
+          return { ...item, ...lembur, ttlLembur, verif : lembur.jam === item.ot ? 1 : 2 };
         } else {
-          return item;
+          return {...item, verif: item.ot ? 3 : ''};
         }
       });
     }
@@ -483,7 +483,7 @@ export async function verifAbsenCtr1(req, res, next) {
         scan_out:
           objEdit.scan_out === "00:00"
             ? null
-            : findScanTime(arrAbs.length, objEdit, "OUT", autoOutautoIn),
+            : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         jk_id: objEdit.jam_kerja[0]?.jk_id || item.jk_id,
         ket_in: objEdit.ket_in || null,
         ket_out: objEdit.ket_out || null,
