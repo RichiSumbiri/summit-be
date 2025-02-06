@@ -635,7 +635,7 @@ export const LogSewingWipMonitoring = db.define(
 );
 
 
-export const qryGetWipPrepDtl = `-- query wip loading one site 
+export const qryGetWipPrepDtl = `
 SELECT 
 ind.SITE,
 ind.SCH_ID_SITELINE,
@@ -671,7 +671,8 @@ LEFT JOIN (
 		wip.SITE,
 		wip.SCHD_ID_SITELINE
 ) ws ON ws.SCHD_ID_SITELINE = ind.SCH_ID_SITELINE
-LEFT JOIN item_siteline il ON il.ID_SITELINE = ind.SCH_ID_SITELINE
+JOIN item_siteline il ON il.ID_SITELINE = ind.SCH_ID_SITELINE
+WHERE il.SITE_NAME =  :site
 -- WHERE  ind.WIP <= 50 
 GROUP BY 
 ind.SITE,

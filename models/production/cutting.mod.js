@@ -874,24 +874,24 @@ export const qryWipQtyDept = `
                         `;
 
 export const findSiteLineLowWipPrep = `SELECT 
-                        ind.SITE,
-                        --	ind.SCH_ID_SITELINE,
-                        COUNT(ind.SCH_ID_SITELINE) AS COUNT_LINE
-                        --	ind.WIP
-                        FROM (
-                          SELECT smo.CUT_SITE AS SITE, wps.SCH_ID_SITELINE, smo.SCH_ID,  SUM(od.ORDER_QTY) WIP
-                          FROM scan_supermarket_out smo
-                          JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
-                          JOIN weekly_prod_schedule wps ON wps.SCH_ID = smo.SCH_ID
-                          WHERE NOT EXISTS (
-                            SELECT 1
-                            FROM scan_sewing_in ssi
-                            WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
-                            ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
-                            GROUP BY smo.CUT_SITE, wps.SCH_ID_SITELINE
-                            ) ind WHERE  ind.WIP <= 50
-                            GROUP BY 
-                            ind.SITE
+ind.SITE,
+--	ind.SCH_ID_SITELINE,
+COUNT(ind.SCH_ID_SITELINE) AS COUNT_LINE
+--	ind.WIP
+FROM (
+  SELECT wps.SCH_SITE  AS SITE, wps.SCH_ID_SITELINE, smo.SCH_ID,  SUM(od.ORDER_QTY) WIP
+  FROM scan_supermarket_out smo
+  JOIN order_detail od ON od.BARCODE_SERIAL = smo.BARCODE_SERIAL
+  JOIN weekly_prod_schedule wps ON wps.SCH_ID = smo.SCH_ID
+  WHERE NOT EXISTS (
+	    SELECT 1
+	    FROM scan_sewing_in ssi
+	    WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :ldate
+ ) AND DATE(smo.CUT_SCAN_TIME)  <= :ldate
+ GROUP BY  wps.SCH_ID_SITELINE
+) ind WHERE  ind.WIP <= 50
+GROUP BY 
+ind.SITE
                             -- 	ind.SCH_ID_SITELINE`;
 
 export const qrySiteLineCount = `SELECT

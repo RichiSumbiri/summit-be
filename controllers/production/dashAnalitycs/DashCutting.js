@@ -424,11 +424,11 @@ export const getLowWipLoad = async (req, res) => {
 
     if (!date) return res.status(404).json({ message: "Pls select date" });
 
+
     const getWipLoadLine = await db.query(findSiteLineLowWipPrep, {
-      replacements: { date },
+      replacements: { ldate : date },
       type: QueryTypes.SELECT,
     });
-
     const siteLine = await db.query(qrySiteLineCount, {
       type: QueryTypes.SELECT,
     });
@@ -453,6 +453,11 @@ export const getLowWipLoad = async (req, res) => {
       return res.status(200).json({
         data: { dataChart, arrColor, countLine },
       });
+    }else{
+      return res.status(201).json({
+        message: 'No Data',
+      });
+      
     }
   } catch (error) {
     console.log(error);
