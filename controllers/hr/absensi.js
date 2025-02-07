@@ -38,7 +38,6 @@ export const getAbsenDaily = async (req, res) => {
       getAbsen = getAbsen.map((item) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
         if (lembur) {
-
           let ttlLembur = "";
           if (lembur.type === "BH") {
             const scanin = moment(item.scan_in, "HH:mm:ss");
@@ -58,9 +57,14 @@ export const getAbsenDaily = async (req, res) => {
             }
             ttlLembur = scanout.diff(jam_out, "hours");
           }
-          return { ...item, ...lembur, ttlLembur, verif : lembur.jam === item.ot ? 1 : 2 };
+          return {
+            ...item,
+            ...lembur,
+            ttlLembur,
+            verif: lembur.jam === item.ot ? 1 : 2,
+          };
         } else {
-          return {...item, verif: item.ot ? 3 : ''};
+          return { ...item, verif: item.ot ? 3 : "" };
         }
       });
     }
@@ -102,7 +106,7 @@ export const getAbsenDaily = async (req, res) => {
 export async function updateAbsen(req, res) {
   try {
     // console.log(dataUpdate);
-    const { objEdit, arrAbs, tanggal_in, userId } = req.body;
+    const { objEdit, arrAbs, tanggal_in, userId, autoIn, autoOut } = req.body;
 
     if (objEdit.jam_kerja[0].jk_id) {
       const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
@@ -120,6 +124,7 @@ export async function updateAbsen(req, res) {
         jk_id: objEdit.jam_kerja[0].jk_id || null,
         ket_in: objEdit.ket_in || null,
         ket_out: objEdit.ket_out || null,
+        ot: objEdit.ot ? objEdit.ot  : null,
         keterangan: objEdit.keterangan[0].code_absen || null,
         tanggal_in: tanggal_in,
         tanggal_out: tanggal_out,
@@ -130,23 +135,24 @@ export async function updateAbsen(req, res) {
       if (arrAbs.length > 1 && objEdit.keterangan[0].code_absen === "H") {
         updateArrAbs = updateArrAbs.map((item) => ({
           ...item,
-          scan_in: getRandomTimeIn5Minute(
-            objEdit.jam_kerja[0].jk_scan_in_audit
-            // objEdit.jam_kerja[0].jk_in
-          ),
-          scan_out: getRandomTimeIn5Minute(
-            objEdit.jam_kerja[0].jk_out
-            // objEdit.jam_kerja[0].jk_scan_out_end
-          ),
+          ot: objEdit.ot ? objEdit.ot  : item.ot,
+          scan_in:
+            objEdit.scan_in === "00:00"
+              ? null
+              : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
+          scan_out:
+            objEdit.scan_out === "00:00"
+              ? null
+              : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         }));
       }
 
-      // const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
-      //   updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
-      //   where: {
-      //     jadwalId: ["jadwalId_inv"],
-      //   },
-      // });
+      const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
+        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
+        where: {
+          jadwalId: ["jadwalId_inv"],
+        },
+      });
 
       const updatedAbsen = await Attandance.bulkCreate(updateArrAbs, {
         updateOnDuplicate: [
@@ -498,12 +504,14 @@ export async function verifAbsenCtr1(req, res, next) {
 
       const verifAbsenProsess = await VerifAbsen.upsert(updateArrAbs);
       if (!verifAbsenProsess)
-        return res.status(500).json({ message: `Terdapat Error Saat Prosess Nik ${item.Nik}` });
+        return res
+          .status(500)
+          .json({ message: `Terdapat Error Saat Prosess Nik ${item.Nik}` });
 
       if (i + 1 === arrAbs.length) {
-        const arrNik = arrAbs.map(item => item.Nik)
-        req.data = {date : tanggal_in, arrNik}
-        next()
+        const arrNik = arrAbs.map((item) => item.Nik);
+        req.data = { date: tanggal_in, arrNik };
+        next();
         // return res.json({
         //   // data: absObj,
         //   message: "succcess save data",
@@ -516,7 +524,7 @@ export async function verifAbsenCtr1(req, res, next) {
   }
 }
 
-function findScanTime(lenghAbs, objEdit, type, auto) {
+export function findScanTime(lenghAbs, objEdit, type, auto) {
   if (lenghAbs > 1 && objEdit.keterangan[0].code_absen === "H") {
     if (type === "IN") {
       if (auto) {
@@ -749,12 +757,11 @@ export const getAbsenIndividu = async (req, res) => {
   }
 };
 
-
 export const getVerifAbsDayNik = async (req, res) => {
   try {
-    const {arrNik, date} = req.data;
-    
-    const query = qryGetVerifByNik(date, arrNik)
+    const { arrNik, date } = req.data;
+
+    const query = qryGetVerifByNik(date, arrNik);
 
     let getAbsen = await dbSPL.query(query, {
       // replacements: { date },
@@ -789,7 +796,7 @@ export const getVerifAbsDayNik = async (req, res) => {
       });
     }
 
-    const queryLembur = getLemburForAbsNik(date, arrNik)
+    const queryLembur = getLemburForAbsNik(date, arrNik);
     const getLembur = await dbSPL.query(queryLembur, {
       // replacements: { date },
       type: QueryTypes.SELECT,
