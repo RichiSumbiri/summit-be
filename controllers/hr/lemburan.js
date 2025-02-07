@@ -395,8 +395,8 @@ export const postLemburan = async(req,res) => {
                 spl_head: parseInt(dataSPL.SPLHead),
                 spl_manager: parseInt(getIDManager.IDManager),
                 spl_hrd: 101707004,
-                spl_approve_foreman: 1,
-                spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+                // spl_approve_foreman: 1,
+                // spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_type: dataSPL.SPLType,
                 spl_release: 1,
                 spl_updatedby: dataSPL.CreatedBy,
@@ -460,10 +460,10 @@ export const postLemburan = async(req,res) => {
                 spl_head: parseInt(dataSPL.SPLHead),
                 spl_manager: parseInt(getIDManager.IDManager),
                 spl_hrd: 101707004,
-                spl_approve_foreman: 1,
-                spl_approve_head: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? 1 : null,
-                spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
-                spl_head_ts: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? moment().format('YYYY-MM-DD HH:mm:ss') : null,
+                // spl_approve_foreman: 1,
+                // spl_approve_head: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? 1 : null,
+                // spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+                // spl_head_ts: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? moment().format('YYYY-MM-DD HH:mm:ss') : null,
                 spl_type: dataSPL.SPLType,
                 spl_release: 1,
                 spl_createdby: dataSPL.CreatedBy,
@@ -495,12 +495,40 @@ export const postLemburan = async(req,res) => {
             message: "success post new lemburan"
         });
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
         });
     }
+}
+
+export const ReleaseLemburan = async(req,res) => {
+    try {
+        const { splNumber } = req.params;
+        const checkSPL = await ModelSPLMain.findOne({ where: { spl_number: splNumber }, raw: true});
+        const release = await ModelSPLMain.update({
+            spl_approve_foreman: 1,
+            spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+            spl_approve_head: checkSPL.spl_head === checkSPL.spl_foremanspv ? 1 : null,
+            spl_head_ts: checkSPL.spl_head === checkSPL.spl_foremanspv ? moment().format('YYYY-MM-DD HH:mm:ss'): null
+        }, {
+            where: {
+                spl_number: splNumber
+            }
+        });
+        if(release){
+            res.status(200).json({
+                success: true,
+                message: "success release lemburan"
+            });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            message: "error release lemburan",
+        });
+    }
+
 }
 
 export const postPrintLemburan = async(req,res) => {
@@ -674,8 +702,8 @@ export const postRejectLemburan = async(req,res) => {
                 checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_head: empNik }});
                 if(checkSPL.length!==0){
                     actionApprove = await ModelSPLMain.update({
-                        spl_approve_head: 0,
-                        spl_head_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                        spl_approve_foremanspv: null,
+                        spl_foremanspv_ts: null
                     }, {
                         where: {
                             spl_number: SPLNumber,
@@ -693,8 +721,8 @@ export const postRejectLemburan = async(req,res) => {
                 checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_manager: empNik }});
                 if(checkSPL.length!==0){
                     actionApprove = await ModelSPLMain.update({
-                        spl_approve_manager: 0,
-                        spl_manager_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                        spl_approve_head: null,
+                        spl_head_ts: null
                     }, {
                         where: {
                             spl_number: SPLNumber,
@@ -712,8 +740,8 @@ export const postRejectLemburan = async(req,res) => {
                 checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_hrd: empNik }});
                 if(checkSPL.length!==0){
                     actionApprove = await ModelSPLMain.update({
-                        spl_approve_hrd: 0,
-                        spl_hrd_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                        spl_approve_manager: null,
+                        spl_manager_ts: null
                     }, {
                         where: {
                             spl_number: SPLNumber,

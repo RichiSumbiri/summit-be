@@ -162,7 +162,8 @@ SELECT
 	nama AS NamaLengkap,
 	start AS StartTime,
 	finish AS FinishTime,
-	minutes AS Minutes
+	minutes AS Minutes,
+	time_insert
 FROM
 	sumbiri_spl_data
 WHERE spl_number = :splnumber
