@@ -429,6 +429,7 @@ LEFT JOIN master_subdepartment ms ON ms.IDSubDept = ssm.spl_line
 WHERE
 	ssm.spl_active = '1'
 	AND ssm.spl_version = '1'
+	AND ssm.spl_approve_hrd = '1'
 	AND ssm.spl_date BETWEEN :startDate AND :endDate
 GROUP BY 
 	md.IdDept, ms.IDSubDept, ssm.spl_section, ssm.spl_date, ssm.spl_type, ssd.start, ssd.finish
