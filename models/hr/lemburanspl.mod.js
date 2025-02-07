@@ -451,6 +451,7 @@ LEFT JOIN master_department md ON md.IdDept = ssm.spl_dept
 WHERE
 	ssm.spl_active = '1'
 	AND ssm.spl_version = '1'
+	AND ssm.spl_approve_hrd = '1'
 	AND ssm.spl_date BETWEEN :startDate AND :endDate
 GROUP BY 
 	md.IdDept, ssm.spl_date
