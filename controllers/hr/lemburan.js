@@ -462,6 +462,7 @@ export const postLemburan = async(req,res) => {
                 spl_manager: parseInt(getIDManager.IDManager),
                 spl_hrd: 101707004,
                 spl_approve_foreman: 1,
+                spl_approve_head: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? 1 : null,
                 spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_type: dataSPL.SPLType,
                 spl_release: 1,
@@ -492,6 +493,7 @@ export const postLemburan = async(req,res) => {
             message: "success post new lemburan"
         });
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get list pending lemburan",
