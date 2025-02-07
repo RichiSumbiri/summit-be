@@ -194,6 +194,8 @@ export const punchAttdLog2 = async (req, res) => {
       type: QueryTypes.SELECT,
       // logging: console.log
     });
+// const filterLembur = getLembur.filter(item => item.Nik === 202011073)
+// console.log({lembur : filterLembur});
 
     if (getLembur.length > 0) {
       getSchAttd = getSchAttd.map((item) => {
