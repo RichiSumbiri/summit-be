@@ -564,11 +564,13 @@ export const postApproveLemburan = async(req,res) => {
                 }
             break;            
             case 'PENDING-HEAD':
-                checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_head: empNik }});
+                checkSPL = await ModelSPLMain.findOne({ where: { spl_number: SPLNumber, spl_head: empNik }, raw: true});
                 if(checkSPL.length!==0){
                     actionApprove = await ModelSPLMain.update({
                         spl_approve_head: 1,
-                        spl_head_ts: moment().format('YYYY-MM-DD HH:mm:ss')
+                        spl_approve_manager: checkSPL.spl_dept==="100105" &&  checkSPL.spl_manager==="101" ? 1 : null,
+                        spl_head_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+                        spl_manager_ts: checkSPL.spl_dept==="100105" &&  checkSPL.spl_manager==="101" ? moment().format('YYYY-MM-DD HH:mm:ss') : null,
                     }, {
                         where: {
                             spl_number: SPLNumber,
