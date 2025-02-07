@@ -9,7 +9,7 @@ SELECT
 	se.NPWP,
 	se.BPJSKes,
 	se.BPJSKet,
-	se.NamaLengkap,
+	UPPER(se.NamaLengkap) AS NamaLengkap,
 	se.TempatLahir,
 	se.TanggalLahir,
 	se.TanggalMasuk,
