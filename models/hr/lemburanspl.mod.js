@@ -60,6 +60,7 @@ WHERE
 ssm.spl_createdby = :userId
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
+AND ssm.spl_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND CURDATE()
 `;
 
 
