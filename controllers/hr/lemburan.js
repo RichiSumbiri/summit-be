@@ -383,7 +383,7 @@ export const postLemburan = async(req,res) => {
         
         const splformat     = `SPL` + moment().format('YY') + moment().format('MM') + moment().format('DD');
         
-        if(dataSPL.SPLNumber){
+        if(dataSPL.SPLNumber!=="" && dataSPL.SPLNumber!==null){
             
             // update spl main header
             await ModelSPLMain.update({
