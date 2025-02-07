@@ -450,7 +450,6 @@ export const postLemburan = async(req,res) => {
                 newQueueSPL   =  splformat + String(parseInt(getLastSPL.spl_number.slice(-4)) + 1).padStart(4, '0');
             
             }
-            
             await ModelSPLMain.create({
                 spl_number: newQueueSPL,
                 spl_date: dataSPL.SPLDate,
@@ -464,6 +463,7 @@ export const postLemburan = async(req,res) => {
                 spl_approve_foreman: 1,
                 spl_approve_head: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? 1 : null,
                 spl_foreman_ts: moment().format('YYYY-MM-DD HH:mm:ss'),
+                spl_head_ts: dataSPL.SPLHead === dataSPL.SPLForemanSPV ? moment().format('YYYY-MM-DD HH:mm:ss') : null,
                 spl_type: dataSPL.SPLType,
                 spl_release: 1,
                 spl_createdby: dataSPL.CreatedBy,
@@ -473,17 +473,19 @@ export const postLemburan = async(req,res) => {
             });
             
             for (const emp of dataSPL.SPLEmp) {
-                await ModelSPLData.create({
-                    spl_number: newQueueSPL,
-                    spl_date: dataSPL.SPLDate,
-                    Nik: emp.Nik,
-                    nama: emp.NamaLengkap,
-                    start: emp.StartTime,
-                    finish: emp.FinishTime,
-                    minutes: emp.Minutes,
-                    status: 0,
-                    time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
-                });    
+                if(emp.Nik){
+                    await ModelSPLData.create({
+                        spl_number: newQueueSPL,
+                        spl_date: dataSPL.SPLDate,
+                        Nik: emp.Nik,
+                        nama: emp.NamaLengkap,
+                        start: emp.StartTime,
+                        finish: emp.FinishTime,
+                        minutes: emp.Minutes,
+                        status: 0,
+                        time_insert: moment().format('YYYY-MM-DD HH:mm:ss')
+                    });    
+                }
             }
         }
         
