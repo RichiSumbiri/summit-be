@@ -158,6 +158,7 @@ export async function updateAbsen(req, res) {
         updateOnDuplicate: [
           "scan_in",
           "scan_out",
+          "ot",
           "jk_id",
           "ket_in",
           "ket_out",
