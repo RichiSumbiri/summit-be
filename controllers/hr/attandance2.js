@@ -62,6 +62,10 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
     `${findSch.scanOutDate} ${findSch.jk_scan_out_start}`,
     "YYYY-MM-DD HH:mm:ss"
   );
+  const jamMulaiScanMasuk = moment(
+    `${findSch.scheduleDate} ${findSch.jk_scan_in_audit}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
   const jamMasuk = moment(
     `${findSch.scheduleDate} ${findSch.jk_in}`,
     "YYYY-MM-DD HH:mm:ss"
@@ -87,7 +91,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
   const checkLate = checkTime.isAfter(jamMasuk);
 
   //check apakah scan in ada dalam range
-  const isInRange = checkTime.isBefore(jamPulang);
+  const isInRange = checkTime.isBetween(jamMulaiScanMasuk, jamPulang, "[]");
 
   //check late dan jangan ganggu ket in manual
   let ket_in = null;
@@ -102,21 +106,20 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
     scan_in = objResult.scan_time;
     ot = objResult.ot;
     return { scan_in, ket_in, ot };
-  } else {
-    //jika tidak ada lembur maka check apakah log sebelum jam audit jika iya maka get randome tima
-    if (checkTime.isBefore(jamMasukAudit)) {
-      const rdmScanInTime = getRandomTimeIn5Minute(
-        findSch.jk_scan_in_audit
-        // findSch.jk_in
-      );
-      return { scan_in: rdmScanInTime, ket_in };
-    }
+  }
+  //jika tidak ada lembur maka check apakah log sebelum jam audit jika iya maka get randome tima
+  if (checkTime.isBefore(jamMasukAudit) && isInRange) {
+    const rdmScanInTime = getRandomTimeIn5Minute(
+      findSch.jk_scan_in_audit
+      // findSch.jk_in
+    );
+    return { scan_in: rdmScanInTime, ket_in };
   }
 
   if (isInRange) {
     return { scan_in: logTime, ket_in };
   } else {
-    return { scan_in, ket_in };
+    false
   }
 }
 
@@ -130,11 +133,18 @@ function correctionScanOut(logTime, findSch, arrJkDetail) {
     (item) => item.jk_id === findSch.jk_id && item.type_scan === "OUT"
   );
 
-  const jamPulang = moment(findSch.jk_out, "HH:mm:ss");
-  const jamOutAudit = moment(findSch.jk_scan_out_end, "HH:mm:ss");
+  const jamPulang = moment(
+    `${findSch.scanOutDate} ${findSch.jk_out}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  const jamOutAudit = moment(`${findSch.scanOutDate} ${findSch.jk_scan_out_end}`, "HH:mm:ss");
 
   // Waktu yang akan diperiksa
-  const checkTime = moment(logTime, "HH:mm:ss");
+  const checkTime = moment(
+    `${findSch.scheduleDate} ${logTime}`,
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  
   const checkEarly = checkTime.isBefore(jamPulang);
   const chkLogLebihJamAudit = checkTime.isAfter(jamOutAudit);
 
@@ -184,6 +194,7 @@ export const punchAttdLog2 = async (req, res) => {
     });
     // console.log(getSchAttd[0]);
 
+    //ambil jam kerja detail untuk mendapatkan jam kerja sesuai ketentuan perushaan dan jumlah ot
     const lisJkDetail = await JamKerjaDetail.findAll({
       raw: true,
       order: [["jk_dtl_id", "ASC"]],
@@ -194,29 +205,30 @@ export const punchAttdLog2 = async (req, res) => {
       type: QueryTypes.SELECT,
       // logging: console.log
     });
-// const filterLembur = getLembur.filter(item => item.Nik === 202011073)
-// console.log({lembur : filterLembur});
+    // const filterLembur = getLembur.filter(item => item.Nik === 202011073)
+    // console.log({lembur : filterLembur});
 
     if (getLembur.length > 0) {
       getSchAttd = getSchAttd.map((item) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
 
         if (lembur) {
-          let ttlLembur = "";
-          if (lembur.type === "BH") {
-            const scanin = moment(item.scan_in, "HH:mm:ss");
-            const jam_in = moment(item.jk_in, "HH:mm:ss");
-            ttlLembur = scanin.diff(jam_in, "hours");
-          } else {
-            const scanout = moment(item.scan_out, "HH:mm:ss");
-            let jam_out = moment(item.jk_out, "HH:mm:ss");
+          // let ttlLembur = "";
+          // if (lembur.type === "BH") {
+          //   const scanin = moment(item.scan_in, "HH:mm:ss");
+          //   const jam_in = moment(item.jk_in, "HH:mm:ss");
+          //   ttlLembur = scanin.diff(jam_in, "hours");
+          // } else {
+          //   const scanout = moment(item.scan_out, "HH:mm:ss");
+          //   let jam_out = moment(item.jk_out, "HH:mm:ss");
 
-            // if (scanout.isBefore(jam_out)) {
-            //   jam_out.add(1, "day");
-            // }
-            ttlLembur = scanout.diff(jam_out, "hours");
-          }
-          return { ...item, ...lembur, ttlLembur };
+          //   // if (scanout.isBefore(jam_out)) {
+          //   //   jam_out.add(1, "day");
+          //   // }
+          //   ttlLembur = scanout.diff(jam_out, "hours");
+          // }
+          return { ...item, ...lembur };
+          // return { ...item, ...lembur, ttlLembur };
         } else {
           return item;
         }
@@ -271,31 +283,43 @@ export const punchAttdLog2 = async (req, res) => {
 
               const objScanIn = correctionScanIn(logTime, findSch, lisJkDetail);
 
-              const dataAbsen = {
-                Nik: logs.Nik,
-                groupId: findSch.groupId,
-                jk_id: findSch.jk_id,
-                tanggal_in: findSch.scheduleDate,
-                tanggal_out: findSch.scanOutDate,
-                keterangan: "H",
-                ...objScanIn,
-                // scan_in: isInRange ? logTime : null,
-                // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
-              };
-
-              // console.log(dataAbsen);
-
-              const postAbsen = await Attandance.create(dataAbsen);
-
-              if (postAbsen) {
+              //jika tidak ada scan in berarti worng schedule
+              if (!objScanIn) {
                 const updateLog = await LogAttandance.update(
-                  { log_punch: 1 }, // log punch 1 success
+                  { log_punch: 5 }, // log punch 1 success
                   {
                     where: {
                       log_id: logs.log_id,
                     },
                   }
                 );
+              } else {
+                const dataAbsen = {
+                  Nik: logs.Nik,
+                  groupId: findSch.groupId,
+                  jk_id: findSch.jk_id,
+                  tanggal_in: findSch.scheduleDate,
+                  tanggal_out: findSch.scanOutDate,
+                  keterangan: "H",
+                  ...objScanIn,
+                  // scan_in: isInRange ? logTime : null,
+                  // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
+                };
+
+                // console.log(dataAbsen);
+
+                const postAbsen = await Attandance.create(dataAbsen);
+
+                if (postAbsen) {
+                  const updateLog = await LogAttandance.update(
+                    { log_punch: 1 }, // log punch 1 success
+                    {
+                      where: {
+                        log_id: logs.log_id,
+                      },
+                    }
+                  );
+                }
               }
             } else {
               const updateLog = await LogAttandance.update(
