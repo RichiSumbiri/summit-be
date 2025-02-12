@@ -26,6 +26,7 @@ const findScanTime = (dataArray, scanTime) => {
   const scanMoment = moment(scanTime, "HH:mm");
 
   for (const item of dataArray) {
+    
     const startScan = moment(item.jk_dtl_start, "HH:mm");
     const endScan = moment(item.jk_dtl_end, "HH:mm");
 
@@ -55,6 +56,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
   const arrKetentuan = arrJkDetail?.filter(
     (item) => item.jk_id === findSch.jk_id && item.type_scan === "IN"
   );
+  
   //jika terdapat array Ketentuan
   const objResult = findScanTime(arrKetentuan, logTime);
 
@@ -63,7 +65,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
     "YYYY-MM-DD HH:mm:ss"
   );
   const jamMulaiScanMasuk = moment(
-    `${findSch.scheduleDate} ${findSch.jk_scan_in_audit}`,
+    `${findSch.scheduleDate} ${findSch.jk_scan_in_start}`,
     "YYYY-MM-DD HH:mm:ss"
   );
   const jamMasuk = moment(
@@ -107,6 +109,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
     ot = objResult.ot;
     return { scan_in, ket_in, ot };
   }
+  
   //jika tidak ada lembur maka check apakah log sebelum jam audit jika iya maka get randome tima
   if (checkTime.isBefore(jamMasukAudit) && isInRange) {
     const rdmScanInTime = getRandomTimeIn5Minute(
@@ -115,6 +118,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
     );
     return { scan_in: rdmScanInTime, ket_in };
   }
+
 
   if (isInRange) {
     return { scan_in: logTime, ket_in };
@@ -280,9 +284,9 @@ export const punchAttdLog2 = async (req, res) => {
             //jika schedule ada check time dan tidak ada keterangan
             if (findSch && findSch.jk_id !== null) {
               //bisa masukan find ketentuan ini dari get detail/tabel baru
-
+              
               const objScanIn = correctionScanIn(logTime, findSch, lisJkDetail);
-
+              
               //jika tidak ada scan in berarti worng schedule
               if (!objScanIn) {
                 const updateLog = await LogAttandance.update(
