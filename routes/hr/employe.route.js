@@ -3,6 +3,7 @@ import {
   getDeptAll,
   getEmpBurekol,
   getEmpByNIK,
+  getEmpByNIKActive,
   getEmpByNIKKTP,
   getEmpKontrak,
   getEmpLikeNIK,
@@ -149,6 +150,7 @@ router.get("/all-employe", getEmployeAll);
 router.get("/all-employe-active", getEmployeAktif);
 router.get("/all-employe-kontrak", getEmpKontrak);
 router.get("/find-emp-nik/:empnik", getEmpByNIK);
+router.get("/find-emp-nik-active/:empnik", getEmpByNIKActive);
 router.get("/find-emp-like/:inputQry", getEmpLikeNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.get("/find-emp-burekol/:empnik", getEmpBurekol);

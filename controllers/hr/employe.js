@@ -1,5 +1,5 @@
 import { QueryTypes } from "sequelize";
-import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, queryEmpBurekol, sqlFindEmpByNIK, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, queryEmpBurekol, sqlFindEmpByNIK, sqlFindEmpByNIKActive, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
 import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
@@ -177,6 +177,31 @@ export const getEmpByNIK = async(req,res) => {
     });
   }
 }
+
+export const getEmpByNIKActive = async(req,res) => {
+  try {
+    const nikktp  = parseInt(req.params.empnik);
+    const data    = await dbSPL.query(sqlFindEmpByNIKActive, {
+      replacements: {
+        empnik: nikktp
+      }, 
+      type: QueryTypes.SELECT,
+      raw: true
+    });
+    return res.status(200).json({
+      success: true,
+      message: "success get employee by nik active",
+      data: data,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "error get employee with NIK active",
+    });
+  }
+}
+
 
 export const getEmpLikeNIK = async(req,res) => {
   try {
