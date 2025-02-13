@@ -541,9 +541,17 @@ SELECT
     "PT SUMBER BINTANG REJEKI" AS NAMA_INSTITUSI,
     CONCAT("KRJ/", se.Nik, "/SUMBIRI") AS NO_INDUK,
     "04" AS LINE,
-    SUBSTRING_INDEX(se.NamaLengkap , ' ', 1) AS NAMA_DEPAN,
-    SUBSTRING_INDEX(SUBSTRING_INDEX(se.NamaLengkap , ' ', 2), ' ', -1) AS NAMA_TENGAH,
-    SUBSTRING_INDEX(se.NamaLengkap , ' ', -1) AS NAMA_BELAKANG,
+	SUBSTRING_INDEX(se.NamaLengkap, ' ', 1) AS NAMA_DEPAN,
+    CASE 
+        WHEN LENGTH(se.NamaLengkap) - LENGTH(REPLACE(se.NamaLengkap, ' ', '')) >= 2 
+        THEN SUBSTRING_INDEX(SUBSTRING_INDEX(se.NamaLengkap, ' ', -2), ' ', 1) 
+        ELSE ''
+    END AS NAMA_TENGAH,
+    CASE 
+        WHEN LENGTH(se.NamaLengkap) - LENGTH(REPLACE(se.NamaLengkap, ' ', '')) >= 1 
+        THEN SUBSTRING_INDEX(se.NamaLengkap, ' ', -1) 
+        ELSE ''
+    END AS NAMA_BELAKANG,
     "01" AS JENIS_NASABAH,
     IF(se.NPWP IS NULL, "N", "Y") AS MEMILIKI_NPWP,
     se.NPWP NO_NPWP,
