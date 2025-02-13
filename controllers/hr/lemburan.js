@@ -807,7 +807,7 @@ export const getLemburanExportAmano = async(req,res) => {
         const { startDate, endDate }    = req.params;
         const queryAmano = `
         SELECT
-            sumbiri_spl_data.Nik AS EmpCode,
+            LPAD(sumbiri_spl_data.Nik, 10, '0') AS EmpCode,
             CAST(DATE_FORMAT(sumbiri_spl_main.spl_date, '%Y%m%d') AS UNSIGNED INTEGER) AS ProDay,
             IF(sumbiri_spl_main.spl_type = 'BH',sumbiri_spl_mcsetting.mc_id,0) AS InMC,
             IF(sumbiri_spl_main.spl_type != 'BH',sumbiri_spl_mcsetting.mc_id,0) AS OutMC,
