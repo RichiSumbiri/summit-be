@@ -30,7 +30,7 @@ const findScanTime = (dataArray, scanTime) => {
     const startScan = moment(item.jk_dtl_start, "HH:mm");
     const endScan = moment(item.jk_dtl_end, "HH:mm");
 
-    if (scanMoment.isBetween(startScan, endScan, null, "[]")) {
+    if (scanMoment.isBetween(startScan, endScan, 'null', "[]")) {
       const startRandom = moment(item.jk_dtl_rdm_st, "HH:mm");
       const endRandom = moment(item.jk_dtl_rdm_end, "HH:mm");
 
@@ -93,7 +93,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
   const checkLate = checkTime.isAfter(jamMasuk);
 
   //check apakah scan in ada dalam range
-  const isInRange = checkTime.isBetween(jamMulaiScanMasuk, jamPulang, "[]");
+  const isInRange = checkTime.isBetween(jamMulaiScanMasuk, jamPulang, null, "[]");
 
   //check late dan jangan ganggu ket in manual
   let ket_in = null;
