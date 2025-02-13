@@ -11,6 +11,8 @@ import {
   VerifAbsen,
   qryGetVerifByNik,
   getLemburForAbsNik,
+  queryGetDtlLog,
+  LogAttandance,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -374,6 +376,39 @@ export const getTblConfirm = async (req, res) => {
       .json({ error, message: "Terdapat error saat get data confirm" });
   }
 };
+
+
+//for view detail log absen di absen daily
+export const getViewDetailLog = async (req, res) => {
+  try {
+    const {nik, date, } = req.params;
+    const {jk_out_day} = req.query
+
+    const tanggal_in = date
+    let tanggal_out = date
+
+    if(jk_out_day === 'N'){
+      tanggal_out = moment(date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD')
+    }
+
+
+    const listLogDetail = await dbSPL.query(queryGetDtlLog, {
+      replacements: { Nik : nik, startDate : tanggal_in, endDate : tanggal_out},
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    return res.status(200).json({data: listLogDetail, message: "succcess get data"});
+
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error, message: "Terdapat error saat get data absen" });
+  
+  }
+}
 
 export async function verifAbsenCtr(req, res) {
   try {

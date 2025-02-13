@@ -363,9 +363,10 @@ ba.jadwalId_inv,
 sgs.groupName,
 ba.jk_id,
 mjk.jk_nama,
-mjk2.jk_nama jk_aktual,
-mjk2.jk_in,
-mjk2.jk_out,
+-- mjk2.jk_nama jk_aktual,
+mjk.jk_in,
+mjk.jk_out,
+mjk.jk_out_day,
 ba.calendar,
 sa.jk_id jk_id_absen,
 sa.id, 
@@ -984,3 +985,8 @@ LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 
 `
 }
+
+export const queryGetDtlLog = `select sla.*, mlp.log_punch_description  
+from sumbiri_log_attd sla 
+left join master_log_punch mlp on sla.log_punch = mlp.log_punch_id 
+where sla.Nik = :Nik and DATE(sla.log_date) BETWEEN :startDate AND :endDate`
