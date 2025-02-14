@@ -179,6 +179,9 @@ export const Attandance = dbSPL.define(
     keterangan: {
       type: DataTypes.STRING,
     },
+    calendar: {
+      type: DataTypes.STRING,
+    },
     ket_in: {
       type: DataTypes.STRING,
     },
