@@ -339,20 +339,23 @@ export const punchAttdLog2 = async (req, res) => {
         }
         if (logs.log_status === "OUT") {
           //jika log status OUT
+
+          //cari terlebih dahulu schedulnya
           const findSch = getSchAttd.find(
             (items) =>
               logs.Nik === items.Nik.toString() && logDate === items.scanOutDate
           );
 
-          if (findSch && !findSch.scan_out) {
+          //jika ada schedule maka check apakah sudah scan in dengan cara cek id nya
+          if (findSch && !findSch.scan_out && findSch.id) {
             const dataAbsen = correctionScanOut(logTime, findSch, lisJkDetail);
 
-            const finds = await Attandance.findAll({
-              where: {
-                tanggal_out: findSch.scanOutDate,
-                Nik: logs.Nik,
-              },
-            });
+            // const finds = await Attandance.findAll({
+            //   where: {
+            //     tanggal_out: findSch.scanOutDate,
+            //     Nik: logs.Nik,
+            //   },
+            // });
 
             const postAbsen = await Attandance.update(dataAbsen, {
               where: {
@@ -361,7 +364,7 @@ export const punchAttdLog2 = async (req, res) => {
               },
             });
 
-            if (postAbsen) {
+            if (postAbsen[0] === 1) {
               const updateLog = await LogAttandance.update(
                 { log_punch: 1 },
                 {
