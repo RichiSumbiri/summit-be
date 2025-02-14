@@ -84,7 +84,7 @@ FROM (
 	SELECT 
 		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.groupId,
 		CASE WHEN  nx.groupId = 0 THEN nx.calendar_indv ELSE nx.calendar_group END AS calendar,
-		CASE WHEN  nx.groupId = 0 THEN nx.jadwal_indv ELSE nx.jadwal_group END AS jk_id
+		CASE WHEN  nx.jadwal_indv THEN nx.jadwal_indv ELSE nx.jadwal_group END AS jk_id
 	FROM (
 				SELECT 
 				 MAX(nm.jadwalId_inv) jadwalId_inv,
@@ -143,7 +143,7 @@ LEFT JOIN sumbiri_absens d ON d.Nik = fn.Nik
 export const qryLogForPunch = `SELECT 
 a.*, DATE(a.log_date) logDate, TIME(a.log_date) logTime
 FROM sumbiri_log_attd a 
-WHERE date(a.log_date) BETWEEN :startDate AND :endDate -- AND a.Nik = '201605607'
+WHERE date(a.log_date) BETWEEN :startDate AND :endDate AND a.Nik = '202201047'
 AND log_punch IN (0, 4, 5)
 GROUP BY date(a.log_date), a.Nik, a.log_status`;
 
