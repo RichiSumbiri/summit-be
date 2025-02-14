@@ -83,8 +83,8 @@ export const qrySchAttdComp = `SELECT
 FROM (
 	SELECT 
 		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.groupId,
-		CASE WHEN  nx.groupId = 0 THEN nx.calendar_indv ELSE nx.calendar_group END AS calendar,
-		CASE WHEN  nx.jadwal_indv THEN nx.jadwal_indv ELSE nx.jadwal_group END AS jk_id
+		COALESCE(nx.calendar_indv, nx.calendar_group) AS calendar,
+		COALESCE(nx.jadwal_indv, nx.jadwal_group) AS jk_id
 	FROM (
 				SELECT 
 				 MAX(nm.jadwalId_inv) jadwalId_inv,
@@ -838,8 +838,8 @@ export const qryAbsenIndividu = `SELECT
 FROM (
 	SELECT 
 		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.NamaLengkap, nx.groupId,
-		CASE WHEN  nx.groupId = 0 THEN nx.calendar_indv ELSE nx.calendar_group END AS calendar,
-		CASE WHEN  nx.groupId = 0 THEN nx.jadwal_indv ELSE nx.jadwal_group END AS jk_id
+        COALESCE(nx.calendar_indv, nx.calendar_group) AS calendar,
+		    COALESCE(nx.jadwal_indv, nx.jadwal_group) AS jk_id
 	FROM (
 				SELECT 
 				 MAX(nm.jadwalId_inv) jadwalId_inv,
@@ -889,7 +889,7 @@ FROM (
 			      AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate 
 			) nm 
 			GROUP BY 
-			    nm.scheduleDate, nm.Nik, nm.NamaLengkap, nm.groupId
+			    nm.scheduleDate, nm.Nik, nm.NamaLengkap 
 
 	) nx
 ) fn

@@ -430,62 +430,67 @@ export const qrySchIndividu = `SELECT
 	mjk.jk_color,
 	c.calendar_color
 FROM (
-	SELECT 
-		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.NamaLengkap, nx.groupId,
-		CASE WHEN  nx.groupId = 0 THEN nx.calendar_indv ELSE nx.calendar_group END AS calendar,
-		CASE WHEN  nx.groupId = 0 THEN nx.jadwal_indv ELSE nx.jadwal_group END AS jk_id
-	FROM (
-				SELECT 
-				 MAX(nm.jadwalId_inv) jadwalId_inv,
-				 MAX(nm.jadwalId) jadwalId,
-			    nm.scheduleDate, 
-			    nm.Nik, 
-			    nm.NamaLengkap, 
-			    nm.groupId,
-			    MAX(nm.calendar_group) AS calendar_group,
-			    MAX(nm.calendar_indv) AS calendar_indv, 
-			    MAX(nm.jadwal_group) AS jadwal_group,
-			    MAX(nm.jadwal_indv) AS jadwal_indv
-			FROM (
-			    SELECT  
-			    	  0 jadwalId_inv,
-			 		  sgs.jadwalId,
-			        se.Nik, 
-			        se.NamaLengkap, 
-			        sgs.scheduleDate, 
-			        seg.groupId, 
-			        sgs.jk_id AS jadwal_group,
-			        NULL AS jadwal_indv,
-			        sgs.calendar AS calendar_group,
-			        NULL AS calendar_indv
-			    FROM sumbiri_employee se 
-			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
-			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
-			    WHERE se.Nik = :nik 
-			      AND sgs.scheduleDate BETWEEN :startDate AND :endDate
-			    
-			    UNION ALL 
-			
-				SELECT  
-			 		  sis.jadwalId_inv,
-			 		  0 jadwalId, 
-			        se.Nik, 
-			        se.NamaLengkap, 
-			        sis.scheduleDate_inv AS scheduleDate, 
-			        0 AS groupId, 
-			        NULL AS jadwal_group,
-			        sis.jk_id AS jadwal_indv,
-			        NULL AS calendar_group,
-			        sis.calendar AS calendar_indv
-			    FROM sumbiri_employee se 
-			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
-			    WHERE se.Nik = :nik  
-			      AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate
-			) nm 
-			GROUP BY 
-			    nm.scheduleDate, nm.Nik, nm.NamaLengkap, nm.groupId
-
-	) nx
+			SELECT 
+		    nx.jadwalId_inv, 
+		    nx.scheduleDate, 
+		    nx.Nik, 
+		    nx.NamaLengkap, 
+		    nx.groupId,
+		    COALESCE(nx.calendar_indv, nx.calendar_group) AS calendar,
+		    COALESCE(nx.jadwal_indv, nx.jadwal_group) AS jk_id
+		FROM (
+		    SELECT 
+		        MAX(nm.jadwalId_inv) AS jadwalId_inv,
+		        MAX(nm.jadwalId) AS jadwalId,
+		        nm.scheduleDate, 
+		        nm.Nik, 
+		        nm.NamaLengkap, 
+		        nm.groupId,
+		        MAX(nm.calendar_group) AS calendar_group,
+		        MAX(nm.calendar_indv) AS calendar_indv, 
+		        MAX(nm.jadwal_group) AS jadwal_group,
+		        MAX(nm.jadwal_indv) AS jadwal_indv
+		    FROM (
+		        -- Data dari sumbiri_group_schedule
+		        SELECT  
+		            0 AS jadwalId_inv,
+		            sgs.jadwalId,
+		            se.Nik, 
+		            se.NamaLengkap, 
+		            sgs.scheduleDate, 
+		            seg.groupId, 
+		            sgs.jk_id AS jadwal_group,
+		            NULL AS jadwal_indv,
+		            sgs.calendar AS calendar_group,
+		            NULL AS calendar_indv
+		        FROM sumbiri_employee se 
+		        LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+		        LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
+		        WHERE se.Nik = :nik 
+		          AND sgs.scheduleDate BETWEEN :startDate AND :endDate
+		        
+		        UNION ALL 
+		        
+		        -- Data dari sumbiri_individu_schedule
+		        SELECT  
+		            sis.jadwalId_inv,
+		            0 AS jadwalId, 
+		            se.Nik, 
+		            se.NamaLengkap, 
+		            sis.scheduleDate_inv AS scheduleDate, 
+		            0 AS groupId, 
+		            NULL AS jadwal_group,
+		            sis.jk_id AS jadwal_indv,
+		            NULL AS calendar_group,
+		            sis.calendar AS calendar_indv
+		        FROM sumbiri_employee se 
+		        LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
+		        WHERE se.Nik = :nik  
+		          AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate
+		    ) nm 
+		    GROUP BY 
+		        nm.scheduleDate, nm.Nik, nm.NamaLengkap
+		) nx
 ) fn
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = fn.jk_id
 LEFT JOIN master_calendar_type c ON c.calendar_code = fn.calendar
