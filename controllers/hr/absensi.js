@@ -111,33 +111,43 @@ export async function updateAbsen(req, res) {
     const { objEdit, arrAbs, tanggal_in, userId, autoIn, autoOut } = req.body;
 
     if (objEdit.jam_kerja[0].jk_id) {
-      const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
-      const tanggal_out =
-        objEdit.jam_kerja[0].jk_out_day === "N"
-          ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
-          : tanggal_in;
+      // const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
+      // const tanggal_out =
+      //   objEdit.jam_kerja[0].jk_out_day === "N"
+      //     ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
+      //     : tanggal_in;
 
       // console.log(objEdit.keterangan);
 
-      let updateArrAbs = arrAbs.map((item) => ({
-        ...item,
-        scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
-        scan_out: objEdit.scan_out === "00:00" ? null : objEdit.scan_out,
-        jk_id: objEdit.jam_kerja[0].jk_id || null,
-        ket_in: objEdit.ket_in || null,
-        ket_out: objEdit.ket_out || null,
-        ot: objEdit.ot ? objEdit.ot  : null,
-        keterangan: objEdit.keterangan[0].code_absen || null,
-        tanggal_in: tanggal_in,
-        tanggal_out: tanggal_out,
-        scheduleDate_inv: tanggal_in,
-        mod_id: userId,
-      }));
+      let updateArrAbs = arrAbs.map((item) => {
+        const momentTglIn = moment(item.scheduleDate, "YYYY-MM-DD") // || moment(tanggal_in, "YYYY-MM-DD");
+        const tanggal_out =
+          objEdit.jam_kerja[0].jk_out_day === "N"
+            ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
+            : item.scheduleDate;
+
+        const dataAbs = {
+          ...item,
+          scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
+          scan_out: objEdit.scan_out === "00:00" ? null : objEdit.scan_out,
+          jk_id: objEdit.jam_kerja[0].jk_id || null,
+          ket_in: objEdit.ket_in || null,
+          ket_out: objEdit.ket_out || null,
+          ot: objEdit.ot ? objEdit.ot : null,
+          keterangan: objEdit.keterangan[0].code_absen || null,
+          tanggal_in: item.scheduleDate,
+          tanggal_out: tanggal_out,
+          scheduleDate_inv: item.scheduleDate,
+          // calendar : objEdit.calendar || item.calendar,
+          mod_id: userId,
+        };
+        return dataAbs;
+      });
 
       if (arrAbs.length > 1 && objEdit.keterangan[0].code_absen === "H") {
         updateArrAbs = updateArrAbs.map((item) => ({
           ...item,
-          ot: objEdit.ot ? objEdit.ot  : item.ot,
+          ot: objEdit.ot ? objEdit.ot : item.ot,
           scan_in:
             objEdit.scan_in === "00:00"
               ? null
@@ -150,7 +160,7 @@ export async function updateAbsen(req, res) {
       }
 
       const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
-        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id"],
+        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id", 'calendar'],
         where: {
           jadwalId: ["jadwalId_inv"],
         },
@@ -377,38 +387,38 @@ export const getTblConfirm = async (req, res) => {
   }
 };
 
-
 //for view detail log absen di absen daily
 export const getViewDetailLog = async (req, res) => {
   try {
-    const {nik, date, } = req.params;
-    const {jk_out_day} = req.query
+    const { nik, date } = req.params;
+    const { jk_out_day } = req.query;
 
-    const tanggal_in = date
-    let tanggal_out = date
+    const tanggal_in = date;
+    let tanggal_out = date;
 
-    if(jk_out_day === 'N'){
-      tanggal_out = moment(date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD')
+    if (jk_out_day === "N") {
+      tanggal_out = moment(date, "YYYY-MM-DD")
+        .add(1, "days")
+        .format("YYYY-MM-DD");
     }
 
-
     const listLogDetail = await dbSPL.query(queryGetDtlLog, {
-      replacements: { Nik : nik, startDate : tanggal_in, endDate : tanggal_out},
+      replacements: { Nik: nik, startDate: tanggal_in, endDate: tanggal_out },
       type: QueryTypes.SELECT,
       // logging: console.log
     });
 
-    return res.status(200).json({data: listLogDetail, message: "succcess get data"});
-
+    return res
+      .status(200)
+      .json({ data: listLogDetail, message: "succcess get data" });
   } catch (error) {
     console.log(error);
 
     res
       .status(500)
       .json({ error, message: "Terdapat error saat get data absen" });
-  
   }
-}
+};
 
 export async function verifAbsenCtr(req, res) {
   try {

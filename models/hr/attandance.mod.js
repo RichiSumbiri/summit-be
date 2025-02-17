@@ -835,6 +835,7 @@ export const qryAbsenIndividu = `SELECT
 	sa.keterangan,
 	sa.scan_in,
 	sa.scan_out,
+  sa.id,
 	mjk.jk_color,
 	c.calendar_color
 FROM (
