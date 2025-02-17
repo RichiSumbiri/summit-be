@@ -44,6 +44,7 @@ import {
   SetActualMp,
   sewingScanOut,
 } from "../../controllers/production/quality/QualityEndlineScan.js";
+import { postQcEndlineConvertDefect } from "../../controllers/production/quality/QcEndlineConvertDefect.js";
 const router = express.Router();
 
 // QC Route
@@ -136,6 +137,8 @@ router.get(
   "/report/detail-defect-sum/:schDate/:sitename/:shift",
   getDailyDefDetailSum
 );
+router.post("/endline-convert-defect", postQcEndlineConvertDefect);
+
 
 //measurement report
 router.get("/report/measurement/:orderNo/:schdId/:shift", getMeasurementRep);
