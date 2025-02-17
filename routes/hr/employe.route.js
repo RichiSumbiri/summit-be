@@ -9,6 +9,7 @@ import {
   getEmpLikeNIK,
   getEmployeAktif,
   getEmployeAll,
+  getEmpNewEmpAmipay,
   getPositionAll,
   getSalaryType,
   getSection,
@@ -154,6 +155,8 @@ router.get("/find-emp-nik-active/:empnik", getEmpByNIKActive);
 router.get("/find-emp-like/:inputQry", getEmpLikeNIK);
 router.get("/find-emp-ktp/:nikktp", getEmpByNIKKTP);
 router.get("/find-emp-burekol/:empnik", getEmpBurekol);
+router.get("/find-emp-for-amipay/:empnik", getEmpNewEmpAmipay);
+
 router.post("/update-emp", updateEmp);
 router.post("/update-photos/:nikEmp", uploadPhotosEmp);
 router.get("/get-photos/:nik", downloadPhotosEmp);

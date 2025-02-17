@@ -607,6 +607,125 @@ LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
 WHERE se.Nik = :empNik
 `;
 
+export const queryNewEmpAmipay = `
+SELECT
+	se.Nik,
+	"" AS CPIN,
+	se.NamaLengkap,
+	se.TanggalMasuk,
+	se.TanggalLahir,
+	se.TempatLahir,
+	CASE 
+    	WHEN se.JenisKelamin='0' THEN '1'
+   	 	WHEN se.JenisKelamin='1' THEN '2'
+   	 	ELSE '1'
+    END AS JenisKelamin,
+    se.AlamatDetail,
+    mak.nama_kabkota AS AlamatKabKota,
+    map2.nama_prov AS AlamatProvinsi,
+    "" AS AlamatKodePos,
+    se.NoTelp1 AS Phone,
+    se.NoTelp1 AS HP,
+    CASE 
+    	WHEN se.StatusPerkawinan='K' THEN '1'
+   	 	ELSE '2'
+    END AS StatusMenikah,
+    '0' AS JumlahAnak,
+    '0' AS JumlahTanggungan,
+    se.NamaIbu,
+    '2' AS MetodePajak,
+    CASE 
+    	WHEN se.StatusPerkawinan ='K' THEN 'K0'
+   	 	ELSE 'T0'
+    END AS StatusPajak,
+    se.NPWP,
+    "" AS TanggalNPWP,
+    se.NikKTP,
+    "" AS TanggalKTP,
+    IF(se.BPJSKet!="", "TRUE", "FALSE") AS BPJSTK,
+    se.BPJSKet AS NoBPJSTK,
+    IF(se.BPJSKes!="", "TRUE", "FALSE") AS BPJSKes,
+    se.BPJSKes AS NoBPJSKes,
+    '1' AS MetodeBayarGaji,
+    LEFT(se.IDDepartemen, 3) AS KodeCabang,
+    md.GolDept AS NamaCabang,
+    se.IDDepartemen,
+    md.NameDept AS NamaDepartemen,
+    se.IDSection,
+    ms.Name AS NamaSection,
+    CONCAT(se.IDDepartemen, se.IDSection) AS GabunganKodeCabang,
+    se.IDPosisi,
+    mp.Name AS NamePosisi,
+    CASE 
+    	WHEN se.StatusKaryawan ='TETAP' THEN '01'
+   	 	ELSE '02'
+    END AS KodeStatusKaryawan,
+    se.StatusKaryawan,
+    spkk.FinishKontrak,
+    CASE 
+        WHEN se.JenjangPendidikan = 'S3' THEN '01'
+        WHEN se.JenjangPendidikan = 'S2' THEN '02'
+        WHEN se.JenjangPendidikan = 'S1' THEN '03'
+        WHEN se.JenjangPendidikan = 'D3' THEN '04'
+        WHEN se.JenjangPendidikan = 'D2' THEN '05'
+        WHEN se.JenjangPendidikan = 'D1' THEN '06'
+        WHEN se.JenjangPendidikan = 'SMA' THEN '07'
+        WHEN se.JenjangPendidikan = 'SMK' THEN '08'
+        WHEN se.JenjangPendidikan = 'STM' THEN '09'
+        WHEN se.JenjangPendidikan = 'MAN' THEN '10'
+        WHEN se.JenjangPendidikan = 'SMP' THEN '11'
+        WHEN se.JenjangPendidikan = 'SD' THEN '12'
+        ELSE 'UNKNOWN'
+    END AS KodePendidikan,
+    se.JenjangPendidikan,
+    CASE 
+        WHEN se.Agama = 'ISLAM' THEN '01'
+        WHEN se.Agama = 'KATHOLIK' THEN '02'
+        WHEN se.Agama = 'KRISTEN' THEN '03'
+        WHEN se.Agama = 'HINDU' THEN '04'
+        WHEN se.Agama = 'BUDHA' THEN '05'
+        ELSE '06'
+    END AS KodeAgama,
+    se.Agama AS NamaAgama,
+    '' AS KodeGolonganDarah,
+    '' AS NamaGolonganDarah,
+    '1' AS Kewarganegaraan,
+    '01' AS KodeBank,
+    'BNI' AS NamaBank,
+    'KARANGJATI' AS CabangBank,
+    se.NamaLengkap AS AtasNama,
+    '01' AS KodeCur,
+    'IDR' AS NamaCur,
+    '01' AS KodeRep,
+    'IDR' AS NamaRep,
+	'' AS BasicSalary,
+    '' AS BasicSalaryOld,
+    '' AS FilePhoto,
+    'TRUE' AS JenisPembayaran,
+    '' AS StatusSerikat,
+    '' AS StatusKoperasi,
+    '' AS TanggalBergabungKoperasi,
+    '' AS TanggalKeluarKoperasi,
+    se.TanggalKeluar AS ResignDate,
+    IF(se.StatusAktif='0',"TRUE","FALSE") AS StatusAktif,
+    ' ' AS AlasanResign,
+    se.IDSection AS KodeGedung,
+    CONCAT('GM/',se.IDSection) AS KodeEmp,
+    se.Email ,
+    "2000" AS Makan,
+    "20000" AS Kehadiran
+FROM
+	sumbiri_employee se
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota 
+LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = se.AlamatIDProv 
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection 
+LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
+LEFT JOIN (
+	SELECT * FROM sumbiri_spkk ss WHERE ss.Nik=:empNik ORDER BY ss.FinishKontrak DESC
+) spkk ON spkk.Nik = se.Nik
+WHERE se.Nik=:empNik
+`;
 
 
 modelMasterDepartment.removeAttribute("id");
