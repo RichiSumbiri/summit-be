@@ -145,7 +145,7 @@ a.*, DATE(a.log_date) logDate, TIME(a.log_date) logTime
 FROM sumbiri_log_attd a 
 WHERE date(a.log_date) BETWEEN :startDate AND :endDate -- AND a.Nik = '202201047'
 AND log_punch IN (0, 4, 5)
-GROUP BY date(a.log_date), a.Nik, a.log_status`;
+GROUP BY date(a.log_date), a.Nik. -- , a.log_status`;
 
 export const Attandance = dbSPL.define(
   "sumbiri_absens",
@@ -336,8 +336,9 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 	    md.NameDept,
 	    sgs.groupId,
       sis.jadwalId_inv,
-	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
-	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
+	    COALESCE(sis.scheduleDate_inv, sgs.scheduleDate) AS scheduleDate,
+	    COALESCE(sis.jk_id, sgs.jk_id) AS jk_id,
+	    COALESCE(sis.calendar, sgs.calendar) AS calendar
 	FROM sumbiri_employee se
 	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
 	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
@@ -363,6 +364,7 @@ ba.JenisKelamin,
 ba.StatusKaryawan,
 mp.Name AS jabatan,
 ba.jadwalId_inv,
+ba.scheduleDate,
 sgs.groupName,
 ba.jk_id,
 mjk.jk_nama,
