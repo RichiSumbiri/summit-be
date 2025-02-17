@@ -128,8 +128,6 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
 }
 
 function correctionScanOut(logTime, findSch, arrJkDetail) {
-  // const scanInAwa = moment(findSch.jk_scan_in_start, "HH:mm:ss");
-  // console.log('jalan');
 
   let scan_out = null;
   let ot = null;
@@ -141,7 +139,7 @@ function correctionScanOut(logTime, findSch, arrJkDetail) {
     `${findSch.scanOutDate} ${findSch.jk_out}`,
     "YYYY-MM-DD HH:mm:ss"
   );
-  const jamOutAudit = moment(`${findSch.scanOutDate} ${findSch.jk_scan_out_end}`, "HH:mm:ss");
+  const jamOutAudit = moment(`${findSch.scanOutDate} ${findSch.jk_scan_out_end}`, "YYYY-MM-DD HH:mm:ss");
 
   // Waktu yang akan diperiksa
   const checkTime = moment(
@@ -151,6 +149,7 @@ function correctionScanOut(logTime, findSch, arrJkDetail) {
   
   const checkEarly = checkTime.isBefore(jamPulang);
   const chkLogLebihJamAudit = checkTime.isAfter(jamOutAudit);
+  // console.log({findSch, chkLogLebihJamAudit});
 
   //check late dan jangan ganggu ket in manual
   let ket_out = null;
@@ -164,18 +163,24 @@ function correctionScanOut(logTime, findSch, arrJkDetail) {
 
   //jika ada objResult berarti ada lembur
   if (objResult) {
+    // console.log({'lewat Objt reult' : objResult});
+    
     scan_out = objResult.scan_time;
     ot = objResult.ot;
     return { scan_out: scan_out, ket_out, ot };
   } else {
     //jika tidak ada lembur maka check apakah log sesudah jam audit jika iya maka get randome time
     if (chkLogLebihJamAudit && !findSch.jam) {
+      
       const rdmScanInTime = getRandomTimeIn5Minute(
         findSch.jk_out
         // findSch.jk_in
       );
+      // console.log({'lewat randome' : rdmScanInTime});
       return { scan_out: rdmScanInTime, ket_out };
     } else {
+      // console.log({'tidak lewat randome' : logTime});
+
       return { scan_out: logTime, ket_out };
     }
   }

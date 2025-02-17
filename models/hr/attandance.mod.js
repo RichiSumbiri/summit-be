@@ -143,7 +143,7 @@ LEFT JOIN sumbiri_absens d ON d.Nik = fn.Nik
 export const qryLogForPunch = `SELECT 
 a.*, DATE(a.log_date) logDate, TIME(a.log_date) logTime
 FROM sumbiri_log_attd a 
-WHERE date(a.log_date) BETWEEN :startDate AND :endDate AND a.Nik = '201811078'
+WHERE date(a.log_date) BETWEEN :startDate AND :endDate -- AND a.Nik = '201811078'
 AND log_punch IN (0, 4, 5)
 -- GROUP BY date(a.log_date), a.Nik , a.log_status`;
 
