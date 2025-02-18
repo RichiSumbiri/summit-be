@@ -309,6 +309,7 @@ export const punchAttdLog2 = async (req, res) => {
                   jk_id: findSch.jk_id,
                   tanggal_in: findSch.scheduleDate,
                   tanggal_out: findSch.scanOutDate,
+                  calendar : findSch.calendar,
                   keterangan: "H",
                   ...objScanIn,
                   // scan_in: isInRange ? logTime : null,

@@ -206,7 +206,7 @@ export async function updateAbsen(req, res) {
 export async function deleteAbsen(req, res) {
   try {
     // console.log(dataUpdate);
-    const { objEdit, arrAbs, tanggal_in, userId } = req.body;
+    const {  arrAbs, tanggal_in } = req.body;
 
     const arrAbsId = arrAbs.map((item) => item.Nik);
     const deleteAbsen = await Attandance.destroy({
@@ -530,11 +530,11 @@ export async function verifAbsenCtr1(req, res, next) {
         id_absen: item.id_absen,
         scan_in:
           objEdit.scan_in === "00:00"
-            ? null
+            ? item.scan_in
             : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
         scan_out:
           objEdit.scan_out === "00:00"
-            ? null
+            ? item.scan_out
             : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         jk_id: objEdit.jam_kerja[0]?.jk_id || item.jk_id,
         ket_in: objEdit.ket_in || null,
@@ -870,3 +870,32 @@ export const getVerifAbsDayNik = async (req, res) => {
       .json({ error, message: "Terdapat error saat get data absen" });
   }
 };
+
+
+
+//delete absen individu
+export async function deleteIndvAbsen(req, res) {
+  try {
+    // console.log(dataUpdate);
+    const { objEdit, arrAbs, userId } = req.body;
+
+    const skipZeroId = arrAbs.filter(item => item.id)
+    const arrAbsId = skipZeroId.map((item) => item.id);
+
+    const deleteAbsen = await Attandance.destroy({
+      where: {
+        id: arrAbsId,
+      },
+    });
+    if (deleteAbsen) {
+      return res.json({
+        message: "succcess delete data",
+      });
+    } else {
+      return res.status(500).json({ message: "Gagal Delete" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}

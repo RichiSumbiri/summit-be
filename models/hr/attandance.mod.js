@@ -404,9 +404,8 @@ JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
 WHERE ssm.spl_date = :date AND ssm.spl_approve_hrd = 1 AND ssm.spl_active = 1
 GROUP BY ssm.spl_date, spl.Nik
 `;
-export function getLemburForAbsNik (date, arrNik) {
-  const stringNik = arrNik.map((st) => `'${st}'`)
-  .join(",");
+export function getLemburForAbsNik(date, arrNik) {
+  const stringNik = arrNik.map((st) => `'${st}'`).join(",");
   return `
   SELECT 
 ssm.spl_number, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
@@ -415,7 +414,8 @@ JOIN sumbiri_spl_data spl ON spl.spl_number = ssm.spl_number
 WHERE ssm.spl_date = '${date}' AND spl.Nik IN (${stringNik})
 AND ssm.spl_approve_hrd = 1 AND ssm.spl_active = 1
 GROUP BY ssm.spl_date, spl.Nik
-`};
+`;
+}
 export const getLemburForEmpOne = `
   SELECT 
 ssm.spl_number, ssm.spl_date, ssm.spl_type, spl.Nik, spl.minutes/60 jam, spl.start, spl.finish
@@ -639,7 +639,7 @@ LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = sav.jk_id 
 LEFT JOIN master_position mp ON mp.IDPosition = se.IDPosisi
-WHERE sav.tanggal_in = :date`
+WHERE sav.tanggal_in = :date`;
 
 export const VerifAbsen = dbSPL.define(
   "sumbiri_absen_verif",
@@ -703,28 +703,27 @@ export const VerifAbsen = dbSPL.define(
   {
     uniqueKeys: {
       unique_absen: {
-        fields: ["Nik", "tanggal_in"]
-      }
-    }
-  },
+        fields: ["Nik", "tanggal_in"],
+      },
+    },
+  }
 );
-
 
 export const qryGetEmpInExpand = `SELECT 
     se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE se.TanggalMasuk = :date AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6`
+WHERE se.TanggalMasuk = :date AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6`;
 export const qryGetEmpOutExpand = `SELECT 
     se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE se.TanggalKeluar = :date AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`
+WHERE se.TanggalKeluar = :date AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`;
 
-
-export const qryDtlMpByLineToday = (strings, aditional) => {return `WITH base_absen AS (
+export const qryDtlMpByLineToday = (strings, aditional) => {
+  return `WITH base_absen AS (
 	SELECT 
 	    se.Nik, 
 		  se.NamaLengkap,
@@ -757,7 +756,8 @@ export const qryDtlMpByLineToday = (strings, aditional) => {return `WITH base_ab
     ${strings}
 )
 ${aditional}
-`}
+`;
+};
 
 export const additonalToday = `SELECT 
 msts.SiteName SITE_NAME,
@@ -774,7 +774,7 @@ LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 WHERE mjk.jk_in < CURTIME()
 GROUP BY msts.SiteName ,
-msts.CusName, ba.subDeptName`
+msts.CusName, ba.subDeptName`;
 
 export const additonalPast = `
 SELECT 
@@ -791,7 +791,7 @@ LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 GROUP BY msts.SiteName ,
-msts.CusName, ba.subDeptName`
+msts.CusName, ba.subDeptName`;
 
 export const additonalLineNoCountTod = `SELECT 
 ba.IDSubDepartemen,
@@ -808,7 +808,7 @@ LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 WHERE mjk.jk_in < CURTIME()
-`
+`;
 
 export const additonalLineNoCountPast = `SELECT 
 ba.IDSubDepartemen,
@@ -824,18 +824,24 @@ LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
-`
-
+`;
 
 export const qryAbsenIndividu = `SELECT 
-	fn.*,
-	mjk.jk_nama,
-	mjk.jk_in,
-	mjk.jk_out,
-	sa.keterangan,
-	sa.scan_in,
-	sa.scan_out,
+  fn.jadwalId_inv,
+  fn.scheduleDate,
+  fn.Nik,
+  fn.NamaLengkap,
+  fn.groupId,
+  COALESCE(sa.calendar, fn.calendar) AS calendar,
+  COALESCE(sa.jk_id, fn.jk_id) AS jk_id,
+  mjk.jk_nama,
+  mjk.jk_in,
+  mjk.jk_out,
+  sa.keterangan,
+  sa.scan_in,
+  sa.scan_out,
   sa.id,
+  sa.ot,
 	mjk.jk_color,
 	c.calendar_color
 FROM (
@@ -896,16 +902,13 @@ FROM (
 
 	) nx
 ) fn
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = fn.jk_id
-LEFT JOIN master_calendar_type c ON c.calendar_code = fn.calendar
 LEFT JOIN sumbiri_absens sa ON sa.Nik = fn.Nik AND sa.tanggal_in = fn.scheduleDate
-GROUP BY fn.scheduleDate
-`
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, fn.jk_id)
+LEFT JOIN master_calendar_type c ON c.calendar_code =  COALESCE(sa.calendar, fn.calendar)
+GROUP BY fn.scheduleDate`;
 
-
-export function qryGetVerifByNik(date, arrNik){
-  const stringNik = arrNik.map((st) => `'${st}'`)
-  .join(",");
+export function qryGetVerifByNik(date, arrNik) {
+  const stringNik = arrNik.map((st) => `'${st}'`).join(",");
   return `WITH base_absen AS (
 	SELECT 
 	    se.Nik, 
@@ -989,10 +992,10 @@ LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 
-`
+`;
 }
 
 export const queryGetDtlLog = `select sla.*, mlp.log_punch_description  
 from sumbiri_log_attd sla 
 left join master_log_punch mlp on sla.log_punch = mlp.log_punch_id 
-where sla.Nik = :Nik and DATE(sla.log_date) BETWEEN :startDate AND :endDate`
+where sla.Nik = :Nik and DATE(sla.log_date) BETWEEN :startDate AND :endDate`;
