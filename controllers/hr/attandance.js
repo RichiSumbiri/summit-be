@@ -766,3 +766,36 @@ export const punchAttdLogAccurate = async (req, res) => {
   }
 };
 
+
+
+
+export const setNoPunch = async (req, res) => {
+  try {
+    const { arrayIdlog, userId } = req.body;
+
+    if (!arrayIdlog)
+      return res.status(404).json({ message: "Tida teradapat Log Id" });
+
+    const updateLog = await LogAttandance.update(
+      { log_punch: 0, mod_id: userId },
+      {
+        where: {
+          log_id: {
+            [Op.in]: arrayIdlog,
+          },
+        },
+      }
+    );
+
+    if (updateLog) {
+      return res.status(200).json({ message: "Success Set No Punch" });
+    } else {
+      return res
+        .status(505)
+        .json({ message: "Terdapat kesalahan saat update log" });
+    }
+  } catch (error) {
+    res.status(500);
+    json({ message: "Terdapat kesalahan saat update log" });
+  }
+};
