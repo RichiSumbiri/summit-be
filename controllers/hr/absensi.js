@@ -128,8 +128,8 @@ export async function updateAbsen(req, res) {
 
         const dataAbs = {
           ...item,
-          scan_in: objEdit.scan_in === "00:00" ? null : objEdit.scan_in,
-          scan_out: objEdit.scan_out === "00:00" ? null : objEdit.scan_out,
+          scan_in: objEdit.scan_in === "00:00" ? item.scan_in : objEdit.scan_in,
+          scan_out: objEdit.scan_out === "00:00" ? item.scan_in : objEdit.scan_out,
           jk_id: objEdit.jam_kerja[0].jk_id || null,
           ket_in: objEdit.ket_in || null,
           ket_out: objEdit.ket_out || null,
@@ -150,11 +150,11 @@ export async function updateAbsen(req, res) {
           ot: objEdit.ot ? objEdit.ot : item.ot,
           scan_in:
             objEdit.scan_in === "00:00"
-              ? null
+              ? item.scan_in
               : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
           scan_out:
             objEdit.scan_out === "00:00"
-              ? null
+              ? item.scan_in
               : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         }));
       }
