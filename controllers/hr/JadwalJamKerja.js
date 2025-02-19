@@ -20,6 +20,7 @@ import Moment from "moment";
 import momentRange from "moment-range";
 import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
 import db from "../../config/database.js";
+import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
 const moment = momentRange.extendMoment(Moment);
 
@@ -765,11 +766,19 @@ export const postMassUpdateEmpGroup = async(req,res) => {
   try {
     const { dataEmpGroup } = req.body;
     for await (const data of dataEmpGroup) {
-      await EmpGroup.upsert({
-        Nik: data.Nik,
-        groupId: data.GroupID,
-        mod_id: 0
+      const checkEmp = await modelSumbiriEmployee.findOne({
+        where: {
+          Nik: data.Nik
+        }, raw: true
       });
+      if(checkEmp){
+        await EmpGroup.upsert({
+          Nik: data.Nik,
+          groupId: data.GroupID,
+          mod_id: 0
+        });
+      }
+      
     }
     res.status(200).json({
       success: true,
