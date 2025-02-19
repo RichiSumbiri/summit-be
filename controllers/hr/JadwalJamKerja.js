@@ -775,7 +775,8 @@ export const postMassUpdateEmpGroup = async(req,res) => {
         await EmpGroup.upsert({
           Nik: data.Nik,
           groupId: data.GroupID,
-          mod_id: 0
+          add_id: data.UploadBy,
+          mod_id: data.UploadBy
         });
       }
       
