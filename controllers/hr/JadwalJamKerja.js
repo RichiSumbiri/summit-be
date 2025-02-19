@@ -775,7 +775,7 @@ export const postMassUpdateEmpGroup = async(req,res) => {
         const checkGroup = await GroupShift.findOne({
           where: {
             groupId: data.GroupID
-          }
+          }, raw: true
         });
         if(checkGroup){
           await EmpGroup.upsert({
