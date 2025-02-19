@@ -129,7 +129,7 @@ export async function updateAbsen(req, res) {
         const dataAbs = {
           ...item,
           scan_in: objEdit.scan_in === "00:00" ? item.scan_in : objEdit.scan_in,
-          scan_out: objEdit.scan_out === "00:00" ? item.scan_in : objEdit.scan_out,
+          scan_out: objEdit.scan_out === "00:00" ? item.scan_out : objEdit.scan_out,
           jk_id: objEdit.jam_kerja[0].jk_id || null,
           ket_in: objEdit.ket_in || null,
           ket_out: objEdit.ket_out || null,
@@ -138,7 +138,7 @@ export async function updateAbsen(req, res) {
           tanggal_in: item.scheduleDate,
           tanggal_out: tanggal_out,
           scheduleDate_inv: item.scheduleDate,
-          // calendar : objEdit.calendar || item.calendar,
+          calendar : objEdit.calendar || item.calendar,
           mod_id: userId,
         };
         return dataAbs;
@@ -148,13 +148,11 @@ export async function updateAbsen(req, res) {
         updateArrAbs = updateArrAbs.map((item) => ({
           ...item,
           ot: objEdit.ot ? objEdit.ot : item.ot,
-          scan_in:
-            objEdit.scan_in === "00:00"
+          scan_in:  !autoIn 
               ? item.scan_in
               : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
-          scan_out:
-            objEdit.scan_out === "00:00"
-              ? item.scan_in
+          scan_out: !autoOut
+              ? item.scan_out
               : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         }));
       }
@@ -171,6 +169,7 @@ export async function updateAbsen(req, res) {
           "scan_in",
           "scan_out",
           "ot",
+          "calendar",
           "jk_id",
           "ket_in",
           "ket_out",
