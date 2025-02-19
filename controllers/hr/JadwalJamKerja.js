@@ -760,3 +760,27 @@ export const deleteJamKerjaDtl = async (req, res) => {
     res.status(500).json({ error, message: "Gagal Delete Jam Kerja detail" });
   }
 };
+
+export const postMassUpdateEmpGroup = async(req,res) => {
+  try {
+    const { dataEmpGroup } = req.body;
+    for await (const data of dataEmpGroup) {
+      await EmpGroup.upsert({
+        Nik: data.Nik,
+        groupId: data.GroupID,
+        mod_id: 0
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "success post cuti",
+  });
+  } catch(err){
+    console.error(err);
+    res.status(404).json({
+      success: false,
+      message: "gagal mass update emp group",
+      error: err
+  });
+  }
+}

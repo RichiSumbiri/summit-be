@@ -11,6 +11,7 @@ import {
   getSchIndividu,
   patchGroup,
   postGroupSch,
+  postMassUpdateEmpGroup,
   postNewGroup,
   postSchIndividu,
 } from "../../controllers/hr/JadwalJamKerja.js";
@@ -35,6 +36,7 @@ router.get("/group", getAllGroup);
 router.post("/group", postNewGroup);
 router.patch("/group", patchGroup);
 router.delete("/group/:groupId", deleteGroup);
+router.post("/emp-mass-group", postMassUpdateEmpGroup);
 
 //get employee rote
 router.get("/employe-active", getAllEmpForGrp);
