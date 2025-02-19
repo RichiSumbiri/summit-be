@@ -772,14 +772,20 @@ export const postMassUpdateEmpGroup = async(req,res) => {
         }, raw: true
       });
       if(checkEmp){
-        await EmpGroup.upsert({
-          Nik: data.Nik,
-          groupId: data.GroupID,
-          add_id: data.UploadBy,
-          mod_id: data.UploadBy
+        const checkGroup = await GroupShift.findOne({
+          where: {
+            groupId: data.GroupID
+          }
         });
+        if(checkGroup){
+          await EmpGroup.upsert({
+            Nik: data.Nik,
+            groupId: data.GroupID,
+            add_id: data.UploadBy,
+            mod_id: data.UploadBy
+          });
+        }
       }
-      
     }
     res.status(200).json({
       success: true,
