@@ -1,5 +1,5 @@
 import { Sequelize, Op } from "sequelize";
-import { QcEndlineOutput } from "../../../models/production/quality.mod.js";
+import { logEndlineCheck, QcEndlineOutput } from "../../../models/production/quality.mod.js";
 import { modelLogConvertDefect } from "../../../models/production/convertDefect.mod.js";
 import moment from "moment";
 import { LogDailyQcDefect, LogDailyQcPart } from "../../../models/production/logQcDefPart.mod.js";
@@ -23,6 +23,7 @@ export const postQcEndlineConvertDefect = async(req, res) => {
         
         if(checkData.length>0){
             for await(const qcdata of checkData){
+                
                 // get log defect data
                 const getLogDefect = await LogDailyQcDefect.findOne({
                     where: {
@@ -32,6 +33,7 @@ export const postQcEndlineConvertDefect = async(req, res) => {
                         DEFECT_CODE: qcdata.ENDLINE_DEFECT_CODE
                     }, raw: true
                 });
+                
                 //get log part data
                 const getLogPart = await LogDailyQcPart.findOne({
                     where: {
@@ -42,10 +44,21 @@ export const postQcEndlineConvertDefect = async(req, res) => {
                     }, raw: true
                 });
 
-                // hitung qty baru untuk log defect & part
-                const NewDefectQty  = parseInt(getLogDefect.DEFECT_QTY) - parseInt(qcdata.ENDLINE_OUT_QTY);
-                const NewPartQty    = parseInt(getLogPart.DEFECT_QTY) - parseInt(qcdata.ENDLINE_OUT_QTY);
-                
+                // get log endline check
+                const getLogCheck = await logEndlineCheck.findOne({
+                    where: {
+                        SCHD_PROD_DATE: dataConvert.ENDLINE_PROD_DATE,
+                        SCH_ID: parseInt(qcdata.ENDLINE_SCH_ID),
+                        ID_SITELINE: qcdata.ENDLINE_ID_SITELINE
+                    }, raw: true
+                });
+
+                // hitung qty baru untuk log defect & part, defect awal - defect baru dihapus
+                const NewDefectQty          = parseInt(getLogDefect.DEFECT_QTY) - parseInt(qcdata.ENDLINE_OUT_QTY);
+                const NewPartQty            = parseInt(getLogPart.DEFECT_QTY) - parseInt(qcdata.ENDLINE_OUT_QTY);
+                const NewCheckDefectQty     = parseInt(getLogCheck.DEFECT) - parseInt(qcdata.ENDLINE_OUT_QTY); 
+                const NewCheckGoodQty       = parseInt(getLogCheck.RTT) + parseInt(qcdata.ENDLINE_OUT_QTY);
+
                 // Manipulasi Qty Log QC Defect
                 if(NewDefectQty>0){
                     // update qty log qc defect
@@ -96,7 +109,18 @@ export const postQcEndlineConvertDefect = async(req, res) => {
                     });
                 }
 
-                
+                // Manipulasi Qty Log Endline Check
+                await logEndlineCheck.update({
+                        RTT: NewCheckGoodQty,
+                        DEFECT: NewCheckDefectQty
+                    }, {
+                    where: {
+                        SCHD_PROD_DATE: dataConvert.ENDLINE_PROD_DATE,
+                        SCH_ID: parseInt(qcdata.ENDLINE_SCH_ID),
+                        ID_SITELINE: qcdata.ENDLINE_ID_SITELINE
+                    }, 
+                    raw: true
+                });
             }
 
             // update qc_endline_output convert defect to RTT
