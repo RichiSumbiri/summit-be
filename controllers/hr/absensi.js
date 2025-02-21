@@ -13,12 +13,15 @@ import {
   getLemburForAbsNik,
   queryGetDtlLog,
   LogAttandance,
+  getBaseAbsMonth,
+  getListSecAndSubDeptByAbsen,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
 import db from "../../config/database.js";
+import { getRangeDate } from "../util/Utility.js";
 
 export const getAbsenDaily = async (req, res) => {
   try {
@@ -120,7 +123,7 @@ export async function updateAbsen(req, res) {
       // console.log(objEdit.keterangan);
 
       let updateArrAbs = arrAbs.map((item) => {
-        const momentTglIn = moment(item.scheduleDate, "YYYY-MM-DD") // || moment(tanggal_in, "YYYY-MM-DD");
+        const momentTglIn = moment(item.scheduleDate, "YYYY-MM-DD"); // || moment(tanggal_in, "YYYY-MM-DD");
         const tanggal_out =
           objEdit.jam_kerja[0].jk_out_day === "N"
             ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
@@ -129,7 +132,8 @@ export async function updateAbsen(req, res) {
         const dataAbs = {
           ...item,
           scan_in: objEdit.scan_in === "00:00" ? item.scan_in : objEdit.scan_in,
-          scan_out: objEdit.scan_out === "00:00" ? item.scan_out : objEdit.scan_out,
+          scan_out:
+            objEdit.scan_out === "00:00" ? item.scan_out : objEdit.scan_out,
           jk_id: objEdit.jam_kerja[0].jk_id || null,
           ket_in: objEdit.ket_in || null,
           ket_out: objEdit.ket_out || null,
@@ -138,7 +142,7 @@ export async function updateAbsen(req, res) {
           tanggal_in: item.scheduleDate,
           tanggal_out: tanggal_out,
           scheduleDate_inv: item.scheduleDate,
-          calendar : objEdit.calendar || item.calendar,
+          calendar: objEdit.calendar || item.calendar,
           mod_id: userId,
         };
         return dataAbs;
@@ -148,17 +152,17 @@ export async function updateAbsen(req, res) {
         updateArrAbs = updateArrAbs.map((item) => ({
           ...item,
           ot: objEdit.ot ? objEdit.ot : item.ot,
-          scan_in:  !autoIn 
-              ? item.scan_in
-              : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
+          scan_in: !autoIn
+            ? item.scan_in
+            : findScanTime(arrAbs.length, objEdit, "IN", autoIn),
           scan_out: !autoOut
-              ? item.scan_out
-              : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
+            ? item.scan_out
+            : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         }));
       }
 
       const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
-        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id", 'calendar'],
+        updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id", "calendar"],
         where: {
           jadwalId: ["jadwalId_inv"],
         },
@@ -205,7 +209,7 @@ export async function updateAbsen(req, res) {
 export async function deleteAbsen(req, res) {
   try {
     // console.log(dataUpdate);
-    const {  arrAbs, tanggal_in } = req.body;
+    const { arrAbs, tanggal_in } = req.body;
 
     const arrAbsId = arrAbs.map((item) => item.Nik);
     const deleteAbsen = await Attandance.destroy({
@@ -870,15 +874,13 @@ export const getVerifAbsDayNik = async (req, res) => {
   }
 };
 
-
-
 //delete absen individu
 export async function deleteIndvAbsen(req, res) {
   try {
     // console.log(dataUpdate);
     const { objEdit, arrAbs, userId } = req.body;
 
-    const skipZeroId = arrAbs.filter(item => item.id)
+    const skipZeroId = arrAbs.filter((item) => item.id);
     const arrAbsId = skipZeroId.map((item) => item.id);
 
     const deleteAbsen = await Attandance.destroy({
@@ -898,3 +900,122 @@ export async function deleteIndvAbsen(req, res) {
     return res.status(500).json({ message: "Terjadi kesalahan" });
   }
 }
+
+/// list control for absen monthly
+export const getListSecAndSubdept = async (req, res) => {
+  try {
+    const { monthNum, yearNum } = req.params;
+
+    const listSecAndSubDept = await dbSPL.query(getListSecAndSubDeptByAbsen, {
+      replacements: {
+        monthNum,
+        yearNum,
+      },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    return res.status(200).json({ data: listSecAndSubDept });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat mengambil list section" });
+  }
+};
+
+export const getMonthAttd = async (req, res) => {
+  try {
+    const { monthNum, yearNum, idSection, idSubDept } = req.params;
+    const valArray = Object.values(req.params);
+
+    if (valArray.some((value) => !value || value === undefined))
+      return res
+        .status(404)
+        .json({ message: "Paramter yang dibutuhkan belum lengkap" });
+
+    // Mendapatkan tanggal awal dan akhir bulan menggunakan Moment.js
+    const startDate = moment([yearNum, monthNum - 1])
+      .startOf("month")
+      .toDate();
+    const endDate = moment([yearNum, monthNum - 1])
+      .endOf("month")
+      .toDate();
+
+    const objDateMoment = {
+      start: startDate,
+      end: endDate,
+    };
+
+    const rangeDate = getRangeDate(objDateMoment);
+
+
+    const getMonthAbsen = await dbSPL.query(getBaseAbsMonth, {
+      replacements: {
+        monthNum,
+        yearNum,
+        idSection,
+        idSubDept,
+      },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    let groupedData = {};
+
+    getMonthAbsen.forEach((row) => {
+      const { Nik, NamaLengkap, tanggal_in, keterangan, scan_in, scan_out, ot } = row;
+
+      // Jika Nik belum ada di objek, inisialisasi
+      if (!groupedData[Nik]) {
+        groupedData[Nik] = {
+          Nik,
+          NamaLengkap,
+          jumlah_HK: 0,
+          jumlah_A: 0,
+          total_ot: 0,
+          detail: {}, // Gunakan objek agar mudah dicocokkan berdasarkan tanggal
+        };
+      }
+
+      // Hitung jumlah HK (keterangan bukan A dan I)
+      if (keterangan !== "A" && keterangan !== "I" && keterangan != null) {
+        groupedData[Nik].jumlah_HK += 1;
+      }
+
+      // Hitung jumlah A (keterangan A atau I)
+      if (keterangan === "A" || keterangan === "I") {
+        groupedData[Nik].jumlah_A += 1;
+      }
+
+      // Hitung total ot
+      groupedData[Nik].total_ot += ot;
+
+      // Tambahkan detail absensi berdasarkan tanggal
+      groupedData[Nik].detail[tanggal_in] = {
+        tanggal_in,
+        keterangan,
+        scan_in,
+        scan_out,
+        ot,
+      };
+    });
+
+    // Konversi hasil dari objek ke array & lengkapi tanggal yang kosong
+    const responseData = Object.values(groupedData).map((data) => {
+      return {
+        ...data,
+        detail: rangeDate.map((date) => {
+          return data.detail[date] || { tanggal_in: date };
+        }),
+      };
+    });
+
+    res.status(200).json({ data: responseData });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat mengambil data monthly" });
+  }
+};

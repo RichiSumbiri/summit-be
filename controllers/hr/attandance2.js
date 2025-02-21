@@ -250,7 +250,7 @@ export const punchAttdLog2 = async (req, res) => {
       type: QueryTypes.SELECT,
     });
     // console.log(getLogs);
-
+    
     if (getLogs.length > 0) {
       for (const [i, logs] of getLogs.entries()) {
         // loping log
@@ -269,7 +269,7 @@ export const punchAttdLog2 = async (req, res) => {
             },
           });
 
-          if (checkExist) {
+          if (checkExist ) {
             await LogAttandance.update(
               { log_punch: 2 }, //kalo ada schedule id berarti double punch kd 2, klo tdk ada berarti kd 4 no schdule
               {

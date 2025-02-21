@@ -999,3 +999,45 @@ export const queryGetDtlLog = `select sla.*, mlp.log_punch_description
 from sumbiri_log_attd sla 
 left join master_log_punch mlp on sla.log_punch = mlp.log_punch_id 
 where sla.Nik = :Nik and DATE(sla.log_date) BETWEEN :startDate AND :endDate`;
+
+/// query absen month
+export const getListSecAndSubDeptByAbsen = `
+WITH aktiveSection AS (
+	SELECT 
+    se.IDSection,
+    se.IDDepartemen,
+    se.IDSubDepartemen
+	FROM sumbiri_absens sa
+	JOIN sumbiri_employee se ON se.Nik = sa.Nik
+	WHERE MONTH(sa.tanggal_in) = :monthNum
+	AND YEAR(sa.tanggal_in) = :yearNum
+	GROUP BY se.IDSection,
+    se.IDSubDepartemen
+) SELECT 
+	sec.IDSection,
+	sec.IDDepartemen,
+    sec.IDSubDepartemen,
+    ms.Name as sectionName,
+    md.NameDept as deptName,
+    ms2.Name as subDeptName
+FROM aktiveSection AS sec 
+JOIN master_section ms ON ms.IDSection = sec.IDSection
+JOIN master_department md ON md.IdDept  = sec.IDDepartemen
+JOIN master_subdepartment ms2 ON ms2.IDSubDept = sec.IDSubDepartemen
+
+`
+
+export const getBaseAbsMonth = `SELECT 
+	sa.tanggal_in,
+    sa.Nik,
+    se.NamaLengkap,
+  	sa.keterangan,
+  	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
+  	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
+  	sa.ot
+FROM sumbiri_absens sa
+JOIN sumbiri_employee se ON se.Nik = sa.Nik
+WHERE MONTH(sa.tanggal_in) = :monthNum 
+AND YEAR(sa.tanggal_in) = :yearNum
+AND se.IDSection = :idSection
+AND se.IDSubDepartemen = :idSubDept;`

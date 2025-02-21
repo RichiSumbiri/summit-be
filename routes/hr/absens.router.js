@@ -1,5 +1,5 @@
 import express from "express";
-import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen } from "../../controllers/hr/absensi.js";
+import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen, getMonthAttd, getListSecAndSubdept } from "../../controllers/hr/absensi.js";
 const router = express.Router();
 
 //all absensi daily
@@ -19,6 +19,10 @@ router.post("/confirm-verif", ConfirmVerifAbs );
 //absensi individu
 router.get("/absens-individu/:nik/:startDate/:endDate", getAbsenIndividu);
 router.patch("/absens-individu", deleteIndvAbsen);
+
+//montly absensi
+router.get("/absens-list-sec-subdept/:yearNum/:monthNum", getListSecAndSubdept);
+router.get("/absens-month/:idSection/:idSubDept/:yearNum/:monthNum", getMonthAttd);
 
 
 export default router;
