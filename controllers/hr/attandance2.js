@@ -312,14 +312,14 @@ export const punchAttdLog2 = async (req, res) => {
                   tanggal_out: findSch.scanOutDate,
                   calendar : findSch.calendar,
                   keterangan: "H",
+                  id: findSch.id, // untuk handle jika fatanan keburu edit tabel absen jadi bisa di update
                   ...objScanIn,
                   // scan_in: isInRange ? logTime : null,
                   // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
                 };
 
-                // console.log(dataAbsen);
 
-                const postAbsen = await Attandance.create(dataAbsen);
+                const postAbsen = await Attandance.upsert(dataAbsen);
 
                 if (postAbsen) {
                   const updateLog = await LogAttandance.update(
