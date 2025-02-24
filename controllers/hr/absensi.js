@@ -715,21 +715,21 @@ export const getAbsenIndividu = async (req, res) => {
         );
 
         if (lembur) {
-          let ttlLembur = "";
-          if (lembur.type === "BH") {
-            const scanin = moment(item.scan_in, "HH:mm:ss");
-            const jam_in = moment(item.jk_in, "HH:mm:ss");
-            ttlLembur = scanin.diff(jam_in, "hours");
-          } else {
-            const scanout = moment(item.scan_out, "HH:mm:ss");
-            let jam_out = moment(item.jk_out, "HH:mm:ss");
+          // let ttlLembur = "";
+          // if (lembur.type === "BH") {
+          //   const scanin = moment(item.scan_in, "HH:mm:ss");
+          //   const jam_in = moment(item.jk_in, "HH:mm:ss");
+          //   ttlLembur = scanin.diff(jam_in, "hours");
+          // } else {
+          //   const scanout = moment(item.scan_out, "HH:mm:ss");
+          //   let jam_out = moment(item.jk_out, "HH:mm:ss");
 
-            if (scanout.isBefore(jam_out)) {
-              jam_out.add(1, "day");
-            }
-            ttlLembur = scanout.diff(jam_out, "hours");
-          }
-          return { ...item, ...lembur, ttlLembur };
+          //   if (scanout.isBefore(jam_out)) {
+          //     jam_out.add(1, "day");
+          //   }
+          //   ttlLembur = scanout.diff(jam_out, "hours");
+          // }
+          return { ...item, ...lembur };
         } else {
           return item;
         }
