@@ -559,7 +559,7 @@ SELECT
     "4" AS BAHASA,
     "ID" AS DOMISILI,
     IF(se.Agama="ISLAM","1","2") AS KODE_AGAMA,
-    se.TanggalLahir AS TANGGAL_LAHIR,
+    DATE_FORMAT(se.TanggalLahir, '%d-%m-%Y') AS TANGGAL_LAHIR,
     se.TempatLahir AS TEMPAT_LAHIR,
     IF(se.JenisKelamin="0" ,"M","F") AS JENIS_KELAMIN,
     "L" AS STATUS_PERKAWINAN,
@@ -612,8 +612,8 @@ SELECT
 	se.Nik,
 	"" AS CPIN,
 	se.NamaLengkap,
-	se.TanggalMasuk,
-	se.TanggalLahir,
+	DATE_FORMAT(se.TanggalMasuk, '%d-%m-%Y') AS TanggalMasuk,
+	DATE_FORMAT(se.TanggalLahir, '%d-%m-%Y') AS TanggalLahir,
 	se.TempatLahir,
 	CASE 
     	WHEN se.JenisKelamin='0' THEN '1'
@@ -706,7 +706,7 @@ SELECT
     '' AS StatusKoperasi,
     '' AS TanggalBergabungKoperasi,
     '' AS TanggalKeluarKoperasi,
-    se.TanggalKeluar AS ResignDate,
+    DATE_FORMAT(se.TanggalKeluar, '%d-%m-%Y') AS ResignDate,
     IF(se.StatusAktif='0',"TRUE","FALSE") AS StatusAktif,
     ' ' AS AlasanResign,
     se.IDSection AS KodeGedung,
