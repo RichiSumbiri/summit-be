@@ -130,7 +130,7 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
   }
 }
 
-function correctionScanOut(logTime, findSch, arrJkDetail) {
+function correctionScanOut(logTime, checkTime, findSch, arrJkDetail) {
   let scan_out = null;
   let ot = null;
   const arrKetentuan = arrJkDetail?.filter(
@@ -146,11 +146,7 @@ function correctionScanOut(logTime, findSch, arrJkDetail) {
     "YYYY-MM-DD HH:mm:ss"
   );
 
-  // Waktu yang akan diperiksa
-  const checkTime = moment(
-    `${findSch.scheduleDate} ${logTime}`,
-    "YYYY-MM-DD HH:mm:ss"
-  );
+  
 
   const checkEarly = checkTime.isBefore(jamPulang);
   const chkLogLebihJamAudit = checkTime.isAfter(jamOutAudit);
@@ -354,40 +350,23 @@ export const punchAttdLog2 = async (req, res) => {
             "YYYY-MM-DD HH:mm:ss"
           );
           //cari terlebih dahulu schedulnya
-          const findSch = getSchAttd.find((items) => {
-            const scanStart = moment(
-              `${items.scheduleDate} ${items.jk_in}`,
-              "YYYY-MM-DD HH:mm:ss"
-            );
-            const scanEnd = moment(
-              `${items.scanOutDate} ${items.jk_scan_out_end}`,
-              "YYYY-MM-DD HH:mm:ss"
-            );
+          const filterSch = getSchAttd.filter((items) =>logs.Nik === items.Nik.toString() &&  logDate === items.scanOutDate    );
+         
+          //cari terlebih dahulu schedulnya
+          const findSch = filterSch.find((items) => {
+            const scanStart = moment(`${items.scheduleDate} ${items.jk_in}`, "YYYY-MM-DD HH:mm:ss");
+            const scanEnd = moment(`${items.scanOutDate} ${items.jk_scan_out_end}`, "YYYY-MM-DD HH:mm:ss");
 
             return (
-              logs.Nik === items.Nik.toString() &&
-              logDate === items.scanOutDate &&
               logtimeAccurate.isBetween(scanStart, scanEnd, "second", "[]")
             );
             //checek apakah out time ada dalam range
           });
 
-          const checkSch = findSch && !findSch.scan_out && findSch.id
-
-          // console.log({logTime, findSch, checkSch});
-          
-
           //jika ada schedule maka check apakah sudah scan in dengan cara cek id nya
           if (findSch && !findSch.scan_out && findSch.id) {
             
-            const dataAbsen = correctionScanOut(logTime, findSch, lisJkDetail);
-
-            // const finds = await Attandance.findAll({
-            //   where: {
-            //     tanggal_out: findSch.scanOutDate,
-            //     Nik: logs.Nik,
-            //   },
-            // });
+            const dataAbsen = correctionScanOut(logTime, logtimeAccurate, findSch, lisJkDetail);
 
             const postAbsen = await Attandance.update(dataAbsen, {
               where: {
