@@ -1038,7 +1038,8 @@ export const getBaseAbsMonth = `SELECT
     sa.ket_out,
   	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
   	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
-  	sa.ot
+  	sa.ot,
+    sa.id
 FROM sumbiri_absens sa
 JOIN sumbiri_employee se ON se.Nik = sa.Nik
 WHERE MONTH(sa.tanggal_in) = :monthNum 

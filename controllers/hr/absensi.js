@@ -964,7 +964,7 @@ export const getMonthAttd = async (req, res) => {
     let groupedData = {};
 
     getMonthAbsen.forEach((row) => {
-      const { Nik, NamaLengkap, tanggal_in, keterangan, scan_in, scan_out, ot, calendar, jk_id, ket_in, ket_out } = row;
+      const { Nik, NamaLengkap, tanggal_in, keterangan, scan_in, scan_out, ot, calendar, jk_id, ket_in, ket_out, id } = row;
 
       // Jika Nik belum ada di objek, inisialisasi
       if (!groupedData[Nik]) {
@@ -993,6 +993,7 @@ export const getMonthAttd = async (req, res) => {
 
       // Tambahkan detail absensi berdasarkan tanggal
       groupedData[Nik].detail[tanggal_in] = {
+        id,
         tanggal_in,
         keterangan,
         scan_in,
