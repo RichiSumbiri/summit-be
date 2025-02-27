@@ -70,6 +70,7 @@ SELECT
 	UPPER(sp.Work3Periode) AS Work3Periode,
 	UPPER(sp.Work3Salary) AS Work3Salary,
 	UPPER(sp.Work3Reason) AS Work3Reason,
+	se.Photos,
 	se.CreateBy,
 	se.CreateDate,
 	se.UpdateBy,
