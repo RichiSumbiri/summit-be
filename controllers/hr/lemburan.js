@@ -227,7 +227,13 @@ export const getLemburanPendingHead = async(req,res) => {
 export const getLemburanPendingManager = async(req,res) => {
     try {
         const Nik           = req.params.nik;
-        let listPending   = await dbSPL.query(queryLemburanPendingManager, {replacements: { empNik: Nik }, type: QueryTypes.SELECT });
+        console.log(Nik);
+        let listPending   = await dbSPL.query(queryLemburanPendingManager, {
+            replacements: { 
+                empNik: Nik 
+            }, type: QueryTypes.SELECT }
+        );
+        
         let i = 0;
             
         for await (const row of listPending) {   
@@ -583,7 +589,11 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_foremanspv: empNik
+                            spl_foremanspv: empNik,
+                            spl_approve_foremanspv: null,
+                            spl_approve_head: null,
+                            spl_approve_manager: null,
+                            spl_approve_hrd: null
                         }
                     });
                     if(actionApprove){
@@ -604,7 +614,10 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_head: empNik
+                            spl_head: empNik,
+                            spl_approve_foremanspv: 1,
+                            spl_approve_manager: null,
+                            spl_approve_hrd: null
                         }
                     });
                     if(actionApprove){
@@ -623,7 +636,10 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_manager: empNik
+                            spl_manager: empNik,
+                            spl_approve_head: 1,
+                            spl_approve_foremanspv: 1,
+                            spl_approve_hrd: null
                         }
                     });
                     if(actionApprove){
@@ -642,7 +658,11 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_hrd: empNik
+                            spl_hrd: empNik,
+                            spl_approve_foremanspv: 1,
+                            spl_approve_head: 1,
+                            spl_approve_manager: 1,
+                            spl_approve_hrd: null
                         }
                     });
                     if(actionApprove){
