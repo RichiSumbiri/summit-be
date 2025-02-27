@@ -70,6 +70,7 @@ export const qrySchAttdComp = `SELECT
 	mjk.jk_scan_in_end,
 	mjk.jk_scan_out_start,
 	mjk.jk_scan_out_end,
+	mjk.jk_scan_out_audit,
 	mjk.jk_out_day, 
 	mjk.jk_ot_1,
 	mjk.jk_ot_2,
@@ -143,7 +144,7 @@ LEFT JOIN sumbiri_absens d ON d.Nik = fn.Nik
 export const qryLogForPunch = `SELECT 
 a.*, DATE(a.log_date) logDate, TIME(a.log_date) logTime
 FROM sumbiri_log_attd a 
-WHERE date(a.log_date) BETWEEN :startDate AND :endDate -- AND a.Nik = '102210010'
+WHERE date(a.log_date) BETWEEN :startDate AND :endDate AND a.Nik = '101608503'
 AND log_punch IN (0, 4, 5)
 -- GROUP BY date(a.log_date), a.Nik , a.log_status`;
 

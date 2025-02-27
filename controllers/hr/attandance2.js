@@ -142,7 +142,7 @@ function correctionScanOut(logTime, checkTime, findSch, arrJkDetail) {
     "YYYY-MM-DD HH:mm:ss"
   );
   const jamOutAudit = moment(
-    `${findSch.scanOutDate} ${findSch.jk_scan_out_end}`,
+    `${findSch.scanOutDate} ${findSch.jk_scan_out_audit}`,
     "YYYY-MM-DD HH:mm:ss"
   );
 
@@ -349,20 +349,22 @@ export const punchAttdLog2 = async (req, res) => {
             `${logDate} ${logTime}`,
             "YYYY-MM-DD HH:mm:ss"
           );
-          //cari terlebih dahulu schedulnya
+          //cari terlebih dahulu schedulnya di filter baseon nik dan tgl schedule out
           const filterSch = getSchAttd.filter((items) =>logs.Nik === items.Nik.toString() &&  logDate === items.scanOutDate    );
          
-          //cari terlebih dahulu schedulnya
-          const findSch = filterSch.find((items) => {
+          //jika hasil cari melebihi 2 maka filter berdasarkan jamnya 
+          //checek apakah out time ada dalam range
+          const findSch = filterSch.length > 2 ? filterSch.find((items) => {
             const scanStart = moment(`${items.scheduleDate} ${items.jk_in}`, "YYYY-MM-DD HH:mm:ss");
             const scanEnd = moment(`${items.scanOutDate} ${items.jk_scan_out_end}`, "YYYY-MM-DD HH:mm:ss");
 
             return (
               logtimeAccurate.isBetween(scanStart, scanEnd, "second", "[]")
             );
-            //checek apakah out time ada dalam range
-          });
-
+          }) : filterSch[0]
+          
+          // console.log(findSch);
+          
           //jika ada schedule maka check apakah sudah scan in dengan cara cek id nya
           if (findSch && !findSch.scan_out && findSch.id) {
             

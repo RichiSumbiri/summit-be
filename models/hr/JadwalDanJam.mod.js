@@ -115,6 +115,11 @@ export const MasterJamKerja = dbSPL.define(
       allowNull: true,
       defaultValue: null,
     },
+    jk_scan_out_audit: {
+      type: DataTypes.TIME,
+      allowNull: true,
+      defaultValue: null,
+    },
     jk_duration_day: {
       type: DataTypes.INTEGER,
       allowNull: true,
