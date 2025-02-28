@@ -589,11 +589,7 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_foremanspv: empNik,
-                            spl_approve_foremanspv: null,
-                            spl_approve_head: null,
-                            spl_approve_manager: null,
-                            spl_approve_hrd: null
+                            spl_foremanspv: empNik
                         }
                     });
                     if(actionApprove){
@@ -615,9 +611,7 @@ export const postApproveLemburan = async(req,res) => {
                         where: {
                             spl_number: SPLNumber,
                             spl_head: empNik,
-                            spl_approve_foremanspv: 1,
-                            spl_approve_manager: null,
-                            spl_approve_hrd: null
+                            spl_approve_foremanspv: 1
                         }
                     });
                     if(actionApprove){
@@ -638,8 +632,7 @@ export const postApproveLemburan = async(req,res) => {
                             spl_number: SPLNumber,
                             spl_manager: empNik,
                             spl_approve_head: 1,
-                            spl_approve_foremanspv: 1,
-                            spl_approve_hrd: null
+                            spl_approve_foremanspv: 1
                         }
                     });
                     if(actionApprove){
@@ -661,8 +654,7 @@ export const postApproveLemburan = async(req,res) => {
                             spl_hrd: empNik,
                             spl_approve_foremanspv: 1,
                             spl_approve_head: 1,
-                            spl_approve_manager: 1,
-                            spl_approve_hrd: null
+                            spl_approve_manager: 1
                         }
                     });
                     if(actionApprove){
