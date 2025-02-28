@@ -610,8 +610,7 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_head: empNik,
-                            spl_approve_foremanspv: 1
+                            spl_head: empNik
                         }
                     });
                     if(actionApprove){
@@ -630,9 +629,7 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_manager: empNik,
-                            spl_approve_head: 1,
-                            spl_approve_foremanspv: 1
+                            spl_manager: empNik
                         }
                     });
                     if(actionApprove){
@@ -651,10 +648,7 @@ export const postApproveLemburan = async(req,res) => {
                     }, {
                         where: {
                             spl_number: SPLNumber,
-                            spl_hrd: empNik,
-                            spl_approve_foremanspv: 1,
-                            spl_approve_head: 1,
-                            spl_approve_manager: 1
+                            spl_hrd: empNik
                         }
                     });
                     if(actionApprove){
