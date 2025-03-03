@@ -271,7 +271,7 @@ export const getDataDashSewMp = async (req, res) => {
       ChkNilaFlt(ttlEmpOut / (getAbsen.length + ttlEmpOut)) * 100;
 
     const dataEmpPerSec = getDataPerSection(getAbsen);
-    const dataChartDept = dataChartSection(dataEmpPerSec);
+    const dataChartDept = dataChartSection(dataEmpPerSec, date);
     const dataTtlHcVsAbs = getTotalCountAndVariance(dataEmpPerSec);
     // const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
 
@@ -354,7 +354,7 @@ const getDataPerSection = (employees) => {
   return dataSection;
 };
 
-function dataChartSection(dataBysec) {
+function dataChartSection(dataBysec, date) {
   const deptName = Object.keys(dataBysec) || [];
   if (dataBysec) {
     const arrHc = deptName.map((item) => dataBysec[item].count);
@@ -366,11 +366,13 @@ function dataChartSection(dataBysec) {
         name: "Head Count",
         // type: "column",
         data: arrHc,
+        date
       },
       {
         name: "Absenteeism",
         // type: "column",
         data: absente,
+        date
       },
     ];
     return { deptName, based };
@@ -420,6 +422,7 @@ export const getChartMpDtlByLine = async (req, res) => {
     const cusName = decodeURIComponent(site)
 
     const query = findQuery(cusName, date, line)
+    // console.log(query);
     
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date, cusName },
