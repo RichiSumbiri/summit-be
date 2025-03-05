@@ -15,6 +15,9 @@ import {
   LogAttandance,
   getBaseAbsMonth,
   getListSecAndSubDeptByAbsen,
+  queryRecapAbsMonth,
+  SumbiriAbsensSum,
+  qrygetSumAbsen,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -949,7 +952,6 @@ export const getMonthAttd = async (req, res) => {
 
     const rangeDate = getRangeDate(objDateMoment);
 
-
     const getMonthAbsen = await dbSPL.query(getBaseAbsMonth, {
       replacements: {
         monthNum,
@@ -964,7 +966,20 @@ export const getMonthAttd = async (req, res) => {
     let groupedData = {};
 
     getMonthAbsen.forEach((row) => {
-      const { Nik, NamaLengkap, tanggal_in, keterangan, scan_in, scan_out, ot, calendar, jk_id, ket_in, ket_out, id } = row;
+      const {
+        Nik,
+        NamaLengkap,
+        tanggal_in,
+        keterangan,
+        scan_in,
+        scan_out,
+        ot,
+        calendar,
+        jk_id,
+        ket_in,
+        ket_out,
+        id,
+      } = row;
 
       // Jika Nik belum ada di objek, inisialisasi
       if (!groupedData[Nik]) {
@@ -999,7 +1014,10 @@ export const getMonthAttd = async (req, res) => {
         scan_in,
         scan_out,
         ot,
-        calendar, jk_id, ket_in, ket_out
+        calendar,
+        jk_id,
+        ket_in,
+        ket_out,
       };
     });
 
@@ -1019,5 +1037,78 @@ export const getMonthAttd = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Terjadi kesalahan saat mengambil data monthly" });
+  }
+};
+
+//generate summary
+export const genSumAbsen = async (req, res) => {
+  try {
+    const { monthYear } = req.params;
+
+    const parsing = moment(monthYear, "YYYY-MM", true);
+    if (!parsing.isValid()) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    const startDate = parsing.clone().startOf("month").format("YYYY-MM-DD");
+    const endDate = parsing.clone().endOf("month").format("YYYY-MM-DD");
+
+    const yearNum = parsing.year()
+    const monthNum = parsing.month()+1
+
+    const destroy = await SumbiriAbsensSum.destroy({
+      where : { 
+        sum_year : yearNum,
+        sum_month : monthNum
+      }
+    });
+
+
+    const recapAbsSum = await dbSPL.query(queryRecapAbsMonth, {
+      replacements: {
+        startDate,
+        endDate,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    const storeRecap = await SumbiriAbsensSum.bulkCreate(recapAbsSum);
+
+    if (storeRecap) {
+      res.json({ message: "success generate" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat mengambil data monthly" });
+  }
+};
+
+export const getSumAbsen = async (req, res) => {
+  try {
+    const { monthNum, yearNum } = req.params;
+    const valArray = Object.values(req.params);
+
+    if (valArray.some((value) => !value || value === undefined))
+      return res
+        .status(404)
+        .json({ message: "Paramter yang dibutuhkan belum lengkap" });
+
+    const dataSumAbsen = await dbSPL.query(qrygetSumAbsen, {
+      replacements: {
+        monthNum,
+        yearNum,
+      },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    res.status(200).json({ data: dataSumAbsen });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat mengambil data summary absen" });
   }
 };

@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
+import db from "../../config/database.js";
 
 export const LogAttandance = dbSPL.define(
   "sumbiri_log_attd",
@@ -1047,3 +1048,295 @@ WHERE MONTH(sa.tanggal_in) = :monthNum
 AND YEAR(sa.tanggal_in) = :yearNum
 AND se.IDSection = :idSection
 AND se.IDSubDepartemen = :idSubDept;`
+
+
+export const queryRecapAbsMonth = `WITH employee AS (
+-- ambbil dlu Nik yang ada di bulan paramter
+	SELECT 
+	    sa.Nik,
+	    se.NamaLengkap,
+	    se.IDDepartemen,
+	    se.IDSubDepartemen,
+	    se.IDPosisi,
+	    se.IDSection
+	FROM sumbiri_absens sa
+	JOIN sumbiri_employee se ON se.Nik = sa.Nik
+	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate 
+	GROUP BY sa.Nik
+), 
+emp_group AS (
+
+	    SELECT 
+		nx.scheduleDate, nx.Nik, nx.NamaLengkap, nx.groupId,
+        COALESCE(nx.calendar_indv, nx.calendar_group) AS calendar,
+         COALESCE(nx.jadwal_indv, nx.jadwal_group) AS jk_id
+		FROM (
+				SELECT 
+			    nm.scheduleDate, 
+			    nm.Nik, 
+			    nm.NamaLengkap, 
+			    nm.groupId,
+			    MAX(nm.calendar_group) AS calendar_group,
+			    MAX(nm.calendar_indv) AS calendar_indv,
+			    MAX(nm.jadwal_group) AS jadwal_group,
+			    MAX(nm.jadwal_indv) AS jadwal_indv
+			FROM (
+			    SELECT  
+			        se.Nik, 
+			        se.NamaLengkap, 
+			        sgs.scheduleDate, 
+			        seg.groupId, 
+			        sgs.calendar AS calendar_group,
+			        NULL AS calendar_indv,
+			         sgs.jk_id AS jadwal_group,
+			        NULL AS jadwal_indv
+			    FROM employee se 
+			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
+			    WHERE sgs.scheduleDate BETWEEN :startDate AND :endDate 
+			    
+			    UNION ALL 
+			
+				SELECT  
+			        se.Nik, 
+			        se.NamaLengkap, 
+			        sis.scheduleDate_inv AS scheduleDate, 
+			        0 AS groupId, 
+			        NULL AS calendar_group,
+			        sis.calendar AS calendar_indv,
+			        NULL AS jadwal_group,
+			        sis.jk_id AS jadwal_indv
+			    FROM employee se 
+			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
+			    WHERE sis.scheduleDate_inv BETWEEN :startDate AND :endDate 
+			) nm 
+			GROUP BY 
+			    nm.scheduleDate, nm.Nik, nm.NamaLengkap 
+	) nx
+),
+sch_and_absen AS (
+	SELECT 
+		eg.Nik,
+    eg.NamaLengkap,
+		sa.tanggal_in,
+		sa.groupId, 
+		eg.calendar,
+		sa.calendar AS actual_calendar,
+		sa.keterangan,
+		sa.ot,
+		eg.jk_id,
+		mjk.idGroup
+	FROM emp_group eg
+	LEFT JOIN sumbiri_absens sa ON eg.Nik = sa.Nik AND eg.scheduleDate = sa.tanggal_in AND
+	sa.tanggal_in BETWEEN :startDate AND :endDate 
+	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = eg.jk_id
+)
+SELECT 
+    YEAR(:startDate) AS sum_year,
+    month(:startDate) AS sum_month,
+    saa.Nik,
+    saa.NamaLengkap, 
+    sa.IDDepartemen,
+    sa.IDSubDepartemen,
+    sa.IDPosisi,
+    sa.IDSection,
+    COUNT(*) AS total_hari,  -- Menghitung total hari dalam periode
+    SUM(CASE WHEN saa.calendar = 'WD' THEN 1 ELSE 0 END) AS sch_wd, -- Menghitung jumlah scheduel 'WD'
+    -- SUM(CASE WHEN saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd,
+    SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd, -- actual masuk sesuai schedule
+    SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'H' THEN 1 ELSE 0 END) AS H_NH, -- masuk di hari libur
+    SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'PH' THEN 1 ELSE 0 END) AS RH, -- masuk di public holiday
+    SUM(CASE WHEN saa.keterangan = 'H' THEN 1 ELSE 0 END) AS days_work, -- jumlah kehadiran
+    SUM(CASE WHEN saa.keterangan <> 'H' THEN 1 ELSE 0 END) AS days_abs, -- jumlah tidak masuk kerja
+    SUM(CASE WHEN saa.keterangan = 'DL' THEN 1 ELSE 0 END) AS DL, -- dinas luar
+    SUM(CASE WHEN saa.keterangan = 'A' THEN 1 ELSE 0 END) AS A, -- alpha
+    SUM(CASE WHEN saa.keterangan = 'I' THEN 1 ELSE 0 END) AS I, -- Ijin
+    SUM(CASE WHEN saa.keterangan = 'CD' THEN 1 ELSE 0 END) AS CD, -- sakit atau cuti dokter
+    SUM(CASE WHEN saa.keterangan = 'CH' THEN 1 ELSE 0 END) AS CH, -- cuti hami/melahirkan
+    SUM(CASE WHEN saa.keterangan = 'CM' THEN 1 ELSE 0 END) AS CM, -- cuti menikah
+    SUM(CASE WHEN saa.keterangan = 'CK1' THEN 1 ELSE 0 END) AS CK1, 
+    SUM(CASE WHEN saa.keterangan = 'CK2' THEN 1 ELSE 0 END) AS CK2, 
+    SUM(CASE WHEN saa.keterangan = 'CK3' THEN 1 ELSE 0 END) AS CK3, 
+    SUM(CASE WHEN saa.keterangan = 'CK4' THEN 1 ELSE 0 END) AS CK4, 
+    SUM(CASE WHEN saa.keterangan = 'CK5' THEN 1 ELSE 0 END) AS CK5, 
+    SUM(CASE WHEN saa.keterangan = 'CK6' THEN 1 ELSE 0 END) AS CK6, 
+    SUM(CASE WHEN saa.keterangan = 'CK7' THEN 1 ELSE 0 END) AS CK7, 
+    SUM(CASE WHEN saa.keterangan = 'CT' THEN 1 ELSE 0 END) AS CT,
+    SUM(CASE WHEN saa.idGroup = 2 THEN 1 ELSE 0 END) AS S2,
+    SUM(CASE WHEN saa.idGroup = 3 THEN 1 ELSE 0 END) AS S3,
+    SUM(CASE WHEN saa.actual_calendar = 'WD' AND saa.ot IS NOT NULL THEN saa.ot ELSE 0 END) AS ot_wd,
+    SUM(CASE WHEN saa.actual_calendar <> 'WD' AND saa.ot IS NOT NULL THEN saa.ot ELSE 0 END) AS ot_h
+FROM sch_and_absen saa
+LEFT JOIN employee sa ON sa.Nik = saa.Nik 
+GROUP BY saa.Nik, saa.NamaLengkap;
+`
+
+export const SumbiriAbsensSum = dbSPL.define('SumbiriAbsensSum', {
+  sum_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  sum_year: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  sum_month: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  Nik: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  NamaLengkap: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  IDDepartemen: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  IDSubDepartemen: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  IDPosisi: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  IDSection: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  total_hari: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  sch_wd: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  act_wd: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  H_NH: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  RH: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  days_work: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  days_abs: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  DL: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  A: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  I: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CD: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CH: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CM: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK1: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK2: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK3: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK4: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK5: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK6: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CK7: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  CT: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  S2: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  S3: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  ot_wd: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  ot_h: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  add_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  mod_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+}, {
+  tableName: 'sumbiri_absens_sum',
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+});
+
+export const qrygetSumAbsen = `SELECT 
+md.NameDept, mp.Name AS namaPosisi,  sas.*
+FROM sumbiri_absens_sum sas 
+LEFT JOIN master_department md ON md.IdDept = sas.IDDepartemen
+LEFT JOIN master_position mp ON mp.IDPosition  = sas.IDPosisi
+WHERE sas.sum_year = :yearNum AND sas.sum_month = :monthNum 
+ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap
+`
