@@ -15,6 +15,7 @@ import {
   getSection,
   getSubDeptAll,
   updateEmp,
+  updateEmpMass,
   updateEmpMassGroup,
 } from "../../controllers/hr/employe.js";
 import { getEventList, getRefGuest } from "../../controllers/hr/eventHr.js";
@@ -161,6 +162,7 @@ router.post("/update-emp", updateEmp);
 router.post("/update-photos/:nikEmp", uploadPhotosEmp);
 router.get("/get-photos/:nik", downloadPhotosEmp);
 router.post("/update-emp-mass-group", updateEmpMassGroup);
+router.post("/update-emp-mass", updateEmpMass);
 
 // mutasi karyawan
 router.get("/mutasi-employee/:startDate/:endDate", getMutasiEmpByDate);

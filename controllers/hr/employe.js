@@ -2,7 +2,8 @@ import { QueryTypes } from "sequelize";
 import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, queryEmpBurekol, queryNewEmpAmipay, sqlFindEmpByNIK, sqlFindEmpByNIKActive, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import moment from "moment";
-import { EmpGroup } from "../../models/hr/JadwalDanJam.mod.js";
+import { EmpGroup, GroupShift } from "../../models/hr/JadwalDanJam.mod.js";
+import db from "../../config/database.js";
 
 
 // get master departement
@@ -368,6 +369,72 @@ export const updateEmp = async(req,res) => {
     });
   }
 } 
+
+export const updateEmpMass = async(req,res) => {
+  try {
+    const data = req.body.dataMass;
+    for (const emp of data) {
+      const checkEmp = await modelSumbiriEmployee.findAll({ where: {Nik: emp.NIK }});
+      if(checkEmp && checkEmp.length>0){
+        // check departemen & update if correct
+        const checkDept = await modelMasterDepartment.findAll({ 
+          where: { 
+            IdDept: emp.ID_DEPARTEMEN 
+          }, raw: true }
+        );
+        if(checkDept && checkDept.length>0) await modelSumbiriEmployee.update({ IDDepartemen: emp.ID_DEPARTEMEN, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+
+        // check subdepartemen & update
+        const checkSubDept = await modelMasterSubDepartment.findAll({ 
+          where: { 
+            IDDept: emp.ID_DEPARTEMEN, 
+            IDSubDept: emp.ID_SUBDEPARTEMEN 
+          }, raw: true 
+        });
+        if(checkSubDept && checkSubDept.length>0) await modelSumbiriEmployee.update({ IDSubDepartemen: emp.ID_SUBDEPARTEMEN, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+
+        // check section & update
+        const checkSection = await dbSPL.query(`SELECT * FROM master_section WHERE IDSection = :idSection`,{
+          replacements: { 
+            idSection:emp.ID_SECTION
+          }, type: QueryTypes.SELECT
+        });
+        if(checkSection && checkSection.length>0) await modelSumbiriEmployee.update({ IDSection: emp.ID_SECTION, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+
+        // check position
+        const checkPosition = await dbSPL.query(`SELECT * FROM master_position WHERE IDPosition = :idPosition`,{
+          replacements: { 
+            idPosition:emp.ID_POSISI
+          }, type: QueryTypes.SELECT
+        });
+        //update position
+        if(checkPosition && checkPosition.length>0) await modelSumbiriEmployee.update({ IDPosisi: emp.ID_POSISI, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+
+        // check emp group & update
+        const checkGroup    = await GroupShift.findAll({ where: { groupId: emp.ID_GROUP }});
+        if(checkGroup && checkGroup.length>0){
+          const checkEmpGroup = await EmpGroup.findAll({ where: { Nik: emp.NIK }});
+          if(checkEmpGroup.length===0||!checkEmpGroup){
+            await EmpGroup.create({ Nik: emp.NIK, groupId: emp.ID_GROUP, add_id: emp.UpdateBy });
+          } else {
+            await EmpGroup.update({ groupId: emp.ID_GROUP, mod_id: emp.UploadBy }, { where: { Nik: emp.NIK }});
+          }
+        }
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      message: `success update employee mass`,
+    });
+  } catch(err){
+    console.error(err);
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "error cannot update employee mass",
+    });
+  }
+}
 
 
 export const updateEmpMassGroup = async(req,res) => {
