@@ -839,6 +839,7 @@ export const qryAbsenIndividu = `SELECT
   mjk.jk_nama,
   mjk.jk_in,
   mjk.jk_out,
+  mjk.jk_out_day,
   sa.keterangan,
   sa.scan_in,
   sa.scan_out,
@@ -997,10 +998,17 @@ LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 `;
 }
 
-export const queryGetDtlLog = `select sla.*, mlp.log_punch_description  
+export const queryGetDtlLog = `
+select sla.*, mlp.log_punch_description  
 from sumbiri_log_attd sla 
 left join master_log_punch mlp on sla.log_punch = mlp.log_punch_id 
-where sla.Nik = :Nik and DATE(sla.log_date) BETWEEN :startDate AND :endDate`;
+where sla.Nik = :Nik and sla.log_status = 'IN' AND DATE(sla.log_date) =  :startDate 
+UNION ALL
+select sla.*, mlp.log_punch_description  
+from sumbiri_log_attd sla 
+left join master_log_punch mlp on sla.log_punch = mlp.log_punch_id 
+where sla.Nik = :Nik and sla.log_status = 'OUT' AND DATE(sla.log_date) = :endDate 
+`;
 
 /// query absen month
 export const getListSecAndSubDeptByAbsen = `
@@ -1164,8 +1172,10 @@ SELECT
     SUM(CASE WHEN saa.keterangan = 'CT' THEN 1 ELSE 0 END) AS CT,
     SUM(CASE WHEN saa.idGroup = 2 THEN 1 ELSE 0 END) AS S2,
     SUM(CASE WHEN saa.idGroup = 3 THEN 1 ELSE 0 END) AS S3,
-    SUM(CASE WHEN saa.actual_calendar = 'WD' AND saa.ot IS NOT NULL THEN saa.ot ELSE 0 END) AS ot_wd,
-    SUM(CASE WHEN saa.actual_calendar <> 'WD' AND saa.ot IS NOT NULL THEN saa.ot ELSE 0 END) AS ot_h
+    SUM(CASE WHEN saa.actual_calendar = 'WD' AND saa.ot <> 0 THEN 1 ELSE 0 END) AS ot_days_wd,
+    SUM(CASE WHEN saa.actual_calendar = 'WD' AND saa.ot <> 0 THEN saa.ot ELSE 0 END) AS ot_wd,
+    SUM(CASE WHEN saa.actual_calendar <> 'WD' AND saa.ot <> 0 THEN 1 ELSE 0 END) AS ot_days_h,
+    SUM(CASE WHEN saa.actual_calendar <> 'WD' AND saa.ot <> 0 THEN saa.ot ELSE 0 END) AS ot_h
 FROM sch_and_absen saa
 LEFT JOIN employee sa ON sa.Nik = saa.Nik 
 GROUP BY saa.Nik, saa.NamaLengkap;
@@ -1301,11 +1311,39 @@ export const SumbiriAbsensSum = dbSPL.define('SumbiriAbsensSum', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  ot_days_wd: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   ot_wd: {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  ot_days_h: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   ot_h: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  ot_1: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  ot_2: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  ot_3: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  ot_prorate: {
+    type: DataTypes.DECIMAL,
+    allowNull: true,
+  },
+  ot_total: {
     type: DataTypes.INTEGER,
     allowNull: true,
   },

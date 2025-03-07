@@ -1072,7 +1072,42 @@ export const genSumAbsen = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const storeRecap = await SumbiriAbsensSum.bulkCreate(recapAbsSum);
+    if(recapAbsSum.length === 0 ){
+      return res.status(400).json({ error: "Data Absen tidak ditemukan" });
+    }
+
+    const recapWithOtPro = recapAbsSum.map(recap => {
+      const {ot_wd, ot_h, ot_days_wd}  = recap
+      const ot_wdInt = parseInt(ot_wd)
+      const ot_hInt = parseInt(ot_h)
+      const ot_days_wdInt = parseInt(ot_days_wd)
+      let ot_1 = 0
+      let ot_2 = 0
+      let ot_3 = 0
+      let ot_total = 0
+      let ot_prorate = 0
+
+      if(ot_wdInt){
+        ot_1 = ot_days_wdInt // ot_1 diambil dari jumlah hari lembur hari norlmal (WD)
+        ot_2 = ot_wdInt-ot_days_wdInt
+      }
+      if(ot_h){
+        ot_2 += ot_hInt // jika ada ot_H berarti tambahkan semuanya
+      }
+      ot_total = ot_wdInt + ot_hInt
+      ot_prorate = (ot_1*1.5)+(ot_2*2)
+
+      return {
+        ...recap,
+            ot_1,
+            ot_2,
+            ot_3,
+            ot_total,
+            ot_prorate,
+      }
+    })
+
+    const storeRecap = await SumbiriAbsensSum.bulkCreate(recapWithOtPro);
 
     if (storeRecap) {
       res.json({ message: "success generate" });
