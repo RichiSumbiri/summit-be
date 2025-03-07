@@ -415,7 +415,7 @@ export const updateEmpMass = async(req,res) => {
         if(checkGroup && checkGroup.length>0){
           const checkEmpGroup = await EmpGroup.findAll({ where: { Nik: emp.NIK }});
           if(checkEmpGroup.length===0||!checkEmpGroup){
-            await EmpGroup.create({ Nik: emp.NIK, groupId: emp.ID_GROUP, add_id: emp.UpdateBy });
+            await EmpGroup.create({ Nik: emp.NIK, groupId: emp.ID_GROUP, add_id: emp.UploadBy });
           } else {
             await EmpGroup.update({ groupId: emp.ID_GROUP, mod_id: emp.UploadBy }, { where: { Nik: emp.NIK }});
           }
