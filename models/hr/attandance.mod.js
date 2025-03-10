@@ -525,19 +525,19 @@ export const allDeptTtl = `
 export const SewingLineHR = `SELECT DISTINCT a.SITE, a.SITE_NAME,  a.CUS_NAME, a.LINE_NAME, a.ID_SITELINE FROM item_siteline a`;
 
 export const qryAbsVerif = `WITH base_absen AS (
-	SELECT 
+SELECT 
 	    se.Nik, 
-		  se.NamaLengkap,
-		  se.IDDepartemen,
-		  se.IDSubDepartemen,
-		  se.IDSection,
-		  se.IDPosisi,
+	    se.NamaLengkap,
+	    se.IDDepartemen,
+	    se.IDSubDepartemen,
+	    se.IDSection,
+	    se.IDPosisi,
         msd.Name subDeptName,
-	     md.NameDept,
+	  	 md.NameDept,
 	    sgs.groupId,
-       sis.jadwalId_inv,
-	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
-	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
+        sis.jadwalId_inv,
+	    COALESCE(sis.jk_id, sgs.jk_id) AS jk_id,
+	    COALESCE(sis.calendar, sgs.calendar)  AS calendar
 	FROM sumbiri_employee se
 	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
 	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
@@ -596,11 +596,7 @@ sav.keterangan AS keterangan_ver,
 sav.ket_in AS ket_in_ver,
 sav.ket_out AS ket_out_ver,
 sav.id id_verif,
-sav.verifikasi -- ,
--- sav.add_id,
--- sav.mod_id,
--- sav.createdAt,
--- sav.updatedAt
+sav.verifikasi
 FROM base_absen ba
 LEFT JOIN absente AS sa ON sa.Nik = ba.Nik 
 LEFT JOIN sumbiri_absen_verif sav ON sav.Nik = ba.Nik AND sav.tanggal_in = :date
@@ -1066,7 +1062,8 @@ export const queryRecapAbsMonth = `WITH employee AS (
 	    se.IDDepartemen,
 	    se.IDSubDepartemen,
 	    se.IDPosisi,
-	    se.IDSection
+	    se.IDSection,
+      se.StatusAktif AS resignStatus
 	FROM sumbiri_absens sa
 	JOIN sumbiri_employee se ON se.Nik = sa.Nik
 	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate 
@@ -1144,6 +1141,7 @@ SELECT
     month(:startDate) AS sum_month,
     saa.Nik,
     saa.NamaLengkap, 
+    sa.resignStatus,
     sa.IDDepartemen,
     sa.IDSubDepartemen,
     sa.IDPosisi,
@@ -1201,6 +1199,10 @@ export const SumbiriAbsensSum = dbSPL.define('SumbiriAbsensSum', {
   },
   NamaLengkap: {
     type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  resignStatus: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
   IDDepartemen: {
@@ -1371,10 +1373,16 @@ export const SumbiriAbsensSum = dbSPL.define('SumbiriAbsensSum', {
 });
 
 export const qrygetSumAbsen = `SELECT 
-md.NameDept, mp.Name AS namaPosisi,  sas.*
+	md.NameDept, 
+	mp.Name AS namaPosisi, 
+	sas.*,  
+	CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
 FROM sumbiri_absens_sum sas 
 LEFT JOIN master_department md ON md.IdDept = sas.IDDepartemen
 LEFT JOIN master_position mp ON mp.IDPosition  = sas.IDPosisi
-WHERE sas.sum_year = :yearNum AND sas.sum_month = :monthNum 
-ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap
+LEFT JOIN sumbiri_cuti_tahunan_log sctl ON sctl.Tahun = sas.sum_year  
+		  AND sctl.Bulan = sas.sum_month
+		  AND sctl.Nik = sas.Nik
+WHERE sas.sum_year = :yearNum AND sas.sum_month = :monthNum -- AND sas.resignStatus  = 1
+ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap 
 `
