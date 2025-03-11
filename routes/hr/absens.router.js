@@ -1,5 +1,5 @@
 import express from "express";
-import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen, getMonthAttd, getListSecAndSubdept, genSumAbsen, getSumAbsen } from "../../controllers/hr/absensi.js";
+import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen, getMonthAttd, getListSecAndSubdept, genSumAbsen, getSumAbsen, deleteSchHoliday } from "../../controllers/hr/absensi.js";
 const router = express.Router();
 
 //all absensi daily
@@ -15,6 +15,9 @@ router.post("/verif-absen", verifAbsenCtr1 , getVerifAbsDayNik);
 // router.post("/verif-absen", verifAbsenCtr );
 router.post("/delete-verif", delteHrVerifAbs );
 router.post("/confirm-verif", ConfirmVerifAbs );
+
+//delete jadwal 
+router.post("/delete-jadwal", deleteSchHoliday );
 
 //absensi individu
 router.get("/absens-individu/:nik/:startDate/:endDate", getAbsenIndividu);

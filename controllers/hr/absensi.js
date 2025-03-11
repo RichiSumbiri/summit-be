@@ -1149,3 +1149,27 @@ export const getSumAbsen = async (req, res) => {
       .json({ message: "Terjadi kesalahan saat mengambil data summary absen" });
   }
 };
+
+
+export async function deleteSchHoliday(req, res) {
+  try {
+    const { onlyHl } = req.body;
+
+    const arrjadwalId = onlyHl.map((item) => item.jadwalId_inv);
+    const deleteAbsen = await IndividuJadwal.update({jk_id : null}, {
+      where: {
+        jadwalId_inv: arrjadwalId,
+      },
+    });
+    if (deleteAbsen) {
+      return res.json({
+        message: "succcess delete jadwal absen",
+      });
+    } else {
+      return res.status(500).json({ message: "delete jadwal absen" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Terjadi kesalahan" });
+  }
+}
