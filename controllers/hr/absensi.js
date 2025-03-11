@@ -162,6 +162,7 @@ export async function updateAbsen(req, res) {
             ? item.scan_out
             : findScanTime(arrAbs.length, objEdit, "OUT", autoOut),
         }));
+        
       }
 
       const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
@@ -552,6 +553,7 @@ export async function verifAbsenCtr1(req, res, next) {
         scheduleDate_inv: tanggal_in,
         add_id: !item.id_verif ? userId : null,
         mod_id: item.id_verif ? userId : null,
+        verifikasi: null
       };
 
       const verifAbsenProsess = await VerifAbsen.upsert(updateArrAbs);
