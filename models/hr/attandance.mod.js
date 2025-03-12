@@ -193,6 +193,10 @@ export const Attandance = dbSPL.define(
     ot: {
       type: DataTypes.INTEGER,
     },
+    validasi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     add_id: {
       type: DataTypes.INTEGER,
     },
@@ -388,6 +392,7 @@ sa.keterangan,
 sa.createdAt,
 sa.mod_id,
 sa.updatedAt,
+sa.validasi,
 msts.Name AS NamaSection
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
@@ -1179,7 +1184,7 @@ LEFT JOIN employee sa ON sa.Nik = saa.Nik
 GROUP BY saa.Nik, saa.NamaLengkap;
 `
 
-export const SumbiriAbsensSum = dbSPL.define('SumbiriAbsensSum', {
+export const SumbiriAbsensSum = dbSPL.define('sumbiri_absens_sum', {
   sum_id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -1365,6 +1370,10 @@ export const SumbiriAbsensSum = dbSPL.define('SumbiriAbsensSum', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  validasi: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
 }, {
   tableName: 'sumbiri_absens_sum',
   timestamps: true,
@@ -1386,3 +1395,34 @@ LEFT JOIN sumbiri_cuti_tahunan_log sctl ON sctl.Tahun = sas.sum_year
 WHERE sas.sum_year = :yearNum AND sas.sum_month = :monthNum -- AND sas.resignStatus  = 1
 ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap 
 `
+
+export const logSystemAbsPayroll = dbSPL.define(
+  "system_log_absen_payroll",
+  {
+    id_log: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      // allowNull: false,
+    },
+    modul: {
+      type: DataTypes.STRING,
+    },
+    process: {
+      type: DataTypes.STRING,
+    },
+    time_process: {
+      type: DataTypes.DATE,
+    },
+    priode: {
+      type: DataTypes.DATEONLY,
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+    }
+  },
+  {
+    tableName: "system_log_absen_payroll",
+    timestamps: false,
+  }
+);

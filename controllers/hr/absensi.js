@@ -1,5 +1,5 @@
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
-import { Op, QueryTypes } from "sequelize";
+import { Op, fn, col, QueryTypes } from "sequelize";
 import {
   Attandance,
   qryAbsenIndividu,
@@ -18,9 +18,10 @@ import {
   queryRecapAbsMonth,
   SumbiriAbsensSum,
   qrygetSumAbsen,
+  logSystemAbsPayroll,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
-import { IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
+import { GroupJadwal, IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
 import db from "../../config/database.js";
@@ -117,13 +118,11 @@ export async function updateAbsen(req, res) {
     const { objEdit, arrAbs, tanggal_in, userId, autoIn, autoOut } = req.body;
 
     if (objEdit.jam_kerja[0].jk_id) {
-      // const momentTglIn = moment(tanggal_in, "YYYY-MM-DD");
-      // const tanggal_out =
-      //   objEdit.jam_kerja[0].jk_out_day === "N"
-      //     ? momentTglIn.add(1, "day").format("YYYY-MM-DD")
-      //     : tanggal_in;
-
-      // console.log(objEdit.keterangan);
+      
+      const checkValidasi = arrAbs.filte(ab => ab.validasi)
+      if(checkValidasi.length > 0){
+        return res.status(404).json({message: 'Sudah divalidasi tidak bisa diubah'})
+      }
 
       let updateArrAbs = arrAbs.map((item) => {
         const momentTglIn = moment(item.scheduleDate, "YYYY-MM-DD"); // || moment(tanggal_in, "YYYY-MM-DD");
@@ -1045,7 +1044,7 @@ export const getMonthAttd = async (req, res) => {
 //generate summary
 export const genSumAbsen = async (req, res) => {
   try {
-    const { monthYear } = req.params;
+    const { monthYear, userId } = req.params;
 
     const parsing = moment(monthYear, "YYYY-MM", true);
     if (!parsing.isValid()) {
@@ -1112,6 +1111,16 @@ export const genSumAbsen = async (req, res) => {
     const storeRecap = await SumbiriAbsensSum.bulkCreate(recapWithOtPro);
 
     if (storeRecap) {
+      const logsData = {
+        modul : 'Absensi',
+        process: 'Generate',
+        priode : startDate, //diambil tanggal awal bulan
+        userId : userId,
+        time_process: moment().format('YYYY-MM-DD HH:mm:ss')
+      }
+      const postToLog = logSystemAbsPayroll.create(logsData)
+
+
       res.json({ message: "success generate" });
     }
   } catch (error) {
@@ -1173,3 +1182,79 @@ export async function deleteSchHoliday(req, res) {
     return res.status(500).json({ message: "Terjadi kesalahan" });
   }
 }
+
+
+
+
+export const validasiAbsensi = async (req, res) => {
+  try {
+    const { monthNum, yearNum, userId } = req.body;
+    const valArray = Object.values(req.params);
+
+    if (valArray.some((value) => !value || value === undefined))
+      return res
+        .status(404)
+        .json({ message: "Paramter yang dibutuhkan belum lengkap" });
+
+    const validDayAbsen = await Attandance.update({ validasi: 1 },
+      {
+        where: {
+          [Op.and]: [
+            fn('YEAR', col('tanggal_in')), yearNum,
+            fn('MONTH', col('tanggal_in')), monthNum
+          ]
+        }
+    })
+
+    const validasiSum = await SumbiriAbsensSum.update( { validasi: 1 },{
+      where : {
+        sum_month : monthNum,
+        sum_year : yearNum
+      }
+    }    )
+
+    const validasiJadwal = await IndividuJadwal.update(  { validasi: 1 },
+      {
+        where: {
+          [Op.and]: [
+            fn('YEAR', col('scheduleDate_inv')), yearNum,
+            fn('MONTH', col('scheduleDate_inv')), monthNum
+          ]
+        }
+    })
+
+    const validasiJdwlGrp = await GroupJadwal.update(  { validasi: 1 },
+      {
+        where: {
+          [Op.and]: [
+            fn('YEAR', col('scheduleDate')), yearNum,
+            fn('MONTH', col('scheduleDate')), monthNum
+          ]
+        }
+    })
+
+    const tanggalAwalBulan = moment(`${yearNum}-0${monthNum}-01`, 'YYYY-MM-DD');
+
+    if(validDayAbsen &&
+      validasiSum &&
+      validasiJadwal &&
+      validasiJdwlGrp){
+        const logsData = {
+          modul : 'Absensi',
+          process: 'Validasi',
+          priode : tanggalAwalBulan.format('YYYY-MM-DD'), //diambil tanggal awal bulan
+          userId : userId,
+          time_process: moment().format('YYYY-MM-DD HH:mm:ss')
+        }
+        const postToLog = logSystemAbsPayroll.create(logsData)
+        res.status(200).json({ message: 'success validasi' });
+
+      }
+
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat validasi abasensi" });
+  }
+};

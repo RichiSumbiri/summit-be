@@ -378,6 +378,10 @@ export const IndividuJadwal = dbSPL.define(
     mod_id: {
       type: DataTypes.INTEGER,
     },
+    validasi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     tableName: "sumbiri_individu_schedule",
@@ -409,6 +413,10 @@ export const GroupJadwal = dbSPL.define(
     },
     mod_id: {
       type: DataTypes.INTEGER,
+    },
+    validasi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {
