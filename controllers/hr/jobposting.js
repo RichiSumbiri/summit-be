@@ -73,8 +73,8 @@ export const updateJobPosting = async(req,res) => {
         const data = await dbSPL.query(putJobById, { 
             replacements: {
                 idPost: idPost,
-                postPosisi: Posisi,
-                postKualifikasi: Kualifikasi,
+                postPosisi: String(Posisi).trim(),
+                postKualifikasi: String(Kualifikasi).trim(),
                 postTenggatWaktu: TenggatWaktu
             },
             type: QueryTypes.UPDATE});
