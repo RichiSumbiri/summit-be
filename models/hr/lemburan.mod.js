@@ -143,6 +143,10 @@ export const ModelSPLMain = dbSPL.define('sumbiri_spl_main', {
     type: DataTypes.ENUM("Y", "N"),
     allowNull: true,
   },
+  spl_createdip: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  }
 }, {
   tableName: 'sumbiri_spl_main',
   timestamps: false, // Set to true if you want Sequelize to handle createdAt/updatedAt

@@ -475,7 +475,8 @@ export const postLemburan = async(req,res) => {
                 spl_createdby: dataSPL.CreatedBy,
                 spl_createddate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 spl_active: 1,
-                spl_version: 1
+                spl_version: 1,
+                spl_createdip: req.ip
             });
             
             for (const emp of dataSPL.SPLEmp) {
