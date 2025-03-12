@@ -109,21 +109,15 @@ export const postCutiNew = async(req,res) => {
                 startDatePrev.add(1, 'day');
             }
             for (const CutiDatePrev of CutiDateListPrev) {
-                const getJKID   = await GroupJadwal.findOne({
-                    where: {
-                        scheduleDate: CutiDatePrev,
-                        groupId: getNikGroupId.groupId
-                    }
-                })
                 if(getJKID){
                     await Attandance.destroy({
-                        Nik: getPreviousData.cuti_emp_nik,
-                        groupId: getNikGroupId.groupId,
-                        jk_id: getJKID.jk_id,
-                        tanggal_in: CutiDatePrev,
-                        keterangan: getCodeAbsen.code_absen,
-                        ket_in: getPreviousData.cuti_purpose.toUpperCase(),
-                        validasi: 0
+                        where: {
+                          Nik: getPreviousData.cuti_emp_nik,
+                          tanggal_in: CutiDatePrev,
+                          keterangan: getCodeAbsen.code_absen,
+                          ket_in: getPreviousData.cuti_purpose.toUpperCase(),
+                          validasi: 0
+                        }
                     });
                 }
             }
