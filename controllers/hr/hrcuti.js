@@ -109,17 +109,15 @@ export const postCutiNew = async(req,res) => {
                 startDatePrev.add(1, 'day');
             }
             for (const CutiDatePrev of CutiDateListPrev) {
-                if(getJKID){
-                    await Attandance.destroy({
-                        where: {
-                          Nik: getPreviousData.cuti_emp_nik,
-                          tanggal_in: CutiDatePrev,
-                          keterangan: getCodeAbsen.code_absen,
-                          ket_in: getPreviousData.cuti_purpose.toUpperCase(),
-                          validasi: 0
-                        }
-                    });
-                }
+                await Attandance.destroy({
+                    where: {
+                      Nik: getPreviousData.cuti_emp_nik,
+                      tanggal_in: CutiDatePrev,
+                      keterangan: getCodeAbsen.code_absen,
+                      ket_in: getPreviousData.cuti_purpose.toUpperCase(),
+                      validasi: 0
+                    }
+                });
             }
 
             // update cuti detail data
