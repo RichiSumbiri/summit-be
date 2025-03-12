@@ -58,6 +58,10 @@ export const MasterJamKerja = dbSPL.define(
       allowNull: true,
       defaultValue: null,
     },
+    jk_amano: {
+      type: DataTypes.STRING(50),
+      unique: true,
+    },
     jk_scan_in_audit: {
       type: DataTypes.TIME,
       allowNull: true,
