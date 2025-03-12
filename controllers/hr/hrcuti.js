@@ -132,14 +132,14 @@ export const postCutiNew = async(req,res) => {
             const updateCuti = await SumbiriCutiMain.update({
                 cuti_emp_nik: parseInt(dataCuti.cuti_emp_nik),
                 cuti_emp_tmb: dataCuti.cuti_emp_tmb,
-                cuti_emp_name: dataCuti.cuti_emp_name.toUpperCase(),
-                cuti_emp_dept: dataCuti.cuti_emp_dept.toUpperCase(),
-                cuti_emp_position: dataCuti.cuti_emp_position.toUpperCase(),
+                cuti_emp_name: String(dataCuti.cuti_emp_name).toUpperCase(),
+                cuti_emp_dept: String(dataCuti.cuti_emp_dept).toUpperCase(),
+                cuti_emp_position: String(dataCuti.cuti_emp_position).toUpperCase(),
                 cuti_date_start: dataCuti.cuti_date_start,
                 cuti_date_end: dataCuti.cuti_date_end,
                 cuti_length: dataCuti.cuti_length,
-                cuti_daymonth: dataCuti.cuti_daymonth.toUpperCase(),
-                cuti_purpose: dataCuti.cuti_purpose.toUpperCase(),
+                cuti_daymonth: String(dataCuti.cuti_daymonth).toUpperCase(),
+                cuti_purpose: String(dataCuti.cuti_purpose).toUpperCase(),
                 id_absen: parseInt(dataCuti.id_absen),
                 cuti_active: "Y"
             }, {
@@ -174,7 +174,7 @@ export const postCutiNew = async(req,res) => {
                                 jk_id: 0,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
-                                ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                                ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
                                 validasi: 0
                             });
                         }
@@ -187,7 +187,7 @@ export const postCutiNew = async(req,res) => {
                                 jk_id: checkFromJadwal.jk_id,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
-                                ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                                ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
                                 validasi: 0
                             });
                         }
@@ -223,14 +223,14 @@ export const postCutiNew = async(req,res) => {
                     cuti_id: cuti_id,
                     cuti_emp_nik: parseInt(dataCuti.cuti_emp_nik),
                     cuti_emp_tmb: dataCuti.cuti_emp_tmb,
-                    cuti_emp_name: dataCuti.cuti_emp_name.toUpperCase(),
-                    cuti_emp_dept: dataCuti.cuti_emp_dept.toUpperCase(),
-                    cuti_emp_position: dataCuti.cuti_emp_position.toUpperCase(),
+                    cuti_emp_name: String(dataCuti.cuti_emp_name).toUpperCase(),
+                    cuti_emp_dept: String(dataCuti.cuti_emp_dept).toUpperCase(),
+                    cuti_emp_position: String(dataCuti.cuti_emp_position).toUpperCase(),
                     cuti_date_start: dataCuti.cuti_date_start,
                     cuti_date_end: dataCuti.cuti_date_end,
                     cuti_length: dataCuti.cuti_length,
-                    cuti_daymonth: dataCuti.cuti_daymonth.toUpperCase(),
-                    cuti_purpose: dataCuti.cuti_purpose.toUpperCase(),
+                    cuti_daymonth: String(dataCuti.cuti_daymonth).toUpperCase(),
+                    cuti_purpose: String(dataCuti.cuti_purpose).toUpperCase(),
                     id_absen: parseInt(dataCuti.id_absen),
                     cuti_createdate: moment().format('YYYY-MM-DD HH:mm:ss'),
                     cuti_createby: dataCuti.cuti_createby,
@@ -264,7 +264,7 @@ export const postCutiNew = async(req,res) => {
                                     jk_id: 0,
                                     tanggal_in: CutiDate,
                                     keterangan: getCodeAbsen.code_absen,
-                                    ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                                    ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
                                     validasi: 0
                                 });
                             }
@@ -277,7 +277,7 @@ export const postCutiNew = async(req,res) => {
                                     jk_id: checkFromJadwal.jk_id,
                                     tanggal_in: CutiDate,
                                     keterangan: getCodeAbsen.code_absen,
-                                    ket_in: dataCuti.cuti_purpose.toUpperCase(),
+                                    ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
                                     validasi: 0
                                 });
                             }
@@ -291,7 +291,6 @@ export const postCutiNew = async(req,res) => {
             }
         }
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get cuti",
