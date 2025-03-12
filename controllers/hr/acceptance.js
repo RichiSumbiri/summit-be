@@ -22,7 +22,6 @@ export const getApprovedPelamar = async(req,res) => {
             data: data
         });
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             data: err,
@@ -70,8 +69,8 @@ export const postNewEmp = async(req,res) => {
                 BPJSKes: dataNewEmp.BPJSKes,
                 BPJSKet: dataNewEmp.BPJSKet,
                 NPWP: dataNewEmp.NPWP,
-                NamaLengkap: dataNewEmp.NamaLengkap,
-                TempatLahir: dataNewEmp.TempatLahir,
+                NamaLengkap: String(dataNewEmp.NamaLengkap).trim(),
+                TempatLahir: String(dataNewEmp.TempatLahir).trim(),
                 TanggalLahir: dataNewEmp.TanggalLahir,
                 JenisKelamin: dataNewEmp.JenisKelamin,
                 StatusPerkawinan: dataNewEmp.StatusPerkawinan,
@@ -79,16 +78,16 @@ export const postNewEmp = async(req,res) => {
                 Agama: dataNewEmp.Agama,
                 NoTelp1: dataNewEmp.NoTelp1,
                 NoTelp2: dataNewEmp.NoTelp2,
-                Email: dataNewEmp.Email,
-                NamaAyah: dataNewEmp.NamaAyah,
-                NamaIbu: dataNewEmp.NamaIbu,
+                Email: String(dataNewEmp.Email).trim(),
+                NamaAyah: String(dataNewEmp.NamaAyah).trim(),
+                NamaIbu: String(dataNewEmp.NamaIbu).trim(),
                 AlamatIDProv: dataNewEmp.AlamatIDProv,
                 AlamatIDKabKota: dataNewEmp.AlamatIDKabKota,
                 AlamatIDKecamatan: dataNewEmp.AlamatIDKecamatan,
                 AlamatKelurahan: dataNewEmp.AlamatKelurahan,
                 AlamatRT: dataNewEmp.AlamatRT,
                 AlamatRW: dataNewEmp.AlamatRW,
-                AlamatDetail: dataNewEmp.AlamatDetail,
+                AlamatDetail: String(dataNewEmp.AlamatDetail).trim(),
                 IDDepartemen: dataNewEmp.IDDepartemen,
                 IDSubDepartemen: dataNewEmp.IDSubDepartemen,
                 IDPosisi: dataNewEmp.IDPosisi,
@@ -97,7 +96,7 @@ export const postNewEmp = async(req,res) => {
                 TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
                 StatusKaryawan: dataNewEmp.StatusKaryawan,
                 StatusAktif: 0,
-                UpdateDate: new Date(),
+                UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 UpdateBy: dataNewEmp.CreateBy
             }, {
                 where: {
@@ -125,7 +124,7 @@ export const postNewEmp = async(req,res) => {
                         await axios.post(`${HOST_WDMS}/personnel/api/employees/`,  
                             {
                                 "emp_code": dataNewEmp.Nik,
-                                "first_name": dataNewEmp.NamaLengkap,
+                                "first_name": String(dataNewEmp.NamaLengkap).trim(),
                                 "hire_date": dataNewEmp.TanggalMasuk,
                                 "birthday": dataNewEmp.TanggalLahir,
                                 "department": 1,
@@ -188,25 +187,25 @@ export const postNewEmp = async(req,res) => {
                 BPJSKes: dataNewEmp.BPJSKes,
                 BPJSKet: dataNewEmp.BPJSKet,
                 NPWP: dataNewEmp.NPWP,
-                NamaLengkap: dataNewEmp.NamaLengkap,
-                TempatLahir: dataNewEmp.TempatLahir,
+                NamaLengkap: String(dataNewEmp.NamaLengkap).trim(),
+                TempatLahir: String(dataNewEmp.TempatLahir).trim(),
                 TanggalLahir: dataNewEmp.TanggalLahir,
                 JenisKelamin: dataNewEmp.JenisKelamin,
                 StatusPerkawinan: dataNewEmp.StatusPerkawinan,
                 JenjangPendidikan: dataNewEmp.JenjangPendidikan,
-                Agama: dataNewEmp.Agama,
+                Agama: String(dataNewEmp.Agama).trim(),
                 NoTelp1: dataNewEmp.NoTelp1,
                 NoTelp2: dataNewEmp.NoTelp2,
                 Email: dataNewEmp.Email,
-                NamaAyah: dataNewEmp.NamaAyah,
-                NamaIbu: dataNewEmp.NamaIbu,
+                NamaAyah: String(dataNewEmp.NamaAyah).trim(),
+                NamaIbu: String(dataNewEmp.NamaIbu).trim(),
                 AlamatIDProv: dataNewEmp.AlamatIDProv,
                 AlamatIDKabKota: dataNewEmp.AlamatIDKabKota,
                 AlamatIDKecamatan: dataNewEmp.AlamatIDKecamatan,
                 AlamatKelurahan: dataNewEmp.AlamatKelurahan,
                 AlamatRT: dataNewEmp.AlamatRT,
                 AlamatRW: dataNewEmp.AlamatRW,
-                AlamatDetail: dataNewEmp.AlamatDetail,
+                AlamatDetail: String(dataNewEmp.AlamatDetail).trim(),
                 IDDepartemen: dataNewEmp.IDDepartemen,
                 IDSubDepartemen: dataNewEmp.IDSubDepartemen,
                 IDPosisi: dataNewEmp.IDPosisi,
@@ -215,7 +214,7 @@ export const postNewEmp = async(req,res) => {
                 TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
                 StatusKaryawan: dataNewEmp.StatusKaryawan,
                 StatusAktif: 0,
-                CreateDate: new Date(),
+                CreateDate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 CreateBy: dataNewEmp.CreateBy
             });
             if(postEmp){
@@ -237,7 +236,7 @@ export const postNewEmp = async(req,res) => {
                         await axios.post(`${HOST_WDMS}/personnel/api/employees/`,  
                             {
                                 "emp_code": newNik,
-                                "first_name": dataNewEmp.NamaLengkap,
+                                "first_name": String(dataNewEmp.NamaLengkap).trim(),
                                 "hire_date": dataNewEmp.TanggalMasuk,
                                 "birthday": dataNewEmp.TanggalLahir,
                                 "department": 1,
