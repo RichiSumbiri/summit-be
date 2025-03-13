@@ -164,14 +164,16 @@ export async function updateAbsen(req, res) {
         
       }
 
-      const updateJadwal = await IndividuJadwal.bulkCreate(updateArrAbs, {
+      const withOutValidasi = updateArrAbs.filter(items => items.validasi !== 1)
+
+      const updateJadwal = await IndividuJadwal.bulkCreate(withOutValidasi, {
         updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id", "calendar"],
         where: {
           jadwalId: ["jadwalId_inv"],
         },
       });
 
-      const updatedAbsen = await Attandance.bulkCreate(updateArrAbs, {
+      const updatedAbsen = await Attandance.bulkCreate(withOutValidasi, {
         updateOnDuplicate: [
           "scan_in",
           "scan_out",
@@ -639,8 +641,8 @@ export const ConfirmVerifAbs = async (req, res) => {
       }
       return datas;
     });
-
-    const updatedAbsen = await Attandance.bulkCreate(dataPost, {
+    const withOutValidasi = dataPost.filter(items => items.validasi !== 1)
+    const updatedAbsen = await Attandance.bulkCreate(withOutValidasi, {
       updateOnDuplicate: [
         "scan_in",
         "scan_out",
@@ -980,6 +982,7 @@ export const getMonthAttd = async (req, res) => {
         ket_in,
         ket_out,
         id,
+        validasi
       } = row;
 
       // Jika Nik belum ada di objek, inisialisasi
@@ -1019,6 +1022,7 @@ export const getMonthAttd = async (req, res) => {
         jk_id,
         ket_in,
         ket_out,
+        validasi
       };
     });
 

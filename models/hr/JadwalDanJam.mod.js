@@ -433,7 +433,8 @@ export const getGroupSCh = `SELECT
 	a.calendar,
 	c.calendar_color,
 	b.jk_nama,
-	b.jk_color
+	b.jk_color,
+  a.validasi
 FROM sumbiri_group_schedule a
 LEFT JOIN master_jam_kerja b ON b.jk_id = a.jk_id
 LEFT JOIN master_calendar_type c ON c.calendar_code = a.calendar

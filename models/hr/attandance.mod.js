@@ -616,6 +616,7 @@ WHERE ba.calendar <> 'HL'
 export const queryPureVerifAbs = `SELECT 
 sav.id id_verif,
 sa.id AS id_absen,
+sa.validasi,
 se.Nik,
 se.NamaLengkap,
 sav.jk_id,
@@ -846,6 +847,7 @@ export const qryAbsenIndividu = `SELECT
   sa.scan_out,
   sa.id,
   sa.ot,
+  sa.validasi,
 	mjk.jk_color,
 	c.calendar_color
 FROM (
@@ -1050,7 +1052,8 @@ export const getBaseAbsMonth = `SELECT
   	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
   	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
   	sa.ot,
-    sa.id
+    sa.id,
+    sa.validasi
 FROM sumbiri_absens sa
 JOIN sumbiri_employee se ON se.Nik = sa.Nik
 WHERE MONTH(sa.tanggal_in) = :monthNum 
