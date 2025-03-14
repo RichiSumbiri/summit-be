@@ -96,6 +96,7 @@ export const postNewEmp = async(req,res) => {
                 IDSubDepartemen: dataNewEmp.IDSubDepartemen,
                 IDPosisi: dataNewEmp.IDPosisi,
                 IDSection: dataNewEmp.IDSection,
+                IDJenisUpah: dataNewEmp.IDJenisUpah,
                 JenisUpah: dataNewEmp.JenisUpah,
                 TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
                 StatusKaryawan: dataNewEmp.StatusKaryawan,
@@ -150,23 +151,13 @@ export const postNewEmp = async(req,res) => {
         } else {
             let sequenceNik;
             let newNik;
-            const queryCheckType = await dbSPL.query(`SELECT * FROM master_salary_type WHERE NameSalType=${String(dataNewEmp.JenisUpah).trim()}`, { type: QueryTypes.SELECT });
-            const prefixNik = queryCheckType[0].prefixNik ? queryCheckType[0].prefixNik : 10;
-            // switch(dataNewEmp.JenisUpah){
-            //     case 'HARIAN':
-            //         prefixNik         = "20";
-            //         break;
-            //     case 'BULANAN':
-            //         prefixNik         = "10";
-            //         break;
-            //     default:
-            //         prefixNik         = "20";
-            //         break;
-            // }
-    
+            console.log(dataNewEmp);
+            const queryCheckType = await dbSPL.query(`SELECT * FROM master_salary_type WHERE IDSalType=:idSalType`, { replacements: { idSalType: dataNewEmp.IDJenisUpah }, type: QueryTypes.SELECT });
+            const prefixNik = queryCheckType[0].PrefixNIK ? queryCheckType[0].PrefixNIK : 10;
+            
             const prefixBulanMasuk  = moment(dataNewEmp.TanggalMasuk).format("MM");
             const prefixTahunMasuk  = moment(dataNewEmp.TanggalMasuk).year()  % 100;
-            const initNik           = prefixNik + prefixTahunMasuk + prefixBulanMasuk;
+            const initNik           = String(prefixNik) + String(prefixTahunMasuk) + String(prefixBulanMasuk);
             
             const checkLastNik      = await modelSumbiriEmployee.findOne({
                 where: {
@@ -215,7 +206,8 @@ export const postNewEmp = async(req,res) => {
                 IDSubDepartemen: dataNewEmp.IDSubDepartemen,
                 IDPosisi: dataNewEmp.IDPosisi,
                 IDSection: dataNewEmp.IDSection,
-                JenisUpah: dataNewEmp.JenisUpah,
+                IDJenisUpah: dataNewEmp.IDJenisUpah,
+                JenisUpah: queryCheckType[0].NameSalType,
                 TanggalMasuk: moment(dataNewEmp.TanggalMasuk).format('YYYY-MM-DD'),
                 StatusKaryawan: dataNewEmp.StatusKaryawan,
                 StatusAktif: 0,

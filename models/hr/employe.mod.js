@@ -18,6 +18,7 @@ SELECT
 	se.Agama,
 	se.JenjangPendidikan,
 	se.JenisUpah,
+	se.IDJenisUpah,
 	se.NoTelp1,
 	se.NoTelp2,
 	se.Email,
@@ -281,6 +282,11 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		allowNull: true,
 		defaultValue: null,
 	  },
+	  IDJenisUpah: {
+		type: DataTypes.INTEGER(100),
+		allowNull: true,
+		defaultValue: null,
+	  }, 
 	  JenisUpah: {
 		type: DataTypes.STRING(100),
 		allowNull: true,
@@ -460,6 +466,8 @@ SELECT
 	mp.Name AS NamaPosisi,
 	ms2.Name AS NamaSection,
 	IFNULL(TRIM(emp.JenisUpah),"") AS JenisUpah,
+	mst.NameSalType AS NamaJenisUpah,
+	emp.IDJenisUpah,
 	IFNULL(TRIM(emp.StatusKaryawan),"") AS StatusKaryawan,
 	emp.TanggalMasuk,
 	EndSPKK.FinishKontrak,
@@ -501,6 +509,7 @@ LEFT JOIN master_department md ON md.IdDept = emp.IDDepartemen
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = emp.IDSubDepartemen 
 LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi 
 LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
+LEFT JOIN master_salary_type mst ON mst.IDSalType = emp.IDJenisUpah
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
 LEFT JOIN sumbiri_spk ss ON ss.Nik = emp.Nik 

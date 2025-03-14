@@ -315,6 +315,7 @@ export const updateEmp = async(req,res) => {
         IDPosisi: data.IDPosisi,
         IDSection: data.IDSection,
         IDSiteline: EmpIDSiteline,
+        IDJenisUpah: dataNewEmp.IDJenisUpah,
         JenisUpah: data.JenisUpah,
         StatusKaryawan: data.StatusKaryawan,
         TanggalMasuk: data.TanggalMasuk,
