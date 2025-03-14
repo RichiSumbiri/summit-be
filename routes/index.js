@@ -36,6 +36,7 @@ import hrRoute from "./hr/employe.route.js";
 import attandance from "./hr/attandance.router.js";
 import absen from "./hr/absens.router.js";
 import hrdashboard from "./hr/hrDash.route.js";
+import payroll from "./payroll/masterPayroll.router.js";
 
 const router = express.Router();
 
@@ -72,6 +73,7 @@ router.use("/hr", hrRoute);
 router.use("/attandance", attandance);
 router.use("/absensi", absen);
 router.use("/hrdashboard", hrdashboard);
+router.use("/payroll", payroll);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
