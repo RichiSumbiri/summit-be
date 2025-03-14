@@ -151,7 +151,6 @@ export const postNewEmp = async(req,res) => {
         } else {
             let sequenceNik;
             let newNik;
-            console.log(dataNewEmp);
             const queryCheckType = await dbSPL.query(`SELECT * FROM master_salary_type WHERE IDSalType=:idSalType`, { replacements: { idSalType: dataNewEmp.IDJenisUpah }, type: QueryTypes.SELECT });
             const prefixNik = queryCheckType[0].PrefixNIK ? queryCheckType[0].PrefixNIK : 10;
             
