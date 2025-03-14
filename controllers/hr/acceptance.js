@@ -144,20 +144,21 @@ export const postNewEmp = async(req,res) => {
             }
             
         } else {
-            let prefixNik;
             let sequenceNik;
             let newNik;
-            switch(dataNewEmp.JenisUpah){
-                case 'HARIAN':
-                    prefixNik         = "20";
-                    break;
-                case 'BULANAN':
-                    prefixNik         = "10";
-                    break;
-                default:
-                    prefixNik         = "20";
-                    break;
-            }
+            const queryCheckType = await dbSPL.query(`SELECT * FROM master_salary_type WHERE NameSalType=${String(dataNewEmp.JenisUpah).trim()}`, { type: QueryTypes.SELECT });
+            const prefixNik = queryCheckType[0].prefixNik ? queryCheckType[0].prefixNik : 10;
+            // switch(dataNewEmp.JenisUpah){
+            //     case 'HARIAN':
+            //         prefixNik         = "20";
+            //         break;
+            //     case 'BULANAN':
+            //         prefixNik         = "10";
+            //         break;
+            //     default:
+            //         prefixNik         = "20";
+            //         break;
+            // }
     
             const prefixBulanMasuk  = moment(dataNewEmp.TanggalMasuk).format("MM");
             const prefixTahunMasuk  = moment(dataNewEmp.TanggalMasuk).year()  % 100;
