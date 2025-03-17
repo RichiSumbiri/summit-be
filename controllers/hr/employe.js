@@ -408,6 +408,7 @@ export const updateEmpMass = async(req,res) => {
             idPosition:emp.ID_POSISI
           }, type: QueryTypes.SELECT
         });
+        
         //update position
         if(checkPosition && checkPosition.length>0) await modelSumbiriEmployee.update({ IDPosisi: emp.ID_POSISI, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
 
@@ -421,6 +422,19 @@ export const updateEmpMass = async(req,res) => {
             await EmpGroup.update({ groupId: emp.ID_GROUP, mod_id: emp.UploadBy }, { where: { Nik: emp.NIK }});
           }
         }
+
+        // check emp siteline
+        const checkEmpSiteline = await modelMasterSiteline.findOne({
+          where: {
+            IDSection: emp.ID_SECTION,
+            IDDept: emp.ID_DEPARTEMEN,
+            IDSubDept: emp.ID_SUBDEPARTEMEN
+          }
+        });
+
+        // update ID Siteline
+        if(checkEmpSiteline && checkEmpSiteline.length>0) await modelSumbiriEmployee.update({ IDSiteline: checkEmpSiteline.IDSiteline, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+
       }
     }
     return res.status(200).json({
