@@ -119,7 +119,7 @@ export async function updateAbsen(req, res) {
 
     if (objEdit.jam_kerja[0].jk_id) {
       
-      const checkValidasi = arrAbs.filte(ab => ab.validasi)
+      const checkValidasi = arrAbs.filter(ab => ab.validasi)
       if(checkValidasi.length > 0){
         return res.status(404).json({message: 'Sudah divalidasi tidak bisa diubah'})
       }
