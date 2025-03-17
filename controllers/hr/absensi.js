@@ -146,6 +146,7 @@ export async function updateAbsen(req, res) {
           scheduleDate_inv: item.scheduleDate,
           calendar: objEdit.calendar || item.calendar,
           mod_id: userId,
+          updatedAt : moment()
         };
         return dataAbs;
       });
@@ -186,6 +187,7 @@ export async function updateAbsen(req, res) {
           "tanggal_in",
           "tanggal_out",
           "mod_id",
+          "updatedAt",
         ],
 
         where: {
