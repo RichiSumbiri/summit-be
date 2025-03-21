@@ -58,6 +58,7 @@ LEFT JOIN sumbiri_employee se4 ON se4.Nik = ssm.spl_hrd
 export const queryLemburanCreated = queryLemburan + `
 WHERE
 ssm.spl_createdby = :userId
+AND ssm.spl_date BETWEEN CURDATE() - INTERVAL 14 DAY AND CURDATE() + INTERVAL 14 DAY
 AND ssm.spl_active = 1
 AND ssm.spl_version = 1
 `;
