@@ -165,7 +165,8 @@ export async function updateAbsen(req, res) {
         
       }
 
-      const withOutValidasi = updateArrAbs.filter(items => items.validasi !== 1)
+      const withOutValidasi = updateArrAbs.filter(items => items.validasi !== 1 && items.scheduleDate_inv !== null)
+      //bypas scheduleDate_inv karena required di individu jadwal
 
       const updateJadwal = await IndividuJadwal.bulkCreate(withOutValidasi, {
         updateOnDuplicate: ["Nik", "scheduleDate_inv", "jk_id", "calendar"],
