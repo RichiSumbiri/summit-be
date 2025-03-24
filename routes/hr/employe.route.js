@@ -65,6 +65,7 @@ import {
   getCutiSummary,
   getMasterAbsentee,
   getMasterCuti,
+  postCutiBersama,
   postCutiNew,
 } from "../../controllers/hr/hrcuti.js";
 import {
@@ -177,6 +178,7 @@ router.get("/cuti-summary", getCutiSummary);
 router.get("/cuti-quota/:empNik", getCutiQuota);
 router.post("/cuti-employee", postCutiNew);
 router.get("/cuti-delete/:cutiid", deleteCuti);
+router.post("/cuti-bersama", postCutiBersama);
 
 
 // lemburan / spl overtime

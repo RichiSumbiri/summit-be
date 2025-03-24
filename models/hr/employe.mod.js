@@ -99,7 +99,13 @@ GROUP BY Nik
 
 export const qryEmployeAll = qryEmploye + `WHERE se.StatusAktif = 0`;
 export const qryEmployeAktif = qryEmploye + `WHERE se.StatusAktif = 0  AND ( se.TanggalKeluar >= NOW() OR se.TanggalKeluar IS NULL ) AND se.TanggalMasuk <= NOW()`;
-
+export const qryEmployeCuti = qryEmploye + `
+WHERE 
+se.StatusAktif = 0 
+AND ( se.TanggalKeluar > :tglCuti  OR se.TanggalKeluar IS NULL ) 
+AND se.TanggalMasuk < :tglCuti  
+AND se.CancelMasuk = 'N'
+ORDER BY se.Nik ASC `;
 
 export const modelMasterDepartment = dbSPL.define('master_department', 
 	{
