@@ -1,19 +1,25 @@
 import { QueryTypes } from "sequelize";
 import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, queryEmpBurekol, queryNewEmpAmipay, sqlFindEmpByNIK, sqlFindEmpByNIKActive, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
-import { dbSPL } from "../../config/dbAudit.js";
+import { dbSPL, redisConn } from "../../config/dbAudit.js";
 import moment from "moment";
 import { EmpGroup, GroupShift } from "../../models/hr/JadwalDanJam.mod.js";
-import db from "../../config/database.js";
 
 
 // get master departement
 export const getDeptAll = async(req,res)=> {
   try {
-    const data = await modelMasterDepartment.findAll();
+    let dataDepartemen;
+    const getDepartemenRedis = await redisConn.get('list-departemen');
+    if(getDepartemenRedis){
+        dataDepartemen = JSON.parse(getDepartemenRedis);
+    } else {
+        const dataDepartemen = await modelMasterDepartment.findAll();
+        redisConn.set('list-departemen', JSON.stringify(dataDepartemen), { EX: 604800 })
+    }
     return res.status(200).json({
       success: true,
       message: "success get master department",
-      data: data,
+      data: dataDepartemen,
     });
   } catch(error){
     res.status(404).json({
@@ -27,11 +33,18 @@ export const getDeptAll = async(req,res)=> {
 // get master subdepartement
 export const getSubDeptAll = async(req,res)=> {
   try {
-    const data = await modelMasterSubDepartment.findAll();
+    let dataSubDepartemen;
+    const getSubDepartemenRedis = await redisConn.get('list-subdepartemen');
+    if(getSubDepartemenRedis){
+        dataSubDepartemen = JSON.parse(getSubDepartemenRedis);
+    } else {
+        const dataSubDepartemen = await modelMasterSubDepartment.findAll();
+        redisConn.set('list-subdepartemen', JSON.stringify(dataSubDepartemen), { EX: 86400 })
+    }
     return res.status(200).json({
       success: true,
       message: "success get master subdepartment",
-      data: data,
+      data: dataSubDepartemen,
     });
   } catch(error){
     res.status(404).json({

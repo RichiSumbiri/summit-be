@@ -1,5 +1,5 @@
 import { QueryTypes, Op, fn, col, Sequelize } from "sequelize";
-import { dbSPL } from "../../config/dbAudit.js";
+import { dbSPL, redisConn } from "../../config/dbAudit.js";
 import { findLamaranByDate, SumbiriPelamar, SumbiriRecruitmentPassKey } from "../../models/hr/recruitment.mod.js";
 // import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
@@ -81,14 +81,21 @@ export const CheckPassKey= async(req,res) => {
 
 export const getMasterProv = async(req,res) => {
     try {
-        const query     = ` SELECT * FROM master_alamat_provinsi `;
-        const result    = await dbSPL.query(query, { type: QueryTypes.SELECT });
+        let dataProv;
+        const getProvRedis = await redisConn.get('listProv');
+        if(getProvRedis){
+            dataProv = JSON.parse(getProvRedis);
+        } else {
+            dataProv = await dbSPL.query("SELECT * FROM master_alamat_provinsi", { type: QueryTypes.SELECT});
+            redisConn.set('listProv', JSON.stringify(dataProv), { EX: 604800 })
+        }
         res.status(200).json({
             success: true,
             message: "success get master provinsi",
-            data: result
+            data: dataProv
         });
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             data: err,

@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 import tedious from "tedious";
 dotenv.config();
 import { Sequelize } from "sequelize";
-const { DB_NAME, HOST, USER, PASS } = process.env;
+import redis from "redis";
+const { DB_NAME, HOST, USER, PASS, REDIS_HOST, REDIS_PASS } = process.env;
 tedious.Connection;
 
 export const dbAudit = new Sequelize("audit_trial", "egi", "Sum54321`", {
@@ -47,4 +48,10 @@ export const dbSlave1 = new Sequelize("db_sumbiri_one", "sumbirispm", "Asd54321`
   dialectOptions: {
     timezone: "local",
   },
+});
+
+
+export const redisConn = redis.createClient({
+  url: 'redis://192.168.1.238:6379',
+  password: REDIS_PASS, 
 });

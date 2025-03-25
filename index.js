@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import db from "./config/database.js";
 import db2 from "./config/database.js";
+import { redisConn } from "./config/dbAudit.js";
 
 dotenv.config();
 import cookieParser from "cookie-parser";
@@ -29,6 +30,8 @@ const runDb = async () => {
     await db.authenticate();
     await db2.authenticate();
     console.log("DB Connected");
+    await redisConn.connect();
+    console.log("Redis Connected");
   } catch (err) {
     console.log("Unable to connect to the database SPM:", err);
   }

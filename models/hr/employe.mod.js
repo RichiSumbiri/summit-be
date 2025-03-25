@@ -205,17 +205,17 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		defaultValue: null,
 	  },
 	  NPWP: {
-		type: DataTypes.STRING(255),
+		type: DataTypes.STRING(50),
 		allowNull: true,
 		defaultValue: '0',
 	  },
 	  BPJSKes: {
-		type: DataTypes.STRING(255),
+		type: DataTypes.STRING(50),
 		allowNull: true,
 		defaultValue: '0',
 	  },
 	  BPJSKet: {
-		type: DataTypes.STRING(255),
+		type: DataTypes.STRING(50),
 		allowNull: true,
 		defaultValue: '0',
 	  },
@@ -389,12 +389,12 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		defaultValue: null,
 	  },
 	  AlamatRT: {
-		type: DataTypes.INTEGER(10),
+		type: DataTypes.INTEGER(3),
 		allowNull: true,
 		defaultValue: null,
 	  },
 	  AlamatRW: {
-		type: DataTypes.INTEGER(10),
+		type: DataTypes.INTEGER(3),
 		allowNull: true,
 		defaultValue: null,
 	  },
