@@ -1,24 +1,30 @@
 import { Op, QueryTypes, Sequelize } from "sequelize";
-import { dbSPL } from "../../config/dbAudit.js";
+import { dbSPL, redisConn } from "../../config/dbAudit.js";
 import { queryGetCutiDate, queryGetQuotaCuti, queryMasterAbsentee, queryMasterCuti, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
 import moment from "moment";
 import { EmpGroup, GroupJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 import { Attandance, MasterAbsentee, qryAbsenIndividu } from "../../models/hr/attandance.mod.js";
 import db from "../../config/database.js";
 import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
-import { modelSumbiriEmployee, qryEmployeCuti } from "../../models/hr/employe.mod.js";
+import { qryEmployeCuti } from "../../models/hr/employe.mod.js";
 
 export const getMasterCuti = async(req,res) => {
     try {
-        const data = await dbSPL.query(queryMasterCuti, { type: QueryTypes.SELECT });
-        if(data){
-            res.status(200).json({
-                success: true,
-                message: "success get master cuti",
-                data: data
-            });
+        let dataAbsentee;
+        const getAbsenteeRedis = await redisConn.get('list-absentee');
+        if(getAbsenteeRedis){
+            dataAbsentee = JSON.parse(getAbsenteeRedis);
+        } else {
+            const dataAbsentee = await dbSPL.query(queryMasterCuti, { type: QueryTypes.SELECT });
+            redisConn.set('list-absentee', JSON.stringify(dataAbsentee), { EX: 86400 })
         }
+        res.status(200).json({
+            success: true,
+            message: "success get master cuti",
+            data: dataAbsentee
+        });
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             data: err,
