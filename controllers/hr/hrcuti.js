@@ -1,4 +1,4 @@
-import { Op, QueryTypes, Sequelize } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import { dbSPL, redisConn } from "../../config/dbAudit.js";
 import { queryGetCutiDate, queryGetQuotaCuti, queryMasterAbsentee, queryMasterCuti, querySummaryCuti, SumbiriCutiMain } from "../../models/hr/cuti.mod.js";
 import moment from "moment";
@@ -345,14 +345,19 @@ export const getCutiQuota = async(req,res) => {
 
 export const getMasterAbsentee = async(req,res) => {
     try {
-        const actionGet = await dbSPL.query(queryMasterAbsentee, { type: QueryTypes.SELECT });
-        if(actionGet){
-            res.status(200).json({
-                success: true,
-                message: `success get master absente`,
-                data: actionGet
-            });
+        let dataAbsentee;
+        const getAbsenteeRedis = await redisConn.get('list-absentee-1');
+        if(getAbsenteeRedis){
+            dataAbsentee = JSON.parse(getAbsenteeRedis);
+        } else {
+            const dataAbsentee = await dbSPL.query(queryMasterAbsentee, { type: QueryTypes.SELECT });
+            redisConn.set('list-absentee-1', JSON.stringify(dataAbsentee), { EX: 86400 })
         }
+        res.status(200).json({
+            success: true,
+            message: `success get master absente`,
+            data: dataAbsentee
+        });
     } catch(err){
         res.status(404).json({
             success: false,

@@ -58,11 +58,18 @@ export const getSubDeptAll = async(req,res)=> {
 // get master position
 export const getPositionAll = async(req,res)=> {
   try {
-    const data = await dbSPL.query('SELECT * FROM master_position', { type: QueryTypes.SELECT });
+    let dataPosisi;
+    const getPosisiRedis = await redisConn.get('list-posisi');
+    if(getPosisiRedis){
+        dataPosisi = JSON.parse(getPosisiRedis);
+    } else {
+        dataPosisi = await dbSPL.query('SELECT * FROM master_position', { type: QueryTypes.SELECT });
+        redisConn.set('list-posisi', JSON.stringify(dataPosisi), { EX: 86400 })
+    }
     return res.status(200).json({
       success: true,
       message: "success get master position",
-      data: data,
+      data: dataPosisi,
     });
   } catch(error){
     res.status(404).json({
@@ -95,11 +102,18 @@ export const getSalaryType = async(req,res)=> {
 // get master section type
 export const getSection = async(req,res)=> {
   try {
-    const data = await dbSPL.query('SELECT * FROM master_section ORDER BY Name', { type: QueryTypes.SELECT });
+    let dataSection;
+    const getSectionRedis = await redisConn.get('list-section');
+    if(getSectionRedis){
+        dataSection = JSON.parse(getSectionRedis);
+    } else {
+        dataSection = await dbSPL.query('SELECT * FROM master_section ORDER BY Name', { type: QueryTypes.SELECT });
+        redisConn.set('list-section', JSON.stringify(dataSection), { EX: 86400 })
+    }
     return res.status(200).json({
       success: true,
       message: "success get master section",
-      data: data,
+      data: dataSection,
     });
   } catch(error){
     res.status(404).json({
