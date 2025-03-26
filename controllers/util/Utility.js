@@ -327,3 +327,8 @@ export const EmpPhotos = multer.diskStorage({
     cb(null, Date.now() + path.extname(file.originalname)); // Use timestamp to avoid filename conflicts
   },
 });
+
+
+export function getUniqueAttribute(arr, attribute) {
+  return [...new Set(arr.map(item => item[attribute]))];
+}

@@ -11,6 +11,8 @@ import {
   getLemburForAbsen,
   karyawanOut,
   karyawanOutSewing,
+  qryBaseMpMonthly,
+  qryCurrentOrPasMp,
   qryDailyAbsensi,
   // qryDtlMpByLinePast,
   qryDtlMpByLineToday,
@@ -19,7 +21,7 @@ import {
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
-import { CheckNilai, ChkNilaFlt, totalCol } from "../util/Utility.js";
+import { CheckNilai, ChkNilaFlt, getUniqueAttribute, totalCol } from "../util/Utility.js";
 import db from "../../config/database.js";
 import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
@@ -210,7 +212,8 @@ export const getDataDashSewMp = async (req, res) => {
   try {
     const { date } = req.params;
 
-    let getAbsen = await dbSPL.query(baseMpSewing, {
+    const qureys = qryCurrentOrPasMp(date) 
+    let getAbsen = await dbSPL.query(qureys, {
       replacements: { date },
       type: QueryTypes.SELECT,
       // logging: console.log
@@ -271,6 +274,7 @@ export const getDataDashSewMp = async (req, res) => {
       ChkNilaFlt(ttlEmpOut / (getAbsen.length + ttlEmpOut)) * 100;
 
     const dataEmpPerSec = getDataPerSection(getAbsen);
+    
     const dataChartDept = dataChartSection(dataEmpPerSec, date);
     const dataTtlHcVsAbs = getTotalCountAndVariance(dataEmpPerSec);
     // const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
@@ -468,4 +472,167 @@ function findQuery(cusName, date, line){
     return query
   } 
 
+}
+
+
+
+//dashboard hr monthly
+export const getBaseSewMpMonthly = async(req, res) => {
+  try {
+    const {monthYear} = req.params
+
+    const startDate   = moment(monthYear, 'YYYY-MM')
+      .startOf("month")
+      .format('YYYY-MM-DD')
+    const endDate     = moment(monthYear, 'YYYY-MM')
+      .endOf("month")
+      .format('YYYY-MM-DD')
+
+      const baseMpAll     = await dbSPL.query(qryBaseMpMonthly, {
+        replacements: { startDate, endDate },
+        type: QueryTypes.SELECT,
+      });
+
+      //ALL emp
+      const endDateAll = findEndDate(baseMpAll, endDate)
+
+      const filEmpAllStart  = baseMpAll.filter(rcp => rcp.tgl_recap === startDate)
+      const filEmpAllEnd    = baseMpAll.filter(rcp => rcp.tgl_recap === endDateAll)
+      const totalAllStart   = totalCol(filEmpAllStart, 'emp_total')
+      const totalAllEnd     = totalCol(filEmpAllEnd, 'emp_total')
+      const avgEmpAll       = (totalAllStart+totalAllEnd)/2
+
+      //sewing
+      const baseMpSewingMonth = baseMpAll.filter(rcp => rcp.IDDepartemen === 100103 && rcp.IDPosisi === 6)
+
+      const endDateLto      = findEndDate(baseMpSewingMonth, endDate)
+      const filterEmpStart  = baseMpSewingMonth.filter(emp => emp.tgl_recap === startDate)
+      const filterEmpEnd    = baseMpSewingMonth.filter(emp => emp.tgl_recap === endDateLto)
+      const totalEmpStart   = totalCol(filterEmpStart, 'emp_total')
+      const totalEmpEnd     = totalCol(filterEmpEnd, 'emp_total')
+      const avgEmp          = (totalEmpStart+totalEmpEnd)/2
+
+
+      // const getTglFromResul = getUniqueAttribute(baseMpSewingMonth, 'tgl_recap')
+      const getSiteList = getUniqueAttribute(baseMpSewingMonth, 'CUS_NAME')
+      
+      // data card month 
+      const totalEmp    = totalAllEnd
+      const totalEmpIn  = totalCol(baseMpSewingMonth, 'emp_in')
+      const totalEmpout = totalCol(baseMpSewingMonth, 'emp_out')
+      const ltoMonth    = totalEmpout > 0 ? ChkNilaFlt(totalEmpout / (totalEmpEnd + totalEmpout)) * 100 : 0;
+
+      //betulkan ini karena retun object
+      const dataGroupTglSection = groupAndSumByDateAndSection(baseMpSewingMonth)//ini menjumlahkan selama satu bulan
+      
+      //lalu cari lto per tanggal per section
+      const addLtoPerDate = dataGroupTglSection.map(items => {
+        let tlo =  items.emp_out > 0 ? ChkNilaFlt(items.emp_out / (items.emp_total + items.emp_out)) * 100 : 0; 
+        return {...items, tlo}
+      })
+
+      //lanjut cari avg emp per section berdasarkan start date dan end date
+      const dataPerSec = getSiteList.map(csName => {
+        const filterBysection = dataGroupTglSection.filter(tems => tems.CUS_NAME === csName)
+        
+        let endDateSec      = findEndDate(filterBysection, endDate)
+        
+        const findStartSec  = filterBysection.filter(item => item.tgl_recap === startDate)
+        const findEndSec    = filterBysection.filter(item => item.tgl_recap === endDateSec)
+        const secEmpStart   = totalCol(findStartSec, 'emp_total')
+        const secEmpEnd     = totalCol(findEndSec, 'emp_total')
+        const secEmpIn      = totalCol(filterBysection, 'emp_in')
+        const secEmpout     = totalCol(filterBysection, 'emp_out')
+        const avgEmpSec     = secEmpStart+secEmpEnd/2
+        const secLto        =  secEmpout > 0 ? ChkNilaFlt(secEmpout / (secEmpEnd+secEmpout)) * 100 : 0;
+
+      return {
+        CUS_NAME    : csName, 
+        IDSection   : filterBysection[0].IDSection,
+        SITE_NAME   :  filterBysection[0].SITE_NAME,
+        secEmpStart,
+        secEmpEnd,
+        secEmpout,
+        secEmpIn,
+        avgEmpSec,
+        secLto,}
+      })
+const dataMonth = {
+  dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
+  dataPerSec     : dataPerSec,
+  dataSecPerDate : dataGroupTglSection
+}
+
+res.json({data : dataMonth, message : 'success get data month'})
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({
+        error,
+        message: "Terdapat error saat get data emp detail by line",
+      });
+  }
+}
+
+function groupAndSumByDateAndSection(arr) {  
+  const result = arr.reduce((acc, item) => {
+    // Key berdasarkan tgl_recap dan section
+    const key = `${item.tgl_recap}-${item.IDSection}`;
+    
+    // Jika key belum ada di accumulator, buat objek baru
+    if (!acc[key]) {
+      acc[key] = {
+        tgl_recap: item.tgl_recap,
+        IDSection: item.IDSection,
+        emp_total: 0,
+        emp_absen: 0,
+        emp_female: 0,
+        emp_male: 0,
+        emp_in: 0,
+        emp_out: 0,
+        emp_present: 0,
+        SITE_NAME: item.SITE_NAME,
+        CUS_NAME: item.CUS_NAME,
+        LINE_NAME: item.LINE_NAME
+      };
+    }
+    
+    // Menambahkan nilai ke dalam akumulator
+    acc[key].emp_total += item.emp_total;
+    acc[key].emp_in += item.emp_in;
+    acc[key].emp_out += item.emp_out;
+    acc[key].emp_absen += item.emp_absen;
+    acc[key].emp_present += item.emp_present;
+    acc[key].emp_male += item.emp_male;
+    acc[key].emp_female += item.emp_female;
+
+    return acc;
+  }, {})
+
+  const resultAndLto = Object.values(result).map(item => ({...item, lto: item.emp_out ? (item.emp_out/(item.emp_out+item.emp_total))*100 : 0}))
+  return resultAndLto;
+}
+
+function findEndDate(data, maxdate) {
+  // Tentukan tanggal batas yang diinginkan (21 Maret)
+  const targetDate = moment(maxdate);
+
+  // Filter data yang memiliki tgl_recap lebih kecil atau sama dengan 21 Maret
+  const filteredData = data.filter(item => moment(item.tgl_recap).isSameOrBefore(targetDate, 'day'));
+
+  // Jika ada tanggal yang lebih kecil atau sama dengan 21 Maret, cari tanggal terakhir
+  if (filteredData.length > 0) {
+    // Menggunakan moment untuk mendapatkan tanggal terbaru dari yang sudah difilter
+    const latestDate = filteredData.reduce((latest, item) => {
+      const currentDate = moment(item.tgl_recap);
+      return currentDate.isAfter(latest) ? currentDate : latest;
+    }, moment(0));  // Inisialisasi dengan tanggal paling awal (epoch)
+
+    // Kembalikan tanggal dalam format YYYY-MM-DD
+    return latestDate.format('YYYY-MM-DD');
+  }
+
+  return null; // Jika tidak ada tanggal yang lebih kecil atau sama dengan 21 Maret
 }

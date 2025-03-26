@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
 import db from "../../config/database.js";
+import moment from "moment";
 
 export const LogAttandance = dbSPL.define(
   "sumbiri_log_attd",
@@ -508,8 +509,17 @@ LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_siteline mst ON mst.IDSiteline = ba.IDSiteline
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
-WHERE mjk.jk_in < CURTIME()
 `;
+
+export const qryCurrentOrPasMp = (date) => {
+  const currentDate = moment().format('YYYY-MM-DD')
+
+  if(currentDate === date){
+    return baseMpSewing + ` WHERE mjk.jk_in < CURTIME() OR mjk.jk_in IS NULL`
+  }else{
+    return baseMpSewing
+  }
+}
 
 export const karyawanOutSewing = `SELECT 
     se.IDSection, ms.SiteName, ms.CusName,
@@ -1429,3 +1439,30 @@ export const logSystemAbsPayroll = dbSPL.define(
     timestamps: false,
   }
 );
+
+
+export const qryBaseMpMonthly = `		SELECT 
+		smr.tgl_recap,
+		smr.IDDepartemen,
+		smr.IDSection,
+		smr.IDSubDepartemen,
+    smr.IDPosisi,
+		smr.emp_total,
+		smr.emp_absen,
+		smr.emp_female,
+		smr.emp_male,
+		smr.emp_in,
+		smr.emp_out,
+		smr.emp_present,
+		ms.SITE_NAME,
+		ms.CUS_NAME,
+		sub.Name As LINE_NAME
+	FROM sumbiri_mp_recap smr  
+	LEFT JOIN master_sites ms ON ms.IDSection = smr.IDSection
+	LEFT JOIN master_subdepartment sub ON sub.IDSubDept = smr.IDSubDepartemen
+-- 	LEFT JOIN master_siteline ms 
+-- 		ON ms.IDSection = smr.IDSection 
+-- 		AND smr.IDSubDepartemen = ms.IDSubDept
+-- 		AND smr.IDDepartemen = ms.IDDept 
+WHERE -- smr.IDDepartemen = '100103' AND 
+smr.tgl_recap BETWEEN :startDate AND :endDate `
