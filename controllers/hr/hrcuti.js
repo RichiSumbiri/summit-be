@@ -15,7 +15,7 @@ export const getMasterCuti = async(req,res) => {
         if(getAbsenteeRedis){
             dataAbsentee = JSON.parse(getAbsenteeRedis);
         } else {
-            const dataAbsentee = await dbSPL.query(queryMasterCuti, { type: QueryTypes.SELECT });
+            dataAbsentee = await dbSPL.query(queryMasterCuti, { type: QueryTypes.SELECT });
             redisConn.set('list-absentee', JSON.stringify(dataAbsentee), { EX: 86400 })
         }
         res.status(200).json({
@@ -350,7 +350,7 @@ export const getMasterAbsentee = async(req,res) => {
         if(getAbsenteeRedis){
             dataAbsentee = JSON.parse(getAbsenteeRedis);
         } else {
-            const dataAbsentee = await dbSPL.query(queryMasterAbsentee, { type: QueryTypes.SELECT });
+            dataAbsentee = await dbSPL.query(queryMasterAbsentee, { type: QueryTypes.SELECT });
             redisConn.set('list-absentee-1', JSON.stringify(dataAbsentee), { EX: 86400 })
         }
         res.status(200).json({

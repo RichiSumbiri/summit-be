@@ -13,7 +13,7 @@ export const getDeptAll = async(req,res)=> {
     if(getDepartemenRedis){
         dataDepartemen = JSON.parse(getDepartemenRedis);
     } else {
-        const dataDepartemen = await modelMasterDepartment.findAll();
+        dataDepartemen = await modelMasterDepartment.findAll();
         redisConn.set('list-departemen', JSON.stringify(dataDepartemen), { EX: 604800 })
     }
     return res.status(200).json({
@@ -38,7 +38,7 @@ export const getSubDeptAll = async(req,res)=> {
     if(getSubDepartemenRedis){
         dataSubDepartemen = JSON.parse(getSubDepartemenRedis);
     } else {
-        const dataSubDepartemen = await modelMasterSubDepartment.findAll();
+        dataSubDepartemen = await modelMasterSubDepartment.findAll();
         redisConn.set('list-subdepartemen', JSON.stringify(dataSubDepartemen), { EX: 86400 })
     }
     return res.status(200).json({
