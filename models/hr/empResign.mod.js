@@ -42,7 +42,7 @@ LEFT JOIN master_department md ON
 LEFT JOIN master_position mp ON
 	mp.IDPosition = se.IDPosisi
 WHERE
-	DATE(spk.CreateDate) BETWEEN :startDate AND :endDate
+	DATE(se.TanggalKeluar) BETWEEN :startDate AND :endDate
 ORDER BY
 	spk.CreateDate DESC
 `;
