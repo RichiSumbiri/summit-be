@@ -20,7 +20,12 @@ export const uploadPhotosEmp = async(req, res) => {
         return res.status(500).send("Error saving file");
       }
     
-      const updatePhotoDB = modelSumbiriEmployee.update({ Photos: fileName, UpdateBy: UpdateBy }, {
+      const updatePhotoDB = modelSumbiriEmployee.update(
+        { 
+          Photos: fileName, 
+          UpdateBy: UpdateBy,
+          UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')  
+        }, {
             where: {
               Nik: nikEmp 
           }

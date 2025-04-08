@@ -410,7 +410,16 @@ export const updateEmpMass = async(req,res) => {
             IdDept: emp.ID_DEPARTEMEN 
           }, raw: true }
         );
-        if(checkDept && checkDept.length>0) await modelSumbiriEmployee.update({ IDDepartemen: emp.ID_DEPARTEMEN, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+        if(checkDept && checkDept.length>0) await modelSumbiriEmployee.update(
+          { 
+            IDDepartemen: emp.ID_DEPARTEMEN, 
+            UpdateBy: emp.UploadBy,
+            UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss') 
+          }, { 
+            where: { 
+              Nik: emp.NIK 
+            }
+          });
 
         // check subdepartemen & update
         const checkSubDept = await modelMasterSubDepartment.findAll({ 
@@ -419,7 +428,17 @@ export const updateEmpMass = async(req,res) => {
             IDSubDept: emp.ID_SUBDEPARTEMEN 
           }, raw: true 
         });
-        if(checkSubDept && checkSubDept.length>0) await modelSumbiriEmployee.update({ IDSubDepartemen: emp.ID_SUBDEPARTEMEN, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+
+        if(checkSubDept && checkSubDept.length>0) await modelSumbiriEmployee.update(
+          { 
+            IDSubDepartemen: emp.ID_SUBDEPARTEMEN, 
+            UpdateBy: emp.UploadBy,
+            UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss') 
+          }, { 
+            where: { 
+              Nik: emp.NIK 
+            }
+          });
 
         // check section & update
         const checkSection = await dbSPL.query(`SELECT * FROM master_section WHERE IDSection = :idSection`,{
@@ -427,7 +446,16 @@ export const updateEmpMass = async(req,res) => {
             idSection:emp.ID_SECTION
           }, type: QueryTypes.SELECT
         });
-        if(checkSection && checkSection.length>0) await modelSumbiriEmployee.update({ IDSection: emp.ID_SECTION, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+        if(checkSection && checkSection.length>0) await modelSumbiriEmployee.update(
+          { 
+            IDSection: emp.ID_SECTION, 
+            UpdateBy: emp.UploadBy,
+            UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss') 
+          }, { 
+            where: { 
+              Nik: emp.NIK 
+            }
+          });
 
         // check position
         const checkPosition = await dbSPL.query(`SELECT * FROM master_position WHERE IDPosition = :idPosition`,{
@@ -437,7 +465,16 @@ export const updateEmpMass = async(req,res) => {
         });
         
         //update position
-        if(checkPosition && checkPosition.length>0) await modelSumbiriEmployee.update({ IDPosisi: emp.ID_POSISI, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+        if(checkPosition && checkPosition.length>0) await modelSumbiriEmployee.update(
+          { 
+            IDPosisi: emp.ID_POSISI, 
+            UpdateBy: emp.UploadBy,
+            UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss') 
+          }, { 
+            where: { 
+              Nik: emp.NIK 
+            }
+          });
 
         // check emp group & update
         const checkGroup    = await GroupShift.findAll({ where: { groupId: emp.ID_GROUP }});
@@ -460,7 +497,16 @@ export const updateEmpMass = async(req,res) => {
         });
 
         // update ID Siteline
-        if(checkEmpSiteline && checkEmpSiteline.length>0) await modelSumbiriEmployee.update({ IDSiteline: checkEmpSiteline.IDSiteline, UpdateBy: emp.UploadBy }, { where: { Nik: emp.NIK }});
+        if(checkEmpSiteline && checkEmpSiteline.length>0) await modelSumbiriEmployee.update(
+          { 
+            IDSiteline: checkEmpSiteline.IDSiteline, 
+            UpdateBy: emp.UploadBy,
+            UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss') 
+          }, { 
+            where: { 
+              Nik: emp.NIK 
+            }
+          });
 
       }
     }

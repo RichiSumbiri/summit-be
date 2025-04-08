@@ -116,7 +116,9 @@ export const newKarTap = async(req,res) => {
 
         if(postSPKT){
             const updateEmp = await modelSumbiriEmployee.update({
-                StatusKaryawan: 'TETAP'
+                StatusKaryawan: 'TETAP',
+                UpdateBy: dataSPKT.CreateBy,
+                UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
                 where: {
                     Nik: parseInt(dataSPKT.Nik)

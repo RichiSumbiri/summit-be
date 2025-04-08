@@ -51,7 +51,9 @@ export const postNewEmpResignSPK = async(req,res) => {
             });
             if(putSPK){
                 const updateEmp = await modelSumbiriEmployee.update({
-                    TanggalKeluar: dataEmpResign.TanggalKeluar
+                    TanggalKeluar: dataEmpResign.TanggalKeluar,
+                    UpdateBy: dataEmpResign.UpdateBy,
+                    UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')
                 }, {
                     where: {
                         Nik: parseInt(dataEmpResign.Nik)
@@ -101,7 +103,9 @@ export const postNewEmpResignSPK = async(req,res) => {
     
             if(postNewSPK){
                 const updateEmp = await modelSumbiriEmployee.update({
-                    TanggalKeluar: dataEmpResign.TanggalKeluar
+                    TanggalKeluar: dataEmpResign.TanggalKeluar,
+                    UpdateBy: dataEmpResign.CreateBy,
+                    UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')
                 }, {
                     where: {
                         Nik: parseInt(dataEmpResign.Nik)

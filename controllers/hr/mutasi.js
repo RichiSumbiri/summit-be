@@ -90,7 +90,9 @@ export const newMutasi = async(req,res) => {
                 IDSubDepartemen: dataMutasi.ID_Destination_SubDept,
                 IDPosisi: dataMutasi.ID_Destination_Position,
                 IDSection: dataMutasi.Destination_Section,
-                IDSiteline: EmpIDSiteline
+                IDSiteline: EmpIDSiteline,
+                UpdateBy: dataMutasi.CreateBy,
+                UpdateDate: moment().format('YYYY-MM-DD hh:mm:ss')
             }, {
                 where: {
                     Nik: parseInt(dataMutasi.NIK)
@@ -180,7 +182,9 @@ export const newMutasiMass = async(req,res) => {
                 IDSubDepartemen: dataMutasi.destination_subdept ? dataMutasi.destination_subdept : row.IDSubDepartemen,
                 IDPosisi: dataMutasi.destination_position ? dataMutasi.destination_position : row.IDPosisi,
                 IDSection: dataMutasi.destination_section ? dataMutasi.destination_section : row.IDSection,
-                IDSiteline: EmpIDSiteline ? EmpIDSiteline : row.IDSiteline
+                IDSiteline: EmpIDSiteline ? EmpIDSiteline : row.IDSiteline,
+                UpdateBy: dataMutasi.CreateBy,
+                UpdateDate: moment().format('YYYY-MM-DD hh:mm:ss')
             }, {
                 where: {
                     Nik: parseInt(row.Nik)
@@ -229,7 +233,9 @@ export const updateMutasi = async(req,res) => {
                 IDDepartemen: dataMutasi.ID_Destination_Dept,
                 IDSubDepartemen: dataMutasi.ID_Destination_SubDept,
                 IDPosisi: dataMutasi.ID_Destination_Position,
-                IDSection: dataMutasi.Destination_Section
+                IDSection: dataMutasi.Destination_Section,
+                UpdateBy: dataMutasi.UpdateBy,
+                UpdateDate: moment().format('YYYY-MM-DD hh:mm:ss')
             }, {
                 where: {
                     Nik: parseInt(dataMutasi.NIK)

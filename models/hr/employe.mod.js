@@ -422,6 +422,11 @@ export const modelSumbiriEmployee = dbSPL.define('sumbiri_employee', {
 		allowNull: true,
 		defaultValue: null,
 	  },
+	  UpdateBy: {
+		type: DataTypes.STRING(100),
+		allowNull: true,
+		defaultValue: null,
+	  },
 	  UpdateDate: {
 		type: DataTypes.DATE,
 		allowNull: true,
