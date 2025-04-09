@@ -18,10 +18,11 @@ import {
   qryDtlMpByLineToday,
   qryGetEmpInExpand,
   qryGetEmpOutExpand,
+  qryGetEmpSewAllExpand,
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
-import { CheckNilai, ChkNilaFlt, getUniqueAttribute, totalCol } from "../util/Utility.js";
+import { CheckNilai, ChkNilaFlt, getRangeDate, getUniqueAttribute, totalCol } from "../util/Utility.js";
 import db from "../../config/database.js";
 import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
 
@@ -403,18 +404,21 @@ export const getExpandEmpIn = async (req, res) => {
     if (type === "empOut") {
       query = qryGetEmpOutExpand;
     }
+    if (type === "empAll") {
+      query = qryGetEmpSewAllExpand;
+    }
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date },
       type: QueryTypes.SELECT,
     });
 
-    res.json({ data: dataEmpIn, message: "success get data emp in" });
+    res.json({ data: dataEmpIn, message: `success get data ${type}` });
   } catch (error) {
     console.log(error);
 
     res
       .status(500)
-      .json({ error, message: "Terdapat error saat get data emp in" });
+      .json({ error, message: `Terdapat error saat get data ${type}` });
   }
 };
 
@@ -557,10 +561,24 @@ export const getBaseSewMpMonthly = async(req, res) => {
         avgEmpSec,
         secLto,}
       })
+
+    const objDateMoment = {
+      start: startDate,
+      end: endDate,
+    };
+
+    const rangeDate = getRangeDate(objDateMoment);
+// console.log('mampu sampai sini');
+
+
+
+  const sumOfDate = sumEmpByDate(baseMpAll, rangeDate)
+    
 const dataMonth = {
   dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
   dataPerSec     : dataPerSec,
-  dataSecPerDate : dataGroupTglSection
+  dataSecPerDate : dataGroupTglSection,
+  sumOfDate      : sumOfDate
 }
 
 res.json({data : dataMonth, message : 'success get data month'})
@@ -635,4 +653,21 @@ function findEndDate(data, maxdate) {
   }
 
   return null; // Jika tidak ada tanggal yang lebih kecil atau sama dengan 21 Maret
+}
+
+function sumEmpByDate(data, rangeDates) {
+  
+  return rangeDates.map(date => {
+      const summary = data.reduce((acc, item) => {
+          if (item.tgl_recap === date) {
+              acc.emp_in += item.emp_in || 0;
+              acc.emp_out += item.emp_out || 0;
+              acc.emp_total += item.emp_total || 0;
+          }
+          return acc;
+      }, { emp_in: 0, emp_out: 0, emp_total: 0 });
+      const dateLto  =  summary.emp_out > 0 ? ChkNilaFlt(summary.emp_out / (summary.emp_total+summary.emp_out)) * 100 : 0;
+
+      return { tanggal: date, dateLto, ...summary };
+  });
 }
