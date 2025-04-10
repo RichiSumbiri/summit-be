@@ -1486,7 +1486,7 @@ SELECT
 	CAST(DATE_FORMAT(sa.tanggal_in, '%Y%m%d') AS UNSIGNED INTEGER) AS ProDay,
 	0 AS InMC,
     0 AS OutMC,
-    0 AS DailyCalculation,
+    1 AS DailyCalculation,
     ma.code_amano AS AbsenCode
 FROM
 	sumbiri_absens sa
