@@ -19,6 +19,7 @@ import {
   SumbiriAbsensSum,
   qrygetSumAbsen,
   logSystemAbsPayroll,
+  queryExportAbsenAmano,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { GroupJadwal, IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -1265,3 +1266,29 @@ export const validasiAbsensi = async (req, res) => {
       .json({ message: "Terjadi kesalahan saat validasi abasensi" });
   }
 };
+
+
+export const getAbsenAmano = async(req,res) => {
+  try {
+    console.log(req.params);
+    const data = await dbSPL.query(queryExportAbsenAmano, {
+      replacements: {
+        startDate: req.params.startDate,
+        endDate: req.params.endDate,
+      }, type: QueryTypes.SELECT
+    });
+    if(data && data.length > 0){
+      return res.status(200).json({
+        success: true,
+        message: "success get amano absen data",
+        data: data,
+      });
+    }
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      data: err,
+      message: "error get absen amano",
+    });
+  }
+}

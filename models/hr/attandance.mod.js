@@ -1476,4 +1476,21 @@ export const qryBaseMpMonthly = `		SELECT
 -- 		AND smr.IDSubDepartemen = ms.IDSubDept
 -- 		AND smr.IDDepartemen = ms.IDDept 
 WHERE -- smr.IDDepartemen = '100103' AND 
-smr.tgl_recap BETWEEN :startDate AND :endDate `
+smr.tgl_recap BETWEEN :startDate AND :endDate `;
+
+
+
+export const queryExportAbsenAmano = `
+SELECT
+	LPAD(sa.Nik, 10, '0') AS EmpCode,
+	CAST(DATE_FORMAT(sa.tanggal_in, '%Y%m%d') AS UNSIGNED INTEGER) AS ProDay,
+	0 AS InMC,
+    0 AS OutMC,
+    0 AS DailyCalculation,
+    ma.code_amano AS AbsenCode
+FROM
+	sumbiri_absens sa
+LEFT JOIN master_absentee ma ON ma.code_absen = sa.keterangan
+WHERE sa.keterangan IS NOT NULL AND sa.keterangan !='H'
+AND sa.tanggal_in BETWEEN :startDate AND :endDate
+`;
