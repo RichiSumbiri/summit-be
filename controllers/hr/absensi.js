@@ -1270,7 +1270,6 @@ export const validasiAbsensi = async (req, res) => {
 
 export const getAbsenAmano = async(req,res) => {
   try {
-    console.log(req.params);
     const data = await dbSPL.query(queryExportAbsenAmano, {
       replacements: {
         startDate: req.params.startDate,
