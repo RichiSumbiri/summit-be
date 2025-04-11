@@ -518,6 +518,7 @@ export const getBaseSewMpMonthly = async(req, res) => {
         type: QueryTypes.SELECT,
       });
 
+  
       //ALL emp
       const endDateAll = findEndDate(baseMpAll, endDate)
 
@@ -528,7 +529,11 @@ export const getBaseSewMpMonthly = async(req, res) => {
       const avgEmpAll       = (totalAllStart+totalAllEnd)/2
 
       //sewing
-      const baseMpSewingMonth = baseMpAll.filter(rcp => rcp.IDDepartemen === 100103 && rcp.IDPosisi === 6)
+      const baseMpSewingMonth = baseMpAll.filter(rcp => rcp.IDDepartemen === 100103 && rcp.IDPosisi === 6)?.filter(
+        (dt) =>
+          !arrHoliday.includes(dt.tgl_recap) &&
+          !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
+      ); 
 
       const endDateLto      = findEndDate(baseMpSewingMonth, endDate)
       const filterEmpStart  = baseMpSewingMonth.filter(emp => emp.tgl_recap === startDate)
