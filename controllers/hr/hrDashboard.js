@@ -25,6 +25,7 @@ import moment from "moment";
 import { CheckNilai, ChkNilaFlt, getRangeDate, getUniqueAttribute, totalCol } from "../util/Utility.js";
 import db from "../../config/database.js";
 import { modelSumbiriEmployee } from "../../models/hr/employe.mod.js";
+import { QueryGetHoliday } from "../../models/setup/holidays.mod.js";
 
 export const getDailyHrDash = async (req, res) => {
   try {
@@ -492,6 +493,26 @@ export const getBaseSewMpMonthly = async(req, res) => {
       .endOf("month")
       .format('YYYY-MM-DD')
 
+
+    const years     = moment(monthYear, 'YYYY-MM')
+      .endOf("month")
+      .format('YYYY')
+
+    const listHoliday = await db.query(QueryGetHoliday, {
+      replacements: {
+        startYear:years,
+        endYear: years
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    //untuk bypass sabtu dan minggu
+    const dayWeekEnd = ["Sunday"];
+
+       //masukan array holiday
+    const arrHoliday = listHoliday.map((item) => item.calendar_date);
+
+
       const baseMpAll     = await dbSPL.query(qryBaseMpMonthly, {
         replacements: { startDate, endDate },
         type: QueryTypes.SELECT,
@@ -570,18 +591,23 @@ export const getBaseSewMpMonthly = async(req, res) => {
     const rangeDate = getRangeDate(objDateMoment);
 // console.log('mampu sampai sini');
 
+      //hapus weekend dan holiday
+      const dateOutHol = rangeDate.filter(
+        (dt) =>
+          !arrHoliday.includes(dt) &&
+          !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
+      );
 
-
-  const sumOfDate = sumEmpByDate(baseMpAll, rangeDate)
+  const sumOfDate = sumEmpByDate(baseMpSewingMonth, dateOutHol)
     
-const dataMonth = {
-  dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
-  dataPerSec     : dataPerSec,
-  dataSecPerDate : dataGroupTglSection,
-  sumOfDate      : sumOfDate
-}
+  const dataMonth = {
+    dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
+    dataPerSec     : dataPerSec,
+    dataSecPerDate : dataGroupTglSection,
+    sumOfDate      : sumOfDate
+  }
 
-res.json({data : dataMonth, message : 'success get data month'})
+  res.json({data : dataMonth, message : 'success get data month'})
   } catch (error) {
     console.log(error);
 
@@ -663,9 +689,11 @@ function sumEmpByDate(data, rangeDates) {
               acc.emp_in += item.emp_in || 0;
               acc.emp_out += item.emp_out || 0;
               acc.emp_total += item.emp_total || 0;
+              acc.emp_present += item.emp_present || 0;
+              acc.emp_absen += item.emp_absen || 0;
           }
           return acc;
-      }, { emp_in: 0, emp_out: 0, emp_total: 0 });
+      }, { emp_in: 0, emp_out: 0, emp_total: 0 , emp_present: 0, emp_absen : 0});
       const dateLto  =  summary.emp_out > 0 ? ChkNilaFlt(summary.emp_out / (summary.emp_total+summary.emp_out)) * 100 : 0;
 
       return { tanggal: date, dateLto, ...summary };
