@@ -87,3 +87,30 @@ export const sumbiriSPK = dbSPL.define('sumbiri_spk', {
 	charset: 'utf8mb4',
 	collate: 'utf8mb4_general_ci',
   });
+
+
+
+export const queryEmpResignExportAmano = `
+ SELECT
+	LPAD(spk.Nik, 10, '0') AS EmpCode,
+	CAST(DATE_FORMAT(se.TanggalKeluar, '%Y%m%d') AS UNSIGNED INTEGER) AS RetireDay,
+	spk.FlagReason,
+	spk.Remark,
+	CASE spk.Remark
+    	WHEN 'PINDAH DOMISILI / PERUSAHAAN' THEN '1'
+    	WHEN 'MELANJUTKAN SEKOLAH' THEN '2'
+    	WHEN 'TANGGUNGJAWAB MENGURUS KELUARGA' THEN '3'
+    	WHEN 'PENSIUN' THEN '4'
+    	WHEN 'KESEHATAN' THEN '5'
+    	WHEN 'ALFA 5 HARI' THEN '6'
+    	WHEN 'PUTUS KONTRAK' THEN '7'
+	END AS ReasonCode
+FROM
+	sumbiri_spk spk
+LEFT JOIN sumbiri_employee se ON
+	se.Nik = spk.Nik
+WHERE
+	DATE(se.TanggalKeluar) BETWEEN :startDate AND :endDate
+ORDER BY
+	spk.CreateDate DESC 
+  `;
