@@ -133,18 +133,42 @@ export const postNewEmpResignSPK = async(req,res) => {
 
 export const deleteEmpResignSPK = async(req,res) => {
     try {
-        const idSPK         = decodeURIComponent(req.params.idSPK);
-        const actionHapus   = await sumbiriSPK.destroy({
+        const idSPK             = decodeURIComponent(req.params.idSPK);
+        const getExistingData   = await sumbiriSPK.findOne({
             where: {
                 id_spk: idSPK
             }
         });
-        if(actionHapus){
-            return res.status(200).json({
-                success: true,
-                message: `success delete emp resign SPK`
+        if(getExistingData.length!==0){
+            // remove tanggal keluar di employee
+            const updateEmp = await modelSumbiriEmployee.update({
+                TanggalKeluar: null,
+                UpdateBy: getExistingData.UpdateBy,
+                UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    Nik: parseInt(getExistingData.Nik)
+                }
             });
-        }
+            if(updateEmp){
+                const actionHapus   = await sumbiriSPK.destroy({
+                    where: {
+                        id_spk: idSPK
+                    }
+                });
+                if(actionHapus){
+                    return res.status(200).json({
+                        success: true,
+                        message: `success delete emp resign SPK`
+                    });
+                }
+            } else {
+                return res.status(404).json({
+                    success: false,
+                    message: "fail update employee"
+                });
+            }
+        } 
     } catch(err){
         return res.status(404).json({
             success: false,
