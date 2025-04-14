@@ -483,23 +483,25 @@ export const postCutiBersama = async(req,res) => {
                                 }
                             } else {
                                 // jika karyawan ada jadwal kerja
-                                const existingAttendance = await Attandance.findOne({
-                                    where: {
-                                        Nik: emp.Nik,
-                                        tanggal_in: dataCutiBersama.cuti_date,
-                                        keterangan: 'CH'
-                                    }
-                                });
-                                if(existingAttendance===null){
-                                    await Attandance.create({
-                                        Nik: emp.Nik,
-                                        groupId: checkFromJadwal.groupId,
-                                        jk_id: checkFromJadwal.jk_id,
-                                        tanggal_in: dataCutiBersama.cuti_date,
-                                        keterangan: 'CT',
-                                        ket_in: 'CUTI TAHUNAN',
-                                        validasi: 0
+                                if(checkFromJadwal[0].calendar==="WD"){
+                                    const existingAttendance = await Attandance.findOne({
+                                        where: {
+                                            Nik: emp.Nik,
+                                            tanggal_in: dataCutiBersama.cuti_date,
+                                            keterangan: 'CH'
+                                        }
                                     });
+                                    if(existingAttendance===null){
+                                        await Attandance.create({
+                                            Nik: emp.Nik,
+                                            groupId: checkFromJadwal.groupId,
+                                            jk_id: checkFromJadwal.jk_id,
+                                            tanggal_in: dataCutiBersama.cuti_date,
+                                            keterangan: 'CT',
+                                            ket_in: 'CUTI TAHUNAN',
+                                            validasi: 0
+                                        });
+                                    }
                                 }               
                             }
                     }
