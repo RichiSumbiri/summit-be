@@ -354,7 +354,7 @@ export const punchAttdLog2 = async (req, res) => {
          
             //jika hasil cari melebihi 2 maka filter berdasarkan jamnya 
             //checek apakah out time ada dalam range
-            const findSch = filterSch.length > 2 ? filterSch.find((items) => {
+            const findSch = filterSch.length > 1 ? filterSch.find((items) => {
               const scanStart = moment(`${items.scheduleDate} ${items.jk_in}`, "YYYY-MM-DD HH:mm:ss");
               const scanEnd = moment(`${items.scanOutDate} ${items.jk_scan_out_end}`, "YYYY-MM-DD HH:mm:ss");
   
