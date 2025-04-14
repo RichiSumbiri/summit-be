@@ -866,6 +866,8 @@ export const qryAbsenIndividu = `SELECT
   sa.keterangan,
   sa.scan_in,
   sa.scan_out,
+  sa.ket_in,
+  sa.ket_out,
   sa.id,
   sa.ot,
   sa.validasi,
