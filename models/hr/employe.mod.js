@@ -98,7 +98,7 @@ GROUP BY Nik
 `;
 
 export const qryEmployeAll = qryEmploye + `WHERE se.StatusAktif = 0`;
-export const qryEmployeAktif = qryEmploye + `WHERE se.StatusAktif = 0  AND ( se.TanggalKeluar >= CURDATE() OR se.TanggalKeluar IS NULL ) AND se.TanggalMasuk <= CURDATE()`;
+export const qryEmployeAktif = qryEmploye + `WHERE se.StatusAktif = 0  AND ( se.TanggalKeluar >= CURDATE() OR se.TanggalKeluar IS NULL ) AND se.TanggalMasuk <= CURDATE() AND se.CancelMasuk='N'`;
 export const qryEmployeCuti = qryEmploye + `
 WHERE 
 se.StatusAktif = 0 
