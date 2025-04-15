@@ -20,6 +20,7 @@ import {
   qrygetSumAbsen,
   logSystemAbsPayroll,
   queryExportAbsenAmano,
+  getBaseAbsMonthAll,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { GroupJadwal, IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -1048,6 +1049,120 @@ export const getMonthAttd = async (req, res) => {
       .json({ message: "Terjadi kesalahan saat mengambil data monthly" });
   }
 };
+
+export const getMonthAttdAll = async (req, res) => {
+  try {
+    const { monthNum, yearNum } = req.params;
+    const valArray = Object.values(req.params);
+
+    if (valArray.some((value) => !value || value === undefined))
+      return res
+        .status(404)
+        .json({ message: "Paramter yang dibutuhkan belum lengkap" });
+
+    // Mendapatkan tanggal awal dan akhir bulan menggunakan Moment.js
+    const startDate = moment([yearNum, monthNum - 1])
+      .startOf("month")
+      .toDate();
+    const endDate = moment([yearNum, monthNum - 1])
+      .endOf("month")
+      .toDate();
+
+    const objDateMoment = {
+      start: startDate,
+      end: endDate,
+    };
+
+    const rangeDate = getRangeDate(objDateMoment);
+
+    const getMonthAbsen = await dbSPL.query(getBaseAbsMonthAll, {
+      replacements: {
+        monthNum,
+        yearNum
+      },
+      type: QueryTypes.SELECT,
+      // logging: console.log
+    });
+
+    let groupedData = {};
+
+    getMonthAbsen.forEach((row) => {
+      const {
+        Nik,
+        NamaLengkap,
+        tanggal_in,
+        keterangan,
+        scan_in,
+        scan_out,
+        ot,
+        calendar,
+        jk_id,
+        ket_in,
+        ket_out,
+        id,
+        validasi
+      } = row;
+
+      // Jika Nik belum ada di objek, inisialisasi
+      if (!groupedData[Nik]) {
+        groupedData[Nik] = {
+          Nik,
+          NamaLengkap,
+          jumlah_HK: 0,
+          jumlah_A: 0,
+          total_ot: 0,
+          detail: {}, // Gunakan objek agar mudah dicocokkan berdasarkan tanggal
+        };
+      }
+
+      // Hitung jumlah HK (keterangan bukan A dan I)
+      if (keterangan !== "A" && keterangan !== "I" && keterangan != null) {
+        groupedData[Nik].jumlah_HK += 1;
+      }
+
+      // Hitung jumlah A (keterangan A atau I)
+      if (keterangan === "A" || keterangan === "I") {
+        groupedData[Nik].jumlah_A += 1;
+      }
+
+      // Hitung total ot
+      groupedData[Nik].total_ot += ot;
+
+      // Tambahkan detail absensi berdasarkan tanggal
+      groupedData[Nik].detail[tanggal_in] = {
+        id,
+        tanggal_in,
+        keterangan,
+        scan_in,
+        scan_out,
+        ot,
+        calendar,
+        jk_id,
+        ket_in,
+        ket_out,
+        validasi
+      };
+    });
+
+    // Konversi hasil dari objek ke array & lengkapi tanggal yang kosong
+    const responseData = Object.values(groupedData).map((data) => {
+      return {
+        ...data,
+        detail: rangeDate.map((date) => {
+          return data.detail[date] || { tanggal_in: date };
+        }),
+      };
+    });
+
+    res.status(200).json({ data: responseData });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat mengambil data monthly" });
+  }
+};
+
 
 //generate summary
 export const genSumAbsen = async (req, res) => {

@@ -1082,7 +1082,27 @@ JOIN sumbiri_employee se ON se.Nik = sa.Nik
 WHERE MONTH(sa.tanggal_in) = :monthNum 
 AND YEAR(sa.tanggal_in) = :yearNum
 AND se.IDSection = :idSection
-AND se.IDSubDepartemen = :idSubDept;`
+AND se.IDSubDepartemen = :idSubDept;`;
+
+export const getBaseAbsMonthAll = `SELECT 
+	sa.tanggal_in,
+    sa.Nik,
+    se.NamaLengkap,
+  	sa.keterangan,
+    sa.calendar,
+    sa.jk_id,
+    sa.ket_in,
+    sa.ket_out,
+  	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
+  	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
+  	sa.ot,
+    sa.id,
+    sa.validasi
+FROM sumbiri_absens sa
+JOIN sumbiri_employee se ON se.Nik = sa.Nik
+WHERE MONTH(sa.tanggal_in) = :monthNum 
+AND YEAR(sa.tanggal_in) = :yearNum`
+
 
 
 export const queryRecapAbsMonth = `WITH employee AS (
