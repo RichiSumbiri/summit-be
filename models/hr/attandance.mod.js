@@ -373,13 +373,14 @@ mp.Name AS jabatan,
 ba.jadwalId_inv,
 ba.scheduleDate,
 sgs.groupName,
-ba.jk_id,
+COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
+-- ba.jk_id,
 mjk.jk_nama,
 -- mjk2.jk_nama jk_aktual,
 mjk.jk_in,
 mjk.jk_out,
 mjk.jk_out_day,
-ba.calendar,
+COALESCE(sa.calendar, ba.calendar) AS calendar,
 sa.jk_id jk_id_absen,
 sa.id, 
 sa.tanggal_in,
@@ -397,8 +398,8 @@ sa.validasi,
 msts.Name AS NamaSection
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
-LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
+-- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi

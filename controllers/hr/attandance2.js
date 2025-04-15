@@ -271,7 +271,7 @@ export const punchAttdLog2 = async (req, res) => {
           });
 
           //jika sudah ada absen dengan scan in atau ada keterangan cuti dll maka double punch
-          if (checkExist && checkExist.scan_in || checkExist.keterangan) {
+          if (checkExist && checkExist.scan_in || checkExist?.keterangan) {
             await LogAttandance.update(
               { log_punch: 2 }, //kalo ada schedule id berarti double punch kd 2, klo tdk ada berarti kd 4 no schdule
               {
