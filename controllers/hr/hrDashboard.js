@@ -17,8 +17,11 @@ import {
   // qryDtlMpByLinePast,
   qryDtlMpByLineToday,
   qryGetEmpInExpand,
+  qryGetEmpInExpandHR,
   qryGetEmpOutExpand,
+  qryGetEmpOutExpandHr,
   qryGetEmpSewAllExpand,
+  qryGetEmpSewAllExpandHr,
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
@@ -407,6 +410,15 @@ export const getExpandEmpIn = async (req, res) => {
     }
     if (type === "empAll") {
       query = qryGetEmpSewAllExpand;
+    }
+    if (type === "empAllHr") {
+      query = qryGetEmpSewAllExpandHr;
+    }
+    if (type === "empInHr") {
+      query = qryGetEmpInExpandHR;
+    }
+    if (type === "empOutHr") {
+      query = qryGetEmpOutExpandHr;
     }
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date },
