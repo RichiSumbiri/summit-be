@@ -18,8 +18,10 @@ import {
   qryDtlMpByLineToday,
   qryGetEmpInExpand,
   qryGetEmpInExpandHR,
+  qryGetEmpInExpandMonth,
   qryGetEmpOutExpand,
   qryGetEmpOutExpandHr,
+  qryGetEmpOutExpandonth,
   qryGetEmpSewAllExpand,
   qryGetEmpSewAllExpandHr,
   SewingLineHR,
@@ -218,11 +220,30 @@ export const getDataDashSewMp = async (req, res) => {
     const { date } = req.params;
 
     const qureys = qryCurrentOrPasMp(date) 
-    let getAbsen = await dbSPL.query(qureys, {
+    let baseAllSewMp = await dbSPL.query(qureys, {
       replacements: { date },
       type: QueryTypes.SELECT,
       // logging: console.log
     });
+    let getAbsen = baseAllSewMp
+
+    const curDate = moment()
+    const curTime = moment()
+    const paramsDate = moment(date, 'YYYY-MM-DD')
+
+    //jika hari parameter sama dengan paramter maka cek jadwal jam nya 
+    if(paramsDate.isSame(curDate, 'day')){
+      getAbsen = baseAllSewMp.map((item, i) => {
+        const jkIn = item.jk_in ? moment(item.jk_in, 'HH:mm:ss') : false
+
+        if (jkIn && jkIn.isSameOrBefore(curTime, 'hours')){
+          return {...item, schedule_jk : 1}
+        }else{
+          return {...item, schedule_jk : 0} 
+        }
+      })
+    }
+      
 
     getAbsen.sort((a, b) => {
       if (a.SITE_NAME < b.SITE_NAME) {
@@ -234,23 +255,6 @@ export const getDataDashSewMp = async (req, res) => {
       return 0;
     });
 
-    // const getLembur = await dbSPL.query(getLemburForAbsen, {
-    //   replacements: { date },
-    //   type: QueryTypes.SELECT,
-    //   // logging: console.log
-    // });
-
-    // if (getLembur.length > 0) {
-    //   getAbsen = getAbsen.map((item) => {
-    //     const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
-
-    //     if (lembur) {
-    //       return { ...item, ...lembur };
-    //     } else {
-    //       return item;
-    //     }
-    //   });
-    // }
 
     const getEmpOut = await dbSPL.query(karyawanOutSewing, {
       replacements: { date },
@@ -269,19 +273,19 @@ export const getDataDashSewMp = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    const ttlEmpOut = totalCol(getEmpOut, "karyawanOut");
+    const ttlEmpOut   = totalCol(getEmpOut, "karyawanOut");
 
-    const totalAttd = getAbsen.filter((item) => item.scan_in);
+    const totalAttd   = getAbsen.filter((item) => item.scan_in);
+    const totalEmpSch = getAbsen.filter((item) => item.jk_id);
     // const totalEmpIn = getAbsen.filter((item) => item.TanggalMasuk === date);
-    const totalMale = getAbsen.filter((item) => item.JenisKelamin === 0);
+    const totalMale   = getAbsen.filter((item) => item.JenisKelamin === 0);
     const totalFemale = getAbsen.filter((item) => item.JenisKelamin === 1);
-    const totalTlo =
-      ChkNilaFlt(ttlEmpOut / (getAbsen.length + ttlEmpOut)) * 100;
+    const totalTlo    =  ChkNilaFlt(ttlEmpOut / (getAbsen.length + ttlEmpOut)) * 100;
 
-    const dataEmpPerSec = getDataPerSection(getAbsen);
+    const dataEmpPerSec   = getDataPerSection(getAbsen);
     
-    const dataChartDept = dataChartSection(dataEmpPerSec, date);
-    const dataTtlHcVsAbs = getTotalCountAndVariance(dataEmpPerSec);
+    const dataChartDept   = dataChartSection(dataEmpPerSec, date);
+    const dataTtlHcVsAbs  = getTotalCountAndVariance(dataEmpPerSec);
     // const dataChartDeptAttd = dataChartAttdDept(dataEmpPerSec);
 
     const joinResult = { ...dataEmpPerSec };
@@ -317,6 +321,7 @@ export const getDataDashSewMp = async (req, res) => {
       totalEmpSew: getAbsen.length,
       totalAttd: totalAttd.length,
       totalEmpOut: ttlEmpOut,
+      totalEmpSch: totalEmpSch.length,
       totalEmpIn: dataEmpIn.length,
       totalMale: totalMale.length,
       totalFemale: totalFemale.length,
@@ -341,34 +346,44 @@ export const getDataDashSewMp = async (req, res) => {
 const getDataPerSection = (employees) => {
   const dataSection = employees.reduce((acc, employee) => {
     const section = employee.CUS_NAME;
-    if (acc[section]) {
-      acc[section].count++;
-    } else {
-      acc[section] = { count: 1, scan_in: 0 };
+
+    if (!acc[section]) {
+      acc[section] = { count: 0, scan_in: 0, schedule_jk: 0 };
     }
+
+    acc[section].count++;
+
     if (employee.scan_in) {
       acc[section].scan_in++;
     }
+
+    if (employee.schedule_jk) {
+      acc[section].schedule_jk++;
+    }
+
     return acc;
   }, {});
 
   Object.keys(dataSection).forEach((section) => {
-    if (!dataSection[section].hasOwnProperty("scan_in")) {
-      dataSection[section].scan_in = 0;
-    }
-    dataSection[section].variance =
-      dataSection[section].count - dataSection[section].scan_in;
+    dataSection[section].variance = dataSection[section].count - dataSection[section].scan_in;
+
+    // Tambahan: menghitung selisih antara schedule dan scan_in
+    dataSection[section].variance_schedule =
+      dataSection[section].schedule_jk - dataSection[section].scan_in;
   });
 
   return dataSection;
 };
 
+
 function dataChartSection(dataBysec, date) {
   const deptName = Object.keys(dataBysec) || [];
   if (dataBysec) {
     const arrHc = deptName.map((item) => dataBysec[item].count);
-    const absente = deptName.map((item) => dataBysec[item].variance);
+    // const absente = deptName.map((item) => dataBysec[item].variance);
+    const absente = deptName.map((item) => dataBysec[item].variance_schedule);
     // const arrAttd = deptName.map(item => dataBysec[item].scan_in)
+    const schedule = deptName.map(item => dataBysec[item].schedule_jk)
 
     const based = [
       {
@@ -378,7 +393,13 @@ function dataChartSection(dataBysec, date) {
         date
       },
       {
-        name: "Absenteeism",
+        name: "Schedule Attd",
+        // type: "column",
+        data: schedule,
+        date
+      },
+      {
+        name: "Absent",
         // type: "column",
         data: absente,
         date
@@ -395,9 +416,11 @@ const getTotalCountAndVariance = (data) => {
     (totals, section) => {
       totals.total_count += data[section].count;
       totals.total_variance += data[section].variance;
+      totals.schedule_jk += data[section].schedule_jk;
+      totals.variance_schedule += data[section].variance_schedule;
       return totals;
     },
-    { total_count: 0, total_variance: 0 }
+    { total_count: 0, total_variance: 0, total_schedule : 0, variance_schedule : 0  }
   );
 };
 
@@ -419,6 +442,12 @@ export const getExpandEmpIn = async (req, res) => {
     }
     if (type === "empOutHr") {
       query = qryGetEmpOutExpandHr;
+    }
+    if (type === "empInMpMonth") {
+      query = qryGetEmpInExpandMonth;
+    }
+    if (type === "empOutMpMonth") {
+      query = qryGetEmpOutExpandonth;
     }
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date },
@@ -444,16 +473,54 @@ export const getChartMpDtlByLine = async (req, res) => {
 
     const query = findQuery(cusName, date, line)
     // console.log(query);
-    
+
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date, cusName },
       type: QueryTypes.SELECT,
     });
 
-    res.json({
-      data: dataEmpIn,
-      message: "success get data emp detail by line",
+    dataEmpIn.sort((a, b) => {
+      if (a.subDeptName < b.subDeptName) {
+        return -1;
+      }
+      if (a.subDeptName > b.subDeptName) {
+        return 1;
+      }
+      return 0;
     });
+
+    let getAbsen = dataEmpIn
+    const curDate = moment()
+    const curTime = moment()
+    const paramsDate = moment(date, 'YYYY-MM-DD')
+
+      //jika hari parameter sama dengan paramter maka cek jadwal jam nya 
+      if(paramsDate.isSame(curDate, 'day')){
+        getAbsen = dataEmpIn.map((item, i) => {
+          const jkIn = item.jk_in ? moment(item.jk_in, 'HH:mm:ss') : false
+    
+          if (jkIn && jkIn.isSameOrBefore(curTime, 'hours')){
+            return {...item, schedule_jk : 1}
+          }else{
+            return {...item, schedule_jk : 0} 
+          }
+        })
+      }
+
+    if(!line){
+      const dataLine = jmlhByLine(getAbsen)
+      return res.json({
+        data: dataLine,
+        message: "success get data emp detail by line",
+      });
+    }else{
+      // const filterNoSchAndNoIn = getAbsen?.filter(items => items.schedule_jk )
+    return  res.json({
+        data: getAbsen,
+        message: "success get data emp detail by line",
+      });
+    }
+    
   } catch (error) {
     console.log(error);
 
@@ -468,6 +535,45 @@ export const getChartMpDtlByLine = async (req, res) => {
 
 
 
+//jumlahkan 
+function jmlhByLine(getAbsen){
+
+  const finalGroupedResult = getAbsen.reduce((acc, item) => {
+    const groupKey = `${item.SITE_NAME}__${item.CUS_NAME}__${item.subDeptName}`;
+  
+    if (!acc[groupKey]) {
+      acc[groupKey] = {
+        SITE_NAME: item.SITE_NAME,
+        CUS_NAME: item.CUS_NAME,
+        IDSubDepartemen: item.IDSubDepartemen,
+        subDeptName: item.subDeptName,
+        total_emp: 0,
+        total_hadir: 0,
+        total_schedule_jk: 0,
+      };
+    }
+  
+    acc[groupKey].total_emp += 1;
+  
+    if (item.scan_in) {
+      acc[groupKey].total_hadir += 1;
+    }
+  
+    if (item.schedule_jk === 1) {
+      acc[groupKey].total_schedule_jk += 1;
+    }
+  
+    return acc;
+  }, {}); // ← initial value = object kosong
+  
+  // ubah hasil akhir jadi array
+  const groupedArray = Object.values(finalGroupedResult);
+  
+  const filterNoSchAndNoIn = groupedArray?.filter(items => items.total_schedule_jk && items.total_hadir)
+  return filterNoSchAndNoIn
+}
+
+
 function findQuery(cusName, date, line){
   let strings = `AND msts.CusName = '${cusName}'`
   const today = moment().startOf("day");
@@ -475,17 +581,17 @@ function findQuery(cusName, date, line){
 
   if(!line){
   
-    let query = qryDtlMpByLineToday(strings, additonalToday);
-    if (parDate.isBefore(today)) {      
-      query = qryDtlMpByLineToday(strings, additonalPast)
-    }
+    let query = qryDtlMpByLineToday(strings, additonalPast);
+    // if (parDate.isBefore(today)) {      
+    //   query = qryDtlMpByLineToday(strings, additonalPast)
+    // }
     return query
   }else{
     strings += `AND msd.Name = '${line}'`
-    let query = qryDtlMpByLineToday(strings, additonalLineNoCountTod);
-    if (parDate.isBefore(today)) {      
-      query = qryDtlMpByLineToday(strings, additonalLineNoCountPast)
-    }
+    // let query = qryDtlMpByLineToday(strings, additonalLineNoCountTod);
+    // if (parDate.isBefore(today)) {      
+      // }
+    let query = qryDtlMpByLineToday(strings, additonalLineNoCountPast)
     return query
   } 
 
@@ -493,7 +599,7 @@ function findQuery(cusName, date, line){
 
 
 
-//dashboard hr monthly
+//dashboard hr SEWING monthly
 export const getBaseSewMpMonthly = async(req, res) => {
   try {
     const {monthYear} = req.params
@@ -563,7 +669,8 @@ export const getBaseSewMpMonthly = async(req, res) => {
       const totalEmpIn  = totalCol(baseMpSewingMonth, 'emp_in')
       const totalEmpout = totalCol(baseMpSewingMonth, 'emp_out')
       const ltoMonth    = totalEmpout > 0 ? ChkNilaFlt(totalEmpout / (totalEmpEnd + totalEmpout)) * 100 : 0;
-
+      console.log({endDateLto, totalEmpout, totalEmpEnd });
+      
       //betulkan ini karena retun object
       const dataGroupTglSection = groupAndSumByDateAndSection(baseMpSewingMonth)//ini menjumlahkan selama satu bulan
       
@@ -715,4 +822,149 @@ function sumEmpByDate(data, rangeDates) {
 
       return { tanggal: date, dateLto, ...summary };
   });
+}
+
+
+//dashboard hr ALL monthly
+export const getBaseMpMonthly = async(req, res) => {
+  try {
+    const {monthYear} = req.params
+
+    const startDate   = moment(monthYear, 'YYYY-MM')
+      .startOf("month")
+      .format('YYYY-MM-DD')
+    const endDate     = moment(monthYear, 'YYYY-MM')
+      .endOf("month")
+      .format('YYYY-MM-DD')
+
+
+    const years     = moment(monthYear, 'YYYY-MM')
+      .endOf("month")
+      .format('YYYY')
+
+    const listHoliday = await db.query(QueryGetHoliday, {
+      replacements: {
+        startYear:years,
+        endYear: years
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    //untuk bypass sabtu dan minggu
+    const dayWeekEnd = ["Sunday"];
+
+       //masukan array holiday
+    const arrHoliday = listHoliday.map((item) => item.calendar_date);
+
+
+      const baseMpAll     = await dbSPL.query(qryBaseMpMonthly, {
+        replacements: { startDate, endDate },
+        type: QueryTypes.SELECT,
+      });
+
+  
+      //ALL emp
+      const endDateAll = findEndDate(baseMpAll, endDate)
+
+      const filEmpAllStart  = baseMpAll.filter(rcp => rcp.tgl_recap === startDate)
+      const filEmpAllEnd    = baseMpAll.filter(rcp => rcp.tgl_recap === endDateAll)
+      const totalAllStart   = totalCol(filEmpAllStart, 'emp_total')
+      const totalAllEnd     = totalCol(filEmpAllEnd, 'emp_total')
+      const avgEmpAll       = (totalAllStart+totalAllEnd)/2
+
+      //sewing
+      const baseMpSewingMonth = baseMpAll.filter(
+        (dt) =>
+          !arrHoliday.includes(dt.tgl_recap) &&
+          !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
+      ); 
+
+      const endDateLto      = findEndDate(baseMpSewingMonth, endDate)
+      const filterEmpStart  = baseMpSewingMonth.filter(emp => emp.tgl_recap === startDate)
+      const filterEmpEnd    = baseMpSewingMonth.filter(emp => emp.tgl_recap === endDateLto)
+      const totalEmpStart   = totalCol(filterEmpStart, 'emp_total')
+      const totalEmpEnd     = totalCol(filterEmpEnd, 'emp_total')
+      const avgEmp          = (totalEmpStart+totalEmpEnd)/2
+
+
+      // const getTglFromResul = getUniqueAttribute(baseMpSewingMonth, 'tgl_recap')
+      const getSiteList = getUniqueAttribute(baseMpSewingMonth, 'CUS_NAME')
+      
+      // data card month 
+      const totalEmp    = totalAllEnd
+      const totalEmpIn  = totalCol(baseMpSewingMonth, 'emp_in')
+      const totalEmpout = totalCol(baseMpSewingMonth, 'emp_out')
+      const ltoMonth    = totalEmpout > 0 ? ChkNilaFlt(totalEmpout / (totalEmpEnd + totalEmpout)) * 100 : 0;
+
+      //betulkan ini karena retun object
+      const dataGroupTglSection = groupAndSumByDateAndSection(baseMpSewingMonth)//ini menjumlahkan selama satu bulan
+      
+      //lalu cari lto per tanggal per section
+      const addLtoPerDate = dataGroupTglSection.map(items => {
+        let tlo =  items.emp_out > 0 ? ChkNilaFlt(items.emp_out / (items.emp_total + items.emp_out)) * 100 : 0; 
+        return {...items, tlo}
+      })
+
+      //lanjut cari avg emp per section berdasarkan start date dan end date
+      const dataPerSec = getSiteList.map(csName => {
+        const filterBysection = dataGroupTglSection.filter(tems => tems.CUS_NAME === csName)
+        
+        let endDateSec      = findEndDate(filterBysection, endDate)
+        
+        const findStartSec  = filterBysection.filter(item => item.tgl_recap === startDate)
+        const findEndSec    = filterBysection.filter(item => item.tgl_recap === endDateSec)
+        const secEmpStart   = totalCol(findStartSec, 'emp_total')
+        const secEmpEnd     = totalCol(findEndSec, 'emp_total')
+        const secEmpIn      = totalCol(filterBysection, 'emp_in')
+        const secEmpout     = totalCol(filterBysection, 'emp_out')
+        const avgEmpSec     = secEmpStart+secEmpEnd/2
+        const secLto        =  secEmpout > 0 ? ChkNilaFlt(secEmpout / (secEmpEnd+secEmpout)) * 100 : 0;
+
+      return {
+        CUS_NAME    : csName, 
+        IDSection   : filterBysection[0].IDSection,
+        SITE_NAME   :  filterBysection[0].SITE_NAME,
+        secEmpStart,
+        secEmpEnd,
+        secEmpout,
+        secEmpIn,
+        avgEmpSec,
+        secLto,}
+      })
+
+    const objDateMoment = {
+      start: startDate,
+      end: endDate,
+    };
+
+    const rangeDate = getRangeDate(objDateMoment);
+// console.log('mampu sampai sini');
+
+      //hapus weekend dan holiday
+      const dateOutHol = rangeDate.filter(
+        (dt) =>
+          !arrHoliday.includes(dt) &&
+          !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
+      );
+
+  const sumOfDate = sumEmpByDate(baseMpSewingMonth, dateOutHol)
+    
+  const dataMonth = {
+    dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
+    dataPerSec     : dataPerSec,
+    dataSecPerDate : dataGroupTglSection,
+    sumOfDate      : sumOfDate
+  }
+
+  res.json({data : dataMonth, message : 'success get data month'})
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({
+        error,
+        message: "Terdapat error saat get data emp detail by line",
+      });
+  }
 }

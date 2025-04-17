@@ -502,6 +502,7 @@ sa.scan_out,
 sa.ket_in,
 sa.ket_out,
 sa.keterangan,
+CASE WHEN ba.jk_id THEN 1 ELSE 0 END AS schedule_jk,
 mp.Name
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
@@ -513,13 +514,14 @@ LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 `;
 
 export const qryCurrentOrPasMp = (date) => {
-  const currentDate = moment().format('YYYY-MM-DD')
+  // const currentDate = moment().format('YYYY-MM-DD')
 
-  if(currentDate === date){
-    return baseMpSewing + ` WHERE mjk.jk_in < CURTIME() OR mjk.jk_in IS NULL`
-  }else{
-    return baseMpSewing
-  }
+  // if(currentDate === date){
+  //   return baseMpSewing + ` WHERE mjk.jk_in < CURTIME() OR mjk.jk_in IS NULL`
+  // }else{
+  //   return baseMpSewing
+  // }
+  return baseMpSewing
 }
 
 export const karyawanOutSewing = `SELECT 
@@ -814,6 +816,7 @@ ${aditional}
 `;
 };
 
+// tidak dipakai karena update
 export const additonalToday = `SELECT 
 msts.SiteName SITE_NAME,
 msts.CusName CUS_NAME,	
@@ -837,22 +840,24 @@ msts.SiteName SITE_NAME,
 msts.CusName CUS_NAME,	
 ba.IDSubDepartemen,
 ba.subDeptName,	
-COUNT(ba.Nik) total_emp,
-COUNT(sa.scan_in) total_hadir
+mjk.jk_in,
+CASE WHEN ba.jk_id THEN 1 ELSE 0 END AS schedule_jk,
+ba.Nik,
+sa.scan_in
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
-GROUP BY msts.SiteName ,
-msts.CusName, ba.subDeptName`;
+`;
 
 export const additonalLineNoCountTod = `SELECT 
 ba.IDSubDepartemen,
 ba.subDeptName,	
 ba.Nik,
 ba.NamaLengkap,
+mjk.jk_in,
 sa.scan_in, 
 sa.scan_out,
 sa.keterangan
@@ -870,6 +875,7 @@ ba.IDSubDepartemen,
 ba.subDeptName,	
 ba.Nik,
 ba.NamaLengkap,
+mjk.jk_in,
 sa.scan_in, 
 sa.scan_out,
 sa.keterangan
@@ -1516,12 +1522,15 @@ export const qryBaseMpMonthly = `		SELECT
 		smr.emp_in,
 		smr.emp_out,
 		smr.emp_present,
-		ms.SITE_NAME,
-		ms.CUS_NAME,
+		-- ms.SITE_NAME,
+		-- ms.CUS_NAME,
+    COALESCE(msts.SiteName, msts.Name) SITE_NAME,
+    COALESCE(msts.CusName, msts.Name) CUS_NAME,	
 		sub.Name As LINE_NAME
 	FROM sumbiri_mp_recap smr  
 	LEFT JOIN master_sites ms ON ms.IDSection = smr.IDSection
 	LEFT JOIN master_subdepartment sub ON sub.IDSubDept = smr.IDSubDepartemen
+  LEFT JOIN master_section msts ON msts.IDSection = smr.IDSection
 -- 	LEFT JOIN master_siteline ms 
 -- 		ON ms.IDSection = smr.IDSection 
 -- 		AND smr.IDSubDepartemen = ms.IDSubDept
@@ -1603,3 +1612,17 @@ LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 GROUP BY msts.IDSection, ba.IdDept,  ba.IDPosisi 
 ORDER BY msts.IDSection, ba.IdDept,  ba.IDPosisi 
 `
+
+
+export const qryGetEmpInExpandMonth = `SELECT 
+    se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+WHERE DATE_FORMAT(se.TanggalMasuk, '%Y-%m') = :date AND se.TanggalMasuk <= CURDATE()  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6`;
+export const qryGetEmpOutExpandonth = `SELECT 
+    se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date se.TanggalKeluar <= CURDATE() AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`;
