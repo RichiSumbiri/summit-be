@@ -139,7 +139,8 @@ export const deleteEmpResignSPK = async(req,res) => {
                 id_spk: idSPK
             }
         });
-        if(getExistingData.length!==0){
+        
+        if(getExistingData){
             // remove tanggal keluar di employee
             const updateEmp = await modelSumbiriEmployee.update({
                 TanggalKeluar: null,
