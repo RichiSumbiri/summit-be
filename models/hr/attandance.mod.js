@@ -1621,13 +1621,13 @@ export const qryGetEmpInExpandMonth = `SELECT
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE DATE_FORMAT(se.TanggalMasuk, '%Y-%m') = :date AND se.TanggalMasuk <= CURDATE()  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6`;
+WHERE DATE_FORMAT(se.TanggalMasuk, '%Y-%m') = :date AND se.TanggalMasuk < CURDATE()  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6`;
 export const qryGetEmpOutExpandonth = `SELECT 
     se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date se.TanggalKeluar <= CURDATE() AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`;
+WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date AND se.TanggalKeluar < CURDATE() AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`;
 
 export const querySumByKetDaily = `SELECT 
     sa.keterangan,
