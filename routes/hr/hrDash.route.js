@@ -1,5 +1,5 @@
 import express from "express";
-import { getBaseSewMpMonthly, getChartMpDtlByLine, getDailyHrDash, getDataDashSewMp, getExpandEmpIn } from "../../controllers/hr/hrDashboard.js";
+import { getBaseMpMonthly, getBaseSewMpMonthly, getChartMpDtlByLine, getDailyHrDash, getDataDashSewMp, getExpandEmpIn } from "../../controllers/hr/hrDashboard.js";
 const router = express.Router();
 
 
@@ -13,5 +13,6 @@ router.get("/emp-detail-by-line/:date/:site", getChartMpDtlByLine);
 
 //monthly
 router.get("/manpower-monthly/:monthYear", getBaseSewMpMonthly);
+router.get("/monthly/:monthYear", getBaseMpMonthly);
 
 export default router;
