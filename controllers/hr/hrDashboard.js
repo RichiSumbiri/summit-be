@@ -24,6 +24,7 @@ import {
   qryGetEmpOutExpandonth,
   qryGetEmpSewAllExpand,
   qryGetEmpSewAllExpandHr,
+  querySumByKetDaily,
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
@@ -272,6 +273,10 @@ export const getDataDashSewMp = async (req, res) => {
       replacements: { date },
       type: QueryTypes.SELECT,
     });
+    const dataSumKetIn  = await dbSPL.query(querySumByKetDaily, {
+      replacements: { tanggal_in : date },
+      type: QueryTypes.SELECT,
+    });
 
     const ttlEmpOut   = totalCol(getEmpOut, "karyawanOut");
 
@@ -331,6 +336,7 @@ export const getDataDashSewMp = async (req, res) => {
       totalTlo: totalTlo,
       dataChartDept,
       dataTtlHcVsAbs,
+      dataSumKetIn
     };
 
     return res.json({ data: dataDash, message: "succcess get data" });
@@ -569,8 +575,8 @@ function jmlhByLine(getAbsen){
   // ubah hasil akhir jadi array
   const groupedArray = Object.values(finalGroupedResult);
   
-  const filterNoSchAndNoIn = groupedArray?.filter(items => items.total_schedule_jk && items.total_hadir)
-  return filterNoSchAndNoIn
+  // const filterNoSchAndNoIn = groupedArray?.filter(items => items.total_schedule_jk && items.total_hadir)
+  return groupedArray
 }
 
 
@@ -669,7 +675,7 @@ export const getBaseSewMpMonthly = async(req, res) => {
       const totalEmpIn  = totalCol(baseMpSewingMonth, 'emp_in')
       const totalEmpout = totalCol(baseMpSewingMonth, 'emp_out')
       const ltoMonth    = totalEmpout > 0 ? ChkNilaFlt(totalEmpout / (totalEmpEnd + totalEmpout)) * 100 : 0;
-      console.log({endDateLto, totalEmpout, totalEmpEnd });
+      // console.log({endDateLto, totalEmpout, totalEmpEnd });
       
       //betulkan ini karena retun object
       const dataGroupTglSection = groupAndSumByDateAndSection(baseMpSewingMonth)//ini menjumlahkan selama satu bulan

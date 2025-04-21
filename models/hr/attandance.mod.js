@@ -841,12 +841,13 @@ msts.CusName CUS_NAME,
 ba.IDSubDepartemen,
 ba.subDeptName,	
 mjk.jk_in,
-CASE WHEN ba.jk_id THEN 1 ELSE 0 END AS schedule_jk,
+COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
+CASE WHEN COALESCE(sa.jk_id, ba.jk_id) THEN 1 ELSE 0 END AS schedule_jk,
 ba.Nik,
 sa.scan_in
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
@@ -858,12 +859,13 @@ ba.subDeptName,
 ba.Nik,
 ba.NamaLengkap,
 mjk.jk_in,
+COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
 sa.scan_in, 
 sa.scan_out,
 sa.keterangan
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
@@ -881,7 +883,7 @@ sa.scan_out,
 sa.keterangan
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
@@ -1626,3 +1628,15 @@ FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
 WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date se.TanggalKeluar <= CURDATE() AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`;
+
+export const querySumByKetDaily = `SELECT 
+    sa.keterangan,
+    m.name_absen ,
+    COUNT(*) AS count_keterangan
+FROM sumbiri_absens sa
+JOIN sumbiri_employee se ON sa.Nik = se.Nik
+LEFT JOIN master_absentee m ON sa.keterangan = m.code_absen
+WHERE sa.tanggal_in = :tanggal_in AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6
+GROUP BY sa.keterangan, m.name_absen
+ORDER BY count_keterangan DESC;
+`
