@@ -682,7 +682,7 @@ SELECT
    	 	ELSE '02'
     END AS KodeStatusKaryawan,
     se.StatusKaryawan,
-    spkk.FinishKontrak,
+    DATE_FORMAT(spkk.FinishKontrak, '%d-%m-%Y') AS FinishKontrak,
     CASE 
         WHEN se.JenjangPendidikan = 'S3' THEN '01'
         WHEN se.JenjangPendidikan = 'S2' THEN '02'
