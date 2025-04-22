@@ -698,6 +698,7 @@ export const getBaseSewMpMonthly = async(req, res) => {
         const secEmpEnd     = totalCol(findEndSec, 'emp_total')
         const secEmpIn      = totalCol(filterBysection, 'emp_in')
         const secEmpout     = totalCol(filterBysection, 'emp_out')
+        const secEmpSch     = totalCol(filterBysection, 'schedule_jk')
         const avgEmpSec     = secEmpStart+secEmpEnd/2
         const secLto        =  secEmpout > 0 ? ChkNilaFlt(secEmpout / (secEmpEnd+secEmpout)) * 100 : 0;
 
@@ -710,6 +711,7 @@ export const getBaseSewMpMonthly = async(req, res) => {
         secEmpout,
         secEmpIn,
         avgEmpSec,
+        secEmpSch,
         secLto,}
       })
 
@@ -767,6 +769,7 @@ function groupAndSumByDateAndSection(arr) {
         emp_in: 0,
         emp_out: 0,
         emp_present: 0,
+        schedule_jk: 0,
         SITE_NAME: item.SITE_NAME,
         CUS_NAME: item.CUS_NAME,
         LINE_NAME: item.LINE_NAME
@@ -781,6 +784,7 @@ function groupAndSumByDateAndSection(arr) {
     acc[key].emp_present += item.emp_present;
     acc[key].emp_male += item.emp_male;
     acc[key].emp_female += item.emp_female;
+    acc[key].schedule_jk += item.schedule_jk;
 
     return acc;
   }, {})
@@ -821,9 +825,10 @@ function sumEmpByDate(data, rangeDates) {
               acc.emp_total += item.emp_total || 0;
               acc.emp_present += item.emp_present || 0;
               acc.emp_absen += item.emp_absen || 0;
+              acc.schedule_jk += item.schedule_jk || 0;
           }
           return acc;
-      }, { emp_in: 0, emp_out: 0, emp_total: 0 , emp_present: 0, emp_absen : 0});
+      }, { emp_in: 0, emp_out: 0, emp_total: 0 , emp_present: 0, emp_absen : 0, schedule_jk: 0});
       const dateLto  =  summary.emp_out > 0 ? ChkNilaFlt(summary.emp_out / (summary.emp_total+summary.emp_out)) * 100 : 0;
 
       return { tanggal: date, dateLto, ...summary };

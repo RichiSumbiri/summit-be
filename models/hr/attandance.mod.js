@@ -1524,6 +1524,7 @@ export const qryBaseMpMonthly = `		SELECT
 		smr.emp_in,
 		smr.emp_out,
 		smr.emp_present,
+		smr.schedule_jk,
 		-- ms.SITE_NAME,
 		-- ms.CUS_NAME,
     COALESCE(msts.SiteName, msts.Name) SITE_NAME,
@@ -1636,7 +1637,11 @@ export const querySumByKetDaily = `SELECT
 FROM sumbiri_absens sa
 JOIN sumbiri_employee se ON sa.Nik = se.Nik
 LEFT JOIN master_absentee m ON sa.keterangan = m.code_absen
-WHERE sa.tanggal_in = :tanggal_in AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6
+WHERE sa.tanggal_in = :tanggal_in 
+    AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :tanggal_in ) -- Belum keluar pada tanggal tertentu
+	  AND se.TanggalMasuk <= :tanggal_in
+    AND se.IDPosisi = 6
 GROUP BY sa.keterangan, m.name_absen
 ORDER BY count_keterangan DESC;
 `
