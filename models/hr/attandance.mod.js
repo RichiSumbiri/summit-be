@@ -488,7 +488,7 @@ msts.SiteName SITE_NAME,
 msts.CusName CUS_NAME,
 mst.LINE_NAME,
 sgs.groupName,
-ba.jk_id,
+COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
 mjk.jk_nama,
 mjk.jk_in,
 ba.calendar,
@@ -502,11 +502,11 @@ sa.scan_out,
 sa.ket_in,
 sa.ket_out,
 sa.keterangan,
-CASE WHEN ba.jk_id THEN 1 ELSE 0 END AS schedule_jk,
+CASE WHEN COALESCE(sa.jk_id, ba.jk_id) THEN 1 ELSE 0 END AS schedule_jk,
 mp.Name
 FROM base_absen ba
 LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_siteline mst ON mst.IDSiteline = ba.IDSiteline
