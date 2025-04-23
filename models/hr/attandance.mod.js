@@ -452,7 +452,9 @@ export const baseMpSewing = `WITH base_absen AS (
       sis.jadwalId_inv,
       se.IDSiteline,
       se.IDPosisi,
-	    CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
+      sis.jk_id jk_id_individu, 
+      sgs.jk_id jk_id_group,
+	    COALESCE(sis.jk_id, sgs.jk_id) jk_id,
 	    CASE WHEN sis.calendar THEN sis.calendar  ELSE sgs.calendar END AS calendar
 	FROM sumbiri_employee se
 	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
@@ -464,54 +466,54 @@ export const baseMpSewing = `WITH base_absen AS (
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date
     AND se.IDPosisi = 6
-)
--- msts AS (
--- 	SELECT DISTINCT ms.IDSection, ms.SITE_NAME, ms.LINE_NAME, ms.CUS_NAME FROM master_siteline ms
--- 	GROUP BY ms.IDSection
--- )
+),
+JABSEN AS (
+	SELECT 
+	ba.Nik, 
+	ba.NamaLengkap,
+	ba.NameDept,
+	ba.IDDepartemen,
+	ba.IDSubDepartemen,
+	ba.subDeptName,
+	ba.IDSection,
+	ba.groupId,
+	ba.TanggalMasuk,
+	ba.TanggalKeluar,
+	ba.JenisKelamin,
+	ba.StatusKaryawan,
+	ba.jadwalId_inv,
+	ba.IDSiteline,
+	ba.calendar,
+	sa.id, 
+	sa.tanggal_in,
+	sa.tanggal_out,
+	sa.scan_in,
+	sa.ot,
+	sa.scan_out,
+	sa.ket_in,
+	sa.ket_out,
+	sa.keterangan,
+	ba.IDPosisi,
+	CASE WHEN sa.jk_id <> 0 THEN sa.jk_id ELSE ba.jk_id END AS jk_id
+	FROM base_absen ba
+	LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+ )
 SELECT 
-ba.Nik, 
-ba.NamaLengkap,
-ba.NameDept,
-ba.IDDepartemen,
-ba.IDSubDepartemen,
-ba.subDeptName,
-ba.IDSection,
-ba.groupId,
-ba.TanggalMasuk,
-ba.TanggalKeluar,
-ba.JenisKelamin,
-ba.StatusKaryawan,
-ba.jadwalId_inv,
-ba.IDSiteline,
-msts.SiteName SITE_NAME,
-msts.CusName CUS_NAME,
-mst.LINE_NAME,
-sgs.groupName,
-COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
-mjk.jk_nama,
-mjk.jk_in,
-ba.calendar,
-sa.jk_id jk_id_absen,
-sa.id, 
-sa.tanggal_in,
-sa.tanggal_out,
-sa.scan_in,
-sa.ot,
-sa.scan_out,
-sa.ket_in,
-sa.ket_out,
-sa.keterangan,
-CASE WHEN COALESCE(sa.jk_id, ba.jk_id) THEN 1 ELSE 0 END AS schedule_jk,
-mp.Name
-FROM base_absen ba
-LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
-LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
-LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
-LEFT JOIN master_siteline mst ON mst.IDSiteline = ba.IDSiteline
-LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
-`;
+	 jb.*,
+	msts.SiteName SITE_NAME,
+	msts.CusName CUS_NAME,
+	mst.LINE_NAME,
+	sgs.groupName,
+	mjk.jk_nama,
+	mjk.jk_in,
+	jb.jk_id,
+	CASE WHEN jb.jk_id THEN 1 ELSE 0 END AS schedule_jk
+FROM JABSEN jb
+	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = jb.jk_id
+	LEFT JOIN sumbiri_group_shift sgs ON jb.groupId = sgs.groupId 
+	LEFT JOIN master_position mp ON mp.IDPosition = jb.IDPosisi
+	LEFT JOIN master_siteline mst ON mst.IDSiteline = jb.IDSiteline
+	LEFT JOIN master_section msts ON msts.IDSection = jb.IDSection`;
 
 export const qryCurrentOrPasMp = (date) => {
   // const currentDate = moment().format('YYYY-MM-DD')
