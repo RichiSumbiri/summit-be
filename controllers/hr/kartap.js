@@ -111,7 +111,7 @@ export const newKarTap = async(req,res) => {
             IDSPKT: newIdSPKT,
             DateSPKT: dataSPKT.DateSPKT,
             CreateBy: dataSPKT.CreateBy,
-            CreateDate: moment().format('YYYY-MM-DD hh:mm:ss') 
+            CreateDate: moment().format('YYYY-MM-DD HH:mm:ss') 
         });
 
         if(postSPKT){
