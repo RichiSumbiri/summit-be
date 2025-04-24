@@ -625,7 +625,7 @@ LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = ba.jk_id
 LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
-WHERE ba.calendar <> 'HL'
+WHERE ba.calendar NOT IN ('HL', 'PH')
 `;
 
 export const queryPureVerifAbs = `SELECT 
