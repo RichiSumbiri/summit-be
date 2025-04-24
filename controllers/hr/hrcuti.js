@@ -152,7 +152,6 @@ export const postCutiNew = async(req,res) => {
                         });
                         if(checkHolidayFromCalender.length===0){
                             await Attandance.upsert({
-                                id: checkFromJadwal[0].id,
                                 Nik: dataCuti.cuti_emp_nik,
                                 groupId: 0,
                                 jk_id: 0,
@@ -166,10 +165,9 @@ export const postCutiNew = async(req,res) => {
                         // jika karyawan ada jadwal kerja dan tidak libur
                         if(checkFromJadwal[0].calendar==="WD"){
                             await Attandance.upsert({
-                                id: checkFromJadwal[0].id,
                                 Nik: dataCuti.cuti_emp_nik,
-                                groupId: checkFromJadwal.groupId,
-                                jk_id: checkFromJadwal.jk_id,
+                                groupId: checkFromJadwal[0].groupId,
+                                jk_id: checkFromJadwal[0].jk_id,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
                                 ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
@@ -244,7 +242,6 @@ export const postCutiNew = async(req,res) => {
                             });
                             if(checkHolidayFromCalender.length===0){
                                 await Attandance.upsert({
-                                    id: checkFromJadwal[0].id,
                                     Nik: dataCuti.cuti_emp_nik,
                                     groupId: 0,
                                     jk_id: 0,
@@ -258,10 +255,9 @@ export const postCutiNew = async(req,res) => {
                             // jika karyawan ada jadwal kerja dan tidak libur
                             if(checkFromJadwal[0].calendar==="WD"){
                                 await Attandance.upsert({
-                                    id: checkFromJadwal[0].id,
                                     Nik: dataCuti.cuti_emp_nik,
-                                    groupId: checkFromJadwal.groupId,
-                                    jk_id: checkFromJadwal.jk_id,
+                                    groupId: checkFromJadwal[0].groupId,
+                                    jk_id: checkFromJadwal[0].jk_id,
                                     tanggal_in: CutiDate,
                                     keterangan: getCodeAbsen.code_absen,
                                     ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
@@ -278,6 +274,7 @@ export const postCutiNew = async(req,res) => {
             }
         }
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get cuti",
