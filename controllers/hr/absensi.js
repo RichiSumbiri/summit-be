@@ -1052,6 +1052,7 @@ export const getMonthAttd = async (req, res) => {
 
 export const getMonthAttdAll = async (req, res) => {
   try {
+    // console.log("Start Fetch Data Absen Monthly All for month " + req.params.monthNum + " year " + req.params.yearNum + " at " + moment().format("YYYY-MM-DD HH:mm:ss"));
     const { monthNum, yearNum } = req.params;
     const valArray = Object.values(req.params);
 
@@ -1095,6 +1096,7 @@ export const getMonthAttdAll = async (req, res) => {
         scan_in,
         scan_out,
         ot,
+        spl,
         calendar,
         jk_id,
         ket_in,
@@ -1111,6 +1113,7 @@ export const getMonthAttdAll = async (req, res) => {
           jumlah_HK: 0,
           jumlah_A: 0,
           total_ot: 0,
+          total_spl: 0,
           detail: {}, // Gunakan objek agar mudah dicocokkan berdasarkan tanggal
         };
       }
@@ -1125,8 +1128,13 @@ export const getMonthAttdAll = async (req, res) => {
         groupedData[Nik].jumlah_A += 1;
       }
 
+
+
       // Hitung total ot
       groupedData[Nik].total_ot += ot;
+
+      // Hitung total ot
+      groupedData[Nik].total_spl += spl;
 
       // Tambahkan detail absensi berdasarkan tanggal
       groupedData[Nik].detail[tanggal_in] = {
@@ -1136,6 +1144,7 @@ export const getMonthAttdAll = async (req, res) => {
         scan_in,
         scan_out,
         ot,
+        spl,
         calendar,
         jk_id,
         ket_in,
@@ -1144,6 +1153,7 @@ export const getMonthAttdAll = async (req, res) => {
       };
     });
 
+    
     // Konversi hasil dari objek ke array & lengkapi tanggal yang kosong
     const responseData = Object.values(groupedData).map((data) => {
       return {
@@ -1153,7 +1163,9 @@ export const getMonthAttdAll = async (req, res) => {
         }),
       };
     });
-
+    
+    //console.log("Start Fetch Data Absen Monthly All for month " + req.params.monthNum + " year " + req.params.yearNum + " at " + moment().format("YYYY-MM-DD HH:mm:ss"));
+    
     res.status(200).json({ data: responseData });
   } catch (error) {
     console.log(error);

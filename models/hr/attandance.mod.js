@@ -1124,7 +1124,8 @@ AND YEAR(sa.tanggal_in) = :yearNum
 AND se.IDSection = :idSection
 AND se.IDSubDepartemen = :idSubDept;`;
 
-export const getBaseAbsMonthAll = `SELECT 
+export const getBaseAbsMonthAll = `
+SELECT 
 	sa.tanggal_in,
     sa.Nik,
     se.NamaLengkap,
@@ -1136,12 +1137,15 @@ export const getBaseAbsMonthAll = `SELECT
   	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
   	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
   	sa.ot,
+  	(ssd.minutes / 60) as spl,
     sa.id,
     sa.validasi
 FROM sumbiri_absens sa
 JOIN sumbiri_employee se ON se.Nik = sa.Nik
+LEFT JOIN sumbiri_spl_data ssd ON sa.Nik = ssd.Nik AND sa.tanggal_in = ssd.spl_date  
 WHERE MONTH(sa.tanggal_in) = :monthNum 
-AND YEAR(sa.tanggal_in) = :yearNum`;
+AND YEAR(sa.tanggal_in) = :yearNum
+`;
 
 
 export const queryRecapAbsMonth = `WITH employee AS (
