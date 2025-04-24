@@ -79,7 +79,7 @@ export const deleteCuti = async(req,res) => {
 export const postCutiNew = async(req,res) => {
     try {
         const dataCuti          = req.body.dataCuti;
-        const getNikGroupId     = await EmpGroup.findOne({ where: { Nik: dataCuti.cuti_emp_nik } });
+        const getNikGroupId     = await EmpGroup.findOne({ where: { Nik: dataCuti.cuti_emp_nik }, raw: true });
         const getCodeAbsen      = await MasterAbsentee.findOne({ where: { id_absen: dataCuti.id_absen }}); 
         const startDate         = moment(dataCuti.cuti_date_start);
         const endDate           = moment(dataCuti.cuti_date_end);
@@ -153,7 +153,7 @@ export const postCutiNew = async(req,res) => {
                         if(checkHolidayFromCalender.length===0){
                             await Attandance.upsert({
                                 Nik: dataCuti.cuti_emp_nik,
-                                groupId: 0,
+                                groupId: getNikGroupId.groupId,
                                 jk_id: 0,
                                 tanggal_in: CutiDate,
                                 keterangan: getCodeAbsen.code_absen,
@@ -243,7 +243,7 @@ export const postCutiNew = async(req,res) => {
                             if(checkHolidayFromCalender.length===0){
                                 await Attandance.upsert({
                                     Nik: dataCuti.cuti_emp_nik,
-                                    groupId: 0,
+                                    groupId: getNikGroupId.groupId,
                                     jk_id: 0,
                                     tanggal_in: CutiDate,
                                     keterangan: getCodeAbsen.code_absen,
