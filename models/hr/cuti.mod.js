@@ -95,10 +95,11 @@ FROM
 LEFT JOIN sumbiri_employee se ON se.Nik = scm.cuti_emp_nik 
 WHERE
 	cuti_active = "Y"
-	AND DATE(cuti_createdate) BETWEEN :startDate AND :endDate
+	AND DATE(scm.cuti_date_start) BETWEEN :startDate AND :endDate
 ORDER BY
 	cuti_createdate DESC
-`;
+
+  `;
 
 
 export const querySummaryCuti = `
