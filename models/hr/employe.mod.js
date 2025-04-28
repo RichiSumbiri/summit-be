@@ -758,9 +758,18 @@ export const qryGetEmpDetail = `SELECT
 	map2.nama_prov,
 	mak.nama_kabkota,
 	mak2.nama_kecamatan,
-	se.AlamatKelurahan
+	ms.Name SubDepartemen,
+	msc.Name AS SectionName,
+	ss.Remark,
+	ss.FlagReason
 FROM sumbiri_employee se
 LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov  = se.AlamatIDProv 
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan
-WHERE se.Nik = :empNik`
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen
+LEFT JOIN master_section msc ON msc.IDSection  = se.IDSection
+LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId
+LEFT JOIN sumbiri_spk ss ON ss.Nik = se.Nik 
+WHERE se.Nik = :empNik
+`

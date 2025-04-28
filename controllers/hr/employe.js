@@ -618,6 +618,7 @@ export const getEmpNewEmpAmipay = async(req,res) => {
 export const getEmpDetailByNik = async(req,res) => {
   try {
     const empNik = req.params.empnik;
+    
     const dataForAmipay = await dbSPL.query(qryGetEmpDetail, {
       replacements: {
         empNik: empNik
