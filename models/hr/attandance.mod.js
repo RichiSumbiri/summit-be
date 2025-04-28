@@ -1517,7 +1517,34 @@ export const logSystemAbsPayroll = dbSPL.define(
 );
 
 
-export const qryBaseMpMonthly = `		SELECT 
+export const qryBaseMpMonthly = `SELECT 
+		smr.tgl_recap,
+		smr.IDDepartemen,
+		smr.IDSection,
+		smr.IDSubDepartemen,
+   		smr.IDPosisi,
+		md.NameDept,
+		smr.emp_total,
+		smr.emp_absen,
+		smr.emp_female,
+		smr.emp_male,
+		smr.emp_in,
+		smr.emp_out,
+		smr.emp_present,
+		smr.schedule_jk
+	FROM sumbiri_mp_recap smr  
+	LEFT JOIN master_sites ms ON ms.IDSection = smr.IDSection
+	LEFT JOIN master_subdepartment sub ON sub.IDSubDept = smr.IDSubDepartemen
+  	LEFT JOIN master_section msts ON msts.IDSection = smr.IDSection
+  	LEFT JOIN master_department md ON md.IdDept  = smr.IDDepartemen
+-- 	LEFT JOIN master_siteline ms 
+-- 		ON ms.IDSection = smr.IDSection 
+-- 		AND smr.IDSubDepartemen = ms.IDSubDept
+-- 		AND smr.IDDepartemen = ms.IDDept 
+WHERE -- smr.IDDepartemen = '100103' AND 
+smr.tgl_recap BETWEEN :startDate AND :endDate `;
+
+export const qryBaseSewMpMonthly = `		SELECT 
 		smr.tgl_recap,
 		smr.IDDepartemen,
 		smr.IDSection,
@@ -1628,13 +1655,29 @@ export const qryGetEmpInExpandMonth = `SELECT
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE DATE_FORMAT(se.TanggalMasuk, '%Y-%m') = :date AND se.TanggalMasuk < CURDATE()  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6`;
+WHERE DATE_FORMAT(se.TanggalMasuk, '%Y-%m') = :date AND se.TanggalMasuk < CURDATE()  AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103'  AND se.IDPosisi = 6
+ORDER BY ms.IDSection, se.IDSubDepartemen`;
 export const qryGetEmpOutExpandonth = `SELECT 
     se.IDSection, ms.CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
 FROM sumbiri_employee se
 LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
 LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
-WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date AND se.TanggalKeluar < CURDATE() AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6`;
+WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date AND se.TanggalKeluar < CURDATE() AND se.CancelMasuk = 'N' AND se.IDDepartemen = '100103' AND se.IDPosisi = 6
+ORDER BY ms.IDSection, se.IDSubDepartemen`;
+export const qryGetEmpInHrExpandMonth = `SELECT 
+    se.IDSection,  COALESCE(ms.CusName, ms.Name) CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+WHERE DATE_FORMAT(se.TanggalMasuk, '%Y-%m') = :date AND se.TanggalMasuk < CURDATE()  AND se.CancelMasuk = 'N'
+ORDER BY ms.IDSection, se.IDSubDepartemen`;
+export const qryGetEmpOutHrExpandonth = `SELECT 
+    se.IDSection,  COALESCE(ms.CusName, ms.Name) CusName, se.Nik, se.NamaLengkap, se.IDSubDepartemen, msd.Name AS subDept
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+WHERE DATE_FORMAT(se.TanggalKeluar, '%Y-%m') = :date AND se.TanggalKeluar < CURDATE() AND se.CancelMasuk = 'N' 
+ORDER BY ms.IDSection, se.IDSubDepartemen`;
 
 export const querySumByKetDaily = `SELECT 
     sa.keterangan,
@@ -1650,4 +1693,40 @@ WHERE sa.tanggal_in = :tanggal_in
     AND se.IDPosisi = 6
 GROUP BY sa.keterangan, m.name_absen
 ORDER BY count_keterangan DESC;
+`
+
+export const qryLaborSewing = `SELECT 
+		smr.tgl_recap,
+		smr.IDDepartemen,
+		smr.IDSection,
+    smr.IDPosisi,
+    mp.Name AS posisi,
+		md.NameDept,
+    COALESCE(msts.SiteName, msts.Name) SITE_NAME,
+    COALESCE(msts.CusName, msts.Name) CUS_NAME,	
+		sum(smr.emp_total) emp_total
+		-- sum(smr.emp_absen) emp_absen,
+		-- sum(smr.emp_female) emp_female,
+		-- sum(smr.emp_male) emp_male,
+		-- sum(smr.emp_in) emp_in,
+		-- sum(smr.emp_out) emp_out,
+		-- sum(smr.emp_present) emp_present,
+		-- sum(smr.schedule_jk) schedule_jk
+	FROM sumbiri_mp_recap smr  
+	LEFT JOIN master_sites ms ON ms.IDSection = smr.IDSection
+	LEFT JOIN master_subdepartment sub ON sub.IDSubDept = smr.IDSubDepartemen
+  	LEFT JOIN master_section msts ON msts.IDSection = smr.IDSection
+  	LEFT JOIN master_department md ON md.IdDept  = smr.IDDepartemen
+  	LEFT JOIN master_position mp ON smr.IDPosisi = mp.IDPosition
+	WHERE 
+	smr.tgl_recap BETWEEN :startDate AND :endDate 
+	AND smr.IDDepartemen  = '100103'
+	GROUP BY smr.tgl_recap,
+		smr.IDDepartemen,
+		smr.IDSection,
+   		smr.IDPosisi
+  ORDER BY 
+		msts.SiteName,
+    smr.tgl_recap,
+    smr.IDPosisi
 `

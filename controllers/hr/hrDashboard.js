@@ -12,6 +12,7 @@ import {
   karyawanOut,
   karyawanOutSewing,
   qryBaseMpMonthly,
+  qryBaseSewMpMonthly,
   qryCurrentOrPasMp,
   qryDailyAbsensi,
   // qryDtlMpByLinePast,
@@ -19,11 +20,14 @@ import {
   qryGetEmpInExpand,
   qryGetEmpInExpandHR,
   qryGetEmpInExpandMonth,
+  qryGetEmpInHrExpandMonth,
   qryGetEmpOutExpand,
   qryGetEmpOutExpandHr,
   qryGetEmpOutExpandonth,
+  qryGetEmpOutHrExpandonth,
   qryGetEmpSewAllExpand,
   qryGetEmpSewAllExpandHr,
+  qryLaborSewing,
   querySumByKetDaily,
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
@@ -455,6 +459,12 @@ export const getExpandEmpIn = async (req, res) => {
     if (type === "empOutMpMonth") {
       query = qryGetEmpOutExpandonth;
     }
+    if (type === "empInMpMonthHr") {
+      query = qryGetEmpInHrExpandMonth;
+    }
+    if (type === "empOutMpMonthHr") {
+      query = qryGetEmpOutHrExpandonth;
+    }
     const dataEmpIn = await dbSPL.query(query, {
       replacements: { date },
       type: QueryTypes.SELECT,
@@ -637,7 +647,13 @@ export const getBaseSewMpMonthly = async(req, res) => {
     const arrHoliday = listHoliday.map((item) => item.calendar_date);
 
 
-      const baseMpAll     = await dbSPL.query(qryBaseMpMonthly, {
+      const baseMpAll     = await dbSPL.query(qryBaseSewMpMonthly, {
+        replacements: { startDate, endDate },
+        type: QueryTypes.SELECT,
+      });
+
+      
+      const laborSewing     = await dbSPL.query(qryLaborSewing, {
         replacements: { startDate, endDate },
         type: QueryTypes.SELECT,
       });
@@ -669,6 +685,8 @@ export const getBaseSewMpMonthly = async(req, res) => {
 
       // const getTglFromResul = getUniqueAttribute(baseMpSewingMonth, 'tgl_recap')
       const getSiteList = getUniqueAttribute(baseMpSewingMonth, 'CUS_NAME')
+      const getSiteListss = getUniqueAttribute(laborSewing, 'CUS_NAME')
+      console.log({getSiteList, getSiteListss});
       
       // data card month 
       const totalEmp    = totalAllEnd
@@ -736,7 +754,8 @@ export const getBaseSewMpMonthly = async(req, res) => {
     dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
     dataPerSec     : dataPerSec,
     dataSecPerDate : dataGroupTglSection,
-    sumOfDate      : sumOfDate
+    sumOfDate      : sumOfDate,
+    laborSewing: laborSewing
   }
 
   res.json({data : dataMonth, message : 'success get data month'})
@@ -789,7 +808,7 @@ function groupAndSumByDateAndSection(arr) {
     return acc;
   }, {})
 
-  const resultAndLto = Object.values(result).map(item => ({...item, lto: item.emp_out ? (item.emp_out/(item.emp_out+item.emp_total))*100 : 0}))
+  const resultAndLto = Object.values(result).map(item => ({...item, absentBySch : item.schedule_jk - item.emp_present, lto: item.emp_out ? (item.emp_out/(item.emp_out+item.emp_total))*100 : 0}))
   return resultAndLto;
 }
 
@@ -830,8 +849,8 @@ function sumEmpByDate(data, rangeDates) {
           return acc;
       }, { emp_in: 0, emp_out: 0, emp_total: 0 , emp_present: 0, emp_absen : 0, schedule_jk: 0});
       const dateLto  =  summary.emp_out > 0 ? ChkNilaFlt(summary.emp_out / (summary.emp_total+summary.emp_out)) * 100 : 0;
-
-      return { tanggal: date, dateLto, ...summary };
+      const absentBySch = summary.schedule_jk ? summary.schedule_jk - summary.emp_present : 0
+      return { tanggal: date, dateLto, absentBySch, ...summary };
   });
 }
 
@@ -875,72 +894,72 @@ export const getBaseMpMonthly = async(req, res) => {
 
   
       //ALL emp
-      const endDateAll = findEndDate(baseMpAll, endDate)
+      // const endDateAll = findEndDate(baseMpAll, endDate)
 
-      const filEmpAllStart  = baseMpAll.filter(rcp => rcp.tgl_recap === startDate)
-      const filEmpAllEnd    = baseMpAll.filter(rcp => rcp.tgl_recap === endDateAll)
-      const totalAllStart   = totalCol(filEmpAllStart, 'emp_total')
-      const totalAllEnd     = totalCol(filEmpAllEnd, 'emp_total')
-      const avgEmpAll       = (totalAllStart+totalAllEnd)/2
+      // const filEmpAllStart  = baseMpAll.filter(rcp => rcp.tgl_recap === startDate)      
+      // const filEmpAllEnd    = baseMpAll.filter(rcp => rcp.tgl_recap === endDateAll)
+      // const totalAllStart   = totalCol(filEmpAllStart, 'emp_total')
+      // const totalAllEnd     = totalCol(filEmpAllEnd, 'emp_total')
+      // const avgEmpAll       = (totalAllStart+totalAllEnd)/2
 
-      //sewing
-      const baseMpSewingMonth = baseMpAll.filter(
+      //filter libur
+      const baseMp = baseMpAll.filter(
         (dt) =>
           !arrHoliday.includes(dt.tgl_recap) &&
           !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
       ); 
-
-      const endDateLto      = findEndDate(baseMpSewingMonth, endDate)
-      const filterEmpStart  = baseMpSewingMonth.filter(emp => emp.tgl_recap === startDate)
-      const filterEmpEnd    = baseMpSewingMonth.filter(emp => emp.tgl_recap === endDateLto)
+      
+      const endDateLto      = findEndDate(baseMpAll, endDate)
+      const filterEmpStart  = baseMpAll.filter(emp => emp.tgl_recap === startDate)
+      const filterEmpEnd    = baseMpAll.filter(emp => emp.tgl_recap === endDateLto)
       const totalEmpStart   = totalCol(filterEmpStart, 'emp_total')
       const totalEmpEnd     = totalCol(filterEmpEnd, 'emp_total')
       const avgEmp          = (totalEmpStart+totalEmpEnd)/2
 
 
       // const getTglFromResul = getUniqueAttribute(baseMpSewingMonth, 'tgl_recap')
-      const getSiteList = getUniqueAttribute(baseMpSewingMonth, 'CUS_NAME')
+      const getListDept = getUniqueAttribute(baseMpAll, 'NameDept')
       
       // data card month 
-      const totalEmp    = totalAllEnd
-      const totalEmpIn  = totalCol(baseMpSewingMonth, 'emp_in')
-      const totalEmpout = totalCol(baseMpSewingMonth, 'emp_out')
-      const ltoMonth    = totalEmpout > 0 ? ChkNilaFlt(totalEmpout / (totalEmpEnd + totalEmpout)) * 100 : 0;
+      const totalEmp    = totalEmpEnd
+      const totalEmpIn  = totalCol(baseMpAll, 'emp_in')
+      const totalEmpOut = totalCol(baseMpAll, 'emp_out')
+      const ltoMonth    = totalEmpOut > 0 ? ChkNilaFlt(totalEmpOut / (totalEmpEnd + totalEmpOut)) * 100 : 0;
 
       //betulkan ini karena retun object
-      const dataGroupTglSection = groupAndSumByDateAndSection(baseMpSewingMonth)//ini menjumlahkan selama satu bulan
+      const dataGroupTglDept = groupAndSumByDateAndDept(baseMp)//ini menjumlahkan selama satu bulan
       
       //lalu cari lto per tanggal per section
-      const addLtoPerDate = dataGroupTglSection.map(items => {
-        let tlo =  items.emp_out > 0 ? ChkNilaFlt(items.emp_out / (items.emp_total + items.emp_out)) * 100 : 0; 
-        return {...items, tlo}
-      })
+      // const addLtoPerDate = dataGroupTglDept.map(items => {
+      //   let tlo =  items.emp_out > 0 ? ChkNilaFlt(items.emp_out / (items.emp_total + items.emp_out)) * 100 : 0; 
+      //   return {...items, tlo}
+      // })
 
       //lanjut cari avg emp per section berdasarkan start date dan end date
-      const dataPerSec = getSiteList.map(csName => {
-        const filterBysection = dataGroupTglSection.filter(tems => tems.CUS_NAME === csName)
+      const dataPerDept = getListDept.map(dept => {
+        const filterByDept = dataGroupTglDept.filter(tems => tems.NameDept === dept)
         
-        let endDateSec      = findEndDate(filterBysection, endDate)
+        let endDateSec      = findEndDate(filterByDept, endDate)
         
-        const findStartSec  = filterBysection.filter(item => item.tgl_recap === startDate)
-        const findEndSec    = filterBysection.filter(item => item.tgl_recap === endDateSec)
-        const secEmpStart   = totalCol(findStartSec, 'emp_total')
-        const secEmpEnd     = totalCol(findEndSec, 'emp_total')
-        const secEmpIn      = totalCol(filterBysection, 'emp_in')
-        const secEmpout     = totalCol(filterBysection, 'emp_out')
-        const avgEmpSec     = secEmpStart+secEmpEnd/2
-        const secLto        =  secEmpout > 0 ? ChkNilaFlt(secEmpout / (secEmpEnd+secEmpout)) * 100 : 0;
+        const findStartSec  = filterByDept.filter(item => item.tgl_recap === startDate)
+        const findEndSec    = filterByDept.filter(item => item.tgl_recap === endDateSec)
+        const deptEmpStart   = totalCol(findStartSec, 'emp_total')
+        const deptEmpEnd     = totalCol(findEndSec, 'emp_total')
+        const deptEmpIn      = totalCol(filterByDept, 'emp_in')
+        const deptEmpout     = totalCol(filterByDept, 'emp_out')
+        const avgEmpSec     = deptEmpStart+deptEmpEnd/2
+        const deptLto        =  deptEmpout > 0 ? ChkNilaFlt(deptEmpout / (deptEmpEnd+deptEmpout)) * 100 : 0;
 
       return {
-        CUS_NAME    : csName, 
-        IDSection   : filterBysection[0].IDSection,
-        SITE_NAME   :  filterBysection[0].SITE_NAME,
-        secEmpStart,
-        secEmpEnd,
-        secEmpout,
-        secEmpIn,
+        IDDepartemen   : filterByDept[0].IDDepartemen,
+        NameDept   :  filterByDept[0].NameDept,
+        deptEmpStart,
+        deptEmpEnd,
+        deptEmpout,
+        deptEmpIn,
         avgEmpSec,
-        secLto,}
+        deptLto,
+      }
       })
 
     const objDateMoment = {
@@ -958,12 +977,12 @@ export const getBaseMpMonthly = async(req, res) => {
           !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
       );
 
-  const sumOfDate = sumEmpByDate(baseMpSewingMonth, dateOutHol)
+  const sumOfDate = sumEmpByDate(baseMpAll, dateOutHol)
     
   const dataMonth = {
-    dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
-    dataPerSec     : dataPerSec,
-    dataSecPerDate : dataGroupTglSection,
+    dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpOut, totalTlo : ltoMonth},
+    dataPerDept     : dataPerDept,
+    dataDeptPerDate : dataGroupTglDept,
     sumOfDate      : sumOfDate
   }
 
@@ -978,4 +997,44 @@ export const getBaseMpMonthly = async(req, res) => {
         message: "Terdapat error saat get data emp detail by line",
       });
   }
+}
+
+
+function groupAndSumByDateAndDept(arr) {  
+  const result = arr.reduce((acc, item) => {
+    // Key berdasarkan tgl_recap dan section
+    const key = `${item.tgl_recap}-${item.IDDepartemen}`;
+    
+    // Jika key belum ada di accumulator, buat objek baru
+    if (!acc[key]) {
+      acc[key] = {
+        tgl_recap: item.tgl_recap,
+        IDDepartemen: item.IDDepartemen,
+        emp_total: 0,
+        emp_absen: 0,
+        emp_female: 0,
+        emp_male: 0,
+        emp_in: 0,
+        emp_out: 0,
+        emp_present: 0,
+        schedule_jk: 0,
+        NameDept: item.NameDept
+      };
+    }
+    
+    // Menambahkan nilai ke dalam akumulator
+    acc[key].emp_total += item.emp_total;
+    acc[key].emp_in += item.emp_in;
+    acc[key].emp_out += item.emp_out;
+    acc[key].emp_absen += item.emp_absen;
+    acc[key].emp_present += item.emp_present;
+    acc[key].emp_male += item.emp_male;
+    acc[key].emp_female += item.emp_female;
+    acc[key].schedule_jk += item.schedule_jk;
+
+    return acc;
+  }, {})
+
+  const resultAndLto = Object.values(result).map(item => ({...item, absentBySch : item.schedule_jk - item.emp_present, lto: item.emp_out ? (item.emp_out/(item.emp_out+item.emp_total))*100 : 0}))
+  return resultAndLto;
 }
