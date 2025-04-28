@@ -1,5 +1,5 @@
 import { QueryTypes } from "sequelize";
-import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, queryEmpBurekol, queryNewEmpAmipay, sqlFindEmpByNIK, sqlFindEmpByNIKActive, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
+import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, qryGetEmpDetail, queryEmpBurekol, queryNewEmpAmipay, sqlFindEmpByNIK, sqlFindEmpByNIKActive, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL, redisConn } from "../../config/dbAudit.js";
 import moment from "moment";
 import { EmpGroup, GroupShift } from "../../models/hr/JadwalDanJam.mod.js";
@@ -594,6 +594,31 @@ export const getEmpNewEmpAmipay = async(req,res) => {
   try {
     const empNik = req.params.empnik;
     const dataForAmipay = await dbSPL.query(queryNewEmpAmipay, {
+      replacements: {
+        empNik: empNik
+      }, type: QueryTypes.SELECT
+    });
+    if(dataForAmipay){
+      return res.status(200).json({
+        success: true,
+        message: `success get employee for amipay`,
+        data: dataForAmipay
+      });
+    }
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "error cannot get employee for amipay",
+    });
+  }
+}
+
+
+export const getEmpDetailByNik = async(req,res) => {
+  try {
+    const empNik = req.params.empnik;
+    const dataForAmipay = await dbSPL.query(qryGetEmpDetail, {
       replacements: {
         empNik: empNik
       }, type: QueryTypes.SELECT

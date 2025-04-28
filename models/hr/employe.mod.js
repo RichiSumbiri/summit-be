@@ -752,3 +752,15 @@ WHERE se.Nik=:empNik
 modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");
 modelSumbiriEmployee.removeAttribute("id");
+
+export const qryGetEmpDetail = `SELECT 
+	se.*,
+	map2.nama_prov,
+	mak.nama_kabkota,
+	mak2.nama_kecamatan,
+	se.AlamatKelurahan
+FROM sumbiri_employee se
+LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov  = se.AlamatIDProv 
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota
+LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan
+WHERE se.Nik = :empNik`
