@@ -903,11 +903,11 @@ export const getBaseMpMonthly = async(req, res) => {
       // const avgEmpAll       = (totalAllStart+totalAllEnd)/2
 
       //filter libur
-      const baseMp = baseMpAll.filter(
-        (dt) =>
-          !arrHoliday.includes(dt.tgl_recap) &&
-          !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
-      ); 
+      // const baseMp = baseMpAll.filter(
+      //   (dt) =>
+      //     !arrHoliday.includes(dt.tgl_recap) &&
+      //     !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
+      // ); 
       
       const endDateLto      = findEndDate(baseMpAll, endDate)
       const filterEmpStart  = baseMpAll.filter(emp => emp.tgl_recap === startDate)
@@ -927,7 +927,7 @@ export const getBaseMpMonthly = async(req, res) => {
       const ltoMonth    = totalEmpOut > 0 ? ChkNilaFlt(totalEmpOut / (totalEmpEnd + totalEmpOut)) * 100 : 0;
 
       //betulkan ini karena retun object
-      const dataGroupTglDept = groupAndSumByDateAndDept(baseMp)//ini menjumlahkan selama satu bulan
+      const dataGroupTglDept = groupAndSumByDateAndDept(baseMpAll)//ini menjumlahkan selama satu bulan
       
       //lalu cari lto per tanggal per section
       // const addLtoPerDate = dataGroupTglDept.map(items => {
@@ -971,13 +971,13 @@ export const getBaseMpMonthly = async(req, res) => {
 // console.log('mampu sampai sini');
 
       //hapus weekend dan holiday
-      const dateOutHol = rangeDate.filter(
-        (dt) =>
-          !arrHoliday.includes(dt) &&
-          !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
-      );
+      // const dateOutHol = rangeDate.filter(
+      //   (dt) =>
+      //     !arrHoliday.includes(dt) &&
+      //     !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
+      // );
 
-  const sumOfDate = sumEmpByDate(baseMpAll, dateOutHol)
+  const sumOfDate = sumEmpByDate(baseMpAll, rangeDate)
     
   const dataMonth = {
     dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpOut, totalTlo : ltoMonth},
