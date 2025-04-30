@@ -619,7 +619,9 @@ function findQuery(cusName, date, line){
 export const getBaseSewMpMonthly = async(req, res) => {
   try {
     const {monthYear} = req.params
+    const {seciton} = req.query
 
+    
     const startDate   = moment(monthYear, 'YYYY-MM')
       .startOf("month")
       .format('YYYY-MM-DD')
@@ -647,33 +649,41 @@ export const getBaseSewMpMonthly = async(req, res) => {
     const arrHoliday = listHoliday.map((item) => item.calendar_date);
 
 
-      const baseMpAll     = await dbSPL.query(qryBaseSewMpMonthly, {
+      const baseMpSew     = await dbSPL.query(qryBaseSewMpMonthly, {
         replacements: { startDate, endDate },
         type: QueryTypes.SELECT,
       });
 
       
-      const laborSewing     = await dbSPL.query(qryLaborSewing, {
+      const baseLabor     = await dbSPL.query(qryLaborSewing, {
         replacements: { startDate, endDate },
         type: QueryTypes.SELECT,
       });
 
+      let baseMpAll = baseMpSew
+      let laborSewing = baseLabor
+      
+      if(seciton){
+        baseMpAll = baseMpSew.filter(item => item.CUS_NAME === seciton)        
+        laborSewing = baseLabor.filter(item => item.CUS_NAME === seciton)        
+      }
   
       //ALL emp
-      const endDateAll = findEndDate(baseMpAll, endDate)
+      const endDateAll = findEndDate(baseMpSew, endDate)
 
-      const filEmpAllStart  = baseMpAll.filter(rcp => rcp.tgl_recap === startDate)
-      const filEmpAllEnd    = baseMpAll.filter(rcp => rcp.tgl_recap === endDateAll)
+      const filEmpAllStart  = baseMpSew.filter(rcp => rcp.tgl_recap === startDate)
+      const filEmpAllEnd    = baseMpSew.filter(rcp => rcp.tgl_recap === endDateAll)
       const totalAllStart   = totalCol(filEmpAllStart, 'emp_total')
       const totalAllEnd     = totalCol(filEmpAllEnd, 'emp_total')
       const avgEmpAll       = (totalAllStart+totalAllEnd)/2
 
       //sewing
-      const baseMpSewingMonth = baseMpAll.filter(rcp => rcp.IDDepartemen === 100103 && rcp.IDPosisi === 6)?.filter(
-        (dt) =>
-          !arrHoliday.includes(dt.tgl_recap) &&
-          !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
-      ); 
+      const baseMpSewingMonth = baseMpAll.filter(rcp => rcp.IDDepartemen === 100103 && rcp.IDPosisi === 6)
+      //?.filter(
+      //   (dt) =>
+      //     !arrHoliday.includes(dt.tgl_recap) &&
+      //     !dayWeekEnd.includes(moment(dt.tgl_recap, "YYYY-MM-DD").format("dddd"))
+      // ); ``
 
       const endDateLto      = findEndDate(baseMpSewingMonth, endDate)
       const filterEmpStart  = baseMpSewingMonth.filter(emp => emp.tgl_recap === startDate)
@@ -685,9 +695,7 @@ export const getBaseSewMpMonthly = async(req, res) => {
 
       // const getTglFromResul = getUniqueAttribute(baseMpSewingMonth, 'tgl_recap')
       const getSiteList = getUniqueAttribute(baseMpSewingMonth, 'CUS_NAME')
-      const getSiteListss = getUniqueAttribute(laborSewing, 'CUS_NAME')
-      console.log({getSiteList, getSiteListss});
-      
+
       // data card month 
       const totalEmp    = totalAllEnd
       const totalEmpIn  = totalCol(baseMpSewingMonth, 'emp_in')
@@ -742,13 +750,13 @@ export const getBaseSewMpMonthly = async(req, res) => {
 // console.log('mampu sampai sini');
 
       //hapus weekend dan holiday
-      const dateOutHol = rangeDate.filter(
-        (dt) =>
-          !arrHoliday.includes(dt) &&
-          !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
-      );
+      // const dateOutHol = rangeDate.filter(
+      //   (dt) =>
+      //     !arrHoliday.includes(dt) &&
+      //     !dayWeekEnd.includes(moment(dt, "YYYY-MM-DD").format("dddd"))
+      // );
 
-  const sumOfDate = sumEmpByDate(baseMpSewingMonth, dateOutHol)
+  const sumOfDate = sumEmpByDate(baseMpSewingMonth, rangeDate)
     
   const dataMonth = {
     dataCard       : { totalEmpStart, totalEmpEnd, avgEmp, totalEmp, totalEmpIn, totalEmpout, ltoMonth},
