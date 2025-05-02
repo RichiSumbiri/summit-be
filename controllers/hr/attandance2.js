@@ -214,28 +214,14 @@ export const punchAttdLog2 = async (req, res) => {
       type: QueryTypes.SELECT,
       // logging: console.log
     });
-    // const filterLembur = getLembur.filter(item => item.Nik === 202011073)
-    // console.log({lembur : filterLembur});
+
 
     if (getLembur.length > 0) {
       getSchAttd = getSchAttd.map((item) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
 
         if (lembur) {
-          // let ttlLembur = "";
-          // if (lembur.type === "BH") {
-          //   const scanin = moment(item.scan_in, "HH:mm:ss");
-          //   const jam_in = moment(item.jk_in, "HH:mm:ss");
-          //   ttlLembur = scanin.diff(jam_in, "hours");
-          // } else {
-          //   const scanout = moment(item.scan_out, "HH:mm:ss");
-          //   let jam_out = moment(item.jk_out, "HH:mm:ss");
 
-          //   // if (scanout.isBefore(jam_out)) {
-          //   //   jam_out.add(1, "day");
-          //   // }
-          //   ttlLembur = scanout.diff(jam_out, "hours");
-          // }
           return { ...item, ...lembur };
           // return { ...item, ...lembur, ttlLembur };
         } else {
@@ -305,6 +291,9 @@ export const punchAttdLog2 = async (req, res) => {
                   }
                 );
               } else {
+               //ot untuk HL atau PH tapi masuk (security)
+                const objKoreksiOt = {...objScanIn, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : 0 }
+
                 const dataAbsen = {
                   Nik: logs.Nik,
                   groupId: findSch.groupId,
@@ -314,7 +303,7 @@ export const punchAttdLog2 = async (req, res) => {
                   calendar: findSch.calendar,
                   keterangan: "H",
                   id: findSch.id, // untuk handle jika fatanan keburu edit tabel absen jadi bisa di update
-                  ...objScanIn,
+                  ...objKoreksiOt,
                   // scan_in: isInRange ? logTime : null,
                   // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
                 };

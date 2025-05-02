@@ -329,7 +329,7 @@ export const SchedulePunchAttd = dbSPL.define(
 
 export const qryDailyAbsensi = `WITH base_absen AS (
 	SELECT 
-	    se.Nik, 
+	      se.Nik, 
 		  se.NamaLengkap,
 		  se.IDDepartemen,
 		  se.IDSubDepartemen,
@@ -340,8 +340,8 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 		  se.JenisKelamin,
 		  se.StatusKaryawan,
       msd.Name subDeptName,
-	    md.NameDept,
-	    sgs.groupId,
+      md.NameDept,
+      sgs.groupId,
       sis.jadwalId_inv,
 	    COALESCE(sis.scheduleDate_inv, sgs.scheduleDate) AS scheduleDate,
 	    COALESCE(sis.jk_id, sgs.jk_id) AS jk_id,
@@ -355,55 +355,63 @@ export const qryDailyAbsensi = `WITH base_absen AS (
 	WHERE se.CancelMasuk = 'N' -- Karyawan saat ini tidak aktif
 	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :date ) -- Belum keluar pada tanggal tertentu
 	  AND se.TanggalMasuk <= :date
+),
+JoinAbsen AS (
+	SELECT 
+	ba.Nik, 
+	ba.NamaLengkap,
+	ba.NameDept,
+	ba.IDDepartemen,
+	ba.IDSubDepartemen,
+	ba.subDeptName,
+	ba.IDSection,
+	ba.groupId,
+	ba.TanggalMasuk,
+	ba.TanggalKeluar,
+	ba.JenisKelamin,
+	ba.StatusKaryawan,
+	mp.Name AS jabatan,
+	ba.jadwalId_inv,
+	ba.scheduleDate,
+	sgs.groupName,
+	COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
+	-- ba.jk_id,
+	mjk.jk_nama,
+	-- mjk2.jk_nama jk_aktual,
+	mjk.jk_in,
+	mjk.jk_out,
+	mjk.jk_out_day,
+	CASE WHEN sa.keterangan = 'H' THEN mjk.jk_duration_hour ELSE NULL END AS base_jk,
+	COALESCE(sa.calendar, ba.calendar) AS calendar,
+	sa.jk_id jk_id_absen,
+	sa.id, 
+	sa.tanggal_in,
+	sa.tanggal_out,
+	sa.scan_in,
+	sa.scan_out,
+	IFNULL(sa.ot,0) AS ot,
+	sa.ket_in,
+	sa.ket_out,
+	sa.keterangan,
+	sa.createdAt,
+	sa.mod_id,
+	sa.updatedAt,
+	sa.validasi,
+	msts.Name AS NamaSection
+	FROM base_absen AS ba
+	LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
+	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
+	-- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
+	LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
+	LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+	LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
+
 )
 SELECT 
-ba.Nik, 
-ba.NamaLengkap,
-ba.NameDept,
-ba.IDDepartemen,
-ba.IDSubDepartemen,
-ba.subDeptName,
-ba.IDSection,
-ba.groupId,
-ba.TanggalMasuk,
-ba.TanggalKeluar,
-ba.JenisKelamin,
-ba.StatusKaryawan,
-mp.Name AS jabatan,
-ba.jadwalId_inv,
-ba.scheduleDate,
-sgs.groupName,
-COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
--- ba.jk_id,
-mjk.jk_nama,
--- mjk2.jk_nama jk_aktual,
-mjk.jk_in,
-mjk.jk_out,
-mjk.jk_out_day,
-COALESCE(sa.calendar, ba.calendar) AS calendar,
-sa.jk_id jk_id_absen,
-sa.id, 
-sa.tanggal_in,
-sa.tanggal_out,
-sa.scan_in,
-sa.scan_out,
-sa.ot,
-sa.ket_in,
-sa.ket_out,
-sa.keterangan,
-sa.createdAt,
-sa.mod_id,
-sa.updatedAt,
-sa.validasi,
-msts.Name AS NamaSection
-FROM base_absen ba
-LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
-LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
--- LEFT JOIN master_jam_kerja mjk2 ON mjk2.jk_id = sa.jk_id
-LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
-LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
-LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
-`;
+	ja.*,
+	CASE WHEN ja.calendar NOT IN ('PH', 'HL') THEN ja.base_jk ELSE NULL END AS jk_duration_hour,
+	CASE WHEN ja.calendar NOT IN ('PH', 'HL') THEN ja.base_jk + ja.ot ELSE ja.ot END AS Act_Hour
+FROM JoinAbsen ja`;
 
 export const getLemburForAbsen = `
   SELECT 
