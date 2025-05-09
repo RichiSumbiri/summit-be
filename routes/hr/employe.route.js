@@ -87,7 +87,7 @@ import {
 } from "../../controllers/hr/JadwalJamKerja.js";
 import { getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
-import { deleteCategorySkills, deleteSkillData, getCategorySkills, getSkillByCategoryID, postNewCategorySkills, postNewSkills } from "../../controllers/hr/skills.js";
+import { deleteCategorySkills, deleteSkillData, getCategorySkills, getEmpSkillDataByCat, getSkillByCategoryID, postNewCategorySkills, postNewSkills } from "../../controllers/hr/skills.js";
 
 const router = express.Router();
 
@@ -234,5 +234,9 @@ router.delete("/category-skills/:id", deleteCategorySkills);
 router.get("/skills/:id", getSkillByCategoryID);
 router.post("/skills", postNewSkills);
 router.delete("/skills/:id", deleteSkillData);
+router.get("/emp-skills/:idcategory", getEmpSkillDataByCat);
+
+
+
 
 export default router;

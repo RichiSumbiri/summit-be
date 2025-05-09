@@ -1,5 +1,7 @@
 import moment from "moment";
-import { ModelCategorySkills, ModelMasterSkill, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
+import { ModelCategorySkills, ModelMasterSkill, queryGetEmpSkillDataByCategory, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
+import { dbSPL } from "../../config/dbAudit.js";
+import { QueryTypes } from "sequelize";
 
 
 export const getCategorySkills = async (req, res) => {
@@ -186,3 +188,31 @@ export const deleteSkillData = async(req,res) => {
         });
     }
 } 
+
+
+
+export const getEmpSkillDataByCat = async(req,res) => {
+    try {
+        const { idcategory } = req.params;
+        const EmpSkillData = await dbSPL.query(queryGetEmpSkillDataByCategory, {
+            replacements: {
+                categoryID: idcategory
+            }, type: QueryTypes.SELECT
+        });
+
+
+      return res.status(200).json({
+        success: true,
+        message: "success get employee skills",
+        data: EmpSkillData
+    });
+      
+          
+    } catch(err){
+        console.error(err);
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee skills"
+        });
+    }
+}

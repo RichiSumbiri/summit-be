@@ -102,3 +102,29 @@ export const ModelCategorySkills = dbSPL.define('master_skills_category', {
     tableName: 'sumbiri_employee_skills',
     timestamps: false
   });
+
+
+
+  export const queryGetEmpSkillDataByCategory = `
+  SELECT
+	se.Nik,
+	se.NamaLengkap,
+	md.NameDept AS Departemen,
+	ms2.Name AS SubDepartemen,
+	ms3.Name AS Section,
+	msc.skill_category_id,
+	msc.skill_category_name,
+	ses.skill_id,
+	ms.skill_name,
+	ses.skill_level
+FROM
+	sumbiri_employee se
+LEFT JOIN sumbiri_employee_skills ses ON ses.Nik = se.Nik
+LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
+LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+LEFT JOIN master_subdepartment ms2 ON ms2.IDSubDept = se.IDSubDepartemen
+LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
+WHERE se.StatusAktif ='0' AND msc.skill_category_id = :categoryID
+ORDER BY se.Nik, ms.skill_id ASC
+`;
