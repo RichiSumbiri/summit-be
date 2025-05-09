@@ -1123,37 +1123,67 @@ export const getBaseAbsMonth = `SELECT
   	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
   	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
   	sa.ot,
+    (ssd.minutes / 60) as spl,
     sa.id,
     sa.validasi
 FROM sumbiri_absens sa
 JOIN sumbiri_employee se ON se.Nik = sa.Nik
+LEFT JOIN sumbiri_spl_data ssd ON sa.Nik = ssd.Nik AND sa.tanggal_in = ssd.spl_date
 WHERE MONTH(sa.tanggal_in) = :monthNum 
 AND YEAR(sa.tanggal_in) = :yearNum
 AND se.IDSection = :idSection
 AND se.IDSubDepartemen = :idSubDept;`;
 
-export const getBaseAbsMonthAll = `
-SELECT 
-	sa.tanggal_in,
-    sa.Nik,
-    se.NamaLengkap,
-  	sa.keterangan,
-    sa.calendar,
-    sa.jk_id,
-    sa.ket_in,
-    sa.ket_out,
-  	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
-  	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
-  	sa.ot,
-  	(ssd.minutes / 60) as spl,
-    sa.id,
-    sa.validasi
-FROM sumbiri_absens sa
-JOIN sumbiri_employee se ON se.Nik = sa.Nik
-LEFT JOIN sumbiri_spl_data ssd ON sa.Nik = ssd.Nik AND sa.tanggal_in = ssd.spl_date  
-WHERE MONTH(sa.tanggal_in) = :monthNum 
-AND YEAR(sa.tanggal_in) = :yearNum
-`;
+
+
+export function getBaseAbsMonthAll (paramsQry) {
+  const {idDept, idSubDept, arrNik } = paramsQry
+
+  let basedQuerAbs = `	SELECT 
+		sa.tanggal_in,
+	    sa.Nik,
+	    se.NamaLengkap,
+	  	sa.keterangan,
+	    sa.calendar,
+	    sa.jk_id,
+	    sa.ket_in,
+	    sa.ket_out,
+      (ssd.minutes / 60) as spl,
+	  	DATE_FORMAT(sa.scan_in, '%H:%i') AS scan_in,
+	  	DATE_FORMAT(sa.scan_out, '%H:%i') AS scan_out,
+	  	IFNULL(sa.ot,0) AS ot,
+	    sa.id,
+	    CASE WHEN sa.keterangan = 'H' THEN mjk.jk_duration_hour ELSE NULL END AS base_jk,
+	    sa.validasi
+	FROM sumbiri_absens sa
+	JOIN sumbiri_employee se ON se.Nik = sa.Nik
+	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = sa.jk_id
+  LEFT JOIN sumbiri_spl_data ssd ON sa.Nik = ssd.Nik AND sa.tanggal_in = ssd.spl_date
+	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate`
+
+  if(idDept){
+    basedQuerAbs = basedQuerAbs+ ` AND se.IDDepartemen = ${idDept} `
+  }
+  if(idSubDept){
+    basedQuerAbs = basedQuerAbs+ ` AND se.IDSubDepartemen = ${idSubDept} `
+  }
+  if(arrNik){
+    const splitArrNik = arrNik.split(',')
+    const stringNik = splitArrNik.map(nik => `"${nik}"`).join(',')
+    basedQuerAbs = basedQuerAbs+ ` AND sa.Nik IN ( ${stringNik} ) `
+  }
+
+  
+  return `
+    WITH base_absen AS (
+      ${basedQuerAbs}
+    ) 
+    SELECT 
+      ba.*,
+      CASE WHEN ba.calendar NOT IN ('PH', 'HL') THEN ba.base_jk ELSE 0 END AS jk_duration_hour,
+      CASE WHEN ba.calendar NOT IN ('PH', 'HL') THEN ba.base_jk + ba.ot ELSE ba.ot END AS Act_Hour
+    FROM base_absen AS ba
+`;}
 
 
 export const queryRecapAbsMonth = `WITH employee AS (
