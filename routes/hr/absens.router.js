@@ -26,7 +26,7 @@ router.patch("/absens-individu", deleteIndvAbsen);
 //montly absensi
 router.get("/absens-list-sec-subdept/:yearNum/:monthNum", getListSecAndSubdept);
 router.get("/absens-month/:idSection/:idSubDept/:yearNum/:monthNum", getMonthAttd);
-router.get("/absens-month-all/:yearNum/:monthNum", getMonthAttdAll);
+router.get("/absens-month-all/:start/:end", getMonthAttdAll);
 
 
 //generate summary 
