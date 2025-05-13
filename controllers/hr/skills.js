@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ModelCategorySkills, ModelMasterSkill, queryGetEmpSkillDataByCategory, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
+import { ModelCategorySkills, ModelMasterSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";
 
@@ -214,5 +214,106 @@ export const getEmpSkillDataByCat = async(req,res) => {
             success: false,
             message: "fail get employee skills"
         });
+    }
+}
+
+
+export const getEmpSKillByNIK = async(req,res) => {
+    try {
+        const { nik } = req.params;
+        const data = await dbSPL.query(queryGetEmpSkillByNIK, {
+            replacements: {
+                empNik: nik
+            }, type: QueryTypes.SELECT
+        });
+        if(data){
+            return res.status(200).json({
+                success: true,
+                message: "success get employee skills",
+                data: data
+            });
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee skills"
+        });
+    }
+}
+
+
+export const getEmpSkillDataPaginated = async(req,res) => {
+    try {
+        let { page, search, limit } = req.params; 
+        page                    = Number(page) ? parseInt(page): 1;
+        limit                   = Number(limit) ? parseInt(limit) : 100;
+        const searchParam       = decodeURIComponent(search);
+        const offset            = (page - 1) * limit; // Calculate offset
+
+        const EmpSkillAll = await dbSPL.query(queryGetEmpSkillDataAll, {
+            replacements: {
+                searchParameter: `%${searchParam}%`
+            }, type: QueryTypes.SELECT
+        });
+
+        
+
+        const EmpSkillData = await dbSPL.query(queryGetEmpSkillDataPaginated, {
+            replacements: {
+                limitPage: limit,
+                offsetPage: offset,
+                searchParameter: `%${searchParam}%`
+            }, type: QueryTypes.SELECT
+        });
+
+
+      return res.status(200).json({
+        success: true,
+        message: "success get employee skills",
+        length: EmpSkillAll.length,
+        totalPages: Math.ceil(EmpSkillAll.length / limit),
+        data: EmpSkillData
+    });
+      
+          
+    } catch(err){
+        console.error(err);
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee skills"
+        });
+    }
+}
+
+
+export const postEmpSKill = async(req,res) => {
+    try {
+        const { data } = req.body;
+        let tryPost;
+        if(data.checked===true){
+            tryPost = await SumbiriEmployeeSkills.upsert({
+                Nik: data.Nik,
+                skill_id: data.skill_id
+            });
+        } else {
+            tryPost = await SumbiriEmployeeSkills.destroy({
+                where: {
+                    Nik: data.Nik,
+                    skill_id: data.skill_id
+                }
+            });
+        }
+        if(tryPost){
+            return res.status(200).json({
+                success: true,
+                message: "success add emp skills"
+            });
+        }
+    } catch(err){
+        console.log(err);
+        return res.status(404).json({
+                success: false,
+                message: "failed add emp skills"
+            });
     }
 }

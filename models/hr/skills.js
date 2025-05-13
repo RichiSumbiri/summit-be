@@ -94,7 +94,7 @@ export const ModelCategorySkills = dbSPL.define('master_skills_category', {
       allowNull: false,
       defaultValue: false,
     },
-    last_used_date: {
+    last_update_date: {
       type: DataTypes.DATEONLY,
       allowNull: true,
     }
@@ -127,4 +127,69 @@ LEFT JOIN master_subdepartment ms2 ON ms2.IDSubDept = se.IDSubDepartemen
 LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
 WHERE se.StatusAktif ='0' AND msc.skill_category_id = :categoryID
 ORDER BY se.Nik, ms.skill_id ASC
+`;
+
+export const queryGetEmpSkillDataAll = `
+SELECT
+	se.Nik,
+	se.NamaLengkap,
+	md.NameDept AS Departemen,
+	ms2.Name AS SubDepartemen,
+	ms3.Name AS Section,
+	msc.skill_category_id,
+	msc.skill_category_name,
+	ses.skill_id,
+	ms.skill_name,
+	ses.skill_level
+FROM
+	sumbiri_employee se
+LEFT JOIN sumbiri_employee_skills ses ON ses.Nik = se.Nik
+LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
+LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+LEFT JOIN master_subdepartment ms2 ON ms2.IDSubDept = se.IDSubDepartemen
+LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
+WHERE se.StatusAktif ='0' 
+AND msc.skill_category_name IS NOT NULL
+AND ( 
+	se.Nik LIKE :searchParameter OR
+	se.NamaLengkap LIKE :searchParameter OR
+	md.NameDept  LIKE :searchParameter OR
+	ms2.Name  LIKE :searchParameter OR
+	ms3.Name  LIKE :searchParameter OR
+	msc.skill_category_name LIKE :searchParameter OR
+	ms.skill_name LIKE :searchParameter
+)
+
+`;
+
+
+  export const queryGetEmpSkillDataPaginated = queryGetEmpSkillDataAll + `
+  
+ORDER BY msc.skill_category_id, ms.skill_id, md.NameDept, se.Nik  ASC
+LIMIT :limitPage OFFSET :offsetPage`;
+
+
+export const queryGetEmpSkillByNIK = `
+SELECT
+	se.Nik,
+	se.NamaLengkap,
+	md.NameDept AS Departemen,
+	ms2.Name AS SubDepartemen,
+	ms3.Name AS Section,
+	msc.skill_category_id,
+	msc.skill_category_name,
+	ses.skill_id,
+	ms.skill_name,
+	ses.skill_level
+FROM
+	sumbiri_employee se
+LEFT JOIN sumbiri_employee_skills ses ON ses.Nik = se.Nik
+LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
+LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+LEFT JOIN master_subdepartment ms2 ON ms2.IDSubDept = se.IDSubDepartemen
+LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
+WHERE se.Nik=:empNik
+
 `;
