@@ -2,6 +2,7 @@ import db from "../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import { ListCountry } from "../../models/list/referensiList.mod.js";
 import { PackingPlanDetail } from "../../models/production/packing.mod.js";
+import { ItemListStyle } from "../../models/list/itemStyle.mod.js";
 
 export const getListCountry = async (req, res) => {
   try {
@@ -101,6 +102,29 @@ export const deleteCountryList = async (req, res) => {
     console.log(error);
     return res.status(404).json({
       message: "error get deleted box",
+      data: error,
+    });
+  }
+};
+
+
+export const getListItemStyle = async (req, res) => {
+  try {
+    const { buyer } = req.params;
+    const BUYER_CODE = decodeURIComponent(buyer).toString();
+
+    const listStyle = await ItemListStyle.findAll({
+      where: {
+        CUSTOMER_NAME: BUYER_CODE,
+      },
+      raw: true,
+    });
+
+    return res.status(200).json({ data: listStyle });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data list item style",
       data: error,
     });
   }
