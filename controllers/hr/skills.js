@@ -189,7 +189,59 @@ export const deleteSkillData = async(req,res) => {
     }
 } 
 
+export const getMatrixSkillReportByCat = async(req,res) => {
+    try {
+        const { idcategory } = req.params;
+        const EmpSkillData = await dbSPL.query(queryGetEmpSkillDataByCategory, {
+            replacements: {
+                categoryID: idcategory
+            }, type: QueryTypes.SELECT
+        });
+        
+        const groupedData = EmpSkillData.reduce((acc, item) => {
+            // Create a unique key based on employee identity
+            const key = `${item.Nik}-${item.NamaLengkap}-${item.Departemen}-${item.SubDepartemen}-${item.Section}`;
 
+            // If group doesn't exist yet, initialize it
+            if (!acc[key]) {
+                acc[key] = {
+                Nik: item.Nik,
+                NamaLengkap: item.NamaLengkap,
+                Departemen: item.Departemen,
+                SubDepartemen: item.SubDepartemen,
+                Section: item.Section,
+                detail: [],
+            };
+        }
+
+        // Push skill details to the "detail" array
+        acc[key].detail.push({
+            skill_category_id: item.skill_category_id,
+            skill_category_name: item.skill_category_name,
+            skill_id: item.skill_id,
+            skill_name: item.skill_name,
+            skill_level: item.skill_level,
+        });
+
+        return acc;
+        }, {});
+
+        // Convert back to array
+        const finalResult = Object.values(groupedData);
+        
+        
+        return res.status(200).json({
+            success: true,
+            message: "success get employee matrix skills data",
+            data: finalResult
+        });
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee skills"
+        });
+    }
+}
 
 export const getEmpSkillDataByCat = async(req,res) => {
     try {
