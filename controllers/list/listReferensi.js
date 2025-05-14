@@ -2,7 +2,7 @@ import db from "../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import { ListCountry } from "../../models/list/referensiList.mod.js";
 import { PackingPlanDetail } from "../../models/production/packing.mod.js";
-import { ItemListStyle } from "../../models/list/itemStyle.mod.js";
+import { ItemListStyle, qryGetItemCode, qryListstyleWithUser } from "../../models/list/itemStyle.mod.js";
 
 export const getListCountry = async (req, res) => {
   try {
@@ -113,18 +113,80 @@ export const getListItemStyle = async (req, res) => {
     const { buyer } = req.params;
     const BUYER_CODE = decodeURIComponent(buyer).toString();
 
-    const listStyle = await ItemListStyle.findAll({
-      where: {
-        CUSTOMER_NAME: BUYER_CODE,
-      },
-      raw: true,
+    // const listStyle = await ItemListStyle.findAll({
+    //   where: {
+    //     CUSTOMER_NAME: BUYER_CODE,
+    //   },
+    //   raw: true,
+    // });
+
+    const listStyle = await db.query(qryListstyleWithUser, {
+      replacements : { buyer },
+      type: QueryTypes.SELECT,
     });
+
 
     return res.status(200).json({ data: listStyle });
   } catch (error) {
     console.log(error);
     return res.status(404).json({
       message: "error get data list item style",
+      data: error,
+    });
+  }
+};
+
+
+export const postListItemStyle = async (req, res) => {
+  try {
+    const dataStyle = req.body;
+
+    let whereCheck = {
+        PRODUCT_ITEM_CODE : dataStyle.PRODUCT_ITEM_CODE
+      }
+
+    if(dataStyle.PRODUCT_ITEM_ID){
+      whereCheck[PRODUCT_ITEM_ID] = dataStyle.PRODUCT_ITEM_ID
+    }
+    const checkData = await ItemListStyle.findOne({
+      where : whereCheck
+    })
+
+    if(checkData){
+    return  res.status(404).json({
+          message: "Data Style Or Product Already exist",
+          data: error,
+        });
+    }
+
+    const createNewStyle = await ItemListStyle.create(dataStyle);
+
+    if(createNewStyle){
+      return res.status(200).json({ data: createNewStyle });
+    }
+
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data list item style",
+      data: error,
+    });
+  }
+};
+
+
+export const getListItemCode = async (req, res) => {
+  try {
+    
+    const listItemCode = await db.query(qryGetItemCode, {
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({ data: listItemCode });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error get data list item code",
       data: error,
     });
   }
