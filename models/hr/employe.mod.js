@@ -753,23 +753,29 @@ modelMasterDepartment.removeAttribute("id");
 modelMasterSubDepartment.removeAttribute("id");
 modelSumbiriEmployee.removeAttribute("id");
 
-export const qryGetEmpDetail = `SELECT 
+export const qryGetEmpDetail = `
+SELECT 
 	se.*,
 	map2.nama_prov,
 	mak.nama_kabkota,
 	mak2.nama_kecamatan,
+	md.NameDept AS Departemen,
 	ms.Name SubDepartemen,
 	msc.Name AS SectionName,
+	mp.Name AS Position,
+	sgs.groupName,
 	ss.Remark,
 	ss.FlagReason
 FROM sumbiri_employee se
 LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov  = se.AlamatIDProv 
 LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = se.AlamatIDKabKota
 LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = se.AlamatIDKecamatan
+LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen 
 LEFT JOIN master_subdepartment ms ON ms.IDSubDept = se.IDSubDepartemen
 LEFT JOIN master_section msc ON msc.IDSection  = se.IDSection
+left JOIN master_position mp ON mp.IDPosition = se.IDPosisi 
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId
 LEFT JOIN sumbiri_spk ss ON ss.Nik = se.Nik 
 WHERE se.Nik = :empNik
-`
+`;
