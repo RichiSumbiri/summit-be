@@ -1,9 +1,10 @@
 import express from "express";
-import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen, getMonthAttd, getListSecAndSubdept, genSumAbsen, getSumAbsen, deleteSchHoliday, validasiAbsensi, getAbsenAmano, getMonthAttdAll } from "../../controllers/hr/absensi.js";
+import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen, getMonthAttd, getListSecAndSubdept, genSumAbsen, getSumAbsen, deleteSchHoliday, validasiAbsensi, getAbsenAmano, getMonthAttdAll, getAbsenDailyDakintai } from "../../controllers/hr/absensi.js";
 const router = express.Router();
 
 //all absensi daily
 router.get("/daily/:date", getAbsenDaily);
+router.get("/daily-dakintai/:date", getAbsenDailyDakintai);
 router.patch("/update-absen", updateAbsen );
 router.patch("/delete-absen", deleteAbsen );
 

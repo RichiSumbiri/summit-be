@@ -21,6 +21,7 @@ import {
   logSystemAbsPayroll,
   queryExportAbsenAmano,
   getBaseAbsMonthAll,
+  qryDailyAbsensiDakintai,
 } from "../../models/hr/attandance.mod.js";
 import moment from "moment";
 import { GroupJadwal, IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
@@ -28,6 +29,27 @@ import Users from "../../models/setup/users.mod.js";
 import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
 import db from "../../config/database.js";
 import { getRangeDate, getUniqueAttribute } from "../util/Utility.js";
+
+export const getAbsenDailyDakintai = async (req, res) => {
+  try {
+    const { date } = req.params;
+    const data = await dbSPL.query(qryDailyAbsensiDakintai, {
+      replacements: { tanggalNow: date },
+      type: QueryTypes.SELECT,
+    });
+    return res.status(200).json({
+        success: true,
+        message: `success get absen daily dakintai`,
+        data: data
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error,
+      message: "Terdapat error saat get data absen",
+    });
+  }
+}
 
 export const getAbsenDaily = async (req, res) => {
   try {

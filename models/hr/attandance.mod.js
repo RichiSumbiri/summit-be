@@ -327,6 +327,200 @@ export const SchedulePunchAttd = dbSPL.define(
   }
 );
 
+export const qryDailyAbsensiDakintai = `
+SELECT
+	CONCAT(
+	ProcYMD,
+	EmpCode,
+	Calendar,
+	ShiftType,
+	AbsentReason,
+	InClockingFlag,
+	InPunch,
+	InMC,
+	OutClockingFlag,
+	OutPunch,
+	OutMC,
+	RegHours,
+	LAHours,
+	FixedText1,
+	ELHours,
+	FixedText2,
+	OT15H,
+	OT20H,
+	OT30H,
+	OT40H,
+	ActOT,
+	ProOT,
+	Trans,
+	Meal) AS Dakintai
+FROM
+	(
+	SELECT 
+		DATE_FORMAT(scheduleDate, '%Y%m%d') AS ProcYMD, 
+		LPAD(Nik, 10, '0') AS EmpCode, 
+		RPAD(calendar, 4, ' ') AS Calendar,
+		IFNULL(RPAD(jk_amano,10,' '), '          ') AS ShiftType,
+		CASE 
+			WHEN keterangan = 'H' OR keterangan = 'A' OR keterangan = 'I' THEN '    '
+			ELSE RPAD(keterangan, 4, ' ')
+		END AbsentReason,
+		'C.      ' AS InClockingFlag,
+		CASE
+			WHEN scan_in THEN LPAD(REPLACE(DATE_FORMAT(scan_in, '%H%i'), ':', ''), 5, '0')
+			ELSE '00000'
+		END AS InPunch,
+		'          ' AS InMC,
+		'C.      ' AS OutClockingFlag,
+		CASE
+			WHEN scan_out THEN LPAD(REPLACE(DATE_FORMAT(scan_out, '%H%i'), ':', ''), 5, '0')
+			ELSE '00000'
+		END AS OutPunch,
+		'          ' AS OutMC,
+		LPAD(CONCAT(base_jk, '00'), 5, '0') AS RegHours,
+		'00000' AS LAHours,
+		'00' AS FixedText1,
+		'00000' AS ELHours,
+		'00' AS FixedText2,
+		CASE 
+			WHEN calendar = 'HL'
+			OR calendar = 'PH' THEN '00000'
+			WHEN calendar = 'WD'
+			AND ot = '1' THEN '00100'
+			WHEN calendar = 'WD'
+			AND ot>'1' THEN '00100'
+			ELSE '00000'
+		END AS OT15H,
+		CASE
+			WHEN ot = 1 THEN '00000'
+			WHEN ot = 2 THEN '00100'
+			WHEN ot>2 AND ot < 7 THEN '00200'
+			WHEN ot = 7 THEN '00700'
+			ELSE '00000'
+		END AS OT20H,
+		'00000' AS OT30H,
+		'00000' AS OT40H,
+		'00000' AS ActOT,
+		'00000' AS ProOT,
+		'00' AS Trans,
+		IF(keterangan = 'H', '10', '00') AS Meal
+	FROM
+		(
+WITH base_absen AS (
+		SELECT
+			se.Nik,
+			se.NamaLengkap,
+			se.IDDepartemen,
+			se.IDSubDepartemen,
+			se.IDSection,
+			se.IDPosisi,
+			se.TanggalMasuk,
+			se.TanggalKeluar,
+			se.JenisKelamin,
+			se.StatusKaryawan,
+			msd.Name subDeptName,
+			md.NameDept,
+			sgs.groupId,
+			sis.jadwalId_inv,
+			COALESCE(sis.scheduleDate_inv, sgs.scheduleDate) AS scheduleDate,
+			COALESCE(sis.jk_id, sgs.jk_id) AS jk_id,
+			COALESCE(sis.calendar, sgs.calendar) AS calendar
+		FROM
+			sumbiri_employee se
+		LEFT JOIN master_department md ON
+			md.IdDept = se.IDDepartemen
+		LEFT JOIN master_subdepartment msd ON
+			msd.IDSubDept = se.IDSubDepartemen
+		LEFT JOIN sumbiri_employee_group seg ON
+			seg.Nik = se.Nik
+		LEFT JOIN sumbiri_group_schedule sgs ON
+			sgs.groupId = seg.groupId
+			AND sgs.scheduleDate = :tanggalNow
+		LEFT JOIN sumbiri_individu_schedule sis ON
+			sis.Nik = se.Nik
+			AND sis.scheduleDate_inv = :tanggalNow
+		WHERE
+			se.CancelMasuk = 'N'
+			AND (se.TanggalKeluar IS NULL
+				OR se.TanggalKeluar >= :tanggalNow )
+			AND se.TanggalMasuk <= :tanggalNow
+),
+		JoinAbsen AS (
+		SELECT
+			ba.Nik,
+			ba.NamaLengkap,
+			ba.NameDept,
+			ba.IDDepartemen,
+			ba.IDSubDepartemen,
+			ba.subDeptName,
+			ba.IDSection,
+			ba.groupId,
+			ba.TanggalMasuk,
+			ba.TanggalKeluar,
+			ba.JenisKelamin,
+			ba.StatusKaryawan,
+			mp.Name AS jabatan,
+			ba.jadwalId_inv,
+			ba.scheduleDate,
+			sgs.groupName,
+			COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
+			mjk.jk_nama,
+			mjk.jk_amano,
+			mjk.jk_in,
+			mjk.jk_out,
+			mjk.jk_out_day,
+			CASE
+				WHEN sa.keterangan = 'H' THEN mjk.jk_duration_hour
+				ELSE NULL
+			END AS base_jk,
+			COALESCE(sa.calendar, ba.calendar) AS calendar,
+			sa.jk_id jk_id_absen,
+			sa.id,
+			sa.tanggal_in,
+			sa.tanggal_out,
+			sa.scan_in,
+			sa.scan_out,
+			IFNULL(sa.ot, 0) AS ot,
+			sa.ket_in,
+			sa.ket_out,
+			sa.keterangan,
+			sa.createdAt,
+			sa.mod_id,
+			sa.updatedAt,
+			sa.validasi,
+			msts.Name AS NamaSection
+		FROM
+			base_absen AS ba
+		LEFT JOIN sumbiri_absens sa ON
+			sa.Nik = ba.Nik
+			AND sa.tanggal_in = :tanggalNow
+		LEFT JOIN master_jam_kerja mjk ON
+			mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
+		LEFT JOIN sumbiri_group_shift sgs ON
+			ba.groupId = sgs.groupId
+		LEFT JOIN master_section msts ON
+			msts.IDSection = ba.IDSection
+		LEFT JOIN master_position mp ON
+			mp.IDPosition = ba.IDPosisi
+	)
+		SELECT
+			ja.*,
+			CASE
+				WHEN ja.calendar NOT IN ('PH', 'HL') THEN ja.base_jk
+				ELSE NULL
+			END AS jk_duration_hour,
+			CASE
+				WHEN ja.calendar NOT IN ('PH', 'HL') THEN ja.base_jk + ja.ot
+				ELSE ja.ot
+			END AS Act_Hour
+		FROM
+			JoinAbsen ja
+) AS TblDakintai
+) AS TblDak
+WHERE ProcYMD IS NOT NULL
+
+`;
+
 export const qryDailyAbsensi = `WITH base_absen AS (
 	SELECT 
 	      se.Nik, 
