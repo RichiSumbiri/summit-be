@@ -765,6 +765,7 @@ SELECT
 	mp.Name AS Position,
 	sgs.groupName,
 	mst.NameSalType AS NameJenisUpah,
+	mp2.Name AS NamePosisi,
 	ss.Remark,
 	ss.FlagReason
 FROM sumbiri_employee se
@@ -778,8 +779,7 @@ left JOIN master_position mp ON mp.IDPosition = se.IDPosisi
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId
 LEFT JOIN master_salary_type mst ON mst.IDSalType = se.IDJenisUpah 
+LEFT JOIN master_position mp2 ON mp2.IDPosition = se.IDPosisi 
 LEFT JOIN sumbiri_spk ss ON ss.Nik = se.Nik 
 WHERE se.Nik = :empNik
-
-
 `;
