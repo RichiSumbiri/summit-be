@@ -307,9 +307,6 @@ export const getEmpSkillDataPaginated = async(req,res) => {
                 searchParameter: `%${searchParam}%`
             }, type: QueryTypes.SELECT
         });
-
-        
-
         const EmpSkillData = await dbSPL.query(queryGetEmpSkillDataPaginated, {
             replacements: {
                 limitPage: limit,
@@ -317,25 +314,43 @@ export const getEmpSkillDataPaginated = async(req,res) => {
                 searchParameter: `%${searchParam}%`
             }, type: QueryTypes.SELECT
         });
-
-
-      return res.status(200).json({
-        success: true,
-        message: "success get employee skills",
-        length: EmpSkillAll.length,
-        totalPages: Math.ceil(EmpSkillAll.length / limit),
-        data: EmpSkillData
-    });
-      
-          
+        return res.status(200).json({
+            success: true,
+            message: "success get employee skills",
+            length: EmpSkillAll.length,
+            totalPages: Math.ceil(EmpSkillAll.length / limit),
+            data: EmpSkillData
+        });  
     } catch(err){
-        console.error(err);
         return res.status(404).json({
             success: false,
             message: "fail get employee skills"
         });
     }
 }
+
+
+export const getEmpSkillDataAll = async(req,res) => {
+    try {
+        const EmpSkillAll = await dbSPL.query(queryGetEmpSkillDataAll, {
+            replacements: {
+                searchParameter: `%%`
+            }, type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get employee skills for all employee",
+            length: EmpSkillAll.length,
+            data: EmpSkillAll
+        });  
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee skills for all employee"
+        });
+    }
+}
+
 
 
 export const postEmpSKill = async(req,res) => {

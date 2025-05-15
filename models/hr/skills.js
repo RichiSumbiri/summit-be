@@ -168,10 +168,9 @@ AND (
 `;
 
 
-  export const queryGetEmpSkillDataPaginated = queryGetEmpSkillDataAll + `
-  
-ORDER BY msc.skill_category_id, ms.skill_id, md.NameDept, se.Nik  ASC
-LIMIT :limitPage OFFSET :offsetPage`;
+export const queryGetEmpSkillDataPaginated = queryGetEmpSkillDataAll + `
+  ORDER BY msc.skill_category_id, ms.skill_id, md.NameDept, se.Nik  ASC
+  LIMIT :limitPage OFFSET :offsetPage`;
 
 
 export const queryGetEmpSkillByNIK = `
