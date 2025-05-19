@@ -3,6 +3,12 @@ import { QueryTypes, Op } from "sequelize";
 import { ListCountry } from "../../models/list/referensiList.mod.js";
 import { PackingPlanDetail } from "../../models/production/packing.mod.js";
 import { ItemListStyle, qryGetItemCode, qryListstyleWithUser } from "../../models/list/itemStyle.mod.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 export const getListCountry = async (req, res) => {
   try {
@@ -113,18 +119,30 @@ export const getListItemStyle = async (req, res) => {
     const { buyer } = req.params;
     const BUYER_CODE = decodeURIComponent(buyer).toString();
 
-    // const listStyle = await ItemListStyle.findAll({
-    //   where: {
-    //     CUSTOMER_NAME: BUYER_CODE,
-    //   },
-    //   raw: true,
-    // });
-
-    const listStyle = await db.query(qryListstyleWithUser, {
-      replacements : { buyer },
+    let listStyle = await db.query(qryListstyleWithUser, {
+      replacements : { buyer : BUYER_CODE},
       type: QueryTypes.SELECT,
     });
 
+    if(listStyle.length > 0){
+      // const baseUrl = 'https://api-gbvh.ontidecorp.com';
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      listStyle = listStyle.map(item =>{
+        let listItem = {...item}
+
+        if (item.FRONT_IMG) {
+          const FRONT = `${baseUrl}/images/style/${item.FRONT_IMG}`;
+          listItem = { ...listItem, FRONT };
+        } 
+
+        if(item.BACK_IMG){
+          const BACK = `${baseUrl}/images/style/${item.BACK_IMG}`;
+          listItem = { ...listItem, BACK };
+        }
+        
+        return listItem
+      })
+    }
 
     return res.status(200).json({ data: listStyle });
   } catch (error) {
@@ -139,39 +157,166 @@ export const getListItemStyle = async (req, res) => {
 
 export const postListItemStyle = async (req, res) => {
   try {
-    const dataStyle = req.body;
+     let dataStyle = req.body;
+     const {FRONT_IMAGE, BACK_IMAGE} = req.files;
 
     let whereCheck = {
         PRODUCT_ITEM_CODE : dataStyle.PRODUCT_ITEM_CODE
       }
 
     if(dataStyle.PRODUCT_ITEM_ID){
-      whereCheck[PRODUCT_ITEM_ID] = dataStyle.PRODUCT_ITEM_ID
+      whereCheck['PRODUCT_ITEM_ID'] = dataStyle.PRODUCT_ITEM_ID
     }
     const checkData = await ItemListStyle.findOne({
       where : whereCheck
     })
 
     if(checkData){
-    return  res.status(404).json({
+        return res.status(404).json({
           message: "Data Style Or Product Already exist",
-          data: error,
         });
     }
+
+
+    if(FRONT_IMAGE){
+          dataStyle.FRONT_IMG = generateUniqueFileName(FRONT_IMAGE.name)
+      }
+    if(BACK_IMAGE){
+          dataStyle.BACK_IMG = generateUniqueFileName(BACK_IMAGE.name)
+      }
 
     const createNewStyle = await ItemListStyle.create(dataStyle);
 
     if(createNewStyle){
-      return res.status(200).json({ data: createNewStyle });
+      let msg = `success create new style`
+        if(FRONT_IMAGE){
+          const filePathFront = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
+          
+          fs.writeFile(filePathFront, FRONT_IMAGE.data,  (err) => {
+            if(err){
+              msg = msg + ` but error upload front Img`
+            }
+           })
+        }
+        if(BACK_IMAGE){
+          const filePathBack = path.join(__dirname, "../../assets/images/styles", dataStyle.BACK_IMG);
+          fs.writeFile(filePathBack, BACK_IMAGE.data,  (err) => {
+                 if(err){
+                    msg = msg + ` but error upload back Img`
+                  }
+           })
+        }
+        
+      return res.status(200).json({ message: msg , data: createNewStyle })
     }
 
   } catch (error) {
     console.log(error);
     return res.status(404).json({
-      message: "error get data list item style",
+      message: "error create new item style",
       data: error,
     });
   }
+};
+
+
+export const patchListItemStyle = async (req, res) => {
+  try {
+    const dataStyle = req.body;
+    const {FRONT_IMAGE, BACK_IMAGE} = req.files;
+
+    const checkStyle =  await ItemListStyle.findOne({
+     where : {
+        ID: dataStyle.ID
+      }
+    });
+    
+    if(!checkStyle.ID){
+       return  res.status(404).json({
+          message: "Data Style Not exist",
+        });
+    }
+
+
+     if(FRONT_IMAGE){
+        if(dataStyle.FRONT_IMG !== checkStyle.FRONT_IMG ){
+          dataStyle.FRONT_IMG = generateUniqueFileName(FRONT_IMAGE.name)
+        }
+      }
+    if(BACK_IMAGE){
+        if(dataStyle.BACK_IMG !== checkStyle.BACK_IMG ){
+          dataStyle.BACK_IMG = generateUniqueFileName(BACK_IMAGE.name)
+        }
+      }
+
+
+    const updateStyle = await ItemListStyle.update(dataStyle, {
+     where : {
+        ID: dataStyle.ID
+      }
+    });
+    
+
+    if(updateStyle){
+      let msg = `success update style`
+      //jika sebelumnya ada image name dan sekarang tidak ada maka hapus
+        if(dataStyle.FRONT_IMG && !FRONT_IMAGE){
+          const filePathFrontDel = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
+
+           fs.unlink(filePathFrontDel, async (err) => {
+            if (err && err.code !== "ENOENT") {
+              console.error("Error deleting file:", err);
+            }
+          });
+        }
+        if(FRONT_IMAGE){
+          const filePathFront = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
+          
+          fs.writeFile(filePathFront, FRONT_IMAGE.data,  (err) => {
+            if(err){
+              msg = msg + ` but error upload front Img`
+            }
+           })
+        }
+
+              //jika sebelumnya ada image name dan sekarang tidak ada maka hapus
+        if(dataStyle.BACK_IMG && !BACK_IMAGE){
+          const filePathBack = path.join(__dirname, "../../assets/images/styles", dataStyle.BACK_IMG);
+
+           fs.unlink(filePathBack, async (err) => {
+            if (err && err.code !== "ENOENT") {
+              console.error("Error deleting back file:", err);
+            }
+          });
+        }
+        if(BACK_IMAGE){
+          const filePathBack = path.join(__dirname, "../../assets/images/styles", dataStyle.BACK_IMG);
+          fs.writeFile(filePathBack, BACK_IMAGE.data,  (err) => {
+                 if(err){
+                    msg = msg + ` but error upload back Img`
+                  }
+           })
+        }
+
+      return res.status(200).json({ message: msg, data: updateStyle });
+    }
+
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      message: "error update data list item style",
+      data: error,
+    });
+  }
+};
+
+
+const generateUniqueFileName = (originalName) => {
+  const arrName = originalName.split('.')  
+  const timestamp = Date.now(); // waktu sekarang dalam milidetik
+  const random = Math.floor(Math.random() * 1e6); // angka random
+  const ext = arrName[1]; // ambil ekstensi file, misalnya .jpg
+  return `${timestamp}_${random}.${ext}`;
 };
 
 
@@ -191,3 +336,46 @@ export const getListItemCode = async (req, res) => {
     });
   }
 };
+
+
+export const getImgStyle = async (req, res) => {
+  try {
+    const { idStyle } = req.params;
+    
+    const getBgHeeader = await MobileBgHeader.findAll( {
+      where: {
+        ID_PERUSAHAAN: idPerusahaan,
+      },
+      raw: true
+    });
+
+    if (getBgHeeader) {
+      const baseUrl = 'https://api-gbvh.ontidecorp.com';
+      //const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+      const listBg = getBgHeeader.map((item) => {
+        if (item.BG_HEADER_FILE) {
+          const bgUrl = `${baseUrl}/images/${item.BG_HEADER_FILE}`;
+          return { ...item, bgUrl };
+        } else {
+          return item;
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "success get bg header by id perusahaan",
+        data: listBg,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "error get background header by id perusahaan",
+    });
+  }
+};
+

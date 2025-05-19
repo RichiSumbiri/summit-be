@@ -16,6 +16,8 @@ export const ItemListStyle = db.define(
     PRODUCT_TYPE: { type: DataTypes.STRING },
     PRODUCT_CATEGORY: { type: DataTypes.STRING },
     PRODUCT_ITEM_DESCRIPTION: { type: DataTypes.STRING },
+    FRONT_IMG: { type: DataTypes.STRING },
+    BACK_IMG: { type: DataTypes.STRING },
     USER_ADD_ID: { type: DataTypes.INTEGER },
     USER_MOD_ID: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },

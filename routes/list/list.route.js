@@ -4,6 +4,7 @@ import {
   getListCountry,
   getListItemCode,
   getListItemStyle,
+  patchListItemStyle,
   postListCountry,
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
@@ -16,6 +17,7 @@ router.delete("/country/:COUNTRY_ID/:BUYER_CODE", deleteCountryList);
 
 //item style
 router.post("/style", postListItemStyle);
+router.patch("/style", patchListItemStyle);
 router.get("/style/:buyer", getListItemStyle);
 router.get("/item-code", getListItemCode);
 

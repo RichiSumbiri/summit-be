@@ -17,7 +17,11 @@ import { mainCutReSchedule, recapCutDepManual, recapLogDepCut } from "./cronjob/
 import { recapWipMonitoring } from "./cronjob/sewWipRecap.js";
 import { recapQcDefPart } from "./cronjob/logQcDefPart.js";
 import moment from "moment";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // import fs from "fs"; //untuk ssl
 // import https from "https"; //untuk ssl
 // import bodyParser from 'body-parser';
@@ -103,6 +107,7 @@ var whitelist = [
 //   cert: fs.readFileSync("server.cert"),
 // };
 app.use(express.static("public"));
+app.use("/images/style", express.static(path.join(__dirname, "assets/images/styles")));
 // app.use('/assets/images/photos', express.static('uploadempphoto'));
 // app.use(
 //   cors({
