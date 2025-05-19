@@ -1,6 +1,7 @@
 import express from "express";
 import {
   deleteCountryList,
+  deleteListItemStyle,
   getListCountry,
   getListItemCode,
   getListItemStyle,
@@ -18,6 +19,7 @@ router.delete("/country/:COUNTRY_ID/:BUYER_CODE", deleteCountryList);
 //item style
 router.post("/style", postListItemStyle);
 router.patch("/style", patchListItemStyle);
+router.delete("/style/:idStyle", deleteListItemStyle);
 router.get("/style/:buyer", getListItemStyle);
 router.get("/item-code", getListItemCode);
 

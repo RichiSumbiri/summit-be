@@ -9,6 +9,28 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export function pharsingImgStyle(arrstyle, req){
+// const baseUrl = 'https://api-gbvh.ontidecorp.com';
+const baseUrl = `${req.protocol}://${req.get("host")}`;
+ const withImgArr = arrstyle.map(item =>{
+        let listItem = {...item}
+
+        if (item.FRONT_IMG) {
+          const FRONT = `${baseUrl}/images/style/${item.FRONT_IMG}`;
+          listItem = { ...listItem, FRONT };
+        } 
+
+        if(item.BACK_IMG){
+          const BACK = `${baseUrl}/images/style/${item.BACK_IMG}`;
+          listItem = { ...listItem, BACK };
+        }
+        
+        return listItem
+      })
+  return withImgArr
+}
+
+
 
 export const getListCountry = async (req, res) => {
   try {
@@ -125,23 +147,8 @@ export const getListItemStyle = async (req, res) => {
     });
 
     if(listStyle.length > 0){
-      // const baseUrl = 'https://api-gbvh.ontidecorp.com';
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
-      listStyle = listStyle.map(item =>{
-        let listItem = {...item}
 
-        if (item.FRONT_IMG) {
-          const FRONT = `${baseUrl}/images/style/${item.FRONT_IMG}`;
-          listItem = { ...listItem, FRONT };
-        } 
-
-        if(item.BACK_IMG){
-          const BACK = `${baseUrl}/images/style/${item.BACK_IMG}`;
-          listItem = { ...listItem, BACK };
-        }
-        
-        return listItem
-      })
+      listStyle = pharsingImgStyle(listStyle, req)
     }
 
     return res.status(200).json({ data: listStyle });
@@ -158,7 +165,8 @@ export const getListItemStyle = async (req, res) => {
 export const postListItemStyle = async (req, res) => {
   try {
      let dataStyle = req.body;
-     const {FRONT_IMAGE, BACK_IMAGE} = req.files;
+     const FRONT_IMAGE =  req.files.FRONT_IMAGE
+     const BACK_IMAGE =  req.files.BACK_IMAGE
 
     let whereCheck = {
         PRODUCT_ITEM_CODE : dataStyle.PRODUCT_ITEM_CODE
@@ -223,8 +231,9 @@ export const postListItemStyle = async (req, res) => {
 export const patchListItemStyle = async (req, res) => {
   try {
     const dataStyle = req.body;
-    const {FRONT_IMAGE, BACK_IMAGE} = req.files;
-
+    const FRONT_IMAGE =  req.files?.FRONT_IMAGE
+    const BACK_IMAGE =  req.files?.BACK_IMAGE
+    
     const checkStyle =  await ItemListStyle.findOne({
      where : {
         ID: dataStyle.ID
@@ -261,6 +270,8 @@ export const patchListItemStyle = async (req, res) => {
       let msg = `success update style`
       //jika sebelumnya ada image name dan sekarang tidak ada maka hapus
         if(dataStyle.FRONT_IMG && !FRONT_IMAGE){
+          console.log('harusnya masuk sini sih');
+          
           const filePathFrontDel = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
 
            fs.unlink(filePathFrontDel, async (err) => {
@@ -310,6 +321,27 @@ export const patchListItemStyle = async (req, res) => {
   }
 };
 
+export const deleteListItemStyle = async (req, res) => {
+  try {
+    const {idStyle} = req.params
+    const deleteStyle = await ItemListStyle.update({DELETE_STATUS : 1 },{
+      where : {
+        ID : idStyle
+      }
+    })
+
+    if(deleteStyle){
+      return res.status(200).json({ message: 'Success Delete Style' });
+    }else{
+      return res.status(500).json({ message: 'Error Delete Style' });
+    }
+  } catch (error) {
+    return res.status(404).json({
+      message: "error delete data list item style",
+      data: error,
+    });
+  }
+}
 
 const generateUniqueFileName = (originalName) => {
   const arrName = originalName.split('.')  

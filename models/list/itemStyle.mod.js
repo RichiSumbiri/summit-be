@@ -20,6 +20,7 @@ export const ItemListStyle = db.define(
     BACK_IMG: { type: DataTypes.STRING },
     USER_ADD_ID: { type: DataTypes.INTEGER },
     USER_MOD_ID: { type: DataTypes.INTEGER },
+    DELETE_STATUS: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE },
   },
@@ -35,7 +36,7 @@ export const qryListstyleWithUser = `SELECT
 FROM item_list_style ils 
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ils.USER_ADD_ID
 LEFT JOIN xref_user_web xux ON xux.USER_ID = ils.USER_MOD_ID 
-WHERE ils.CUSTOMER_NAME = :buyer`
+WHERE ils.DELETE_STATUS = 0 AND ils.CUSTOMER_NAME = :buyer`
 
 
 export const qryGetItemCode = `SELECT DISTINCT
