@@ -71,7 +71,6 @@ export const deleteCategorySkills = async(req,res) => {
             });
         }
     } catch(err){
-        console.error(err);
         return res.status(404).json({
             success: false,
             message: "fail delete category skill"
@@ -105,7 +104,6 @@ export const postNewCategorySkills = async(req,res) => {
         }
         
     } catch(err){
-        console.log(err);
         return res.status(404).json({
             success: false,
             message: "fail post new skills category"
@@ -147,7 +145,6 @@ export const postNewSkills = async(req,res) => {
             });
         }
     } catch(err){
-        console.error(err);
         return res.status(404).json({
             success: false,
             message: "fail post new skills"
@@ -261,7 +258,6 @@ export const getEmpSkillDataByCat = async(req,res) => {
       
           
     } catch(err){
-        console.error(err);
         return res.status(404).json({
             success: false,
             message: "fail get employee skills"
@@ -377,10 +373,62 @@ export const postEmpSKill = async(req,res) => {
             });
         }
     } catch(err){
-        console.log(err);
         return res.status(404).json({
                 success: false,
                 message: "failed add emp skills"
             });
+    }
+}
+
+export const deleteEmpSKill = async(req,res) => {
+    try {
+        const actionDelete = await SumbiriEmployeeSkills.destroy({
+            where: {
+                Nik: parseInt(req.params.empnik),
+                skill_id: parseInt(req.params.idskill)
+            }
+        });
+        if(actionDelete){
+            return res.status(200).json({
+                success: true,
+                message: "success delete emp skills"
+            });
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "failed delete emp skills"
+        });
+    }
+}
+
+
+export const postMassEmpSKill = async(req,res) => {
+    try {
+        const { data } = req.body;
+        const EmpDetail = data.detail;
+        EmpDetail.map(async (item) => {
+            const checkEmpSkill = await SumbiriEmployeeSkills.findOne({
+                where: {
+                    Nik: item.Nik,
+                    skill_id: data.skill_id
+                }
+            });
+            if(!checkEmpSkill){
+                return await SumbiriEmployeeSkills.create({
+                    Nik: item.Nik,
+                    skill_id: data.skill_id
+                });
+            } 
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success add multiple emp skills"
+        });
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "failed add emp skills"
+        });       
     }
 }
