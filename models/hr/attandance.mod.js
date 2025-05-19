@@ -571,6 +571,7 @@ JoinAbsen AS (
 	COALESCE(sa.jk_id, ba.jk_id) AS jk_id,
 	-- ba.jk_id,
 	mjk.jk_nama,
+	mjk.jk_amano,
 	-- mjk2.jk_nama jk_aktual,
 	mjk.jk_in,
 	mjk.jk_out,
