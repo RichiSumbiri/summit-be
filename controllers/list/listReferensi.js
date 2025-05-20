@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function pharsingImgStyle(arrstyle, req){
-// const baseUrl = 'https://api-gbvh.ontidecorp.com';
-const baseUrl = `${req.protocol}://${req.get("host")}`;
+const baseUrl = 'https://api.sumbiri.com';
+// const baseUrl = `${req.protocol}://${req.get("host")}`;
  const withImgArr = arrstyle.map(item =>{
         let listItem = {...item}
 
