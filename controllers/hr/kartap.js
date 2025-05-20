@@ -56,7 +56,42 @@ export const getKarTapByNIK = async(req,res) => {
     }
 }
 
+export const cancelKartap = async(req,res) => {
+    try {
+            const { empNik }    = req.params;
+            const action = await sumbiriSPKT.destroy({
+                where: {
+                    Nik: parseInt(empNik)
+                }
+            });
+            if(action){
+                const updateEmp = await modelSumbiriEmployee.update({
+                    StatusKaryawan: 'KONTRAK',
+                    UpdateBy: empNik,
+                    UpdateDate: moment().format('YYYY-MM-DD HH:mm:ss')
+                }, {
+                    where: {
+                        Nik: parseInt(empNik)
+                    }
+                });
+                
+                if(updateEmp){
+                    return res.status(200).json({
+                        success: true,
+                        message: `success cancel kartap for NIK ${empNik}`
+                    });
+                }    
+            }
 
+        } catch(err){
+            console.error(err);
+            res.status(404).json({
+                success: false,
+                message: "error get list kartap docs",
+                error: err
+            });
+        }
+}
 
 export const updateKarTap = async(req,res) => {
     try {

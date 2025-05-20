@@ -85,7 +85,7 @@ import {
   postNewJamKerja,
   postNewJamKerjaDetail,
 } from "../../controllers/hr/JadwalJamKerja.js";
-import { getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
+import { cancelKartap, getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
 import { deleteCategorySkills, deleteEmpSKill, deleteSkillData, getCategorySkills, getEmpSKillByNIK, getEmpSkillDataAll, getEmpSkillDataByCat, getEmpSkillDataPaginated, getMatrixSkillReportByCat, getSkillByCategoryID, postEmpSKill, postMassEmpSKill, postNewCategorySkills, postNewSkills } from "../../controllers/hr/skills.js";
 
@@ -213,6 +213,7 @@ router.get("/get-kartap/:startDate/:endDate", getKarTap);
 router.get("/get-kartap-emp/:empNik", getKarTapByNIK);
 router.post("/new-kartap", newKarTap);
 router.put("/update-kartap", updateKarTap);
+router.delete("/cancel-kartap/:empNik", cancelKartap);
 
 
 
