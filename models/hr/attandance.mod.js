@@ -1109,6 +1109,7 @@ SELECT
   mjk.jk_in,
   mjk.jk_out,
   mjk.jk_out_day,
+  sa.calendar,
   sa.keterangan,
   sa.tanggal_in,
   sa.tanggal_out,
