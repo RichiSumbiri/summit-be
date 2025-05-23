@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
-import { qryGetStyleByTree, qryGetThreeStyle } from "../../../models/ie/IeOb.mod.js";
+import { getLasIdOb, getListOb, IeObHeader, IeObSize, qryGetStyleByTree, qryGetThreeStyle, qryListSizesOb } from "../../../models/ie/IeOb.mod.js";
 import { getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 
@@ -89,7 +89,7 @@ export const getDataTreeStyleOb = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Gagal memproses data",
+      message: "Filed get data",
       error: error.message,
     });
   }
@@ -117,8 +117,85 @@ export const getListStyleByOb= async (req,res) => {
         
         return res.status(500).json({
             success: false,
-            message: "Gagal memproses data",
+            message: "Filed get data",
             error: error.message,
             });
     }
+}
+
+export const getSizesOb = async (req, res) =>{
+  try {
+    const {prodType} = req.params
+
+    const listSizes = await db.query(qryListSizesOb, {
+      replacements: {prodType},
+      type: QueryTypes.SELECT,
+    })
+    return res.status(200).json({data: listSizes})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+export const postIeOb = async (req, res) =>{
+  try {
+    let {dataNewOb, dataSize} = req.body
+
+    //ambil ob id
+    const getLastId = await db.query(getLasIdOb, {
+      replacements: {prodItemId : dataNewOb.PRODUCT_ITEM_ID},
+      type: QueryTypes.SELECT,
+    })
+
+    //jika belum ada ob id sebelumnya maka masukan initial id 0001
+    const lastId = getLastId[0]? getLastId[0].LATST_ID.toString().padStart(3, "0") : '001'
+
+    //masukan ob id ke object ob header
+    const OB_ID = dataNewOb.OB_CODE+lastId
+    dataNewOb.OB_ID = OB_ID
+
+    //masukan ob id ke array of obj sizes
+    const sizeOb = dataSize.map(sz => ({...sz, OB_ID}))
+    
+    const createNewOb = await IeObHeader.create(dataNewOb)
+
+    if(createNewOb){
+      const createNewObSize = await IeObSize.bulkCreate(sizeOb)
+    }
+
+    return res.status(200).json({message:'Success Create New OB'})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+
+export const getlistObApi = async (req, res) =>{
+  try {
+    const {prodItemId} = req.params
+
+    const listIeOb = await db.query(getListOb, {
+      replacements: {prodItemId},
+      type: QueryTypes.SELECT,
+    })
+    
+    return res.status(200).json({data: listIeOb})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
 }
