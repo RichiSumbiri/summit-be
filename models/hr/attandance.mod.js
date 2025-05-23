@@ -1094,7 +1094,8 @@ LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
 LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 `;
 
-export const qryAbsenIndividu = `SELECT 
+export const qryAbsenIndividu = `
+SELECT 
   fn.jadwalId_inv,
   fn.scheduleDate,
   fn.Nik,
@@ -1103,10 +1104,14 @@ export const qryAbsenIndividu = `SELECT
   COALESCE(sa.calendar, fn.calendar) AS calendar,
   COALESCE(sa.jk_id, fn.jk_id) AS jk_id,
   mjk.jk_nama,
+  mjk.jk_amano,
+  mjk.jk_duration_hour,
   mjk.jk_in,
   mjk.jk_out,
   mjk.jk_out_day,
   sa.keterangan,
+  sa.tanggal_in,
+  sa.tanggal_out,
   sa.scan_in,
   sa.scan_out,
   sa.ket_in,
@@ -1177,7 +1182,9 @@ FROM (
 LEFT JOIN sumbiri_absens sa ON sa.Nik = fn.Nik AND sa.tanggal_in = fn.scheduleDate
 LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, fn.jk_id)
 LEFT JOIN master_calendar_type c ON c.calendar_code =  COALESCE(sa.calendar, fn.calendar)
-GROUP BY fn.scheduleDate`;
+GROUP BY fn.scheduleDate
+
+`;
 
 export function qryGetVerifByNik(date, arrNik) {
   const stringNik = arrNik.map((st) => `'${st}'`).join(",");
