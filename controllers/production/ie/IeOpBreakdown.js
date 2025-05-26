@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
-import { QueryTypes, Op } from "sequelize";
-import { getLasIdOb, getListOb, IeObHeader, IeObSize, qryGetStyleByTree, qryGetThreeStyle, qryListSizesOb } from "../../../models/ie/IeOb.mod.js";
+import { QueryTypes, Op, where } from "sequelize";
+import { getLasIdOb, getListOb, IeObHeader, IeObSize, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryListSizesOb } from "../../../models/ie/IeOb.mod.js";
 import { getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 
@@ -123,6 +123,7 @@ export const getListStyleByOb= async (req,res) => {
     }
 }
 
+//ini sebetulnya list size aja
 export const getSizesOb = async (req, res) =>{
   try {
     const {prodType} = req.params
@@ -132,6 +133,27 @@ export const getSizesOb = async (req, res) =>{
       type: QueryTypes.SELECT,
     })
     return res.status(200).json({data: listSizes})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+
+//jadi untuk view dan update
+export const getSizesObSelected = async (req, res) =>{
+  try {
+    const {obId} = req.params
+
+    const listSizesSelected = await db.query(qryGetSizeOb, {
+      replacements: {obId},
+      type: QueryTypes.SELECT,
+    })
+    return res.status(200).json({data: listSizesSelected})
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -190,6 +212,74 @@ export const getlistObApi = async (req, res) =>{
     })
     
     return res.status(200).json({data: listIeOb})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+
+export const deletIeOb = async (req, res) =>{
+  try {
+    const {obId, userId} = req.params
+
+    //soft delete
+    const deleteHeader = await IeObHeader.update({OB_DELETE_STATUS : 1, OB_MOD_ID : userId},{
+      where : {OB_ID: obId},
+    })
+
+    if(deleteHeader){
+      //soft delete deteail
+      const createNewObSize = await IeObSize.update({OB_DELETE_STATUS : 1}, {
+          where : {OB_ID: obId},
+        })
+    }
+
+
+    return res.status(200).json({message: `Success Delete OB ${obId}`})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed delete OB",
+      error: error.message,
+      });
+  }
+}
+
+
+//update ob header
+export const patchIeOb = async (req, res) =>{
+  try {
+    let {dataNewOb, dataSize} = req.body
+
+
+    if(!dataNewOb.OB_ID) return res.status(400).json({message: "OB ID is required"})
+    
+    const updateHedaer = await IeObHeader.update(dataNewOb , {
+      where : {
+        OB_ID : dataNewOb.OB_ID
+      }
+    })
+
+    if(updateHedaer){
+      const deleteFirstSz = await IeObSize.destroy({
+          where : {
+            OB_ID : dataNewOb.OB_ID,
+            }
+      })
+      
+      if(deleteFirstSz){
+          const addBoId = dataSize.map(item => ({...item, OB_ID : dataNewOb.OB_ID}))
+          const createNewObSize = await IeObSize.bulkCreate(addBoId)
+      }
+    }
+
+    return res.status(200).json({message:'Success Update OB'})
   } catch (error) {
     console.log(error);
     return res.status(500).json({

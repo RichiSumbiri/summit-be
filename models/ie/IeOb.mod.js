@@ -52,6 +52,7 @@ export const qryGetStyleByTree = (buyer, prodType, prodCat) => {
 
 
 export const qryListSizesOb = `SELECT 
+ils.SIZE_ID,
 ils.PRODUCT_TYPE,
 ils.SIZE_COUNTRY,
 ils.SIZE_NAME
@@ -125,6 +126,10 @@ export const IeObHeader = db.define('ie_ob_header', {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    OB_DELETE_STATUS: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     OB_ADD_ID: {
       type: DataTypes.BIGINT,
       allowNull: true,
@@ -156,10 +161,18 @@ export const IeObSize = db.define('ie_ob_sizes', {
       type: DataTypes.STRING(100),
       allowNull: false
     },
+    SIZE_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     SIZE_NAME: {
       type: DataTypes.STRING(100),
       allowNull: true,
-    }
+    },
+    OB_DELETE_STATUS: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   }, {
     freezeTableName: true,
     timestamps: false
@@ -200,4 +213,17 @@ xux.USER_INISIAL AS USER_MOD
 FROM ie_ob_header ioh 
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
 LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
-WHERE ioh.PRODUCT_ITEM_ID = :prodItemId`
+WHERE ioh.PRODUCT_ITEM_ID = :prodItemId
+AND ioh.OB_DELETE_STATUS = 0
+`
+
+export const qryGetSizeOb = `SELECT 
+	ios.OB_SIZE_ID,
+	ios.OB_ID,
+	ios.SIZE_NAME,
+	ils.PRODUCT_TYPE,
+	ils.SIZE_COUNTRY,
+  ils.SIZE_ID
+FROM ie_ob_sizes ios 
+LEFT JOIN item_list_sizes ils ON ils.SIZE_ID = ios.SIZE_ID
+WHERE ios.OB_ID = :obId`
