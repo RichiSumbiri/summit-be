@@ -104,6 +104,46 @@ export const ModelCategorySkills = dbSPL.define('master_skills_category', {
   });
 
 
+  export const ModelMasterSubSkill = dbSPL.define('master_sub_skills', {
+    sub_skill_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    skill_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    sub_skill_name: {
+      type: DataTypes.STRING(200),
+      allowNull: true
+    },
+    sub_description: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    sub_add_date: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    sub_add_by: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    sub_update_date: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    sub_update_by: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    }
+  }, {
+    tableName: 'master_skills_sub',
+    timestamps: false
+  });
+
+
 
   export const queryGetEmpSkillDataByCategory = `
   SELECT

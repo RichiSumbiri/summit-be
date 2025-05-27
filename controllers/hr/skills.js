@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ModelCategorySkills, ModelMasterSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
+import { ModelCategorySkills, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";
 
@@ -41,6 +41,30 @@ export const getSkillByCategoryID = async(req,res) => {
         return res.status(404).json({
             success: false,
             message: "fail get skills by category id"
+        });
+    }
+}
+
+export const getSubSkillBySkillID = async(req,res) => {
+    try {
+        const { id } = req.params;
+        if(id){
+            const dataSkill = await ModelMasterSubSkill.findAll({
+                where: {
+                    skill_id: id
+                }
+            });
+            return res.status(200).json({
+                success: true,
+                data: dataSkill,
+                message: "success get sub skills by skill id"
+            });
+        }
+    }
+    catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get sub skills by skill id"
         });
     }
 }
@@ -152,6 +176,47 @@ export const postNewSkills = async(req,res) => {
     }
 }
 
+export const postNewSubSkills = async(req,res) => {
+    try {
+        const { sub_skill_id, skill_id, sub_skill_name, sub_description, sub_update_by } = req.body.DataSubSkill;
+        let action;
+        if(sub_skill_id){
+            action = await ModelMasterSubSkill.update({
+                skill_id,
+                sub_skill_name,
+                sub_description,
+                sub_update_by,
+                sub_update_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    sub_skill_id
+                }
+            });
+        } else {
+            action = await ModelMasterSubSkill.create({
+                skill_id,
+                sub_skill_name,
+                sub_description,
+                sub_add_by: sub_update_by,
+                sub_add_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+        }
+        if(action){
+            return res.status(200).json({
+                success: true,
+                message: "success post new skills"
+            });
+        }
+    } catch(err){
+        console.log(err);
+        return res.status(404).json({
+            success: false,
+            message: "fail post new skills"
+        });
+    }
+}
+
+
 export const deleteSkillData = async(req,res) => {
     try {
         const { id } = req.params;
@@ -185,6 +250,30 @@ export const deleteSkillData = async(req,res) => {
         });
     }
 } 
+
+
+export const deleteSubSkillData = async(req,res) => {
+    try {
+        const { id } = req.params;
+        const delSkill = await ModelMasterSubSkill.destroy({
+                where:{
+                    sub_skill_id: id
+                }
+            });
+        if(delSkill){
+            return res.status(200).json({
+                success: true,
+                message: "success delete skills"
+            });
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail delete skills"
+        });
+    }
+} 
+
 
 export const getMatrixSkillReportByCat = async(req,res) => {
     try {
