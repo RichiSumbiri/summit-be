@@ -1100,6 +1100,7 @@ SELECT
   fn.scheduleDate,
   fn.Nik,
   fn.NamaLengkap,
+  fn.TanggalKeluar,	
   fn.groupId,
   COALESCE(sa.calendar, fn.calendar) AS calendar,
   COALESCE(sa.jk_id, fn.jk_id) AS jk_id,
@@ -1123,7 +1124,7 @@ SELECT
 	c.calendar_color
 FROM (
 	SELECT 
-		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.NamaLengkap, nx.groupId,
+		nx.jadwalId_inv, nx.scheduleDate, nx.Nik, nx.NamaLengkap, nx.TanggalKeluar, nx.groupId,
         COALESCE(nx.calendar_indv, nx.calendar_group) AS calendar,
 		    COALESCE(nx.jadwal_indv, nx.jadwal_group) AS jk_id
 	FROM (
@@ -1133,6 +1134,7 @@ FROM (
 			    nm.scheduleDate, 
 			    nm.Nik, 
 			    nm.NamaLengkap, 
+				nm.TanggalKeluar,
 			    nm.groupId,
 			    MAX(nm.calendar_group) AS calendar_group,
 			    MAX(nm.calendar_indv) AS calendar_indv, 
@@ -1144,6 +1146,7 @@ FROM (
 			 		  sgs.jadwalId,
 			        se.Nik, 
 			        se.NamaLengkap, 
+					se.TanggalKeluar,
 			        sgs.scheduleDate, 
 			        seg.groupId, 
 			        sgs.jk_id AS jadwal_group,
@@ -1163,6 +1166,7 @@ FROM (
 			 		  0 jadwalId, 
 			        se.Nik, 
 			        se.NamaLengkap, 
+					se.TanggalKeluar,
 			        sis.scheduleDate_inv AS scheduleDate, 
 			        0 AS groupId, 
 			        NULL AS jadwal_group,
@@ -1970,3 +1974,27 @@ export const qryLaborSewing = `SELECT
     smr.tgl_recap,
     smr.IDPosisi
 `
+
+export const qryIListMachine = `SELECT 
+	ilm.*
+FROM item_list_machine ilm`
+
+export const qryIListStitch = `SELECT 
+	ils.*
+FROM item_list_stitches ils`
+
+export const qryIListSeamAllow = `SELECT 
+	ils2.*
+FROM item_list_seamallow ils2`
+
+export const qryIListGauge = `SELECT 
+	ilg.*
+FROM item_list_gauge ilg`
+
+export const qryIListThrow = `SELECT 
+	ilt.*
+FROM item_list_throw ilt`
+
+export const qryIListNeedle= `SELECT 
+	iln.*
+FROM item_list_needle iln `

@@ -227,3 +227,84 @@ export const qryGetSizeOb = `SELECT
 FROM ie_ob_sizes ios 
 LEFT JOIN item_list_sizes ils ON ils.SIZE_ID = ios.SIZE_ID
 WHERE ios.OB_ID = :obId`
+
+
+export const qryObDetail = `SELECT 
+ioh.*,
+ils.PRODUCT_ITEM_DESCRIPTION,
+ils.PRODUCT_TYPE,
+ils.PRODUCT_CATEGORY,
+xuw.USER_INISIAL AS USER_ADD,
+xux.USER_INISIAL AS USER_MOD
+FROM ie_ob_header ioh 
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
+LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
+LEFT JOIN item_list_style ils ON ils.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID AND ils.CUSTOMER_NAME  = ioh.CUSTOMER_NAME
+WHERE ioh.OB_ID = :obId
+AND ioh.OB_DELETE_STATUS = 0
+`
+
+export const IeObFeatures = db.define('ie_ob_features', {
+    ID_OB_FEATURES: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    OB_ID: {
+      type: DataTypes.STRING(100),
+      allowNull: false
+    },
+    FEATURES_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    SEQ_NO: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+  }, {
+    freezeTableName: true,
+    timestamps: false
+  });
+
+export const qryListFeatures = `SELECT
+	iof.ID_OB_FEATURES,
+	iof.SEQ_NO,
+	ilf.*
+FROM item_list_features ilf
+LEFT JOIN ie_ob_features iof ON iof.OB_ID = :obId AND iof.FEATURES_ID = ilf.FEATURES_ID
+WHERE ilf.PRODUCT_TYPE IN (:prodType, 'ALL')
+ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`
+
+// helper.js
+
+/**
+ * Get IDs to delete (exist in DB but not in incoming data)
+ */
+export const getIdsToDelete = (existingItems, incomingItems) => {
+  const existingIds = existingItems.map(f => f.ID_OB_FEATURES);
+  const incomingIds = incomingItems
+    .filter(f => f.ID_OB_FEATURES !== null)
+    .map(f => f.ID_OB_FEATURES);
+
+  return existingIds.filter(id => !incomingIds.includes(id));
+};
+
+/**
+ * Split data into update and create sets
+ */
+export const splitDataForUpdateAndCreate = (incomingItems) => {
+  const dataToUpdate = incomingItems.filter(f => f.ID_OB_FEATURES !== null);
+  const dataToCreate = incomingItems.filter(f => f.ID_OB_FEATURES === null);
+  return { dataToUpdate, dataToCreate };
+};
+
+
+export const qryGetFeaturs = `SELECT
+	iof.ID_OB_FEATURES,
+	iof.SEQ_NO,
+	ilf.*
+FROM ie_ob_features iof 
+LEFT JOIN item_list_features ilf ON iof.FEATURES_ID = ilf.FEATURES_ID
+WHERE iof.OB_ID = :obId
+ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`

@@ -1,8 +1,9 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { getLasIdOb, getListOb, IeObHeader, IeObSize, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryListSizesOb } from "../../../models/ie/IeOb.mod.js";
+import { getIdsToDelete, getLasIdOb, getListOb, IeObFeatures, IeObHeader, IeObSize, qryGetFeaturs, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
 import { getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
+import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/hr/attandance.mod.js";
 
 
 export const getDataTreeStyleOb = async (req, res) => {
@@ -287,5 +288,199 @@ export const patchIeOb = async (req, res) =>{
       message: "Filed get data",
       error: error.message,
       });
+  }
+}
+
+
+export const getObData = async (req, res) =>{
+  try {
+    const {obId} = req.params
+
+    const obHeader = await db.query(qryObDetail, {
+      replacements: {obId},
+      type: QueryTypes.SELECT,
+    })
+    
+    if(obHeader.length === 0) return res.status(404).json({message: "OB not found", success: false})
+
+    let dataObDetail = {obHeader: obHeader[0]}  
+
+
+    const listSizesSelected = await db.query(qryGetSizeOb, {
+      replacements: {obId},
+      type: QueryTypes.SELECT,
+    })
+
+    if(listSizesSelected){
+        dataObDetail = {...dataObDetail, obSizes: listSizesSelected}
+      }
+      
+    const listFeatures = await db.query(qryGetFeaturs, {
+      replacements: {obId},
+      type: QueryTypes.SELECT,
+    })
+
+    if(listFeatures){
+        dataObDetail = {...dataObDetail, obFeatures: listFeatures}
+      }
+      
+    return res.status(200).json({data: dataObDetail})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+export const getListFeatures = async (req, res) =>{
+  try {
+    const {prodType, obId} = req.params
+
+    const listFeatures = await db.query(qryListFeatures, {
+      replacements: {prodType, obId},
+      type: QueryTypes.SELECT,
+    })
+    
+    return res.status(200).json({data: listFeatures})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+
+export const postFeatures = async (req, res) => {
+  try {
+    const data = req.body;
+    const obId = data[0]?.OB_ID;
+
+    if (!obId) {
+      return res.status(400).json({ success: false, message: "OB_ID is required" });
+    }
+
+    // Ambil data existing dari DB
+    const existingFeatures = await IeObFeatures.findAll({
+      where: { OB_ID: obId },
+    });
+
+    const idsToDelete = getIdsToDelete(existingFeatures, data);
+
+    if (idsToDelete.length > 0) {
+      await IeObFeatures.destroy({
+        where: { ID_OB_FEATURES: idsToDelete },
+      });
+    }
+
+    const { dataToUpdate, dataToCreate } = splitDataForUpdateAndCreate(data);
+
+    if (dataToUpdate.length > 0) {
+      await IeObFeatures.bulkCreate(dataToUpdate, {
+        updateOnDuplicate: ["FEATURES_ID", "FEATURES_NAME", "SEQ_NO", "USER_ID", "PRODUCT_TYPE"],
+      });
+    }
+
+    if (dataToCreate.length > 0) {
+      await IeObFeatures.bulkCreate(dataToCreate);
+    }
+
+    // Ambil hasil terbaru dari DB
+    const updatedList = await IeObFeatures.findAll({
+      where: { OB_ID: obId },
+      raw: true, // supaya hasilnya plain object
+    });
+
+    // Combine dengan data awal
+    const combinedResult = data.map(item => {
+      const matched = updatedList.find(u =>
+        u.FEATURES_ID === item.FEATURES_ID && u.OB_ID === item.OB_ID
+      );
+
+      return {
+        ...item,
+        ID_OB_FEATURES: matched ? matched.ID_OB_FEATURES : null,
+      };
+    });
+
+    return res.status(200).json({ success: true, data: combinedResult });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to sync features",
+      error: error.message,
+    });
+  }
+};
+
+
+//get referensi for ob detail
+export const getRefObDetail = async (req, res) => {
+  try {
+
+      const listMachine = await db.query(qryIListMachine, {
+        type: QueryTypes.SELECT,
+      })
+
+      const listStitch = await db.query(qryIListStitch, {
+        type: QueryTypes.SELECT,
+      })
+
+      const listSeamAllow = await db.query(qryIListSeamAllow, {
+        type: QueryTypes.SELECT,
+      })
+
+      const listGauge = await db.query(qryIListGauge, {
+        type: QueryTypes.SELECT,
+      })
+
+
+      const listThrow = await db.query(qryIListThrow, {
+        type: QueryTypes.SELECT,
+      })
+
+      const listNeedle = await db.query(qryIListNeedle, {
+        type: QueryTypes.SELECT,
+      })
+
+      const listNeedlThread = [
+        {ID: 1, NAME: 'Cotton'},
+        {ID: 2, NAME: 'Nylon'},
+        {ID: 3, NAME: 'Cotton (T-30)'},
+        {ID: 4, NAME: 'Nylon (T-18)'},
+      ]
+
+      const listBobinThread = [
+        {ID: 1, NAME: 'Cotton'},
+        {ID: 2, NAME: 'Nylon'},
+        {ID: 3, NAME: 'Cotton (T-30)'},
+        {ID: 4, NAME: 'Nylon (T-18)'},
+      ]
+
+      const dataRefObDetail = {
+        listMachine,
+        listStitch,
+        listSeamAllow,
+        listGauge,
+        listThrow,
+        listNeedle,
+        listNeedlThread,
+        listBobinThread
+      }
+    return res.status(200).json({ success: true, data: dataRefObDetail });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get references for OB detail",
+      error: error.message,
+    });
   }
 }
