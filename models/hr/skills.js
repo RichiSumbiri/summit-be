@@ -85,6 +85,11 @@ export const ModelCategorySkills = dbSPL.define('master_skills_category', {
       allowNull: false,
       primaryKey: true,
     },
+    sub_skill_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+    },
     skill_level: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -157,17 +162,20 @@ export const ModelCategorySkills = dbSPL.define('master_skills_category', {
 	msc.skill_category_name,
 	ses.skill_id,
 	ms.skill_name,
+  ses.sub_skill_id,
+	mss.sub_skill_name,
 	ses.skill_level
 FROM
 	sumbiri_employee se
 LEFT JOIN sumbiri_employee_skills ses ON ses.Nik = se.Nik
 LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
+LEFT JOIN master_skills_sub mss ON mss.sub_skill_id = ses.sub_skill_id
 LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
 LEFT JOIN master_subdepartment ms2 ON ms2.IDSubDept = se.IDSubDepartemen
 LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
 LEFT JOIN master_position mp2 ON mp2.IDPosition = se.IDPosisi
-WHERE se.StatusAktif ='0' AND msc.skill_category_id = :categoryID
+WHERE se.StatusAktif ='0' AND ses.skill_id = :skillID
 ORDER BY se.Nik, ms.skill_id ASC
 `;
 
@@ -182,11 +190,14 @@ SELECT
 	msc.skill_category_name,
 	ses.skill_id,
 	ms.skill_name,
+	ses.sub_skill_id,
+	mss.sub_skill_name,
 	ses.skill_level,
   mp2.Name AS NamePosisi
 FROM
 	sumbiri_employee se
 LEFT JOIN sumbiri_employee_skills ses ON ses.Nik = se.Nik
+LEFT JOIN master_skills_sub mss ON mss.sub_skill_id = ses.sub_skill_id 
 LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
 LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
@@ -202,7 +213,8 @@ AND (
 	ms2.Name  LIKE :searchParameter OR
 	ms3.Name  LIKE :searchParameter OR
 	msc.skill_category_name LIKE :searchParameter OR
-	ms.skill_name LIKE :searchParameter
+	ms.skill_name LIKE :searchParameter OR
+	mss.sub_skill_name LIKE :searchParameter
 )
 
 `;
@@ -224,10 +236,13 @@ SELECT
 	msc.skill_category_name,
 	ses.skill_id,
 	ms.skill_name,
+	ses.sub_skill_id,
+	mss.sub_skill_name,
 	ses.skill_level
 FROM
 	sumbiri_employee se
 LEFT JOIN sumbiri_employee_skills ses ON ses.Nik = se.Nik
+LEFT JOIN master_skills_sub mss ON mss.sub_skill_id = ses.sub_skill_id 
 LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
 LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
 LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen

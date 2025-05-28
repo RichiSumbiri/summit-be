@@ -87,7 +87,7 @@ import {
 } from "../../controllers/hr/JadwalJamKerja.js";
 import { cancelKartap, getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
-import { deleteCategorySkills, deleteEmpSKill, deleteSkillData, deleteSubSkillData, getCategorySkills, getEmpSKillByNIK, getEmpSkillDataAll, getEmpSkillDataByCat, getEmpSkillDataPaginated, getMatrixSkillReportByCat, getSkillByCategoryID, getSubSkillBySkillID, postEmpSKill, postMassEmpSKill, postNewCategorySkills, postNewSkills, postNewSubSkills } from "../../controllers/hr/skills.js";
+import { deleteCategorySkills, deleteEmpSKill, deleteSkillData, deleteSubSkillData, getCategorySkills, getEmpSKillByNIK, getEmpSkillDataAll, getEmpSkillDataByCat, getEmpSkillDataPaginated, getMatrixSkillReportByCat, getSkillAll, getSkillByCategoryID, getSubSkillAll, getSubSkillBySkillID, postEmpSKill, postMassEmpSKill, postNewCategorySkills, postNewSkills, postNewSubSkills } from "../../controllers/hr/skills.js";
 
 const router = express.Router();
 
@@ -232,6 +232,8 @@ router.get("/event/query-guest/:strQuery", getRefGuest);
 router.get("/category-skills", getCategorySkills);
 router.post("/category-skills", postNewCategorySkills)
 router.delete("/category-skills/:id", deleteCategorySkills);
+router.get("/list-skills", getSkillAll);
+router.get("/list-subskills", getSubSkillAll);
 router.get("/skills/:id", getSkillByCategoryID);
 router.get("/subskills-by-skill/:id", getSubSkillBySkillID);
 router.post("/subskills", postNewSubSkills);
@@ -242,9 +244,9 @@ router.get("/emp-skills/:idcategory", getEmpSkillDataByCat);
 router.get("/emp-skills-page/:page/:limit/:search", getEmpSkillDataPaginated);
 router.get("/emp-skills-all", getEmpSkillDataAll);
 router.post("/emp-skills", postEmpSKill);
-router.delete("/emp-skills/:idskill/:empnik", deleteEmpSKill);
+router.delete("/emp-skills/:idskill/:idsubskill/:empnik", deleteEmpSKill);
 router.post("/emp-skills-mass", postMassEmpSKill);
 router.get("/emp-skill-nik/:nik", getEmpSKillByNIK);
-router.get("/report-matrix-skill/:idcategory", getMatrixSkillReportByCat);
+router.get("/report-matrix-skill/:idskill", getMatrixSkillReportByCat);
 
 export default router;

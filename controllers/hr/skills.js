@@ -21,6 +21,43 @@ export const getCategorySkills = async (req, res) => {
     }
 }
 
+export const getSkillAll = async(req,res) => {
+    try {
+        const data = await ModelMasterSkill.findAll();
+        if(data){
+            return res.status(200).json({
+                success: true,
+                data: data,
+                message: "success get skills all"
+            });
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get skills all"
+        });
+    }
+}
+
+export const getSubSkillAll = async(req,res) => {
+    try {
+        const data = await ModelMasterSubSkill.findAll();
+        if(data){
+            return res.status(200).json({
+                success: true,
+                data: data,
+                message: "success get sub skills all"
+            });
+        }
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get sub skills all"
+        });
+    }
+}
+
+
 export const getSkillByCategoryID = async(req,res) => {
     try {
         const { id } = req.params;
@@ -208,7 +245,6 @@ export const postNewSubSkills = async(req,res) => {
             });
         }
     } catch(err){
-        console.log(err);
         return res.status(404).json({
             success: false,
             message: "fail post new skills"
@@ -277,10 +313,10 @@ export const deleteSubSkillData = async(req,res) => {
 
 export const getMatrixSkillReportByCat = async(req,res) => {
     try {
-        const { idcategory } = req.params;
+        const { idskill } = req.params;
         const EmpSkillData = await dbSPL.query(queryGetEmpSkillDataByCategory, {
             replacements: {
-                categoryID: idcategory
+                skillID: idskill
             }, type: QueryTypes.SELECT
         });
         
@@ -306,9 +342,12 @@ export const getMatrixSkillReportByCat = async(req,res) => {
             skill_category_name: item.skill_category_name,
             skill_id: item.skill_id,
             skill_name: item.skill_name,
+            sub_skill_id: item.sub_skill_id,
+            sub_skill_name: item.sub_skill_name,
             skill_level: item.skill_level,
         });
 
+        
         return acc;
         }, {});
 
@@ -339,11 +378,11 @@ export const getEmpSkillDataByCat = async(req,res) => {
         });
 
 
-      return res.status(200).json({
-        success: true,
-        message: "success get employee skills",
-        data: EmpSkillData
-    });
+        return res.status(200).json({
+            success: true,
+            message: "success get employee skills",
+            data: EmpSkillData
+        });
       
           
     } catch(err){
@@ -441,17 +480,33 @@ export const getEmpSkillDataAll = async(req,res) => {
 export const postEmpSKill = async(req,res) => {
     try {
         const { data } = req.body;
+        // console.log(data);
         let tryPost;
-        if(data.checked===true){
-            tryPost = await SumbiriEmployeeSkills.upsert({
+        const findEmpData = await SumbiriEmployeeSkills.findAll({
+                where: {
+                 Nik: data.Nik,
+                skill_id: data.skill_id,
+                sub_skill_id: data.sub_skill_id
+                }, raw: true
+        });
+        if(findEmpData.length===0){
+            tryPost = await SumbiriEmployeeSkills.create({
                 Nik: data.Nik,
-                skill_id: data.skill_id
+                skill_id: data.skill_id,
+                sub_skill_id: data.sub_skill_id,
+                skill_level: data.skill_level,
+                last_update_date: moment().format('YYYY-MM-DD HH:mm:ss')
             });
         } else {
-            tryPost = await SumbiriEmployeeSkills.destroy({
+            tryPost = await SumbiriEmployeeSkills.update({
+                skill_level: data.skill_level,
+                last_update_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
                 where: {
                     Nik: data.Nik,
-                    skill_id: data.skill_id
+                skill_id: data.skill_id,
+                sub_skill_id: data.sub_skill_id,
+                
                 }
             });
         }
@@ -474,7 +529,8 @@ export const deleteEmpSKill = async(req,res) => {
         const actionDelete = await SumbiriEmployeeSkills.destroy({
             where: {
                 Nik: parseInt(req.params.empnik),
-                skill_id: parseInt(req.params.idskill)
+                skill_id: parseInt(req.params.idskill),
+                sub_skill_id: parseInt(req.params.idsubskill)
             }
         });
         if(actionDelete){
@@ -500,15 +556,33 @@ export const postMassEmpSKill = async(req,res) => {
             const checkEmpSkill = await SumbiriEmployeeSkills.findOne({
                 where: {
                     Nik: item.Nik,
-                    skill_id: data.skill_id
+                    skill_id: item.skill_id,
+                    sub_skill_id: item.sub_skill_id,
+                    skill_level: item.sub_skill_level
                 }
             });
             if(!checkEmpSkill){
-                return await SumbiriEmployeeSkills.create({
+                await SumbiriEmployeeSkills.create({
                     Nik: item.Nik,
-                    skill_id: data.skill_id
+                    skill_id: item.skill_id,
+                    sub_skill_id: item.sub_skill_id,
+                    skill_level: item.sub_skill_level,
+                    certified: data.certified,
+                    last_update_date: moment().format('YYYY-MM-DD HH:mm:ss')
                 });
-            } 
+            } else {
+                await SumbiriEmployeeSkills.update({
+                    skill_level: item.sub_skill_level,
+                    certified: item.certified,
+                    last_update_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                }, {
+                    where: {
+                        Nik: item.Nik,
+                        skill_id: item.skill_id,
+                        sub_skill_id: item.sub_skill_id
+                    }
+                });
+            }
         });
         return res.status(200).json({
             success: true,
