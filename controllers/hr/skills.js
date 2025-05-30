@@ -684,9 +684,8 @@ export const postMassEmpSKill = async(req,res) => {
                 where: {
                     Nik: item.Nik,
                     skill_id: item.skill_id,
-                    sub_skill_id: item.sub_skill_id,
-                    skill_level: item.sub_skill_level
-                }
+                    sub_skill_id: item.sub_skill_id
+                }, raw: true
             });
             if(!checkEmpSkill){
                 await SumbiriEmployeeSkills.create({
