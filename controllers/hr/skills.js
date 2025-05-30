@@ -2,6 +2,7 @@ import moment from "moment";
 import { ModelCategorySkills, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";
+import { modelMasterSubDepartment, sqlFindEmpByDeptSubSection } from "../../models/hr/employe.mod.js";
 
 
 export const getCategorySkills = async (req, res) => {
@@ -310,6 +311,130 @@ export const deleteSubSkillData = async(req,res) => {
     }
 } 
 
+export const getMatrixSkillReportCustom = async(req,res) => {
+    try {
+        const { data } = req.body;
+        
+        // Create a Set of skill_ids from list_skill_id
+        const skillIdsToRemove = new Set(
+        data.list_skill_id.filter(item => item.checked).map(item => item.skill_id)
+        );
+
+        // Filter out any sub_skills whose skill_id is in list_skill_id
+        data.list_sub_skill_id = data.list_sub_skill_id.filter(
+            sub => !skillIdsToRemove.has(sub.skill_id)
+        );
+
+        let dataHeaderSkill = [];
+        let dataHeaderSubSkill = [];
+        let dataEmpSkill = [];
+
+        // Loop header through by skill_id data
+        for (const item of data.list_skill_id) {
+            const empA = await ModelMasterSkill.findAll({
+                where: {
+                    skill_id: parseInt(item.skill_id)
+                }, raw: true
+            });
+
+            const empB = await ModelMasterSubSkill.findAll({
+                where: {
+                    skill_id: parseInt(item.skill_id)
+                }, raw: true
+            });
+
+            
+            dataHeaderSkill.push(...empA);
+            dataHeaderSubSkill.push(...empB);
+        }
+
+        // Loop header through by sub_skill_id data
+        for (const item of data.list_sub_skill_id) {
+            const empA = await ModelMasterSkill.findAll({
+                where: {
+                    skill_id: parseInt(item.skill_id)
+                }, raw: true
+            });
+
+            const empB = await ModelMasterSubSkill.findAll({
+                where: {
+                    sub_skill_id: parseInt(item.sub_skill_id)
+                }, raw: true
+            });
+
+            
+            dataHeaderSkill.push(...empA);
+            dataHeaderSubSkill.push(...empB);
+        }
+
+        for (const item of data.list_skill_id) {
+            const empA = await ModelMasterSkill.findAll({
+                where: {
+                    skill_id: parseInt(item.skill_id)
+                }, raw: true
+            });
+
+            if (empA.length > 0) {
+                dataHeaderSkill.push(...empA); // empA is an array
+            }
+        }
+
+        // Loop through skill_id list
+        for (const item of data.list_skill_id) {
+            const empA = await SumbiriEmployeeSkills.findAll({
+                where: {
+                    skill_id: parseInt(item.skill_id)
+                }, raw: true
+            });
+
+            if (empA.length > 0) {
+                dataEmpSkill.push(...empA); // empA is an array
+            }
+        }
+
+        // Loop through sub_skill_id list
+        for (const item of data.list_sub_skill_id) {
+            const empB = await SumbiriEmployeeSkills.findAll({
+                where: {
+                    sub_skill_id: parseInt(item.sub_skill_id)
+                }, raw: true
+            });
+
+            if (empB.length > 0) {
+                dataEmpSkill.push(...empB); // empB is an array
+            }
+        }
+
+        // get employee data based on id dept, id sub dept, id section
+        const ListEmp = await dbSPL.query(sqlFindEmpByDeptSubSection, {
+            replacements: {
+                IDDept: data.id_dept,
+                IDSubDept: data.id_subdept,
+                IDSection: data.id_section
+            }, type: QueryTypes.SELECT
+        });
+
+        // Remove duplicates based on sub_skill_id
+        const uniqueListHeader = Array.from(
+            new Map(dataHeaderSkill.map(item => [item.skill_id, item])).values()
+        );
+
+        
+        if(data){
+             return res.status(200).json({
+                success: true,
+                message: "success get matrix skills",
+                header_skill: uniqueListHeader,
+                header_subskill: dataHeaderSubSkill,
+                list_emp: ListEmp,
+                list_skill: dataEmpSkill
+            });
+        };
+        
+    } catch(err){
+
+    }
+}
 
 export const getMatrixSkillReportByCat = async(req,res) => {
     try {
@@ -480,7 +605,6 @@ export const getEmpSkillDataAll = async(req,res) => {
 export const postEmpSKill = async(req,res) => {
     try {
         const { data } = req.body;
-        // console.log(data);
         let tryPost;
         const findEmpData = await SumbiriEmployeeSkills.findAll({
                 where: {

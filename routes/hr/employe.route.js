@@ -87,7 +87,7 @@ import {
 } from "../../controllers/hr/JadwalJamKerja.js";
 import { cancelKartap, getKarTap, getKarTapByNIK, newKarTap, updateKarTap } from "../../controllers/hr/kartap.js";
 import { deleteEmpResignSPK, getEmpResignSPK, postNewEmpResignSPK } from "../../controllers/hr/empResign.js";
-import { deleteCategorySkills, deleteEmpSKill, deleteSkillData, deleteSubSkillData, getCategorySkills, getEmpSKillByNIK, getEmpSkillDataAll, getEmpSkillDataByCat, getEmpSkillDataPaginated, getMatrixSkillReportByCat, getSkillAll, getSkillByCategoryID, getSubSkillAll, getSubSkillBySkillID, postEmpSKill, postMassEmpSKill, postNewCategorySkills, postNewSkills, postNewSubSkills } from "../../controllers/hr/skills.js";
+import { deleteCategorySkills, deleteEmpSKill, deleteSkillData, deleteSubSkillData, getCategorySkills, getEmpSKillByNIK, getEmpSkillDataAll, getEmpSkillDataByCat, getEmpSkillDataPaginated, getMatrixSkillReportByCat, getMatrixSkillReportCustom, getSkillAll, getSkillByCategoryID, getSubSkillAll, getSubSkillBySkillID, postEmpSKill, postMassEmpSKill, postNewCategorySkills, postNewSkills, postNewSubSkills } from "../../controllers/hr/skills.js";
 
 const router = express.Router();
 
@@ -248,5 +248,7 @@ router.delete("/emp-skills/:idskill/:idsubskill/:empnik", deleteEmpSKill);
 router.post("/emp-skills-mass", postMassEmpSKill);
 router.get("/emp-skill-nik/:nik", getEmpSKillByNIK);
 router.get("/report-matrix-skill/:idskill", getMatrixSkillReportByCat);
+router.post("/report-matrix-skill-custom", getMatrixSkillReportCustom);
+
 
 export default router;
