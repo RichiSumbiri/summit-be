@@ -541,6 +541,7 @@ export const sqlFindEmpLikeNIK 	= sqlFindEmp + ` WHERE emp.Nik LIKE :inputQry OR
 export const sqlFindEmpByNIKKTP = sqlFindEmp +  ` WHERE emp.NikKTP=:nikKTP AND emp.StatusAktif='0' AND emp.CancelMasuk='N' LIMIT 1 `;
 export const sqlFindEmpKontrak 	= sqlFindEmp +  ` WHERE TRIM(emp.StatusKaryawan)='Kontrak'`;
 export const sqlFindEmpByDeptSubSection = sqlFindEmp + ` WHERE emp.IDDepartemen=:IDDept AND emp.IDSubDepartemen=:IDSubDept AND emp.IDSection=:IDSection AND emp.StatusAktif='0' AND emp.CancelMasuk='N'`;
+export const sqlFindEmpByDeptSection = sqlFindEmp + ` WHERE emp.IDDepartemen=:IDDept AND emp.IDSection=:IDSection AND emp.StatusAktif='0' AND emp.CancelMasuk='N'`;
 
 
 export const sqlSummaryEmpByDept = `

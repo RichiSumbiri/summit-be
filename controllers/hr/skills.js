@@ -2,7 +2,7 @@ import moment from "moment";
 import { ModelCategorySkills, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";
-import { modelMasterSubDepartment, sqlFindEmpByDeptSubSection } from "../../models/hr/employe.mod.js";
+import { modelMasterSubDepartment, sqlFindEmpByDeptSection, sqlFindEmpByDeptSubSection } from "../../models/hr/employe.mod.js";
 
 
 export const getCategorySkills = async (req, res) => {
@@ -405,8 +405,15 @@ export const getMatrixSkillReportCustom = async(req,res) => {
             }
         }
 
+        let sqlQueryEmp;
+        if(data.id_subdept==="ALL"){
+            sqlQueryEmp = sqlFindEmpByDeptSection;
+        } else {
+            sqlQueryEmp = sqlFindEmpByDeptSubSection;
+        }
+
         // get employee data based on id dept, id sub dept, id section
-        const ListEmp = await dbSPL.query(sqlFindEmpByDeptSubSection, {
+        const ListEmp = await dbSPL.query(sqlQueryEmp, {
             replacements: {
                 IDDept: data.id_dept,
                 IDSubDept: data.id_subdept,
