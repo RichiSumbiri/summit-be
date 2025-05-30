@@ -432,7 +432,10 @@ export const getMatrixSkillReportCustom = async(req,res) => {
         };
         
     } catch(err){
-
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee matrix  skills"
+        });
     }
 }
 
