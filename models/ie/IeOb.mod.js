@@ -107,7 +107,7 @@ export const IeObHeader = db.define('ie_ob_header', {
       allowNull: true,
     },
     OB_WH: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL,
       allowNull: true,
     },
     OB_TARGET: {
@@ -115,7 +115,11 @@ export const IeObHeader = db.define('ie_ob_header', {
       allowNull: true,
     },
     OB_TAKE_TIME: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(10,2),
+      allowNull: true,
+    },
+    OB_SMV: {
+      type: DataTypes.DECIMAL(10,4),
       allowNull: true,
     },
     OB_REVISION: {
@@ -124,6 +128,10 @@ export const IeObHeader = db.define('ie_ob_header', {
     },
     OB_STATUS: {
       type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    OB_SKETCH: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     OB_DELETE_STATUS: {
@@ -142,7 +150,7 @@ export const IeObHeader = db.define('ie_ob_header', {
       type: DataTypes.DATE,
       allowNull: true,
     },
-    upatedAt: {
+    updatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -308,3 +316,499 @@ FROM ie_ob_features iof
 LEFT JOIN item_list_features ilf ON iof.FEATURES_ID = ilf.FEATURES_ID
 WHERE iof.OB_ID = :obId
 ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`
+
+
+
+export const qryIListMachine = `SELECT 
+	ilm.*
+FROM item_list_machine ilm`
+
+export const qryIListStitch = `SELECT 
+	ils.*
+FROM item_list_stitches ils`
+
+export const qryIListSeamAllow = `SELECT 
+	ils2.*
+FROM item_list_seamallow ils2`
+
+export const qryIListGauge = `SELECT 
+	ilg.*
+FROM item_list_gauge ilg`
+
+export const qryIListThrow = `SELECT 
+	ilt.*
+FROM item_list_throw ilt`
+
+export const qryIListNeedle= `SELECT 
+	iln.*
+FROM item_list_needle iln `
+
+export const qryIListNeedleThreads= `SELECT 
+	iln.*
+FROM item_list_needle_thread iln `
+
+export const qryIListBobinThreads= `SELECT
+  ilbt.* 
+FROM item_list_boobin_thread ilbt `
+
+export const listStiches = db.define('item_list_stitches', {
+    STITCHES_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    MACHINE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    STITCHES: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const listMachine = db.define('item_list_machine', {
+    MACHINE_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    MACHINE_TYPE: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const listSeamAllow = db.define('item_list_seamallow', {
+    SEAM_ALLOW_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    MACHINE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    SEAM_ALLOW: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const listGauge = db.define('item_list_gauge', {
+    GAUGE_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    MACHINE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    GAUGE: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const listThrow = db.define('item_list_throw', {
+    THROW_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    MACHINE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    THROW_NAME: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const listNeedle = db.define('item_list_needle', {
+    NEEDLE_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    MACHINE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    NEEDLE_NAME: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const listNeedleThread = db.define('item_list_needle_thread', {
+    ID_NEEDLE_THREAD: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    NEEDLE_THREAD: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+
+}, {
+   freezeTableName: true,
+   timestamps: false,
+});
+
+export const listBobinThread = db.define('item_list_boobin_thread', {
+    ID_BOBIN_THREAD: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    BOBIN_THREAD: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+
+}, {
+   freezeTableName: true,
+   timestamps: false,
+});
+
+export const IeObDetail = db.define('ie_ob_detail', {
+    OB_DETAIL_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    ID_OB_FEATURES: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_ID: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+    },
+    OB_DETAIL_NO: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_DESCRIPTION: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_DESCRIPTION_IDN: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_REMARK: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_REMARK_IDN: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_MACHINE: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_SPI: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_SEAMALLOW: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_GAUGE: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_THROW: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_ND: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_ND_THREADS: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_BOBIN_THREADS: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_MC_SETUP: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_SMV: {
+        type: DataTypes.DECIMAL(10, 4),
+        allowNull: true,
+    },
+    OB_DETAIL_TARGET: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+export const IeObDetailStr = db.define('ie_ob_detail_str', {
+    OB_DETAIL_ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    ID_OB_FEATURES: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_ID: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+    },
+    OB_DETAIL_NO: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_DESCRIPTION: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_DESCRIPTION_IDN: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_REMARK: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_REMARK_IDN: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    OB_DETAIL_MACHINE: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    OB_DETAIL_SPI: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_SEAMALLOW: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_GAUGE: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_THROW: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_ND: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_ND_THREADS: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_BOBIN_THREADS: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_MC_SETUP: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    OB_DETAIL_SMV: {
+        type: DataTypes.DECIMAL(10, 4),
+        allowNull: true,
+    },
+    OB_DETAIL_TARGET: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ADD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    MOD_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+   freezeTableName: true,
+});
+
+
+
+export const qryGetObDetail = `SELECT 
+ iod.*,
+ ilm.MACHINE_TYPE,
+ ils.STITCHES,
+ ils2.SEAM_ALLOW,
+ ilg.GAUGE,
+ ilt.THROW_NAME,
+ iln.NEEDLE_NAME,
+ ilnt.NEEDLE_THREAD,
+ ilbt.BOBIN_THREAD,
+ iof.SEQ_NO
+FROM ie_ob_detail iod
+LEFT JOIN item_list_machine ilm ON ilm.MACHINE_ID = iod.OB_DETAIL_MACHINE
+LEFT JOIN item_list_stitches ils ON ils.STITCHES_ID = iod.OB_DETAIL_SPI 
+LEFT JOIN item_list_seamallow ils2 ON ils2.SEAM_ALLOW_ID = iod.OB_DETAIL_SEAMALLOW 
+LEFT JOIN item_list_gauge ilg ON ilg.GAUGE_ID = iod.OB_DETAIL_GAUGE 
+LEFT JOIN item_list_throw ilt ON ilt.THROW_ID = iod.OB_DETAIL_THROW 
+LEFT JOIN item_list_needle iln ON iln.NEEDLE_ID = iod.OB_DETAIL_ND 
+LEFT JOIN item_list_needle_thread ilnt ON ilnt.ID_NEEDLE_THREAD = iod.OB_DETAIL_ND_THREADS 
+LEFT JOIN item_list_boobin_thread ilbt ON ilbt.ID_BOBIN_THREAD = iod.OB_DETAIL_BOBIN_THREADS 
+LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
+WHERE iod.OB_ID = :obId`
+
+export const qryGetObDetailForBe = `SELECT 
+ iod.*,
+ iof.ID_OB_FEATURES,
+ iof.SEQ_NO
+FROM ie_ob_detail iod
+LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
+WHERE iod.OB_ID = :obId
+ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`

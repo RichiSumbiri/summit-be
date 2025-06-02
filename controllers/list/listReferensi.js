@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function pharsingImgStyle(arrstyle, req){
-const baseUrl = 'https://api.sumbiri.com';
-// const baseUrl = `${req.protocol}://${req.get("host")}`;
+// const baseUrl = 'https://api.sumbiri.com';
+const baseUrl = `${req.protocol}://${req.get("host")}`;
  const withImgArr = arrstyle.map(item =>{
         let listItem = {...item}
 
@@ -165,8 +165,8 @@ export const getListItemStyle = async (req, res) => {
 export const postListItemStyle = async (req, res) => {
   try {
      let dataStyle = req.body;
-     const FRONT_IMAGE =  req.files.FRONT_IMAGE
-     const BACK_IMAGE =  req.files.BACK_IMAGE
+     const FRONT_IMAGE =  req.files?.FRONT_IMAGE || null
+     const BACK_IMAGE =  req.files?.BACK_IMAGE || null
 
     let whereCheck = {
         PRODUCT_ITEM_CODE : dataStyle.PRODUCT_ITEM_CODE
@@ -186,10 +186,10 @@ export const postListItemStyle = async (req, res) => {
     }
 
 
-    if(FRONT_IMAGE){
+    if(FRONT_IMAGE !== null && FRONT_IMAGE !== undefined){
           dataStyle.FRONT_IMG = generateUniqueFileName(FRONT_IMAGE.name)
       }
-    if(BACK_IMAGE){
+    if(BACK_IMAGE !== null && BACK_IMAGE !== undefined){
           dataStyle.BACK_IMG = generateUniqueFileName(BACK_IMAGE.name)
       }
 
@@ -197,7 +197,7 @@ export const postListItemStyle = async (req, res) => {
 
     if(createNewStyle){
       let msg = `success create new style`
-        if(FRONT_IMAGE){
+        if(FRONT_IMAGE !== null && FRONT_IMAGE !== undefined){
           const filePathFront = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
           
           fs.writeFile(filePathFront, FRONT_IMAGE.data,  (err) => {
@@ -206,7 +206,7 @@ export const postListItemStyle = async (req, res) => {
             }
            })
         }
-        if(BACK_IMAGE){
+        if(BACK_IMAGE !== null && BACK_IMAGE !== undefined){
           const filePathBack = path.join(__dirname, "../../assets/images/styles", dataStyle.BACK_IMG);
           fs.writeFile(filePathBack, BACK_IMAGE.data,  (err) => {
                  if(err){
@@ -270,7 +270,6 @@ export const patchListItemStyle = async (req, res) => {
       let msg = `success update style`
       //jika sebelumnya ada image name dan sekarang tidak ada maka hapus
         if(dataStyle.FRONT_IMG && !FRONT_IMAGE){
-          console.log('harusnya masuk sini sih');
           
           const filePathFrontDel = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
 

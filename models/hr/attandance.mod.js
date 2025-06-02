@@ -1975,26 +1975,3 @@ export const qryLaborSewing = `SELECT
     smr.IDPosisi
 `
 
-export const qryIListMachine = `SELECT 
-	ilm.*
-FROM item_list_machine ilm`
-
-export const qryIListStitch = `SELECT 
-	ils.*
-FROM item_list_stitches ils`
-
-export const qryIListSeamAllow = `SELECT 
-	ils2.*
-FROM item_list_seamallow ils2`
-
-export const qryIListGauge = `SELECT 
-	ilg.*
-FROM item_list_gauge ilg`
-
-export const qryIListThrow = `SELECT 
-	ilt.*
-FROM item_list_throw ilt`
-
-export const qryIListNeedle= `SELECT 
-	iln.*
-FROM item_list_needle iln `
