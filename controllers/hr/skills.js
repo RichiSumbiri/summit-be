@@ -457,7 +457,7 @@ export const getMatrixSkillReportByCat = async(req,res) => {
         
         const groupedData = EmpSkillData.reduce((acc, item) => {
             // Create a unique key based on employee identity
-            const key = `${item.Nik}-${item.NamaLengkap}-${item.Departemen}-${item.SubDepartemen}-${item.Section}`;
+            const key = `${item.Nik}-${item.NamaLengkap}-${item.Departemen}-${item.SubDepartemen}-${item.Section}-${item.NamePosisi}`;
 
             // If group doesn't exist yet, initialize it
             if (!acc[key]) {
@@ -467,6 +467,7 @@ export const getMatrixSkillReportByCat = async(req,res) => {
                 Departemen: item.Departemen,
                 SubDepartemen: item.SubDepartemen,
                 Section: item.Section,
+                NamePosisi: item.NamePosisi,
                 detail: [],
             };
         }
