@@ -6,12 +6,12 @@ import { ItemListStyle, qryGetItemCode, qryListstyleWithUser } from "../../model
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { baseUrl } from "../util/Utility.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function pharsingImgStyle(arrstyle, req){
-// const baseUrl = 'https://api.sumbiri.com';
-const baseUrl = `${req.protocol}://${req.get("host")}`;
+
  const withImgArr = arrstyle.map(item =>{
         let listItem = {...item}
 
@@ -381,9 +381,7 @@ export const getImgStyle = async (req, res) => {
     });
 
     if (getBgHeeader) {
-      const baseUrl = 'https://api-gbvh.ontidecorp.com';
-      //const baseUrl = `${req.protocol}://${req.get("host")}`;
-
+  
       const listBg = getBgHeeader.map((item) => {
         if (item.BG_HEADER_FILE) {
           const bgUrl = `${baseUrl}/images/${item.BG_HEADER_FILE}`;

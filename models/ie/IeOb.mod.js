@@ -252,6 +252,34 @@ WHERE ioh.OB_ID = :obId
 AND ioh.OB_DELETE_STATUS = 0
 `
 
+export const dbListFeatures = db.define('item_list_features', {
+    FEATURES_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    PRODUCT_TYPE: {
+      type: DataTypes.STRING(100),
+      allowNull: false
+    },
+    FEATURES_NAME: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    FEATURES_NAME_2: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    FEATURES_CATEGORY: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+  }, {
+    freezeTableName: true,
+    timestamps: false
+  });
+
+  
 export const IeObFeatures = db.define('ie_ob_features', {
     ID_OB_FEATURES: {
       type: DataTypes.INTEGER,
@@ -268,6 +296,18 @@ export const IeObFeatures = db.define('ie_ob_features', {
     },
     SEQ_NO: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ADD_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
   }, {
@@ -802,7 +842,8 @@ LEFT JOIN item_list_needle iln ON iln.NEEDLE_ID = iod.OB_DETAIL_ND
 LEFT JOIN item_list_needle_thread ilnt ON ilnt.ID_NEEDLE_THREAD = iod.OB_DETAIL_ND_THREADS 
 LEFT JOIN item_list_boobin_thread ilbt ON ilbt.ID_BOBIN_THREAD = iod.OB_DETAIL_BOBIN_THREADS 
 LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
-WHERE iod.OB_ID = :obId`
+WHERE iod.OB_ID = :obId
+ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
 
 export const qryGetObDetailForBe = `SELECT 
  iod.*,
@@ -812,3 +853,132 @@ FROM ie_ob_detail iod
 LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
 WHERE iod.OB_ID = :obId
 ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
+
+export const lastObNoBYSeq = `SELECT 
+	COUNT(iod.OB_DETAIL_NO) LAST_OB_DETAIL_NO
+FROM ie_ob_detail iod 
+JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
+WHERE iod.OB_ID = :obId AND iof.SEQ_NO < :seqNo`
+
+export const getListSugestObDetail = `SELECT 
+ iod.OB_DETAIL_DESCRIPTION,
+ iod.OB_DETAIL_DESCRIPTION_IDN,
+ iod.OB_DETAIL_REMARK,
+ iod.OB_DETAIL_REMARK_IDN,
+ iod.OB_DETAIL_MACHINE,
+ iod.OB_DETAIL_SPI,
+ iod.OB_DETAIL_SEAMALLOW,
+ iod.OB_DETAIL_GAUGE,
+ iod.OB_DETAIL_THROW,
+ iod.OB_DETAIL_ND,
+ iod.OB_DETAIL_ND_THREADS,
+ iod.OB_DETAIL_BOBIN_THREADS,
+ iod.OB_DETAIL_MC_SETUP,
+ iod.OB_DETAIL_SMV,
+ iod.OB_DETAIL_TARGET,
+ ilm.MACHINE_TYPE,
+ ils.STITCHES,
+ ils2.SEAM_ALLOW,
+ ilg.GAUGE,
+ ilt.THROW_NAME,
+ iln.NEEDLE_NAME,
+ ilnt.NEEDLE_THREAD,
+ ilbt.BOBIN_THREAD,
+ iof.SEQ_NO
+FROM ie_ob_detail iod
+LEFT JOIN item_list_machine ilm ON ilm.MACHINE_ID = iod.OB_DETAIL_MACHINE
+LEFT JOIN item_list_stitches ils ON ils.STITCHES_ID = iod.OB_DETAIL_SPI 
+LEFT JOIN item_list_seamallow ils2 ON ils2.SEAM_ALLOW_ID = iod.OB_DETAIL_SEAMALLOW 
+LEFT JOIN item_list_gauge ilg ON ilg.GAUGE_ID = iod.OB_DETAIL_GAUGE 
+LEFT JOIN item_list_throw ilt ON ilt.THROW_ID = iod.OB_DETAIL_THROW 
+LEFT JOIN item_list_needle iln ON iln.NEEDLE_ID = iod.OB_DETAIL_ND 
+LEFT JOIN item_list_needle_thread ilnt ON ilnt.ID_NEEDLE_THREAD = iod.OB_DETAIL_ND_THREADS 
+LEFT JOIN item_list_boobin_thread ilbt ON ilbt.ID_BOBIN_THREAD = iod.OB_DETAIL_BOBIN_THREADS 
+LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
+WHERE  iof.FEATURES_ID = :featId
+GROUP BY iod.OB_DETAIL_DESCRIPTION, iod.OB_DETAIL_MACHINE
+ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
+
+export const IeObHistory = db.define('ie_ob_history', {
+    OB_HISTORY_ID: {
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    OB_ID: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    OB_USER_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    OB_TYPE_ACTION: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    OB_UPDATE_LOCATION: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    OB_VALUE_BEFORE: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    OB_VALUE_AFTER: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    OB_ACTION_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  }, {
+    freezeTableName: true,
+    createdAt: 'OB_ACTION_DATE',
+    updatedAt: false,
+  });
+
+
+
+  export const getOneObDetailCompare = `SELECT 
+iod.OB_DETAIL_NO,
+ iod.OB_DETAIL_DESCRIPTION,
+ iod.OB_DETAIL_DESCRIPTION_IDN,
+ iod.OB_DETAIL_REMARK,
+ iod.OB_DETAIL_REMARK_IDN,
+ iod.OB_DETAIL_MC_SETUP,
+ iod.OB_DETAIL_SMV,
+ iod.OB_DETAIL_TARGET,
+ ilm.MACHINE_TYPE,
+ ils.STITCHES,
+ ils2.SEAM_ALLOW,
+ ilg.GAUGE,
+ ilt.THROW_NAME,
+ iln.NEEDLE_NAME,
+ ilnt.NEEDLE_THREAD,
+ ilbt.BOBIN_THREAD,
+ iof.SEQ_NO
+FROM ie_ob_detail iod
+LEFT JOIN item_list_machine ilm ON ilm.MACHINE_ID = iod.OB_DETAIL_MACHINE
+LEFT JOIN item_list_stitches ils ON ils.STITCHES_ID = iod.OB_DETAIL_SPI 
+LEFT JOIN item_list_seamallow ils2 ON ils2.SEAM_ALLOW_ID = iod.OB_DETAIL_SEAMALLOW 
+LEFT JOIN item_list_gauge ilg ON ilg.GAUGE_ID = iod.OB_DETAIL_GAUGE 
+LEFT JOIN item_list_throw ilt ON ilt.THROW_ID = iod.OB_DETAIL_THROW 
+LEFT JOIN item_list_needle iln ON iln.NEEDLE_ID = iod.OB_DETAIL_ND 
+LEFT JOIN item_list_needle_thread ilnt ON ilnt.ID_NEEDLE_THREAD = iod.OB_DETAIL_ND_THREADS 
+LEFT JOIN item_list_boobin_thread ilbt ON ilbt.ID_BOBIN_THREAD = iod.OB_DETAIL_BOBIN_THREADS 
+LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
+WHERE  iod.OB_DETAIL_ID = :obDetailId
+GROUP BY iod.OB_DETAIL_DESCRIPTION, iod.OB_DETAIL_MACHINE
+ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
+
+
+export const qryGetObHistory = `SELECT 
+	ioh.*,
+	xuw.USER_INISIAL
+FROM 
+ie_ob_history ioh
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_USER_ID
+WHERE ioh.OB_ID = :obId
+`

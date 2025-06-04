@@ -1,7 +1,7 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { getIdsToDelete, getLasIdOb, getListOb, IeObDetail, IeObFeatures, IeObHeader, IeObSize, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
-import { getUniqueAttribute } from "../../util/Utility.js";
+import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
+import { baseUrl, getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/ie/IeOb.mod.js";
 import path from "path";
@@ -9,6 +9,49 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+function generateHistory(dataPost, existingObDetail) {
+  const nameAndKey = {
+    'OB_DETAIL_NO': 'NO',
+    'OB_DETAIL_DESCRIPTION': 'Description',
+    'OB_DETAIL_DESCRIPTION_IDN': 'Description IDN',
+    'OB_DETAIL_REMARK': 'Remark',
+    'OB_DETAIL_REMARK_IDN': 'Remark IDN',
+    'OB_DETAIL_MACHINE': 'Machine Type',
+    'OB_DETAIL_SPI': 'SPI',
+    'OB_DETAIL_SEAMALLOW': 'Seam Allow',
+    'OB_DETAIL_GAUGE': 'Gauge',
+    'OB_DETAIL_THROW': 'Throw',
+    'OB_DETAIL_ND': 'Needle',
+    'OB_DETAIL_ND_THREADS': 'Needle Thread',
+    'OB_DETAIL_BOBIN_THREADS': 'Bobin Thread',
+    'OB_DETAIL_MC_SETUP': 'MC Setup',
+    'OB_DETAIL_SMV': 'SMV',
+    'OB_DETAIL_TARGET': 'Target',
+  };
+  const keysToCheck = Object.keys(nameAndKey);
+
+  const changedLabels = [];
+  const valueBeforeParts = [];
+  const valueAfterParts = [];
+
+  keysToCheck.forEach(key => {
+    const oldVal = existingObDetail[key];
+    const newVal = dataPost[key];
+    if (oldVal !== newVal) {
+      changedLabels.push(nameAndKey[key]);
+      valueBeforeParts.push(`'${key}': '${oldVal ?? ''}'`);
+      valueAfterParts.push(`'${key}': '${newVal ?? ''}'`);
+    }
+  });
+
+  return {
+    OB_UPDATE_LOCATION: changedLabels.join(', '),
+    OB_VALUE_BEFORE: valueBeforeParts.join(', '),
+    OB_VALUE_AFTER: valueAfterParts.join(', ')
+  };
+}
+
 
 export const getDataTreeStyleOb = async (req, res) => {
   try {
@@ -320,8 +363,6 @@ export const getObData = async (req, res) =>{
       }
     
       if(obHeader[0].OB_SKETCH){
-        // const baseUrl = 'https://api.sumbiri.com';
-        const baseUrl = `${req.protocol}://${req.get("host")}`;
         const sketchPath = `/images/sketch/${obHeader[0].OB_SKETCH}`;
         const sketchUrl = `${baseUrl}${sketchPath}`;
         dataObDetail.obHeader.OB_SKETCH = sketchUrl; // Update the OB_SKETCH field with the full URL
@@ -356,6 +397,27 @@ export const getListFeatures = async (req, res) =>{
       type: QueryTypes.SELECT,
     })
     
+    return res.status(200).json({data: listFeatures})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+
+export const getObFeatures = async (req, res) =>{
+  try {
+    const { obId} = req.params
+
+    const listFeatures = await db.query(qryGetFeaturs, {
+      replacements: {obId},
+      type: QueryTypes.SELECT,
+    })
+
     return res.status(200).json({data: listFeatures})
   } catch (error) {
     console.log(error);
@@ -420,6 +482,15 @@ export const postFeatures = async (req, res) => {
       };
     });
 
+    //masukan ke ie history
+    const featureName = data.map(item => item.FEATURES_NAME).join(', ');
+    const historyData = {
+      OB_ID: obId,
+      OB_USER_ID: data[0].USER_ID,
+      OB_TYPE_ACTION: 'Post Features',
+      OB_VALUE_AFTER : featureName
+    }
+    await IeObHistory.create(historyData);
     return res.status(200).json({ success: true, data: combinedResult });
 
   } catch (error) {
@@ -613,12 +684,14 @@ export const postIeObDetail = async (req, res, next) => {
         OB_DETAIL_ND_THREADS: dataObDetail.OB_DETAIL_ND_THREADS.ID_NEEDLE_THREAD,
         OB_DETAIL_BOBIN_THREADS: dataObDetail.OB_DETAIL_BOBIN_THREADS.ID_BOBIN_THREAD,
     }
+    
   
   if(dataPost.OB_DETAIL_ID){
       // Jika OB_DETAIL_ID ada, berarti update
       const existingObDetail = await IeObDetail.findOne({
         where: { OB_DETAIL_ID: dataPost.OB_DETAIL_ID },
       });
+
       if (!existingObDetail) {
         return res.status(404).json({ success: false, message: "OB detail not found" });
       }
@@ -628,18 +701,41 @@ export const postIeObDetail = async (req, res, next) => {
       await IeObDetail.update(dataPost, {
         where: { OB_DETAIL_ID: dataPost.OB_DETAIL_ID },
       });
+
+      const { OB_UPDATE_LOCATION, OB_VALUE_BEFORE, OB_VALUE_AFTER } = generateHistory(dataPost, existingObDetail);
+
+      if (OB_UPDATE_LOCATION) {
+        const dataHistory = {
+          OB_ID: dataPost.OB_ID,
+          OB_USER_ID: dataPost.MOD_ID,
+          OB_TYPE_ACTION: 'Update Detail',
+          OB_UPDATE_LOCATION,
+          OB_VALUE_BEFORE,
+          OB_VALUE_AFTER
+        };
+
+        await IeObHistory.create(dataHistory);
+      }
+
       return next(); // lanjutkan ke proses penyimpanan data detail OB
     }else {
 
     const postObDetail = await IeObDetail.create(dataPost);
+
     if (!postObDetail) {
-      
       return res.status(400).json({ success: false, message: "Failed to save OB detail" });
     }
 
     if(postObDetail){
-     
-
+     const dataHistory = {
+        OB_ID: dataPost.OB_ID,
+        OB_USER_ID: dataPost.ADD_ID,
+        OB_TYPE_ACTION: 'Post Detail',
+        OB_UPDATE_LOCATION: `Row No : ${dataPost.OB_DETAIL_NO}`,
+        OB_VALUE_AFTER : `OB DESCRIPTION : ${dataPost.OB_DETAIL_DESCRIPTION} `
+      }
+      await IeObHistory.create(dataHistory); // simpan ke history
+      
       return next(); // lanjutkan ke proses penyimpanan data detail OB
     } 
     // Proses penyimpanan data detail OB
@@ -690,9 +786,9 @@ export const reNoIeObDetail = async (req, res, next) => {
         //update total target header dan total smv di header
         await IeObHeader.update(
           {
-            OB_TARGET: totalTargetHeader,
-            OB_TAKE_TIME: takeTime,
-            OB_SMV : totalObDetailSvm.toFixed(2),
+            OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
+            OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
+            OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
           },
           {
             where: { OB_ID },
@@ -740,10 +836,19 @@ export const returnPostIeObDetail = async (req, res) => {
           type: QueryTypes.SELECT,
         }) 
 
-        const obHeaderDetail = await IeObHeader.findOne({
+        let obHeaderDetail = await IeObHeader.findOne({
           where: { OB_ID: dataObDetail.OB_ID },
           raw: true, // supaya hasilnya plain object
         });
+
+         if(obHeaderDetail.OB_SKETCH){
+            const urls = baseUrl;
+
+            const sketchPath = `/images/sketch/${obHeaderDetail.OB_SKETCH}`;
+            const sketchUrl = `${urls}${sketchPath}`;
+            obHeaderDetail.OB_SKETCH = sketchUrl; // Update the OB_SKETCH field with the full URL
+        }
+
         const dataObDetailResponse = {
           obHeader: obHeaderDetail,
           obDetail: listObDetail
@@ -863,7 +968,7 @@ export const deleteIeObSketch = async (req, res) => {
 //controler untuk delete ob detail
 export const deleteIeObDetail = async (req, res, next) => {
   try {
-    const { obDetailId } = req.params;
+    const { obDetailId, userId } = req.params;
 
     if (!obDetailId) {
       return res.status(400).json({ success: false, message: "OB detail id is required" });
@@ -878,13 +983,26 @@ export const deleteIeObDetail = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "OB detail not found" });
     }
 
+
+
     // Hapus detail OB
     await IeObDetail.destroy({
       where: { OB_DETAIL_ID: obDetailId },
     });
 
+      const dataHistory = {
+        OB_ID: existingObDetail.OB_ID,
+        OB_USER_ID: userId,
+        OB_TYPE_ACTION: 'Delete Detail',
+        OB_UPDATE_LOCATION: `Row No : ${existingObDetail.OB_DETAIL_NO}`,
+      }
+      await IeObHistory.create(dataHistory); // simpan ke history
+      
+
     req.body.OB_ID = existingObDetail.OB_ID; // Set OB_ID untuk proses renumbering
     req.body.OB_DETAIL_NO = existingObDetail.OB_DETAIL_NO; // Set OB_DETAIL_NO untuk proses renumbering
+    
+
     // Lanjutkan ke proses renumbering
     next();
   } catch (error) {
@@ -892,6 +1010,465 @@ export const deleteIeObDetail = async (req, res, next) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete OB detail",
+      error: error.message,
+    });
+  }
+}
+
+
+//conrtoler multiple delete ob detail
+export const deleteMultipleIeObDetail = async (req, res, next) => {
+  try {
+    const { obDetailIds, userId } = req.body;
+
+    if (!obDetailIds || obDetailIds.length === 0) {
+      return res.status(400).json({ success: false, message: "OB detail ids are required" });
+    }
+
+    // Cek apakah detail OB ada
+    const existingObDetails = await IeObDetail.findAll({
+      where: { OB_DETAIL_ID: obDetailIds },
+    });
+
+    if (existingObDetails.length === 0) {
+      return res.status(404).json({ success: false, message: "OB details not found" });
+    }
+
+    // Hapus detail OB
+  const deletListOb = await IeObDetail.destroy({
+      where: { OB_DETAIL_ID: obDetailIds },
+    });
+
+    if(deletListOb) {
+    const dataHistory = {
+      OB_ID: existingObDetails[0].OB_ID,
+      OB_USER_ID: userId,
+      OB_TYPE_ACTION: 'Delete Detail',
+      OB_UPDATE_LOCATION: `Row No : ${obDetailIds.join(', ')}`,
+    }
+    await IeObHistory.create(dataHistory); // simpan ke history
+  }
+
+    // Set OB_ID dan OB_DETAIL_NO untuk proses renumbering
+    req.body.OB_ID = existingObDetails[0].OB_ID; // Ambil OB_ID dari detail pertama
+    req.body.OB_DETAIL_NO = existingObDetails[0].OB_DETAIL_NO; // Ambil OB_DETAIL_NO dari detail pertama
+
+    
+
+    // Lanjutkan ke proses renumbering
+    next();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete multiple OB details",
+      error: error.message,
+    });
+  }
+}
+
+//sort ob detail dalam satu features
+export const sortObDetail = async (req, res) => {
+  try {
+    let {dataUpdate, userId, } = req.body;
+    
+    if (!dataUpdate || dataUpdate.length === 0) {
+      return res.status(400).json({ success: false, message: "Data to update is required" });
+    }
+    //cari no urut pertama berdsarakan ob feateures no sebelumnya
+    const firsRow = dataUpdate[0];
+
+    if(firsRow.SEQ_NO !== 1){
+      //getLas ob no 
+      const lastObNo = await db.query(lastObNoBYSeq, {
+        replacements: {obId : firsRow.OB_ID, seqNo : firsRow.SEQ_NO},
+        type: QueryTypes.SELECT,
+      });
+
+      dataUpdate = dataUpdate.map((item, index) => {
+        return {
+          ...item,
+          OB_DETAIL_NO: lastObNo[0].LAST_OB_DETAIL_NO + item.OB_DETAIL_NO, // update OB_DETAIL_NO berdasarkan urutan
+          MOD_ID: userId, // set MOD_ID
+        };
+      });
+    }
+    // Update setiap item dalam dataUpdate
+    const updatePromises = dataUpdate.map(item => {
+      return IeObDetail.update(
+        { OB_DETAIL_NO: item.OB_DETAIL_NO, MOD_ID: item.MOD_ID },
+        { where: { OB_DETAIL_ID: item.OB_DETAIL_ID } }
+      );
+    });
+    await Promise.all(updatePromises);
+    return res.status(200).json({ success: true, message: "OB details sorted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to sort OB details",
+      error: error.message,
+    });
+    
+  }
+}
+
+export const getListSugesObRow = async (req, res) => {
+  try {
+    const { featId } = req.params;
+
+    if (!featId) {
+      return res.status(400).json({ success: false, message: "Features ID is required" });
+    }
+
+    const listObDetail = await db.query(getListSugestObDetail, {
+      replacements: { featId },
+      type: QueryTypes.SELECT,
+    });
+
+    if (listObDetail.length === 0) {
+      return res.status(404).json({ success: false, message: "OB details not found" });
+    }
+
+    return res.status(200).json({ success: true, data: listObDetail });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get Sugest OB details",
+      error: error.message,
+    });
+  }
+}
+
+
+//controler untuk get list ob history
+export const getListObHistory = async (req, res) => {
+  try {
+    const { obId } = req.params;
+
+    if (!obId) {
+      return res.status(400).json({ success: false, message: "OB ID is required" });
+    }
+
+    const listObHistory  = await db.query(qryGetObHistory, {
+      replacements: { obId },
+      type: QueryTypes.SELECT,
+    });
+
+    if (listObHistory.length === 0) {
+      return res.status(404).json({ success: false, message: "OB history not found" });
+    }
+
+    return res.status(200).json({ success: true, data: listObHistory });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get OB history",
+      error: error.message,
+    });
+  }
+}
+
+const extractNumbers = (str) => {
+  if ("-") return str; // Jika hasilnya "-", jangan ubah
+  return str.match(/\d+(\.\d+)?|\d+\/\d+/g) || []; // Ekstrak angka seperti biasa
+};
+
+
+
+
+// controller untuk post import ob detail by excel
+export const postImportObDetail = async (req, res, next) => {
+  try {
+    const { dataImport, obId, userId, prodType } = req.body;
+
+    if (!obId || !userId) {
+      return res.status(400).json({ success: false, message: "OB ID and User ID are required" });
+    }
+
+    if (!dataImport) {
+      return res.status(400).json({ success: false, message: "Excel file is required" });
+    }
+    if (!prodType) {
+      return res.status(400).json({ success: false, message: "Product Type is required" });
+    }
+
+
+
+    const pureData = dataImport.filter(item => !item.hasOwnProperty('REMARKS'));
+    const remaks = dataImport.filter(item => item.hasOwnProperty('REMARKS'));
+    //ambil unique features 
+    const uniqueFeatures = [...new Set(pureData.map(item => item.FEATURES_NAME))];
+
+    //ambil FEATURES_ID dari db berdasarkan uniqueFeatures
+    const checkListFeatures = await dbListFeatures.findAll({
+      where: {
+        FEATURES_NAME: uniqueFeatures,
+        PRODUCT_TYPE : [prodType, 'ALL'], // pastikan prodType didefinisikan sebelumnya
+      }, 
+      attributes: ['FEATURES_NAME', 'FEATURES_ID'],
+      raw: true,
+    });
+    
+    if(checkListFeatures.length !== uniqueFeatures.length){
+      const arrFeatDb = checkListFeatures.map(ft => ft.FEATURES_NAME)
+      const findNoFeaturesInDb = uniqueFeatures.filter(ft => !arrFeatDb.includes(ft) ).join(", ")
+      
+      return res.status(400).json({ success: false, message: `Not Found Features (${findNoFeaturesInDb})` });
+    }
+
+      //destroy ob features and ob detail
+      const checkExistDetail = await IeObDetail.findAll({
+          where : {
+            OB_ID : obId
+          },
+          raw : true
+        })
+
+        const checkExistFeat = await IeObFeatures.findAll({
+          where : {
+            OB_ID : obId
+          },
+          raw : true
+        })
+
+        if(checkExistFeat.length > 0){
+            await IeObFeatures.destroy({
+              where : {
+                OB_ID : obId
+              },
+            })
+        }
+        if(checkExistDetail.length > 0){
+            await IeObDetail.destroy({
+              where : {
+                OB_ID : obId
+              },
+            })
+        }
+
+    
+    //data post features siap 
+    const dataPostFeatures = checkListFeatures.map((ft, i) => ({...ft, SEQ_NO: i+1, OB_ID: obId, USER_ID: userId}))
+
+    const postFeatures = await IeObFeatures.bulkCreate(dataPostFeatures, { returning: true })
+    const planFeatures = postFeatures.map(item =>{
+      const fet = item.dataValues
+      const featName = checkListFeatures.find(ft => ft.FEATURES_ID === fet.FEATURES_ID)
+      
+      return {...fet, ...featName}
+      //adding features name untuk looping dibawah
+      
+    });
+
+    //referensi 
+      const getListMachine = await db.query(qryIListMachine, {
+        type: QueryTypes.SELECT,
+      })
+
+      const getLiStitches = await db.query(qryIListStitch, {
+        type: QueryTypes.SELECT,
+      })
+
+      const getLiSeamAllow = await db.query(qryIListSeamAllow, {
+        type: QueryTypes.SELECT,
+      })
+
+      const getListGauge = await db.query(qryIListGauge, {
+        type: QueryTypes.SELECT,
+      })
+
+
+      const getListTHrow = await db.query(qryIListThrow, {
+        type: QueryTypes.SELECT,
+      })
+
+      const getListNd = await db.query(qryIListNeedle, {
+        type: QueryTypes.SELECT,
+      })
+
+      const getListNdThread = await db.query(qryIListNeedleThreads, {
+        type: QueryTypes.SELECT,
+      })
+
+      const getlistBobinThread = await db.query(qryIListBobinThreads, {
+        type: QueryTypes.SELECT,
+      })
+    
+      const dataParsing = pureData.map(async (item) => {
+          const original = item.OB_DETAIL_DESCRIPTION || '';
+
+          // Pisahkan berdasarkan \r\n menjadi dua baris
+          const [line1 = '', line2 = ''] = original.split('\r\n');
+
+          // Proses baris pertama (description dan description_idn)
+          const [descEn = '', descId = ''] = line1.split('/').map(part => part.trim());
+
+          // Proses baris kedua (remark dan remarks_idn)
+          const [remarkEn = '', remarkId = ''] = line2.split('/').map(part => part.trim());
+          
+          //cari features id
+          const findIdFeatures = planFeatures.find(ft => ft.FEATURES_NAME === item.FEATURES_NAME)
+          
+          //cari machine id 
+          let findIdMachine = getListMachine.find(mc => mc.MACHINE_TYPE.toLowerCase().trim() === item.OB_DETAIL_MACHINE.toLowerCase().trim());
+         if(findIdMachine == undefined){
+            const newMachine = {MACHINE_TYPE : item.OB_DETAIL_MACHINE.toLowerCase().trim(), ADD_ID : userId}
+            const createMachine = await listMachine.create(newMachine)
+            findIdMachine = createMachine.get({ plain: true });
+          }
+          
+          
+          const obFeaturesId = findIdFeatures.ID_OB_FEATURES || null
+          const machineId = findIdMachine?.MACHINE_ID || null
+          
+          let findSPI = getLiStitches.find(st => st.MACHINE_ID === machineId && parseInt(st.STITCHES) === parseInt((item.OB_DETAIL_SPI)))
+          if(!findSPI){
+              const newStitch = await listStiches.create({
+                MACHINE_ID: machineId,
+                STITCHES: item.OB_DETAIL_SPI,
+                ADD_ID: userId,
+              })
+              findSPI = newStitch.get({ plain: true });
+            } 
+
+          let findSeamAllow = getLiStitches.find(st => st.MACHINE_ID === machineId && extractNumbers(st.SEAM_ALLOW) === extractNumbers(item.OB_DETAIL_SEAMALLOW))
+          if(!findSeamAllow){
+              const newSamAllow = await listSeamAllow.create({
+                MACHINE_ID: machineId,
+                SEAM_ALLOW: item.OB_DETAIL_SEAMALLOW,
+                ADD_ID: userId,
+              })
+              findSeamAllow = newSamAllow.get({ plain: true });
+            } 
+
+          let findGauge = getListGauge.find(st => st.MACHINE_ID === machineId && extractNumbers(st.GAUGE) === extractNumbers(item.OB_DETAIL_GAUGE))
+          if(!findGauge){
+              const newGauge = await listGauge.create({
+                MACHINE_ID: machineId,
+                GAUGE: item.OB_DETAIL_GAUGE,
+                ADD_ID: userId,
+              })
+              findGauge = newGauge.get({ plain: true });
+            } 
+
+
+          let findThrow = getListTHrow.find(st => st.MACHINE_ID === machineId && extractNumbers(st.THROW_NAME) === extractNumbers(item.OB_DETAIL_THROW))
+          if(!findThrow){
+              const newThrow = await listGauge.create({
+                MACHINE_ID: machineId,
+                THROW_NAME: item.OB_DETAIL_GAUGE,
+                ADD_ID: userId,
+              })
+              findThrow = newThrow.get({ plain: true });
+            } 
+
+
+          let findNd = getListNd.find(st => st.MACHINE_ID === machineId && st.NEEDLE_NAME === item.OB_DETAIL_ND)
+          if(!findNd){
+              const newNd = await listGauge.create({
+                MACHINE_ID: machineId,
+                NEEDLE_NAME: item.OB_DETAIL_ND,
+                ADD_ID: userId,
+              })
+              findNd = newNd.get({ plain: true });
+            } 
+
+
+          let findNdThread = getListNdThread.find(st => st.NEEDLE_THREAD.toLowerCase() === item.OB_DETAIL_ND_THREADS.toLowerCase())
+          if(!findNd){
+              const newNdThd = await listNeedleThread.create({
+                NEEDLE_NAME: item.OB_DETAIL_ND_THREADS,
+                ADD_ID: userId,
+              })
+              findNdThread = newNdThd.get({ plain: true });
+            } 
+
+
+          let findBobinThreads = getlistBobinThread.find(st => st.BOBIN_THREAD.toLowerCase() === item.OB_DETAIL_BOBIN_THREADS.toLowerCase())
+          if(!findNd){
+              const newBobinThd = await listBobinThread.create({
+                BOBIN_THREAD: item.OB_DETAIL_BOBIN_THREADS,
+                ADD_ID: userId,
+              })
+              findBobinThreads = newBobinThd.get({ plain: true });
+            } 
+
+          return {
+            ...item,
+            OB_ID : obId,
+            ID_OB_FEATURES : obFeaturesId,
+            OB_DETAIL_MACHINE : findIdMachine.MACHINE_ID,
+            OB_DETAIL_SPI : findSPI.STITCHES_ID,
+            OB_DETAIL_SEAMALLOW : findSeamAllow.SEAM_ALLOW_ID,
+            OB_DETAIL_GAUGE : findGauge.GAUGE_ID,
+            OB_DETAIL_THROW : findThrow.THROW_ID,
+            OB_DETAIL_ND : findNd.NEEDLE_ID,
+            OB_DETAIL_ND_THREADS : findNdThread?.ID_NEEDLE_THREAD || null,
+            OB_DETAIL_BOBIN_THREADS : findBobinThreads?.ID_BOBIN_THREAD || null,
+            OB_DETAIL_DESCRIPTION: descEn || '',
+            OB_DETAIL_DESCRIPTION_IDN: descId || '',
+            OB_DETAIL_REMARK: remarkEn || '',
+            OB_DETAIL_REMARK_IDN: remarkId || '',
+            OB_DETAIL_TARGET: Math.round(Number(item.OB_DETAIL_TARGET) || 0)
+          };
+        });
+      const resolvedData = await Promise.all(dataParsing);
+
+      const postObDetail = await IeObDetail.bulkCreate(resolvedData);
+
+    //hitung smv dan target
+        // Ambil data terbaru dari DB
+        const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId: obId },
+            type: QueryTypes.SELECT,
+          }) 
+
+
+        //hitung semua ob_detail_smv yang bernilai decimal
+
+        const totalObDetailSvm = allObDetail.reduce((total, item) => {
+          const smv = parseFloat(item.OB_DETAIL_SMV);
+          return total + (isNaN(smv) ? 0 : smv);
+        }, 0);
+        
+        const obHeader = await IeObHeader.findOne({
+          where: { OB_ID : obId },
+          raw: true, // supaya hasilnya plain object
+        });
+        
+        //hitung total target header  (Work Hours / TOTAL SEWING SMV)*Manpower lalu pembulatan 2
+        const totalTargetHeader = Math.round((obHeader.OB_WH * 60 / totalObDetailSvm) * obHeader.OB_MP);
+
+        //hitung take time = (Work Hours*60*60)/Target (pcs.) lalu pembulatan nilai
+        const takeTime = Math.round((obHeader.OB_WH * 60 * 60) / totalTargetHeader, 1);
+
+        
+        //update total target header dan total smv di header
+        await IeObHeader.update(
+          {
+            OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
+            OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
+            OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+          },
+          {
+            where: { OB_ID : obId },
+          }
+        );
+      
+
+    //jika data sudah siap manka lakukan delete terlebih dahulu 
+    if(postObDetail){
+      req.body = resolvedData[0]
+      next()
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to import OB details",
       error: error.message,
     });
   }
