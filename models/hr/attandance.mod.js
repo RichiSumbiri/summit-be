@@ -1827,6 +1827,7 @@ SELECT
 	IFNULL(sgs.calendar,'HL') AS Calendar,
 	mjk.jk_amano_id AS ShiftType,
 	IFNULL(DATE_FORMAT(sa.scan_in, '%H%i'),'0000') AS ScanIn,
+	'C' AS InFlag,
 	0 AS InMC,
 	IFNULL(DATE_FORMAT(sa.scan_out, '%H%i'),'0000') AS ScanOut,
 	IF(sa.tanggal_in < sa.tanggal_out,'N','C') AS OutFlag,
