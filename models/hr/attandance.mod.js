@@ -1824,15 +1824,26 @@ export const queryExportAbsenAmano = `
 SELECT
 	LPAD(sa.Nik, 10, '0') AS EmpCode,
 	CAST(DATE_FORMAT(sa.tanggal_in, '%Y%m%d') AS UNSIGNED INTEGER) AS ProDay,
+	IFNULL(sgs.calendar,'HL') AS Calendar,
+	mjk.jk_amano_id AS ShiftType,
+	IFNULL(DATE_FORMAT(sa.scan_in, '%H%i'),'0000') AS ScanIn,
 	0 AS InMC,
+	IFNULL(DATE_FORMAT(sa.scan_out, '%H%i'),'0000') AS ScanOut,
+	IF(sa.tanggal_in < sa.tanggal_out,'N','C') AS OutFlag,
     0 AS OutMC,
     1 AS DailyCalculation,
     ma.code_amano AS AbsenCode
 FROM
 	sumbiri_absens sa
 LEFT JOIN master_absentee ma ON ma.code_absen = sa.keterangan
-WHERE sa.keterangan IS NOT NULL AND sa.keterangan !='H'
+LEFT JOIN sumbiri_employee_group seg ON seg.Nik = sa.Nik
+LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate BETWEEN :startDate AND :endDate
+LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = sa.jk_id
+WHERE sa.keterangan IS NOT NULL -- AND sa.keterangan !='H'
 AND sa.tanggal_in BETWEEN :startDate AND :endDate
+ORDER BY sa.Nik ASC
+
+
 `;
 
 
