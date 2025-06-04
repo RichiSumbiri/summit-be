@@ -572,6 +572,7 @@ JoinAbsen AS (
 	-- ba.jk_id,
 	mjk.jk_nama,
 	mjk.jk_amano,
+	mjk.jk_amano_id,
 	-- mjk2.jk_nama jk_aktual,
 	mjk.jk_in,
 	mjk.jk_out,
@@ -592,7 +593,8 @@ JoinAbsen AS (
 	sa.mod_id,
 	sa.updatedAt,
 	sa.validasi,
-	msts.Name AS NamaSection
+	msts.Name AS NamaSection,
+	ma.code_amano
 	FROM base_absen AS ba
 	LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :date
 	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
@@ -600,7 +602,7 @@ JoinAbsen AS (
 	LEFT JOIN sumbiri_group_shift sgs ON ba.groupId = sgs.groupId 
 	LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
 	LEFT JOIN master_position mp ON mp.IDPosition = ba.IDPosisi
-
+	LEFT JOIN master_absentee ma ON ma.code_absen = sa.keterangan
 )
 SELECT 
 	ja.*,
