@@ -338,6 +338,34 @@ export const patchIeOb = async (req, res) =>{
   }
 }
 
+//update only remarks
+export const postObRemark = async (req, res) =>{
+  try {
+    let dataObRemark = req.body
+
+
+    if(!dataObRemark.OB_ID) return res.status(400).json({message: "OB ID is required"})
+    
+    const updateHedaer = await IeObHeader.update(dataObRemark , {
+      where : {
+        OB_ID : dataObRemark.OB_ID
+      }
+    })
+
+    
+if(updateHedaer){
+    return res.status(200).json({message:'Success Update OB'})
+  }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
 
 export const getObData = async (req, res) =>{
   try {
@@ -1199,6 +1227,16 @@ export const postImportObDetail = async (req, res, next) => {
 
     const pureData = dataImport.filter(item => !item.hasOwnProperty('REMARKS'));
     const remaks = dataImport.filter(item => item.hasOwnProperty('REMARKS'));
+
+    //jika ada remarks header maka post remarks
+    if(remaks.length > 0){
+      const dataObRemark = {OB_ID : obId, OB_REMAKRS: remaks[0].REMARKS}
+       await IeObHeader.update(dataObRemark , {
+          where : {
+            OB_ID : obId
+          }
+    })
+    }
     //ambil unique features 
     const uniqueFeatures = [...new Set(pureData.map(item => item.FEATURES_NAME))];
 
@@ -1313,18 +1351,30 @@ export const postImportObDetail = async (req, res, next) => {
           const findIdFeatures = planFeatures.find(ft => ft.FEATURES_NAME === item.FEATURES_NAME)
           
           //cari machine id 
-          let findIdMachine = getListMachine.find(mc => mc.MACHINE_TYPE.toLowerCase().trim() === item.OB_DETAIL_MACHINE.toLowerCase().trim());
-         if(findIdMachine == undefined){
+          let findIdMachine = await listMachine.findOne({
+            where : {
+              MACHINE_TYPE : item.OB_DETAIL_MACHINE
+            }
+          })
+          
+         if(!findIdMachine){
             const newMachine = {MACHINE_TYPE : item.OB_DETAIL_MACHINE.toLowerCase().trim(), ADD_ID : userId}
             const createMachine = await listMachine.create(newMachine)
             findIdMachine = createMachine.get({ plain: true });
           }
           
-          
           const obFeaturesId = findIdFeatures.ID_OB_FEATURES || null
           const machineId = findIdMachine?.MACHINE_ID || null
+
           
-          let findSPI = getLiStitches.find(st => st.MACHINE_ID === machineId && parseInt(st.STITCHES) === parseInt((item.OB_DETAIL_SPI)))
+          let findSPI = await listStiches.findOne({
+                    where: {
+                      MACHINE_ID: machineId,
+                      STITCHES: {
+                        [Op.like]: `${parseInt(item.OB_DETAIL_SPI)}%`
+                      }
+                    }
+                })
           if(!findSPI){
               const newStitch = await listStiches.create({
                 MACHINE_ID: machineId,
@@ -1334,7 +1384,11 @@ export const postImportObDetail = async (req, res, next) => {
               findSPI = newStitch.get({ plain: true });
             } 
 
-          let findSeamAllow = getLiStitches.find(st => st.MACHINE_ID === machineId && extractNumbers(st.SEAM_ALLOW) === extractNumbers(item.OB_DETAIL_SEAMALLOW))
+          let findSeamAllow = await listSeamAllow.findOne({
+            where : {
+                MACHINE_ID : machineId,
+                SEAM_ALLOW : item.OB_DETAIL_SEAMALLOW
+          }})
           if(!findSeamAllow){
               const newSamAllow = await listSeamAllow.create({
                 MACHINE_ID: machineId,
@@ -1344,7 +1398,11 @@ export const postImportObDetail = async (req, res, next) => {
               findSeamAllow = newSamAllow.get({ plain: true });
             } 
 
-          let findGauge = getListGauge.find(st => st.MACHINE_ID === machineId && extractNumbers(st.GAUGE) === extractNumbers(item.OB_DETAIL_GAUGE))
+          let findGauge = await listGauge.findOne({
+            where : {
+                MACHINE_ID : machineId,
+                GAUGE : item.OB_DETAIL_GAUGE
+          }})
           if(!findGauge){
               const newGauge = await listGauge.create({
                 MACHINE_ID: machineId,
@@ -1355,20 +1413,29 @@ export const postImportObDetail = async (req, res, next) => {
             } 
 
 
-          let findThrow = getListTHrow.find(st => st.MACHINE_ID === machineId && extractNumbers(st.THROW_NAME) === extractNumbers(item.OB_DETAIL_THROW))
+
+          let findThrow = await listThrow.findOne({
+            where : {
+                MACHINE_ID : machineId,
+                THROW_NAME : item.OB_DETAIL_THROW
+          }})
           if(!findThrow){
-              const newThrow = await listGauge.create({
+              const newThrow = await listThrow.create({
                 MACHINE_ID: machineId,
-                THROW_NAME: item.OB_DETAIL_GAUGE,
+                THROW_NAME: item.OB_DETAIL_THROW,
                 ADD_ID: userId,
               })
               findThrow = newThrow.get({ plain: true });
             } 
 
 
-          let findNd = getListNd.find(st => st.MACHINE_ID === machineId && st.NEEDLE_NAME === item.OB_DETAIL_ND)
+          let findNd = await listNeedle.findOne({
+            where : {
+                MACHINE_ID : machineId,
+                NEEDLE_NAME : item.OB_DETAIL_ND
+          }})
           if(!findNd){
-              const newNd = await listGauge.create({
+              const newNd = await listNeedle.create({
                 MACHINE_ID: machineId,
                 NEEDLE_NAME: item.OB_DETAIL_ND,
                 ADD_ID: userId,
@@ -1377,17 +1444,24 @@ export const postImportObDetail = async (req, res, next) => {
             } 
 
 
-          let findNdThread = getListNdThread.find(st => st.NEEDLE_THREAD.toLowerCase() === item.OB_DETAIL_ND_THREADS.toLowerCase())
+          let findNdThread = await listNeedleThread.findOne({
+            where : {
+                NEEDLE_THREAD : item.OB_DETAIL_ND_THREADS
+          }})
           if(!findNd){
               const newNdThd = await listNeedleThread.create({
-                NEEDLE_NAME: item.OB_DETAIL_ND_THREADS,
+                NEEDLE_THREAD: item.OB_DETAIL_ND_THREADS,
                 ADD_ID: userId,
               })
               findNdThread = newNdThd.get({ plain: true });
             } 
 
 
-          let findBobinThreads = getlistBobinThread.find(st => st.BOBIN_THREAD.toLowerCase() === item.OB_DETAIL_BOBIN_THREADS.toLowerCase())
+
+          let findBobinThreads = await listBobinThread.findOne({
+            where : {
+                BOBIN_THREAD : item.OB_DETAIL_BOBIN_THREADS
+          }})
           if(!findNd){
               const newBobinThd = await listBobinThread.create({
                 BOBIN_THREAD: item.OB_DETAIL_BOBIN_THREADS,
@@ -1463,6 +1537,8 @@ export const postImportObDetail = async (req, res, next) => {
     if(postObDetail){
       req.body = resolvedData[0]
       next()
+    }else{
+     return res.status(400).json({message : 'failed import excel'})
     }
   } catch (error) {
     console.error(error);

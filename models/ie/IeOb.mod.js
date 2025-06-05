@@ -134,6 +134,10 @@ export const IeObHeader = db.define('ie_ob_header', {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    OB_REMARKS: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     OB_DELETE_STATUS: {
       type: DataTypes.INTEGER,
       allowNull: true,
