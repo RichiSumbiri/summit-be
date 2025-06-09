@@ -150,7 +150,16 @@ export const postCutiNew = async(req,res) => {
                                 endDate: CutiDate
                             }, type: QueryTypes.SELECT
                         });
-                        if(checkHolidayFromCalender.length===0){
+                        // check hari libur berdasarkan schedule
+                        const CheckHolidayFromSchedule = await GroupJadwal.findAll({
+                            where: {
+                                scheduleDate: CutiDate,
+                                groupId: getNikGroupId.groupId
+                            }, raw: true
+                        });
+                        // check hari libur berdasarkan nama hari !== minggu
+                        const namaHari = moment(CutiDate).format('dddd') === 'Sunday' ? true : false ;
+                        if(checkHolidayFromCalender.length===0 && CheckHolidayFromSchedule.length===0 && !namaHari){
                             await Attandance.upsert({
                                 Nik: dataCuti.cuti_emp_nik,
                                 groupId: getNikGroupId.groupId,
@@ -230,7 +239,6 @@ export const postCutiNew = async(req,res) => {
                                 endDate: CutiDate,
                             }, type: QueryTypes.SELECT
                         });
-
                         // check jika karyawan tidak ada jadwal kerja
                         if(checkFromJadwal.length===0){
                             // check hari libur sesuai kalender
@@ -240,7 +248,16 @@ export const postCutiNew = async(req,res) => {
                                     endDate: CutiDate
                                 }, type: QueryTypes.SELECT
                             });
-                            if(checkHolidayFromCalender.length===0){
+                            // check hari libur berdasarkan schedule
+                            const CheckHolidayFromSchedule = await GroupJadwal.findAll({
+                                where: {
+                                    scheduleDate: CutiDate,
+                                    groupId: getNikGroupId.groupId
+                                }, raw: true
+                            });
+                            // check hari libur berdasarkan nama hari !== minggu
+                            const namaHari = moment(CutiDate).format('dddd') === 'Sunday' ? true : false ;
+                            if(checkHolidayFromCalender.length===0 && CheckHolidayFromSchedule.length===0 && !namaHari){
                                 await Attandance.upsert({
                                     Nik: dataCuti.cuti_emp_nik,
                                     groupId: getNikGroupId.groupId,
@@ -274,7 +291,6 @@ export const postCutiNew = async(req,res) => {
             }
         }
     } catch(err){
-        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get cuti",
