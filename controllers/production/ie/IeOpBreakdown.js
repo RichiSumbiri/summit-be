@@ -1289,7 +1289,11 @@ export const postImportObDetail = async (req, res, next) => {
 
     
     //data post features siap 
-    const dataPostFeatures = checkListFeatures.map((ft, i) => ({...ft, SEQ_NO: i+1, OB_ID: obId, USER_ID: userId}))
+    const dataPostFeatures = uniqueFeatures.map((ft, i) => {
+      const findFeatures = checkListFeatures.find(ftl => ftl.FEATURES_NAME === ft)
+     const objFeat = {...findFeatures, SEQ_NO: i+1, OB_ID: obId, USER_ID: userId}
+     return objFeat
+    })
 
     const postFeatures = await IeObFeatures.bulkCreate(dataPostFeatures, { returning: true })
     const planFeatures = postFeatures.map(item =>{

@@ -835,7 +835,8 @@ export const qryGetObDetail = `SELECT
  iln.NEEDLE_NAME,
  ilnt.NEEDLE_THREAD,
  ilbt.BOBIN_THREAD,
- iof.SEQ_NO
+ iof.SEQ_NO,
+ ilf.FEATURES_CATEGORY
 FROM ie_ob_detail iod
 LEFT JOIN item_list_machine ilm ON ilm.MACHINE_ID = iod.OB_DETAIL_MACHINE
 LEFT JOIN item_list_stitches ils ON ils.STITCHES_ID = iod.OB_DETAIL_SPI 
@@ -846,6 +847,7 @@ LEFT JOIN item_list_needle iln ON iln.NEEDLE_ID = iod.OB_DETAIL_ND
 LEFT JOIN item_list_needle_thread ilnt ON ilnt.ID_NEEDLE_THREAD = iod.OB_DETAIL_ND_THREADS 
 LEFT JOIN item_list_boobin_thread ilbt ON ilbt.ID_BOBIN_THREAD = iod.OB_DETAIL_BOBIN_THREADS 
 LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
+LEFT JOIN item_list_features ilf ON iof.FEATURES_ID = ilf.FEATURES_ID
 WHERE iod.OB_ID = :obId
 ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
 
