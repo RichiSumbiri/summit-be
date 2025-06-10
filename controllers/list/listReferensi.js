@@ -233,13 +233,15 @@ export const patchListItemStyle = async (req, res) => {
     const dataStyle = req.body;
     const FRONT_IMAGE =  req.files?.FRONT_IMAGE
     const BACK_IMAGE =  req.files?.BACK_IMAGE
-    
+
+
     const checkStyle =  await ItemListStyle.findOne({
      where : {
         ID: dataStyle.ID
-      }
+      },
+      raw: true
     });
-    
+
     if(!checkStyle.ID){
        return  res.status(404).json({
           message: "Data Style Not exist",
@@ -248,37 +250,30 @@ export const patchListItemStyle = async (req, res) => {
 
 
      if(FRONT_IMAGE){
-        if(dataStyle.FRONT_IMG !== checkStyle.FRONT_IMG ){
+        if((dataStyle.FRONT_IMG !== checkStyle.FRONT_IMG) || !checkStyle.FRONT_IMG){
           dataStyle.FRONT_IMG = generateUniqueFileName(FRONT_IMAGE.name)
+          console.log('new front img', dataStyle.FRONT_IMG );
+          
         }
       }
     if(BACK_IMAGE){
-        if(dataStyle.BACK_IMG !== checkStyle.BACK_IMG ){
+        if((dataStyle.BACK_IMG !== checkStyle.BACK_IMG) || !checkStyle.BACK_IMG){
           dataStyle.BACK_IMG = generateUniqueFileName(BACK_IMAGE.name)
         }
       }
 
-
+    // console.log(dataStyle);
     const updateStyle = await ItemListStyle.update(dataStyle, {
      where : {
         ID: dataStyle.ID
       }
     });
     
+    
 
     if(updateStyle){
       let msg = `success update style`
-      //jika sebelumnya ada image name dan sekarang tidak ada maka hapus
-        if(dataStyle.FRONT_IMG && !FRONT_IMAGE){
-          
-          const filePathFrontDel = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
-
-           fs.unlink(filePathFrontDel, async (err) => {
-            if (err && err.code !== "ENOENT") {
-              console.error("Error deleting file:", err);
-            }
-          });
-        }
+      
         if(FRONT_IMAGE){
           const filePathFront = path.join(__dirname, "../../assets/images/styles", dataStyle.FRONT_IMG);
           
@@ -289,16 +284,6 @@ export const patchListItemStyle = async (req, res) => {
            })
         }
 
-              //jika sebelumnya ada image name dan sekarang tidak ada maka hapus
-        if(dataStyle.BACK_IMG && !BACK_IMAGE){
-          const filePathBack = path.join(__dirname, "../../assets/images/styles", dataStyle.BACK_IMG);
-
-           fs.unlink(filePathBack, async (err) => {
-            if (err && err.code !== "ENOENT") {
-              console.error("Error deleting back file:", err);
-            }
-          });
-        }
         if(BACK_IMAGE){
           const filePathBack = path.join(__dirname, "../../assets/images/styles", dataStyle.BACK_IMG);
           fs.writeFile(filePathBack, BACK_IMAGE.data,  (err) => {
@@ -319,6 +304,62 @@ export const patchListItemStyle = async (req, res) => {
     });
   }
 };
+
+export const deleteImgStyle = async (req, res) => {
+  try {
+        const {id, imgPosition} = req.params
+
+      const checkStyle =  await ItemListStyle.findOne({
+        where : {
+          ID: id
+        },
+        raw: true
+      });
+
+        if(imgPosition === 'FRONT'){
+          
+          const filePathFrontDel = path.join(__dirname, "../../assets/images/styles", checkStyle.FRONT_IMG);
+
+           fs.unlink(filePathFrontDel, async (err) => {
+            if (err && err.code !== "ENOENT") {
+              console.error("Error deleting file:", err);
+            }
+          });
+
+            const updateStyle = await ItemListStyle.update({FRONT_IMG : null}, {
+                where : {
+                  ID: id
+                }
+              });
+              return res.status(200).json({ message: 'success delete image style' });
+        }
+
+
+        if(imgPosition === 'BACK'){
+          const filePathBack = path.join(__dirname, "../../assets/images/styles", checkStyle.BACK_IMG);
+
+           fs.unlink(filePathBack, async (err) => {
+            if (err && err.code !== "ENOENT") {
+              console.error("Error deleting back file:", err);
+            }
+          });
+            const updateStyle = await ItemListStyle.update({BACK_IMG : null}, {
+                where : {
+                  ID: id
+                }
+              });
+            return res.status(200).json({ message: 'success delete image style' });
+        }
+
+
+  } catch (error) {
+        console.log(error);
+        return res.status(404).json({
+          message: "error update data list item style",
+          data: error,
+        });
+  }
+}
 
 export const deleteListItemStyle = async (req, res) => {
   try {

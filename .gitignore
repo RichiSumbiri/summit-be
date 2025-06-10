@@ -1,5 +1,7 @@
 node_modules
 request.rest
 assets/images/photos/*.jpg
+assets/images/sketch/*
+assets/images/styles/*
 package-lock.json
 .env
