@@ -285,6 +285,12 @@ export const deletIeOb = async (req, res) =>{
       const createNewObSize = await IeObSize.update({OB_DELETE_STATUS : 1}, {
           where : {OB_ID: obId},
         })
+      const destroyOBFeatures = await IeObFeatures.destroy({
+          where : {OB_ID: obId},
+        })
+      const detroyObDetail = await IeObDetail.destroy({
+          where : {OB_ID: obId},
+        })
     }
 
 
