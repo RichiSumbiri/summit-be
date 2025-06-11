@@ -1354,7 +1354,7 @@ export const postImportObDetail = async (req, res, next) => {
             findIdMachine = createMachine.get({ plain: true });
           }
           
-          const obFeaturesId = findIdFeatures.ID_OB_FEATURES || null
+          const obFeaturesId = findIdFeatures?.ID_OB_FEATURES || null
           const machineId = findIdMachine?.MACHINE_ID || null
 
           
