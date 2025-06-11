@@ -669,23 +669,17 @@ export const ConfirmVerifAbs = async (req, res) => {
       return datas;
     });
     const withOutValidasi = dataPost.filter(items => items.validasi !== 1)
-    const updatedAbsen = await Attandance.bulkCreate(withOutValidasi, {
-      updateOnDuplicate: [
-        "scan_in",
-        "scan_out",
-        "jk_id",
-        "ket_in",
-        "ket_out",
-        "keterangan",
-        "tanggal_in",
-        "tanggal_out",
-        "mod_id",
-      ],
+    const updatedAbsen = withOutValidasi.map(abs => {
+      return Attandance.upsert(abs, {
+        where: {
+          tanggal_in : abs.tanggal_in,
+          Nik : abs.Nik
+          // id: abs.id,
+        },
+      });
 
-      where: {
-        id: ["id"],
-      },
-    });
+    })
+      await Promise.all(updatedAbsen);
 
     if (updatedAbsen) {
       const idVerif = arrConfirm.map((item) => item.id_verif);
