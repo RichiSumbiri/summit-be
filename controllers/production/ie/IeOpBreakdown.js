@@ -1240,6 +1240,23 @@ export const postImportObDetail = async (req, res, next) => {
     //ambil unique features 
     const uniqueFeatures = [...new Set(pureData.map(item => item.FEATURES_NAME))];
 
+ 
+//coba upsert dulu features
+    const upsertFeatures = uniqueFeatures.map(async (ft) => {
+      if(ft.includes('PACKING')){
+      const checkExistFt = await dbListFeatures.findAll({
+        where : {
+           FEATURES_NAME : ft
+        },
+        raw : true
+      })
+      if(checkExistFt.length === 0){
+         return await dbListFeatures.create({PRODUCT_TYPE : 'ALL', FEATURES_NAME : ft, FEATURES_CATEGORY : ft }) 
+      }}
+    })
+    
+   await Promise.all(upsertFeatures) 
+
     //ambil FEATURES_ID dari db berdasarkan uniqueFeatures
     const checkListFeatures = await dbListFeatures.findAll({
       where: {
@@ -1250,6 +1267,7 @@ export const postImportObDetail = async (req, res, next) => {
       raw: true,
     });
     
+
     if(checkListFeatures.length !== uniqueFeatures.length){
       const arrFeatDb = checkListFeatures.map(ft => ft.FEATURES_NAME)
       const findNoFeaturesInDb = uniqueFeatures.filter(ft => !arrFeatDb.includes(ft) ).join(", ")
@@ -1306,38 +1324,7 @@ export const postImportObDetail = async (req, res, next) => {
     });
 
     //referensi 
-      const getListMachine = await db.query(qryIListMachine, {
-        type: QueryTypes.SELECT,
-      })
 
-      const getLiStitches = await db.query(qryIListStitch, {
-        type: QueryTypes.SELECT,
-      })
-
-      const getLiSeamAllow = await db.query(qryIListSeamAllow, {
-        type: QueryTypes.SELECT,
-      })
-
-      const getListGauge = await db.query(qryIListGauge, {
-        type: QueryTypes.SELECT,
-      })
-
-
-      const getListTHrow = await db.query(qryIListThrow, {
-        type: QueryTypes.SELECT,
-      })
-
-      const getListNd = await db.query(qryIListNeedle, {
-        type: QueryTypes.SELECT,
-      })
-
-      const getListNdThread = await db.query(qryIListNeedleThreads, {
-        type: QueryTypes.SELECT,
-      })
-
-      const getlistBobinThread = await db.query(qryIListBobinThreads, {
-        type: QueryTypes.SELECT,
-      })
     
       const dataParsing = pureData.map(async (item) => {
           const original = item.OB_DETAIL_DESCRIPTION || '';
