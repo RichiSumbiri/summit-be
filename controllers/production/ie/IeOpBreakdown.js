@@ -1230,7 +1230,7 @@ export const postImportObDetail = async (req, res, next) => {
 
     //jika ada remarks header maka post remarks
     if(remaks.length > 0){
-      const dataObRemark = {OB_ID : obId, OB_REMAKRS: remaks[0].REMARKS}
+      const dataObRemark = {OB_ID : obId, OB_REMARKS: remaks[0].REMARKS}
        await IeObHeader.update(dataObRemark , {
           where : {
             OB_ID : obId
