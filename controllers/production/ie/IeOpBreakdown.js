@@ -7,6 +7,7 @@ import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryI
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1543,6 +1544,38 @@ export const postImportObDetail = async (req, res, next) => {
       success: false,
       message: "Failed to import OB details",
       error: error.message,
+    });
+  }
+}
+
+
+export const getImageOb = async(req,res) => {
+  try {
+    const { obid } = req.params;
+    const getFileName = await IeObHeader.findOne({
+      where: {
+        OB_ID: obid
+      }, raw: true
+    });
+    if(getFileName){
+      const filePath = path.join( __dirname, "../../../assets/images/sketch", getFileName.OB_SKETCH );
+      if(filePath){
+        res.sendFile(filePath, (err) => {
+          if (err) {
+            res.status(404).send('File not found');
+          }
+        });
+      } else {
+        res.status(404).send('File not found');
+      }
+    } else {
+          res.status(404).send('File not found');
+    }
+  } catch(err){
+    return res.status(500).json({
+      success: false,
+      message: "Failed to import OB details",
+      error: err,
     });
   }
 }
