@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
+import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
 import { baseUrl, getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/ie/IeOb.mod.js";
@@ -257,6 +257,27 @@ export const getlistObApi = async (req, res) =>{
 
     const listIeOb = await db.query(getListOb, {
       replacements: {prodItemId},
+      type: QueryTypes.SELECT,
+    })
+    
+    return res.status(200).json({data: listIeOb})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
+export const getlistObItemCode = async (req, res) =>{
+  try {
+    const {buyer,prodItemCode} = req.params
+    const strBuyer = decodeURIComponent(buyer)
+    const strProdItem = decodeURIComponent(prodItemCode)
+    const listIeOb = await db.query(getListObItemCOde, {
+      replacements: {prodItemCode : strProdItem, buyer : strBuyer},
       type: QueryTypes.SELECT,
     })
     
@@ -1315,7 +1336,7 @@ export const postImportObDetail = async (req, res, next) => {
     
     //data post features siap 
     const dataPostFeatures = uniqueFeatures.map((ft, i) => {
-      const findFeatures = checkListFeatures.find(ftl => ftl.FEATURES_NAME === ft)
+      const findFeatures = checkListFeatures.find(ftl => ftl.FEATURES_NAME.toLowerCase() === ft.toLowerCase())
      const objFeat = {...findFeatures, SEQ_NO: i+1, OB_ID: obId, USER_ID: userId}
      return objFeat
     })
@@ -1329,6 +1350,8 @@ export const postImportObDetail = async (req, res, next) => {
       //adding features name untuk looping dibawah
       
     });
+    
+// console.log({dataPostFeatures, planFeatures});
 
     //referensi 
 
@@ -1346,7 +1369,7 @@ export const postImportObDetail = async (req, res, next) => {
           const [remarkEn = '', remarkId = ''] = line2.split('/').map(part => part.trim());
           
           //cari features id
-          const findIdFeatures = planFeatures.find(ft => ft.FEATURES_NAME === item.FEATURES_NAME)
+          const findIdFeatures = planFeatures.find(ft => ft.FEATURES_NAME.toLowerCase() === item.FEATURES_NAME.toLowerCase())
           
           //cari machine id 
           let findIdMachine = await listMachine.findOne({
