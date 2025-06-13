@@ -106,9 +106,7 @@ var whitelist = [
 //   key: fs.readFileSync("server.key"),
 //   cert: fs.readFileSync("server.cert"),
 // };
-app.use(express.static("public"));
-app.use("/images/sketch", express.static(path.join(__dirname, "assets/images/sketch")));
-app.use("/images/style", express.static(path.join(__dirname, "assets/images/styles")));
+
 // app.use('/assets/images/photos', express.static('uploadempphoto'));
 // app.use(
 //   cors({
@@ -137,6 +135,10 @@ app.use(
     },
   })
 );
+
+app.use(express.static("public"));
+app.use("/images/sketch", express.static(path.join(__dirname, "assets/images/sketch")));
+app.use("/images/style", express.static(path.join(__dirname, "assets/images/styles")));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;

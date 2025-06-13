@@ -229,6 +229,30 @@ WHERE ioh.PRODUCT_ITEM_ID = :prodItemId
 AND ioh.OB_DELETE_STATUS = 0
 `
 
+export const getListObByThree = (buyer, prodType, prodCat) => {
+  let baseQuery = `AND ioh.CUSTOMER_NAME = '${buyer}' `
+
+  if(prodType){
+    baseQuery = baseQuery + `AND ils.PRODUCT_TYPE = '${prodType}'`
+  }
+
+  if(prodCat){
+    baseQuery =  baseQuery + `AND TRIM(SUBSTRING_INDEX(ils.PRODUCT_CATEGORY, '/', -1)) = '${prodCat}'`
+  }
+
+  return `SELECT 
+ ioh.*,
+ ils.PRODUCT_CATEGORY,
+ xuw.USER_INISIAL AS USER_ADD,
+ xux.USER_INISIAL AS USER_MOD
+ FROM ie_ob_header ioh 
+ LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
+ LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
+ LEFT JOIN item_list_style ils ON ils.CUSTOMER_NAME = ioh.CUSTOMER_NAME AND ioh.PRODUCT_ITEM_CODE = ils.PRODUCT_ITEM_CODE
+ WHERE   ioh.OB_DELETE_STATUS = 0 ${baseQuery}
+ `
+}
+
 export const getListObItemCOde = `SELECT 
 ioh.*,
 xuw.USER_INISIAL AS USER_ADD,

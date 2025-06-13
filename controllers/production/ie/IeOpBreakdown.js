@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
+import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
 import { baseUrl, getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/ie/IeOb.mod.js";
@@ -151,8 +151,13 @@ export const getListStyleByOb= async (req,res) => {
         const {prodType, prodCat} = req.query
         
         const query = qryGetStyleByTree(buyer, prodType, prodCat)
+        const queryGetListOb = getListObByThree(buyer, prodType, prodCat)
 
         let listStyle = await db.query(query, {
+                type: QueryTypes.SELECT,
+            });
+
+        let listOB = await db.query(queryGetListOb, {
                 type: QueryTypes.SELECT,
             });
 
@@ -160,7 +165,7 @@ export const getListStyleByOb= async (req,res) => {
             listStyle = pharsingImgStyle(listStyle, req)
         }
 
-        return res.status(200).json({data: listStyle})
+        return res.status(200).json({data: listStyle, listOB : listOB})
     } catch (error) {
         console.log(error);
         
