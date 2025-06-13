@@ -229,6 +229,17 @@ WHERE ioh.PRODUCT_ITEM_ID = :prodItemId
 AND ioh.OB_DELETE_STATUS = 0
 `
 
+export const getListObItemCOde = `SELECT 
+ioh.*,
+xuw.USER_INISIAL AS USER_ADD,
+xux.USER_INISIAL AS USER_MOD
+FROM ie_ob_header ioh 
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
+LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
+WHERE ioh.PRODUCT_ITEM_CODE = :prodItemCode AND ioh.CUSTOMER_NAME = :buyer
+AND ioh.OB_DELETE_STATUS = 0
+`
+
 export const qryGetSizeOb = `SELECT 
 	ios.OB_SIZE_ID,
 	ios.OB_ID,

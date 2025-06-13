@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
+import { deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
 const router = express.Router();
 
 router.get("/style-three", getDataTreeStyleOb);
@@ -28,6 +28,10 @@ router.post("/ob-sort-detail", sortObDetail); //sort based on features
 router.get("/ob-history/:obId", getListObHistory); //get history of ob detail
 router.post("/ob-import-detail-excel", postImportObDetail, returnPostIeObDetail);
 router.get("/ob-image/:obid", getImageOb);
+
+
+//ie cycle time
+router.get("/ob-header-by-item-code/:buyer/:prodItemCode", getlistObItemCode);
 
 
 
