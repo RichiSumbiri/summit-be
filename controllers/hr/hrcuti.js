@@ -89,10 +89,11 @@ export const postCutiNew = async(req,res) => {
             startDate.add(1, 'day');
         }
         if(dataCuti.cuti_id){
-            const getPreviousData   = await SumbiriCutiMain.findOne({ where: { cuti_id: dataCuti.cuti_id }, raw: true});
-            const startDatePrev     = moment(getPreviousData.cuti_date_start);
-            const endDatePrev       = moment(getPreviousData.cuti_date_end);
-            const CutiDateListPrev  = [];
+            const getPreviousData   = await SumbiriCutiMain.findOne({ where: { cuti_id: dataCuti.cuti_id }, raw: true}); // ambil data cuti sebelumnya 
+            const startDatePrev     = moment(getPreviousData.cuti_date_start);  // ambil tanggal awal cuti sebelumnya
+            const endDatePrev       = moment(getPreviousData.cuti_date_end);  // ambil tanggal akhir cuti sebelumnya
+            const CutiDateListPrev  = []; // list tanggal cuti sebelumnya
+            
             while (startDatePrev.isSameOrBefore(endDatePrev)) {
                 CutiDateListPrev.push(startDatePrev.format('YYYY-MM-DD'));
                 startDatePrev.add(1, 'day');
@@ -133,57 +134,105 @@ export const postCutiNew = async(req,res) => {
                 // buat absen cuti terbaru
                 for (const CutiDate of CutiDateList) {
                     // check jadwal kerja karyawan ada libur kerja
-                    const checkFromJadwal = await dbSPL.query(qryAbsenIndividu, {
-                        replacements: {
-                            nik: dataCuti.cuti_emp_nik,
-                            startDate: CutiDate,
-                            endDate: CutiDate,
-                        }, type: QueryTypes.SELECT
-                    });
-
-                    // check jika karyawan tidak ada jadwal kerja
-                    if(checkFromJadwal.length===0){
-                        // check hari libur sesuai kalender
-                        const checkHolidayFromCalender = await db.query(QueryGetHolidayByDate, {
+                        const checkFromJadwal = await dbSPL.query(qryAbsenIndividu, {
                             replacements: {
+                                nik: dataCuti.cuti_emp_nik,
                                 startDate: CutiDate,
-                                endDate: CutiDate
+                                endDate: CutiDate,
                             }, type: QueryTypes.SELECT
                         });
-                        // check hari libur berdasarkan schedule
-                        const CheckHolidayFromSchedule = await GroupJadwal.findAll({
+
+                        // check jika karyawan sudah ada data absen
+                        const checkExistingAttendance = await Attandance.findOne({
                             where: {
-                                scheduleDate: CutiDate,
-                                groupId: getNikGroupId.groupId
-                            }, raw: true
+                                Nik: dataCuti.cuti_emp_nik,
+                                tanggal_in: CutiDate
+                            }
                         });
-                        // check hari libur berdasarkan nama hari !== minggu
-                        const namaHari = moment(CutiDate).format('dddd') === 'Sunday' ? true : false ;
-                        if(checkHolidayFromCalender.length===0 && CheckHolidayFromSchedule.length===0 && !namaHari){
-                            await Attandance.upsert({
-                                Nik: dataCuti.cuti_emp_nik,
-                                groupId: getNikGroupId.groupId,
-                                jk_id: 0,
-                                tanggal_in: CutiDate,
-                                keterangan: getCodeAbsen.code_absen,
-                                ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
-                                validasi: 0
+                        
+                        // check jika karyawan tidak ada jadwal kerja
+                        if(checkFromJadwal.length===0){
+                            
+                            // check hari libur sesuai kalender
+                            const checkHolidayFromCalender = await db.query(QueryGetHolidayByDate, {
+                                replacements: {
+                                    startDate: CutiDate,
+                                    endDate: CutiDate
+                                }, type: QueryTypes.SELECT
                             });
-                        }
-                    } else {
-                        // jika karyawan ada jadwal kerja dan tidak libur
-                        if(checkFromJadwal[0].calendar==="WD"){
-                            await Attandance.upsert({
-                                Nik: dataCuti.cuti_emp_nik,
-                                groupId: checkFromJadwal[0].groupId,
-                                jk_id: checkFromJadwal[0].jk_id,
-                                tanggal_in: CutiDate,
-                                keterangan: getCodeAbsen.code_absen,
-                                ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
-                                validasi: 0
+                            
+                            // check hari libur berdasarkan schedule
+                            const CheckHolidayFromSchedule = await GroupJadwal.findAll({
+                                where: {
+                                    scheduleDate: CutiDate,
+                                    groupId: getNikGroupId.groupId
+                                }, raw: true
                             });
+                            
+                            // check hari libur berdasarkan nama hari !== minggu
+                            const namaHari = moment(CutiDate).format('dddd') === 'Sunday' ? true : false ;
+                            
+                            // jika karyawan tidak ada jadwal kerja, tidak ada hari libur di kalender, tidak ada hari libur di schedule dan bukan hari minggu maka buat absen cuti
+                            if(checkHolidayFromCalender.length===0 && CheckHolidayFromSchedule.length===0 && !namaHari){
+                                // jika tidak ada absen cuti
+                                if(checkExistingAttendance===null){
+                                    // buat absen cuti
+                                    await Attandance.create({
+                                        Nik: dataCuti.cuti_emp_nik,
+                                        groupId: getNikGroupId.groupId,
+                                        jk_id: 0,
+                                        tanggal_in: CutiDate,
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        add_id: dataCuti.cuti_createby_id
+                                    });
+                                } else {
+                                    // jika sudah ada absen, update absen
+                                    await Attandance.update({
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        mod_id: dataCuti.cuti_createby_id
+                                    }, {
+                                        where: {
+                                            Nik: dataCuti.cuti_emp_nik,
+                                            tanggal_in: CutiDate
+                                        }
+                                    });
+                                }
+                            }
+                        } else {
+                            // jika karyawan ada jadwal kerja dan tidak libur
+                            if(checkFromJadwal[0].calendar==="WD"){
+                                if(checkExistingAttendance===null){
+                                    // jika tidak ada absen cuti
+                                    await Attandance.create({
+                                        Nik: dataCuti.cuti_emp_nik,
+                                        groupId: checkFromJadwal[0].groupId,
+                                        jk_id: checkFromJadwal[0].jk_id,
+                                        tanggal_in: CutiDate,
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        add_id: dataCuti.cuti_createby
+                                    });
+                                } else {
+                                    // jika sudah ada absen, update absen
+                                    await Attandance.update({
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        mod_id: dataCuti.cuti_createby_id
+                                    }, {
+                                        where: {
+                                            Nik: dataCuti.cuti_emp_nik,
+                                            tanggal_in: CutiDate
+                                        }
+                                    });
+                                }
+                            }
                         }
-                    }
                 }
                 res.status(200).json({
                     success: true,
@@ -193,9 +242,7 @@ export const postCutiNew = async(req,res) => {
         } else {
             const cutiformat        = `SPC${moment().format('YYYY').toString().substr(-2)}${("0" + (moment().format('MM') + 1)).slice(-2)}${("0" + moment().format('DD')).slice(-2)}`;
             let cuti_id;
-            const checkLastCuti     = await SumbiriCutiMain.findAll({
-                where: { cuti_id: { [Op.like]: `${cutiformat}%` }, }, order: [ ['cuti_id','DESC'] ]
-            });
+            const checkLastCuti     = await SumbiriCutiMain.findAll({ where: { cuti_id: { [Op.like]: `${cutiformat}%` }, }, order: [ ['cuti_id','DESC'] ]});
             if(checkLastCuti.length===0){
                 cuti_id = `${cutiformat}001`;
             } else {
@@ -228,9 +275,11 @@ export const postCutiNew = async(req,res) => {
                     cuti_createby: dataCuti.cuti_createby,
                     cuti_active: "Y"
                 });
+
                 // jika sukses, maka insert ke attandance
                 if(insertCuti){
                     for (const CutiDate of CutiDateList) {
+                        
                         // check jadwal kerja karyawan ada libur kerja
                         const checkFromJadwal = await dbSPL.query(qryAbsenIndividu, {
                             replacements: {
@@ -239,8 +288,18 @@ export const postCutiNew = async(req,res) => {
                                 endDate: CutiDate,
                             }, type: QueryTypes.SELECT
                         });
+
+                        // check jika karyawan sudah ada data absen
+                        const checkExistingAttendance = await Attandance.findOne({
+                            where: {
+                                Nik: dataCuti.cuti_emp_nik,
+                                tanggal_in: CutiDate
+                            }
+                        });
+                        
                         // check jika karyawan tidak ada jadwal kerja
                         if(checkFromJadwal.length===0){
+                            
                             // check hari libur sesuai kalender
                             const checkHolidayFromCalender = await db.query(QueryGetHolidayByDate, {
                                 replacements: {
@@ -248,6 +307,7 @@ export const postCutiNew = async(req,res) => {
                                     endDate: CutiDate
                                 }, type: QueryTypes.SELECT
                             });
+                            
                             // check hari libur berdasarkan schedule
                             const CheckHolidayFromSchedule = await GroupJadwal.findAll({
                                 where: {
@@ -255,31 +315,69 @@ export const postCutiNew = async(req,res) => {
                                     groupId: getNikGroupId.groupId
                                 }, raw: true
                             });
+                            
                             // check hari libur berdasarkan nama hari !== minggu
                             const namaHari = moment(CutiDate).format('dddd') === 'Sunday' ? true : false ;
+                            
+                            // jika karyawan tidak ada jadwal kerja, tidak ada hari libur di kalender, tidak ada hari libur di schedule dan bukan hari minggu maka buat absen cuti
                             if(checkHolidayFromCalender.length===0 && CheckHolidayFromSchedule.length===0 && !namaHari){
-                                await Attandance.upsert({
-                                    Nik: dataCuti.cuti_emp_nik,
-                                    groupId: getNikGroupId.groupId,
-                                    jk_id: 0,
-                                    tanggal_in: CutiDate,
-                                    keterangan: getCodeAbsen.code_absen,
-                                    ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
-                                    validasi: 0
-                                });
+                                // jika tidak ada absen cuti
+                                if(checkExistingAttendance===null){
+                                    // buat absen cuti
+                                    await Attandance.create({
+                                        Nik: dataCuti.cuti_emp_nik,
+                                        groupId: getNikGroupId.groupId,
+                                        jk_id: 0,
+                                        tanggal_in: CutiDate,
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        add_id: dataCuti.cuti_createby_id
+                                    });
+                                } else {
+                                    // jika sudah ada absen, update absen
+                                    await Attandance.update({
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        mod_id: dataCuti.cuti_createby_id
+                                    }, {
+                                        where: {
+                                            Nik: dataCuti.cuti_emp_nik,
+                                            tanggal_in: CutiDate
+                                        }
+                                    });
+                                }
                             }
                         } else {
                             // jika karyawan ada jadwal kerja dan tidak libur
                             if(checkFromJadwal[0].calendar==="WD"){
-                                await Attandance.upsert({
-                                    Nik: dataCuti.cuti_emp_nik,
-                                    groupId: checkFromJadwal[0].groupId,
-                                    jk_id: checkFromJadwal[0].jk_id,
-                                    tanggal_in: CutiDate,
-                                    keterangan: getCodeAbsen.code_absen,
-                                    ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
-                                    validasi: 0
-                                });
+                                if(checkExistingAttendance===null){
+                                    // jika tidak ada absen cuti
+                                    await Attandance.create({
+                                        Nik: dataCuti.cuti_emp_nik,
+                                        groupId: checkFromJadwal[0].groupId,
+                                        jk_id: 0,
+                                        tanggal_in: CutiDate,
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        add_id: dataCuti.cuti_createby_id
+                                    });
+                                } else {
+                                    // jika sudah ada absen, update absen
+                                    await Attandance.update({
+                                        keterangan: getCodeAbsen.code_absen,
+                                        ket_in: String(dataCuti.cuti_purpose).toUpperCase(),
+                                        validasi: 0,
+                                        mod_id: dataCuti.cuti_createby_id
+                                    }, {
+                                        where: {
+                                            Nik: dataCuti.cuti_emp_nik,
+                                            tanggal_in: CutiDate
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
@@ -291,6 +389,7 @@ export const postCutiNew = async(req,res) => {
             }
         }
     } catch(err){
+        console.error(err);
         res.status(404).json({
             success: false,
             message: "error get cuti",
