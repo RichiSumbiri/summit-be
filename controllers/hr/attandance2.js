@@ -293,7 +293,7 @@ export const punchAttdLog2 = async (req, res) => {
                 );
               } else {
                //ot untuk HL atau PH tapi masuk (security)
-                const objKoreksiOt = {...objScanIn, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : 0 }
+                const objKoreksiOt = {...objScanIn, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : (objScanIn.ot || null) } // untuk fix ot awal/scan in
 
                 const dataAbsen = {
                   Nik: logs.Nik,
