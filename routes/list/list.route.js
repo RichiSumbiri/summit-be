@@ -10,6 +10,7 @@ import {
   postListCountry,
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
+import { getMasterLocation } from "../../controllers/list/listLocation.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -24,5 +25,8 @@ router.delete("/style/:idStyle", deleteListItemStyle);
 router.delete("/image-style/:id/:imgPosition", deleteImgStyle);
 router.get("/style/:buyer", getListItemStyle);
 router.get("/item-code", getListItemCode);
+
+//item location
+router.get("/location", getMasterLocation);
 
 export default router;

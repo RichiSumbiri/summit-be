@@ -38,6 +38,8 @@ import absen from "./hr/absens.router.js";
 import hrdashboard from "./hr/hrDash.route.js";
 import payroll from "./payroll/masterPayroll.router.js";
 import ie from "./ie/ie.route.js";
+import reservation from "./hr/reservation.route.js";
+
 
 const router = express.Router();
 
@@ -76,6 +78,7 @@ router.use("/absensi", absen);
 router.use("/hrdashboard", hrdashboard);
 router.use("/payroll", payroll);
 router.use("/ie", ie);
+router.use("/reservation", reservation)
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
