@@ -58,7 +58,7 @@ ils.SIZE_COUNTRY,
 ils.SIZE_NAME
 FROM 
 item_list_sizes ils 
-WHERE ils.PRODUCT_TYPE = :prodType `
+WHERE ils.PRODUCT_TYPE = :prodType OR ils.PRODUCT_TYPE = 'ALL' `
 
 
 export const IeObHeader = db.define('ie_ob_header', {
@@ -323,7 +323,6 @@ export const IeObFeatures = db.define('ie_ob_features', {
     ID_OB_FEATURES: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true,
     },
     OB_ID: {
       type: DataTypes.STRING(100),
@@ -760,103 +759,6 @@ export const IeObDetail = db.define('ie_ob_detail', {
    freezeTableName: true,
 });
 
-export const IeObDetailStr = db.define('ie_ob_detail_str', {
-    OB_DETAIL_ID: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    },
-    ID_OB_FEATURES: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    OB_ID: {
-        type: DataTypes.STRING(50),
-        allowNull: true,
-    },
-    OB_DETAIL_NO: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    OB_DETAIL_DESCRIPTION: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    OB_DETAIL_DESCRIPTION_IDN: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    OB_DETAIL_REMARK: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    OB_DETAIL_REMARK_IDN: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    OB_DETAIL_MACHINE: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    OB_DETAIL_SPI: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_SEAMALLOW: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_GAUGE: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_THROW: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_ND: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_ND_THREADS: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_BOBIN_THREADS: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_MC_SETUP: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    OB_DETAIL_SMV: {
-        type: DataTypes.DECIMAL(10, 4),
-        allowNull: true,
-    },
-    OB_DETAIL_TARGET: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    ADD_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    MOD_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-}, {
-   freezeTableName: true,
-});
 
 
 

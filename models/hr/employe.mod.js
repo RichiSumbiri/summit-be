@@ -786,3 +786,36 @@ LEFT JOIN master_position mp2 ON mp2.IDPosition = se.IDPosisi
 LEFT JOIN sumbiri_spk ss ON ss.Nik = se.Nik 
 WHERE se.Nik = :empNik
 `;
+
+export const qryGetEmpForIeCt = `
+SELECT 
+	emp.Nik,
+	emp.NamaLengkap,
+	CONCAT(emp.Nik,' - ', emp.NamaLengkap) AS labelKaryawan,
+	IFNULL(emp.IDDepartemen,"") AS IDDepartemen,
+	IFNULL(emp.IDSubDepartemen,"") AS IDSubDepartemen,
+	IFNULL(emp.IDPosisi,"") AS IDPosisi,
+	IFNULL(emp.IDSection,"") AS IDSection,
+	md.NameDept AS NamaDepartemen,
+	ms.Name AS NamaSubDepartemen,
+	mp.Name AS NamaPosisi,
+	IFNULL(ms2.CusName, ms2.Name) AS NamaSection,
+	emp.IDJenisUpah,
+	IFNULL(TRIM(emp.StatusKaryawan),"") AS StatusKaryawan,
+	emp.TanggalMasuk,
+	IFNULL(emp.TanggalKeluar,"") AS TanggalKeluar,
+	emp.StatusAktif,
+	seg.groupId,
+	sgs.groupName ,
+	IFNULL(emp.Photos,"") AS Photos
+FROM sumbiri_employee emp
+LEFT JOIN master_alamat_provinsi map2 ON map2.id_prov = emp.AlamatIDProv 
+LEFT JOIN master_alamat_kabkota mak ON mak.id_kabkota = emp.AlamatIDKabKota 
+LEFT JOIN master_alamat_kecamatan mak2 ON mak2.id_kecamatan = emp.AlamatIDKecamatan 
+LEFT JOIN master_department md ON md.IdDept = emp.IDDepartemen 
+LEFT JOIN master_subdepartment ms ON ms.IDSubDept = emp.IDSubDepartemen 
+LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi 
+LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
+LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik 
+LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
+WHERE emp.IDDepartemen = '100103' AND emp.StatusAktif = 0 AND emp.Nik LIKE :inputQry OR emp.NamaLengkap LIKE :inputQry `
