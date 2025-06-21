@@ -458,6 +458,10 @@ export const IeCtMpProcesses = db.define(`ie_ct_mp_processes`, {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+  CT_DATE : {// wajib ada untuk join OB_ID dan CT_DATE karena mengambil ob_header berdasarakan tanggal menghindari revisi OB
+        type: DataTypes.DATEONLY, 
+        allowNull: true,
+    },
   CT_MP_ID : {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -467,6 +471,14 @@ export const IeCtMpProcesses = db.define(`ie_ct_mp_processes`, {
         allowNull: true,
     },
   OB_DETAIL_NO : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_TAKET_TIME : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_TARGET_PCS : {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
@@ -488,4 +500,125 @@ export const IeCtMpProcesses = db.define(`ie_ct_mp_processes`, {
     },
 },{
   freezeTableName: true
+})
+
+export const qryGetIctMpProcces = `SELECT 
+ icmp.CT_ID,
+ icmp.CT_MP_ID,
+ icmp.CT_DATE,
+ icmp.CT_MPP_ID,
+ icmp.OB_DETAIL_ID,
+ icmp.OB_DETAIL_NO,
+-- icmp.CT_TAKET_TIME,
+-- icmp.CT_TAGET_PCS,
+ icth.CT_WH,
+ icod.OB_DETAIL_SMV,
+ ctco.COUNT_USING,
+ ROUND(((icth.CT_WH*60)/(icth.CT_WH/icod.OB_DETAIL_SMV))/ctco.COUNT_USING) AS CT_TAKET_TIME,
+ ROUND((icth.CT_WH/icod.OB_DETAIL_SMV)/ctco.COUNT_USING) AS CT_TARGET_PCS
+FROM ie_ct_mp_processes icmp 
+LEFT JOIN ie_cycle_time_header icth ON icth.CT_ID = icmp.CT_ID
+LEFT JOIN ie_ct_ob_detail icod ON icod.OB_DETAIL_ID = icmp.OB_DETAIL_ID AND icmp.CT_DATE = icod.CT_DATE
+LEFT JOIN (
+	SELECT 
+	 icmp2.OB_DETAIL_ID,
+	 COUNT(icmp2.OB_DETAIL_ID) COUNT_USING
+	FROM ie_ct_mp_processes icmp2 
+	GROUP BY  icmp2.CT_ID, icmp2.OB_DETAIL_ID
+) ctco ON ctco.OB_DETAIL_ID = icmp.OB_DETAIL_ID
+WHERE icmp.CT_ID = :ctId
+`
+
+
+export const IeCtGroupCount = db.define(`ie_ct_group_count`, {
+  CT_GC_ID : {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+  CT_GC_NO : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_MP_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_GC_TTIME : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_GC_PCS : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  ADD_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  MOD_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  createdAt : {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+  updatedAt : {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+},{
+  freezeTableName: true
+})
+
+
+export const ieCtDetailCount = db.define(`ie_ct_detail_count`, {
+  CT_DETAIL_ID : {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+  CT_GC_ID : {
+        type: DataTypes.INTEGER,
+    },
+  CT_DETAIL_NO : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_MP_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_MPP_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_DETAIL_TTIME : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  CT_DETAIL_GET_TIME : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  ADD_ID : {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+  createdAt : {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+},{
+  freezeTableName: true,
+  updatedAt : false
 })

@@ -1,7 +1,7 @@
 
 import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
-import {  IeCtMpProcesses, IeCycleTimeHeader, IeCycleTimeMp, IeObDetailCT, IeObFeaturesCT, IeObHeaderCT, qryGetFeatCt, qryGetListEffCt, qryGetObDetailCt } from "../../../models/ie/IeCT.mod.js";
+import {  ieCtDetailCount, IeCtGroupCount, IeCtMpProcesses, IeCycleTimeHeader, IeCycleTimeMp, IeObDetailCT, IeObFeaturesCT, IeObHeaderCT, qryGetFeatCt, qryGetIctMpProcces, qryGetListEffCt, qryGetObDetailCt } from "../../../models/ie/IeCT.mod.js";
 import { qryGetEmpForIeCt } from "../../../models/hr/employe.mod.js";
 import { dbSPL } from "../../../config/dbAudit.js";
 import { IeObDetail, IeObFeatures, IeObHeader } from "../../../models/ie/IeOb.mod.js";
@@ -294,6 +294,12 @@ export const getBaseDataIeCyc = async (req, res) => {
     })
 
 
+    const getDataAllMpp = await db.query(qryGetIctMpProcces, {
+      replacements: {ctId : CT_ID},
+      type: QueryTypes.SELECT,
+    })
+
+
     const paramGetSch = `a.SCHD_ID =  '${dataCtHeader.SCHD_ID}' AND a.ID_SITELINE ='${dataCtHeader.ID_SITELINE}' `
     const qryGetSchEff = qryGetListEffCt(paramGetSch)
     
@@ -303,14 +309,16 @@ export const getBaseDataIeCyc = async (req, res) => {
     })
 
     const detailSch = getDetailSch[0] || {}
+    const dataMpProc = getDataAllMpp || []
 
     const dataOb = {
         obHeader : obHeader[0] || {},
         obDetail : obDetail || [],
-        obFeatures : obFeatures || []
+        obFeatures : obFeatures || [],
+        
       }
 
-    return res.json({dataCtHeader, detailSch, dataOb, dataCtMp})
+    return res.json({dataCtHeader, detailSch, dataOb, dataCtMp, dataMpProc})
 
   } catch (error) {
     console.log(error);
@@ -346,11 +354,11 @@ export const postIeCtMpProccesses = async (req, res) => {
       const postIeCtMpp = await IeCtMpProcesses.bulkCreate(dataIeCtMPP)
 
       if(postIeCtMpp){
-        const getDataAllMpp = await IeCtMpProcesses.findAll({
-          where : {
-            CT_ID : dataIeCtMPP[0].CT_ID
-          }
-        })
+          const getDataAllMpp = await db.query(qryGetIctMpProcces, {
+            replacements: {ctId :  dataIeCtMPP[0].CT_ID},
+            type: QueryTypes.SELECT,
+          })
+
         return res.json({message : 'Success Set Proccess To Manpower', data: getDataAllMpp})
       }
   } catch (error) {
@@ -375,11 +383,10 @@ export const deleteIeCtMpProccesses = async (req, res) => {
       })
 
       if(deleteCt){
-        const getDataAllMpp = await IeCtMpProcesses.findAll({
-          where : {
-            CT_ID : ctId
-          }
-        })
+          const getDataAllMpp = await db.query(qryGetIctMpProcces, {
+            replacements: {ctId : ctId},
+            type: QueryTypes.SELECT,
+          })
         return res.json({message : 'Success Set Proccess To Manpower', data: getDataAllMpp})
       }
   } catch (error) {
@@ -388,5 +395,139 @@ export const deleteIeCtMpProccesses = async (req, res) => {
         message: "error set manpower proccess",
         data: error,
       }); 
+  }
+}
+
+export const postIeGroupCount = async (req, res) => {
+  try {
+    const dataBody = req.body
+
+       const getAllIeGc = await IeCtGroupCount.findAll({
+        where : {
+          CT_ID : dataBody.CT_ID,
+          CT_MP_ID : dataBody.CT_MP_ID
+        },
+        raw : true
+      })
+
+      const dataPost = {
+        ...dataBody,
+        CT_GC_NO : getAllIeGc.length+1
+      }
+
+    const postIeGc = await IeCtGroupCount.create(dataPost)
+
+    if(postIeGc){
+      const getAllIeGc = await IeCtGroupCount.findAll({
+        where : {
+          CT_ID : dataPost.CT_ID,
+          CT_MP_ID : dataPost.CT_MP_ID
+        },
+        raw : true
+      })
+
+      return  res.json({message : 'Success Create Group Count', data : getAllIeGc})
+    }else{
+      return res.status(404).json({message : 'Filed Create Group Count'})
+    }
+  } catch (error) {
+     console.log(error);
+      return res.status(404).json({
+        message: "error set manpower proccess",
+        data: error,
+      }); 
+  }
+}
+
+export const getIeCtGroupCount = async(req,res) => {
+  try {
+    // const inputQry  = parseInt(req.params.inputQry);
+    const {ctId, ieMpId} = req.params
+      const getAllIeGc = await IeCtGroupCount.findAll({
+        where : {
+          CT_ID : ctId,
+          CT_MP_ID : ieMpId
+        },
+        raw : true
+      })
+    return res.status(200).json({
+      success: true,
+      message: "success get group ct",
+      data: getAllIeGc,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "errorget group ct",
+    });
+  }
+}
+
+export const postIeCtDetailCount = async (req, res) => {
+  try {
+    const dataBody = req.body
+
+       const getAllIeDtlCount = await ieCtDetailCount.findAll({
+        where : {
+          CT_ID : dataBody.CT_ID,
+          CT_MP_ID : dataBody.CT_MP_ID,
+          CT_MPP_ID : dataBody.CT_MPP_ID
+        },
+        raw : true
+      })
+
+      const dataPost = {
+        ...dataBody,
+        CT_DETAIL_NO : getAllIeDtlCount.length+1
+      }
+
+    const postIeGc = await ieCtDetailCount.create(dataPost)
+
+    if(postIeGc){
+      const getAllIeDetailCount = await ieCtDetailCount.findAll({
+        where : {
+          CT_ID : dataPost.CT_ID,
+          CT_MP_ID : dataPost.CT_MP_ID,
+          CT_MPP_ID : dataPost.CT_MPP_ID,
+        },
+        raw : true
+      })
+
+      return  res.json({message : 'Success Add Detail Count', data : getAllIeDetailCount})
+    }else{
+      return res.status(404).json({message : 'Filed Add Detail Count'})
+    }
+  } catch (error) {
+     console.log(error);
+      return res.status(404).json({
+        message: "error set manpower proccess",
+        data: error,
+      }); 
+  }
+}
+
+export const getIeCtDetailCount = async(req,res) => {
+  try {
+    const {ctId, ieMpId, ieMppId} = req.params
+      const getAllIeDetailCount = await ieCtDetailCount.findAll({
+        where : {
+          CT_ID : ctId,
+          CT_MP_ID : ieMpId,
+          CT_MPP_ID : ieMppId,
+        },
+        raw : true
+      })
+    return res.status(200).json({
+      success: true,
+      message: "success get detail ct",
+      data: getAllIeDetailCount,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "errorget get detail ct",
+    });
   }
 }
