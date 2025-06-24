@@ -1158,8 +1158,7 @@ FROM (
 			    FROM sumbiri_employee se 
 			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
-			    WHERE se.Nik = :nik 
-			      AND sgs.scheduleDate BETWEEN :startDate AND :endDate 
+			    WHERE se.Nik = :nik AND sgs.scheduleDate BETWEEN :startDate AND :endDate 
 			    
 			    UNION ALL 
 			
@@ -1177,8 +1176,30 @@ FROM (
 			        sis.calendar AS calendar_indv
 			    FROM sumbiri_employee se 
 			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
-			    WHERE se.Nik = :nik  
-			      AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate 
+			    WHERE se.Nik = :nik AND sis.scheduleDate_inv BETWEEN :startDate AND :endDate 
+			    
+			    UNION ALL
+			    
+			    SELECT  
+			 		  0 as jadwalId_inv,
+			 		  0 jadwalId, 
+			        se.Nik, 
+			        se.NamaLengkap, 
+					se.TanggalKeluar,
+			        sa.tanggal_in AS scheduleDate, 
+			        0 AS groupId, 
+			        NULL AS jadwal_group,
+			        sa.jk_id AS jadwal_indv,
+			        NULL AS calendar_group,
+			        sa.calendar AS calendar_indv
+				FROM
+					sumbiri_employee se
+				LEFT JOIN sumbiri_absens sa ON
+					sa.Nik = se.Nik
+				WHERE
+					se.Nik = :nik
+					AND sa.tanggal_in BETWEEN :startDate AND :endDate
+			    
 			) nm 
 			GROUP BY 
 			    nm.scheduleDate, nm.Nik, nm.NamaLengkap 
