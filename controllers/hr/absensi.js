@@ -75,8 +75,7 @@ export const getAbsenDaily = async (req, res) => {
         }, type: QueryTypes.SELECT
     });
 
-    console.log(checkHolidayFromCalender)
-
+   
     if(checkHolidayFromCalender.length > 0){
       if(date===checkHolidayFromCalender[0].calendar_date){
         getAbsen.forEach(item => {
@@ -85,6 +84,12 @@ export const getAbsenDaily = async (req, res) => {
               }
             });
       }      
+    } else {
+      getAbsen.forEach(item => {
+        if (item.calendar === null) {
+          item.calendar = 'HL';
+        }
+      });
     }
     
     if (getLembur.length > 0) {
