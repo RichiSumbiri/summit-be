@@ -729,3 +729,63 @@ export const postMassEmpSKill = async(req,res) => {
         });       
     }
 }
+
+
+
+export const getSkillCountByLevel = async(req,res) => {
+    try {
+        const data = await dbSPL.query('SELECT * FROM ViewMatrixSkillLevelCount', { type: QueryTypes.SELECT });
+        return res.status(200).json({
+            success: true,
+            message: "success get employee skill level count",
+            data: data
+        });
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get employee skill level count"
+        });
+    }
+}
+
+export const get5LowestSkillLevelAverage = async(req,res) => {
+    try {
+        const query = `
+        	SELECT
+                ses.skill_id,
+                ms.skill_name,
+                ses.sub_skill_id,
+                mss.sub_skill_name,
+                AVG(ses.skill_level) AS skill_average
+            FROM
+                sumbiri_employee_skills ses
+            LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
+            LEFT JOIN master_skills_sub mss ON mss.sub_skill_id = ses.sub_skill_id
+            GROUP BY 
+                ses.skill_id,
+                ses.sub_skill_id
+            ORDER BY AVG(ses.skill_level) ASC
+            LIMIT 5
+        `;
+
+        const data = await dbSPL.query(query, { type: QueryTypes.SELECT });
+        if(data.length > 0){
+            return res.status(200).json({
+                success: true,
+                message: "success get lowest skill level average",
+                data: data
+            });
+        } else {
+            return res.status(404).json({
+                success: false,
+                message: "no data found for lowest skill level average"
+            });
+        }
+
+    } catch(err){
+        return res.status(404).json({
+            success: false,
+            message: "fail get lowest skill level average"
+        });
+    }
+}

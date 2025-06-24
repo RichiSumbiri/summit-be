@@ -28,6 +28,7 @@ import {
   qryGetEmpSewAllExpand,
   qryGetEmpSewAllExpandHr,
   qryLaborSewing,
+  queryRecapAbsPerMonth,
   querySumByKetDaily,
   SewingLineHR,
 } from "../../models/hr/attandance.mod.js";
@@ -1045,4 +1046,24 @@ function groupAndSumByDateAndDept(arr) {
 
   const resultAndLto = Object.values(result).map(item => ({...item, absentBySch : item.schedule_jk - item.emp_present, lto: item.emp_out ? (item.emp_out/(item.emp_out+item.emp_total))*100 : 0}))
   return resultAndLto;
+}
+
+
+export const getRecapEmpTotalMonthly = async(req,res) => {
+  try {
+    const data = await dbSPL.query(queryRecapAbsPerMonth, { type: QueryTypes.SELECT});
+    if(data){
+      return res.status(200).json({
+        success: true,
+        message: `success get employee recap per month`,
+        data
+      });
+    }
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      error: err,
+      message: "error cannot get employee recap",
+    });
+  }
 }

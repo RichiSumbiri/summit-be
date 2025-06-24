@@ -2008,5 +2008,32 @@ export const qryLaborSewing = `SELECT
 		msts.SiteName,
     smr.tgl_recap,
     smr.IDPosisi
-`
+`;
+
+export const queryRecapAbsPerMonth = `
+SELECT
+	YEAR(smr.tgl_recap) AS emp_recap_year,
+	MONTH(smr.tgl_recap) AS emp_recap_month,
+	smr.tgl_recap,
+	SUM(smr.emp_total) AS emp_total
+FROM
+	sumbiri_mp_recap smr
+WHERE
+	smr.tgl_recap IN (
+	SELECT
+		MAX(tgl_recap)
+	FROM
+		sumbiri_mp_recap
+	GROUP BY
+		YEAR(tgl_recap),
+		MONTH(tgl_recap)
+  )
+GROUP BY
+	YEAR(smr.tgl_recap),
+	MONTH(smr.tgl_recap),
+	smr.tgl_recap
+ORDER BY
+	smr.tgl_recap ASC;
+
+`;
 
