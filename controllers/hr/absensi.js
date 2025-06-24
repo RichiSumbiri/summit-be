@@ -1,4 +1,5 @@
 import { dbSPL, dbWdms } from "../../config/dbAudit.js";
+import db from "../../config/database.js";
 import { Op, fn, col, QueryTypes } from "sequelize";
 import {
   Attandance,
@@ -27,7 +28,6 @@ import moment from "moment";
 import { GroupJadwal, IndividuJadwal } from "../../models/hr/JadwalDanJam.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import { QueryGetHolidayByDate } from "../../models/setup/holidays.mod.js";
-import db from "../../config/database.js";
 import { getRangeDate, getUniqueAttribute } from "../util/Utility.js";
 
 export const getAbsenDailyDakintai = async (req, res) => {
@@ -67,6 +67,26 @@ export const getAbsenDaily = async (req, res) => {
       // logging: console.log
     });
 
+     // check hari libur sesuai kalender
+    const checkHolidayFromCalender = await db.query(QueryGetHolidayByDate, {
+        replacements: {
+            startDate: date,
+            endDate: date
+        }, type: QueryTypes.SELECT
+    });
+
+    console.log(checkHolidayFromCalender)
+
+    if(checkHolidayFromCalender.length > 0){
+      if(date===checkHolidayFromCalender[0].calendar_date){
+        getAbsen.forEach(item => {
+              if (item.calendar === null) {
+                item.calendar = 'PH';
+              }
+            });
+      }      
+    }
+    
     if (getLembur.length > 0) {
       getAbsen = getAbsen.map((item) => {
         const lembur = getLembur.find((lembur) => lembur.Nik === item.Nik);
@@ -126,13 +146,10 @@ export const getAbsenDaily = async (req, res) => {
       });
     }
 
-    return res.json({ data: getAbsen, message: "succcess get data" });
+    return res.status(200).json({ data: getAbsen, message: "succcess get data" });
   } catch (error) {
     console.log(error);
-
-    res
-      .status(500)
-      .json({ error, message: "Terdapat error saat get data absen" });
+    res.status(500).json({ error, message: "Terdapat error saat get data absen" });
   }
 };
 
