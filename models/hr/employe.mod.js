@@ -818,4 +818,4 @@ LEFT JOIN master_position mp ON mp.IDPosition = emp.IDPosisi
 LEFT JOIN master_section ms2 ON ms2.IDSection  = emp.IDSection 
 LEFT JOIN sumbiri_employee_group seg ON seg.Nik = emp.Nik 
 LEFT JOIN sumbiri_group_shift sgs ON sgs.groupId = seg.groupId 
-WHERE emp.IDDepartemen = '100103' AND emp.StatusAktif = 0 AND emp.Nik LIKE :inputQry OR emp.NamaLengkap LIKE :inputQry `
+WHERE emp.IDDepartemen = '100103' AND emp.StatusAktif = 0 AND ( emp.Nik LIKE :inputQry OR emp.NamaLengkap LIKE :inputQry ) `

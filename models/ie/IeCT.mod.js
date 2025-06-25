@@ -474,14 +474,14 @@ export const IeCtMpProcesses = db.define(`ie_ct_mp_processes`, {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-  CT_TAKET_TIME : {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-  CT_TARGET_PCS : {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
+  // CT_ACT_TAKET_TIME : {
+  //       type: DataTypes.INTEGER,
+  //       allowNull: true,
+  //   },
+  // CT_ACT_TARGET_PCS : {
+  //       type: DataTypes.INTEGER,
+  //       allowNull: true,
+  //   },
   ADD_ID : {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -509,9 +509,10 @@ export const qryGetIctMpProcces = `SELECT
  icmp.CT_MPP_ID,
  icmp.OB_DETAIL_ID,
  icmp.OB_DETAIL_NO,
--- icmp.CT_TAKET_TIME,
--- icmp.CT_TAGET_PCS,
+-- icmp.CT_ACT_TAKET_TIME,
+-- icmp.CT_ACT_TARGET_PCS,
  icth.CT_WH,
+ icth.CT_MP,
  icod.OB_DETAIL_SMV,
  ctco.COUNT_USING,
  ROUND(((icth.CT_WH*60)/(icth.CT_WH/icod.OB_DETAIL_SMV))/ctco.COUNT_USING) AS CT_TAKET_TIME,
@@ -524,6 +525,7 @@ LEFT JOIN (
 	 icmp2.OB_DETAIL_ID,
 	 COUNT(icmp2.OB_DETAIL_ID) COUNT_USING
 	FROM ie_ct_mp_processes icmp2 
+  WHERE icmp2.CT_ID = :ctId
 	GROUP BY  icmp2.CT_ID, icmp2.OB_DETAIL_ID
 ) ctco ON ctco.OB_DETAIL_ID = icmp.OB_DETAIL_ID
 WHERE icmp.CT_ID = :ctId
@@ -622,3 +624,191 @@ export const ieCtDetailCount = db.define(`ie_ct_detail_count`, {
   freezeTableName: true,
   updatedAt : false
 })
+
+
+export const qryListCtSite = `SELECT 
+ icth.*,
+ is3.LINE_NAME,
+ ioh.OB_NAME,
+ ioh.PRODUCT_ITEM_CODE,
+ ldo.ORDER_STYLE_DESCRIPTION,
+ ldo.CUSTOMER_NAME,
+ ldo.PRODUCT_ITEM_CODE,
+ xuw.USER_INISIAL,
+ ldo.SHIFT
+FROM ie_cycle_time_header icth 
+LEFT JOIN item_siteline is3  ON is3.ID_SITELINE = icth.ID_SITELINE
+LEFT JOIN ie_ob_header ioh ON ioh.OB_ID = icth.OB_ID
+LEFT JOIN log_daily_output ldo ON ldo.SCHD_ID = icth.SCHD_ID AND icth.ID_SITELINE = ldo.ID_SITELINE
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = icth.ADD_ID
+WHERE icth.CT_DATE  = :schDate AND is3.SITE_NAME = :sitename
+ORDER BY is3.ID_SITELINE
+`
+
+export const qryGetIeCtMppOne = `SELECT 
+ icmp.CT_ID,
+ icmp.CT_MP_ID,
+ icmp.CT_DATE,
+ icmp.CT_MPP_ID,
+ icmp.OB_DETAIL_ID,
+ icmp.OB_DETAIL_NO,
+ icth.CT_WH,
+ icth.CT_MP,
+ icod.OB_DETAIL_SMV,
+ ctco.COUNT_USING,
+ ROUND(((icth.CT_WH*60)/(icth.CT_WH/icod.OB_DETAIL_SMV))/ctco.COUNT_USING) AS CT_TAKET_TIME,
+ ROUND((icth.CT_WH/icod.OB_DETAIL_SMV)/ctco.COUNT_USING) AS CT_TARGET_PCS
+FROM ie_ct_mp_processes icmp 
+LEFT JOIN ie_cycle_time_header icth ON icth.CT_ID = icmp.CT_ID
+LEFT JOIN ie_ct_ob_detail icod ON icod.OB_DETAIL_ID = icmp.OB_DETAIL_ID AND icmp.CT_DATE = icod.CT_DATE
+LEFT JOIN (
+	SELECT 
+	 icmp2.OB_DETAIL_ID,
+	 COUNT(icmp2.OB_DETAIL_ID) COUNT_USING
+	FROM ie_ct_mp_processes icmp2 
+    WHERE icmp2.CT_ID = :ctId
+	GROUP BY  icmp2.CT_ID, icmp2.OB_DETAIL_ID
+) ctco ON ctco.OB_DETAIL_ID = icmp.OB_DETAIL_ID
+WHERE icmp.CT_MPP_ID  = :ctMpId
+`
+
+
+ export const IeCtMpProcessGroup = db.define('ie_ct_mp_process_group', {
+    CT_MPP_GC_ID: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    CT_MPP_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    CT_GC_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    CT_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    CT_MP_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    // OB_DETAIL_ID: {
+    //   type: DataTypes.BIGINT,
+    //   allowNull: true,
+    // },
+    // OB_DETAIL_NO: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: true,
+    // },
+    CT_ACT_TAKE_TIME: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CT_ACT_TARGET_PCS: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ADD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    MOD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    }
+  }, {
+    freezeTableName: true,
+    timestamps: true, // aktifkan kalau createdAt dan updatedAt dikelola Sequelize
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  });
+
+
+  export const qryGetDataBarChart = `WITH base_mp_proccesses AS (
+	SELECT 
+	 icmp.CT_ID,
+	 icmp.CT_MPP_ID,
+	 icmp.CT_MP_ID,
+	 icmp.CT_DATE,
+	 icmp.OB_DETAIL_ID,
+	 icmp.OB_DETAIL_NO,
+	 icth.CT_WH,
+	 icth.CT_MP,
+	 icod.OB_DETAIL_SMV,
+	 ctco.COUNT_USING,
+	 ((icth.CT_WH*60)/(icth.CT_WH/icod.OB_DETAIL_SMV))/ctco.COUNT_USING AS CT_TAKET_TIME,
+	 ROUND((icth.CT_WH/icod.OB_DETAIL_SMV)/ctco.COUNT_USING) AS CT_TARGET_PCS
+	FROM ie_ct_mp_processes icmp 
+	LEFT JOIN ie_cycle_time_header icth ON icth.CT_ID = icmp.CT_ID
+	LEFT JOIN ie_ct_ob_detail icod ON icod.OB_DETAIL_ID = icmp.OB_DETAIL_ID AND icmp.CT_DATE = icod.CT_DATE
+	LEFT JOIN (
+		SELECT 
+		 icmp2.OB_DETAIL_ID,
+		 COUNT(icmp2.OB_DETAIL_ID) COUNT_USING
+		FROM ie_ct_mp_processes icmp2 
+	    WHERE icmp2.CT_ID = :ctId
+		GROUP BY  icmp2.CT_ID, icmp2.OB_DETAIL_ID
+	) ctco ON ctco.OB_DETAIL_ID = icmp.OB_DETAIL_ID
+	WHERE icmp.CT_ID = :ctId
+), mppAct AS (
+	SELECT 
+		 bmp.*,
+		 icmpg.CT_GC_ID,
+		 icmpg.CT_ACT_TAKE_TIME,
+		 icmpg.CT_ACT_TARGET_PCS
+	FROM base_mp_proccesses bmp 
+	LEFT JOIN ie_ct_mp_process_group icmpg ON icmpg.CT_MPP_ID = bmp.CT_MPP_ID 
+	WHERE icmpg.CT_ID = :ctId
+),
+sumMpp AS  (
+	SELECT
+ 	 Ma.CT_ID,
+	 Ma.CT_MPP_ID,
+	 Ma.CT_MP_ID,
+	 Ma.CT_GC_ID,
+	 Ma.CT_DATE,
+--	 Ma.OB_DETAIL_ID,
+--	 Ma.OB_DETAIL_NO,
+	 Ma.CT_WH,
+--	 Ma.CT_MP,
+	 COUNT(Ma.CT_MP_ID) COUNT_PROCCES,
+	 Ma.COUNT_USING,
+ 	 SUM(Ma.OB_DETAIL_SMV) AS OB_DETAIL_SMV,
+	 SUM(Ma.CT_TAKET_TIME) AS CT_TAKET_TIME,
+	 SUM(Ma.CT_ACT_TAKE_TIME) AS CT_ACT_TAKE_TIME
+  	 -- Ma.CT_TARGET_PCS,
+	 -- Ma.CT_ACT_TARGET_PCS,
+	 FROM mppAct AS Ma
+	 GROUP BY   Ma.CT_ID,
+			 	Ma.CT_MP_ID,
+			 	Ma.CT_GC_ID
+) 
+SELECT 
+ smp.CT_ID,
+ smp.CT_MPP_ID,
+ smp.CT_MP_ID,
+ smp.CT_DATE,
+ smp.CT_GC_ID,
+ smp.CT_WH,
+ icgc.CT_GC_NO,
+ smp.COUNT_PROCCES,
+ smp.COUNT_USING,
+ smp.OB_DETAIL_SMV,
+ ROUND(smp.CT_TAKET_TIME) AS CT_TAKET_TIME,
+ ROUND(smp.CT_ACT_TAKE_TIME) AS CT_ACT_TAKE_TIME,
+ ROUND((smp.CT_WH/smp.OB_DETAIL_SMV)) AS CT_TARGET_PCS,
+ ROUND((smp.CT_WH*60)/smp.CT_ACT_TAKE_TIME) AS CT_ACT_TARGET_PCS
+FROM sumMpp AS smp
+LEFT JOIN ie_ct_group_count icgc ON icgc.CT_GC_ID = smp.CT_GC_ID
+`

@@ -1,6 +1,6 @@
 import express from "express";
 import { deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
-import { afterPostHeaderCt, deleteIeCtMpProccesses, getBaseDataIeCyc, getIeCtDetailCount, getIeCtGroupCount, getSewRepEffforCt, patchHeaderIeCt, postHeaderIeCt, postIeCtDetailCount, postIeCtMp, postIeCtMpProccesses, postIeGroupCount, qryGetEmpForCt } from "../../controllers/production/ie/IeCycleTime.js";
+import { afterPostHeaderCt, deleteCtHeader, deleteCtMp, deleteIeCtDetailCount, deleteIeCtMpProccesses, getBaseDataIeCyc, getIeCtBarChartSeries, getIeCtDetailCount, getIeCtGroupCount, getIeCtMppGroupCount, getListCtHeader, getSewRepEffforCt, midGetAvgMpp, patchHeaderIeCt, postHeaderIeCt, postIeCtDetailCount, postIeCtMp, postIeCtMpProccesses, postIeGroupCount, qryGetEmpForCt } from "../../controllers/production/ie/IeCycleTime.js";
 const router = express.Router();
 
 router.get("/style-three", getDataTreeStyleOb);
@@ -34,8 +34,11 @@ router.get("/ob-image/:obid", getImageOb);
 //ie cycle time
 // router.get("/ob-header-by-item-code/:buyer/:prodItemCode", getlistObItemCode);
 router.get("/sewing-day-eff/:schDate/:sitename", getSewRepEffforCt);
+router.get("/list-ct-site/:schDate/:sitename", getListCtHeader);
 router.get("/get-emp-for-ct/:inputQry", qryGetEmpForCt);
 router.get("/get-base-detail-ct/:ctId", getBaseDataIeCyc);
+router.get("/get-barchart-ct/:ctId", getIeCtBarChartSeries);
+// router.get("/get-mpp-group-ct/:ctId", getIeCtMppGroupCount);
 router.get("/cycle-time-group-count/:ctId/:ieMpId", getIeCtGroupCount);
 router.get("/cycle-time-detail-count/:ctId/:ieMpId/:ieMppId", getIeCtDetailCount);
 
@@ -45,7 +48,10 @@ router.patch("/cycle-time-header", patchHeaderIeCt)
 router.post("/cycle-time-manpower", postIeCtMp)
 router.post("/cycle-time-manpower-proccesses", postIeCtMpProccesses)
 router.post("/cycle-time-group-count", postIeGroupCount)
-router.post("/cycle-time-detail-count", postIeCtDetailCount)
+router.post("/cycle-time-detail-count", postIeCtDetailCount, midGetAvgMpp)
+router.delete("/cycle-time-detail-count/:ctDetailId", deleteIeCtDetailCount, midGetAvgMpp)
+router.delete("/cycle-time-heade/:ctId", deleteCtHeader)
+router.delete("/cycle-time-manpower/:ctMpId", deleteCtMp)
 router.delete("/cycle-time-manpower-proccesses/:ctId/:ctMpId", deleteIeCtMpProccesses)
 
 

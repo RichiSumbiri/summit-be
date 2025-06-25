@@ -26,6 +26,23 @@ export const totalCol = (dataTable, namecol) => {
   );
 };
 
+export const averageCol = (dataTable, namecol) => {
+  let total = 0;
+  let count = 0;
+
+  for (const item of dataTable) {
+    const val = parseFloat(CheckNilai(item[namecol]));
+    if (!isNaN(val)) {
+      total += val;
+      count += 1;
+    }
+  }
+
+  return count > 0 ? (total / count) : 0;
+  // return count > 0 ? Math.round(total / count) : 0;
+};
+
+
 function calculateTimeDifference(startTime, endTime) {
   // Parse time strings using Moment.js
   // const startTime = moment(time1, "HH:mm:ss");
