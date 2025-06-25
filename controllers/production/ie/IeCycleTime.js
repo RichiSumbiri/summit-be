@@ -734,7 +734,7 @@ export const postIeCtDetailCount = async (req, res, next) => {
       const checkExistTime = getAllIeDtlCount.some(item => {
         const dbTime = new Date(item.CT_DETAIL_GET_TIME).getTime();
         const inputTime = new Date(dataBody.CT_DETAIL_GET_TIME).getTime();
-        return dbTime === inputTime;
+        return dbTime === inputTime && parseInt(item.CT_DETAIL_TTIME) === dataBody.CT_DETAIL_TTIME;
       });
 
       if(checkExistTime){
