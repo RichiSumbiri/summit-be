@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ModelCategorySkills, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
+import { ModelCategorySkills, ModelLogRecapMatrixSkill, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";
 import { modelMasterSubDepartment, sqlFindEmpByDeptSection, sqlFindEmpByDeptSubSection } from "../../models/hr/employe.mod.js";
@@ -786,6 +786,30 @@ export const get5LowestSkillLevelAverage = async(req,res) => {
         return res.status(404).json({
             success: false,
             message: "fail get lowest skill level average"
+        });
+    }
+}
+
+export const getLogMatrixSkillDaily = async(req,res) => {
+    try {
+        const { tanggal } = req.params;
+        const getData = await ModelLogRecapMatrixSkill.findAll({
+            where: {
+                skill_date: tanggal
+            }, raw: true
+        });
+        if(getData){
+            return res.status(200).json({
+                success: true,
+                message: "success get log matrix skill daily",
+                data: getData
+            });
+        }
+    } catch(err){
+       console.error(err);
+        return res.status(404).json({
+            success: false,
+            message: "fail get daily log matrix skill"
         });
     }
 }

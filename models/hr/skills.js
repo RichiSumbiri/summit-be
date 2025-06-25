@@ -251,3 +251,60 @@ LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
 WHERE se.Nik=:empNik
 
 `;
+
+
+export const ModelLogRecapMatrixSkill = dbSPL.define('sumbiri_log_matrix_skill', {
+    log_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    skill_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+    skill_category_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    skill_category_name: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    skill_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    skill_name: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    sub_skill_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    sub_skill_name: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    sub_skill_max: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    sub_skill_min: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    sub_skill_average: {
+      type: DataTypes.DECIMAL(20, 4),
+      allowNull: true
+    },
+    log_create_time: {
+      type: DataTypes.DATE,
+      allowNull: true
+    }
+  }, {
+    tableName: 'sumbiri_log_matrix_skill',
+    timestamps: false
+  });
