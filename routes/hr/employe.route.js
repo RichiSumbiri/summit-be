@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getDeptAll,
+  getDeptByUnit,
   getEmpBurekol,
   getEmpByNIK,
   getEmpByNIKActive,
@@ -11,6 +12,7 @@ import {
   getEmployeAktif,
   getEmployeAll,
   getEmpNewEmpAmipay,
+  getMasterUnit,
   getPositionAll,
   getSalaryType,
   getSection,
@@ -101,10 +103,12 @@ router.get("/master-address-kabkota", getMasterKabkota);
 router.get("/master-address-kecamatan", getMasterKecamatan);
 router.get("/master-address-kelurahan", getMasterKelurahan);
 router.get("/master-dept", getDeptAll);
+router.get("/master-dept-by-unit/:unit", getDeptByUnit);
 router.get("/master-subdept", getSubDeptAll);
 router.get("/master-position", getPositionAll);
 router.get("/master-saltype", getSalaryType);
 router.get("/master-section", getSection);
+router.get("/master-unit", getMasterUnit);
 router.get("/master-cuti", getMasterCuti);
 router.get("/master-absentee", getMasterAbsentee);
 

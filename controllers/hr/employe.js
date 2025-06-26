@@ -13,7 +13,7 @@ export const getDeptAll = async(req,res)=> {
     if(getDepartemenRedis){
         dataDepartemen = JSON.parse(getDepartemenRedis);
     } else {
-        dataDepartemen = await modelMasterDepartment.findAll();
+        dataDepartemen = await dbSPL.query('SELECT * FROM master_departemen', { type: QueryTypes.SELECT });
         redisConn.set('list-departemen', JSON.stringify(dataDepartemen), { EX: 604800 })
     }
     return res.status(200).json({
@@ -29,6 +29,32 @@ export const getDeptAll = async(req,res)=> {
     });
   }
 }
+
+
+// get master departement
+export const getDeptByUnit = async(req,res)=> {
+  try {
+    const { unit } = req.params;
+    const data = await dbSPL.query(`SELECT * FROM master_department WHERE UnitID= :unitID`, {
+      replacements: {
+        unitID: unit
+      }, type: QueryTypes.SELECT
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "success get master department by unit",
+      data: data,
+    });
+  } catch(error){
+    res.status(404).json({
+      success: false,
+      error: error,
+      message: "error get list department",
+    });
+  }
+}
+
 
 // get master subdepartement
 export const getSubDeptAll = async(req,res)=> {
@@ -120,6 +146,25 @@ export const getSection = async(req,res)=> {
       success: false,
       data: error,
       message: "error get list section",
+    });
+  }
+}
+
+export const getMasterUnit = async(req,res) => {
+  try {
+    const query = "SELECT * FROM master_unit";
+    const getData = await dbSPL.query(query, {
+      type: QueryTypes.SELECT
+    });
+    return res.status(200).json({
+      success: true,
+      message: "success get master unit",
+      data: getData,
+    });
+  } catch(err){
+    res.status(404).json({
+      success: false,
+      message: "error get list unit",
     });
   }
 }
