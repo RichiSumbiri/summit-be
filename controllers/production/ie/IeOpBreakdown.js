@@ -827,7 +827,7 @@ export const reNoIeObDetail = async (req, res, next) => {
 
         //hitung semua ob_detail_smv yang bernilai decimal
 
-        const totalObDetailSvm = allObDetail.reduce((total, item) => {
+        const totalObDetailSvm = allObDetail.filter(od => od.FEATURES_CATEGORY === 'SEWING').reduce((total, item) => {
           const smv = parseFloat(item.OB_DETAIL_SMV);
           return total + (isNaN(smv) ? 0 : smv);
         }, 0);
@@ -1529,7 +1529,7 @@ export const postImportObDetail = async (req, res, next) => {
 
         //hitung semua ob_detail_smv yang bernilai decimal
 
-        const totalObDetailSvm = allObDetail.reduce((total, item) => {
+        const totalObDetailSvm = allObDetail?.filter(od => od.FEATURES_CATEGORY === 'SEWING').reduce((total, item) => {
           const smv = parseFloat(item.OB_DETAIL_SMV);
           return total + (isNaN(smv) ? 0 : smv);
         }, 0);
