@@ -39,7 +39,8 @@ import hrdashboard from "./hr/hrDash.route.js";
 import payroll from "./payroll/masterPayroll.router.js";
 import ie from "./ie/ie.route.js";
 import reservation from "./hr/reservation.route.js";
-
+import storage from "./storage/storage.route.js"
+import building from "./list/building.route.js"
 
 const router = express.Router();
 
@@ -79,6 +80,8 @@ router.use("/hrdashboard", hrdashboard);
 router.use("/payroll", payroll);
 router.use("/ie", ie);
 router.use("/reservation", reservation)
+router.use("/storage", storage)
+router.use("/building", building)
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));

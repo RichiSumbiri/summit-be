@@ -1,0 +1,13 @@
+import express from "express";
+import {createStorageInventory, getAllStorageInventory, getStorageInventoryById, updateStorageInventory, deleteStorageInventory, getStorageInventoryBySerialNumber} from "../../controllers/storage/storageInventory.js"
+const router = express.Router();
+
+router.post("/inventory", createStorageInventory);
+router.get("/inventory", getAllStorageInventory);
+router.get("/inventory/:id", getStorageInventoryById);
+router.get("/inventory-serial/:serialNumber", getStorageInventoryBySerialNumber);
+router.put("/inventory/:id", updateStorageInventory);
+router.delete("/inventory/:id", deleteStorageInventory);
+export default router;
+
+
