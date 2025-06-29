@@ -87,6 +87,18 @@ export  const IeCycleTimeHeader = db.define('ie_cycle_time_header', {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    CT_TTIME_ACTUAL: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CT_TARGET_ACTUAL: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CT_ACTUAL_SMV: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
     CT_SIZE_REF: {
       type: DataTypes.STRING(100),
       allowNull: true,

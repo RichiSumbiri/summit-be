@@ -5,7 +5,7 @@ import {  ieCtDetailCount, IeCtGroupCount, IeCtMpProcesses, IeCtMpProcessGroup, 
 import { qryGetEmpForIeCt } from "../../../models/hr/employe.mod.js";
 import { dbSPL } from "../../../config/dbAudit.js";
 import { IeObDetail, IeObFeatures, IeObHeader } from "../../../models/ie/IeOb.mod.js";
-import { averageCol } from "../../util/Utility.js";
+import { averageCol, CheckNilai, totalCol } from "../../util/Utility.js";
 
 //query get dailly eff report
 export const getSewRepEffforCt = async (req, res) => {
@@ -936,6 +936,38 @@ export const midGetAvgMpp = async (req, res) => {
         raw : true
       })
 
+      // ambil data sama seperti barchart untuk menghitung total actual take time
+      const getDetailMpGroup = await db.query(qryGetDataBarChart, {
+        replacements: {
+          ctId: dataPost.CT_ID,
+        },
+        type: QueryTypes.SELECT,
+       });
+
+       let objForHeader = {
+        CT_TTIME_ACTUAL : 0,
+        CT_TARGET_ACTUAL : 0,
+        CT_ACTUAL_SMV : 0,
+       }
+
+       //jika ada data detail mpp group maka lakukankalkulasi actual smv, target dan actual take time untuk header 
+       if(getDetailMpGroup.length !== 0){
+         const arrActTT = getDetailMpGroup.filter(tt => tt.CT_GC_NO === 1)
+         
+         const actualSmv = CheckNilai(totalCol(arrActTT, 'CT_ACT_TAKE_TIME')/60) || 0;
+         const actualTarget = Math.round((dataMpp.CT_WH / parseFloat(actualSmv)) * dataMpp.CT_MP);
+         const actualTT =  Math.round((dataMpp.CT_WH * 60) / actualTarget, 1);
+         objForHeader.CT_ACTUAL_SMV = actualSmv;
+         objForHeader.CT_TTIME_ACTUAL = actualTT;
+         objForHeader.CT_TARGET_ACTUAL = actualTarget ;
+                  
+  
+       }
+        const updateHeader = await IeCycleTimeHeader.update(objForHeader, {
+          where: { CT_ID: dataPost.CT_ID }
+        });
+
+        
     return res.json({
       message: req.body.message,
       data: arrResult,
@@ -1066,7 +1098,7 @@ export const getIeCtBarChartSeries = async(req,res) => {
     let seriesTT = []
     if(arrStdTt.length > 0){
       const objSeriesStd = {
-              name: 'STD',
+              name: 'TT',
               type: 'line',
               data: arrStdTt
             }
@@ -1094,7 +1126,7 @@ export const getIeCtBarChartSeries = async(req,res) => {
     let seriesPcs = []
     if(arrStdPcs.length > 0){
       const objSeriesStdPCs = {
-              name: 'STD',
+              name: 'TT',
               type: 'line',
               data: arrStdPcs
             }
