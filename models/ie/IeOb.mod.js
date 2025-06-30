@@ -323,6 +323,7 @@ export const IeObFeatures = db.define('ie_ob_features', {
     ID_OB_FEATURES: {
       type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
     },
     OB_ID: {
       type: DataTypes.STRING(100),

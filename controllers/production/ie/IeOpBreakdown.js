@@ -1346,12 +1346,18 @@ export const postImportObDetail = async (req, res, next) => {
      return objFeat
     })
 
+    
+
     const postFeatures = await IeObFeatures.bulkCreate(dataPostFeatures, { returning: true })
-    const planFeatures = postFeatures.map(item =>{
-      const fet = item.dataValues
-      const featName = checkListFeatures.find(ft => ft.FEATURES_ID === fet.FEATURES_ID)
+    const resultPostFeatures = await IeObFeatures.findAll({
+      where: { OB_ID: obId },
+      raw: true,
+    })
+
+    const planFeatures = resultPostFeatures.map(item =>{
+      const featName = checkListFeatures.find(ft => ft.FEATURES_ID === item.FEATURES_ID)
       
-      return {...fet, ...featName}
+      return {...item, ...featName}
       //adding features name untuk looping dibawah
       
     });
@@ -1375,6 +1381,7 @@ export const postImportObDetail = async (req, res, next) => {
           
           //cari features id
           const findIdFeatures = planFeatures.find(ft => ft.FEATURES_NAME.toLowerCase() === item.FEATURES_NAME.toLowerCase())
+          // console.log({item, planFeatures});
           
           //cari machine id 
           let findIdMachine = await listMachine.findOne({
