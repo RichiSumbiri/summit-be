@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import BuildingModel from "./buildings.mod.js";
 
 const BuildingRoomModel = db.define(
   "building_room",
@@ -50,5 +51,10 @@ const BuildingRoomModel = db.define(
     timestamps: false, 
   }
 );
+
+BuildingRoomModel.belongsTo(BuildingModel, {
+  foreignKey: "BUILDING_ID",
+  as: "BUILDING"
+})
 
 export default BuildingRoomModel;

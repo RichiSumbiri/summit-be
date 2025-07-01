@@ -1,5 +1,6 @@
 import { where } from "sequelize";
 import BuildingRoomModel from "../../models/list/buildingRoom.mod.js";
+import BuildingModel from "../../models/list/buildings.mod.js";
 
 
 export const createRoom = async (req, res) => {
@@ -47,7 +48,13 @@ export const getAllRooms = async (req, res) => {
         if (UNIT_ID) {
             whereCondition.UNIT_ID = UNIT_ID
         }
-        const rooms = await BuildingRoomModel.findAll({ where: whereCondition });
+        const rooms = await BuildingRoomModel.findAll({ where: whereCondition, include: [
+            {
+                model: BuildingModel,
+                as: "BUILDING",
+                attributes: ["ID", "NAME", "DESCRIPTION"]
+            }
+        ] });
 
         return res.status(200).json({
             success: true,
