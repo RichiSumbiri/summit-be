@@ -4,7 +4,7 @@ import BuildingRoomModel from "../../models/list/buildingRoom.mod.js";
 
 export const createRoom = async (req, res) => {
     try {
-        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL } = req.body;
+        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL, UNIT_ID } = req.body;
 
 
         if (!BUILDING_ID || !NAME) {
@@ -19,6 +19,7 @@ export const createRoom = async (req, res) => {
             NAME,
             DESCRIPTION, CODE,
             FLOOR_LEVEL,
+            UNIT_ID
         });
 
         return res.status(201).json({
@@ -38,10 +39,13 @@ export const createRoom = async (req, res) => {
 
 export const getAllRooms = async (req, res) => {
     try {
-        const { BUILDING_ID } = req.query
+        const { BUILDING_ID, UNIT_ID } = req.query
         const whereCondition = {}
         if (BUILDING_ID) {
             whereCondition.BUILDING_ID = BUILDING_ID;
+        }
+        if (UNIT_ID) {
+            whereCondition.UNIT_ID = UNIT_ID
         }
         const rooms = await BuildingRoomModel.findAll({ where: whereCondition });
 
@@ -91,7 +95,7 @@ export const getRoomById = async (req, res) => {
 export const updateRoom = async (req, res) => {
     try {
         const { id } = req.params;
-        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL } = req.body;
+        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL, UNIT_ID } = req.body;
 
         const room = await BuildingRoomModel.findByPk(id);
 
@@ -107,6 +111,7 @@ export const updateRoom = async (req, res) => {
             NAME,
             DESCRIPTION, CODE,
             FLOOR_LEVEL,
+            UNIT_ID
         });
 
         return res.status(200).json({

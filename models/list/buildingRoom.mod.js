@@ -30,6 +30,11 @@ const BuildingRoomModel = db.define(
       type: DataTypes.STRING(20),
       allowNull: false,
     },
+    UNIT_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+    },
     CREATED_AT: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
