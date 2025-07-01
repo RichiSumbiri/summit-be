@@ -323,6 +323,7 @@ export const IeObFeatures = db.define('ie_ob_features', {
     ID_OB_FEATURES: {
       type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
     },
     OB_ID: {
       type: DataTypes.STRING(100),
@@ -791,10 +792,12 @@ ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
 export const qryGetObDetailForBe = `SELECT 
  iod.*,
  iof.ID_OB_FEATURES,
- iof.SEQ_NO
+ iof.SEQ_NO,
+ ilf.FEATURES_CATEGORY
 FROM ie_ob_detail iod
 LEFT JOIN ie_ob_features iof ON iof.ID_OB_FEATURES = iod.ID_OB_FEATURES
-WHERE iod.OB_ID = :obId
+LEFT JOIN item_list_features ilf ON ilf.FEATURES_ID = iof.FEATURES_ID
+WHERE iod.OB_ID = :obId 
 ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
 
 export const lastObNoBYSeq = `SELECT 

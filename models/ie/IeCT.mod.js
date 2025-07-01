@@ -38,7 +38,7 @@ export const qryGetListEffCt = (params) => {
         AND a.PRODUCT_ITEM_CODE = opl.ORDER_PRODUCT_ITEM_CODE AND a.ITEM_COLOR_CODE = opl.ITEM_COLOR_CODE
   LEFT JOIN item_siteline ist ON ist.ID_SITELINE = a.ID_SITELINE
   WHERE ${params}
-  GROUP BY a.SCHD_ID 
+  GROUP BY a.SCHD_ID, a.ID_SITELINE
   ORDER BY a.ID_SITELINE`
 }
 
@@ -85,6 +85,18 @@ export  const IeCycleTimeHeader = db.define('ie_cycle_time_header', {
     },
     CT_NO_OF_DAYS: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CT_TTIME_ACTUAL: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CT_TARGET_ACTUAL: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    CT_ACTUAL_SMV: {
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },
     CT_SIZE_REF: {
