@@ -299,7 +299,7 @@ export const qryGetEmpRef = `SELECT
 	se.NamaLengkap,
   CONCAT(se.Nik,' - ',se.NamaLengkap) AS labelKaryawan
 FROM sumbiri_employee se
-WHERE se.StatusAktif = 0 AND (se.Nik LIKE :qry OR se.NamaLengkap LIKE :qry)
+WHERE (se.Nik LIKE :qry OR se.NamaLengkap LIKE :qry)
 ORDER BY se.IDDepartemen, se.NamaLengkap `;
 
 export const qryGetMemberGroup = `SELECT
