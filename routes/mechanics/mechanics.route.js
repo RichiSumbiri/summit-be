@@ -10,6 +10,7 @@ import {
   getMacItemIn,
   getMacItemOut,
   getMachineNo,
+  getMachinesByStorageInventoryId,
   getMecRepSaldoAwl,
   getOneMachForIN,
   getOneMachine,
@@ -18,15 +19,19 @@ import {
   postMachItemIn,
   postMachine,
   updateMachine,
+  updateMachineAndStorage,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
 router.get("/machines", getListMachine);
 router.get("/machines/:code", getOneMachine);
 router.get("/machines-inpt/:macId", getOneMachForIN);
+router.get('/storage/:storageInventoryId', getMachinesByStorageInventoryId);
 router.get("/type-machines", getListTypeMec);
 router.post("/machines", postMachine);
 router.patch("/machines", updateMachine);
+router.patch("/machine/:machineNo/storage/:serialNumberInventory", updateMachineAndStorage);
+
 router.delete("/machines/:macId", deleteMachine);
 
 router.post("/item-in", postMachItemIn);

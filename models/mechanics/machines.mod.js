@@ -65,6 +65,14 @@ export const MecListMachine = db.define(
       type: DataTypes.BIGINT(20),
       allowNull: true,
     },
+    STORAGE_INVENTORY_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    DEPARTMENT_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    }
   },
   {
     freezeTableName: true,
@@ -84,6 +92,7 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
+a.STORAGE_INVENTORY_ID,
 a.MACHINE_STATUS
 -- a.MACHINE_NO_BC,
 -- a.MACHINE_KODE_DOC,
@@ -91,6 +100,28 @@ a.MACHINE_STATUS
 FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
+ORDER BY a.updatedAt DESC`;
+
+export const qryGetAllMachineByDepartment = `SELECT a.MACHINE_ID,
+a.MACHINE_TYPE, 
+b.TYPE_DESCRIPTION,
+a.MACHINE_DESCRIPTION,
+a.MACHINE_SERIAL,
+a.MACHINE_UOM,
+a.MACHINE_SECTION,
+c.SECTION_NAME,
+c.SECTION_CATEGORY,
+a.MACHINE_BRAND,
+a.MACHINE_MODEL,
+a.STORAGE_INVENTORY_ID,
+a.MACHINE_STATUS
+-- a.MACHINE_NO_BC,
+-- a.MACHINE_KODE_DOC,
+-- a.MACHINE_DOK_DATE
+FROM mec_item_master a 
+LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
+LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
+WHERE a.DEPARTMENT_ID = :departmentId
 ORDER BY a.updatedAt DESC`;
 
 export const qryGetlistType = `SELECT a.TYPE_ID, a.TYPE_DESCRIPTION, CONCAT(a.TYPE_ID, ' - ',a.TYPE_DESCRIPTION) AS NAME_MEC  FROM mec_type_of_machine a `;
@@ -107,6 +138,7 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
+a.STORAGE_INVENTORY_ID,
 a.MACHINE_STATUS,
 ROUND(d.BALANCE,2) BALANCE
 FROM mec_item_master a 
@@ -196,6 +228,7 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
+a.STORAGE_INVENTORY_ID,
 a.MACHINE_STATUS
 FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
@@ -266,6 +299,7 @@ a.MACHINE_SECTION,
 c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
+a.STORAGE_INVENTORY_ID,
 a.MACHINE_MODEL,
 a.MACHINE_STATUS
 FROM mec_item_master a 
@@ -286,6 +320,7 @@ a.MACHINE_SECTION,
 c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
+a.STORAGE_INVENTORY_ID,
 a.MACHINE_MODEL,
 a.MACHINE_STATUS,
 ROUND(d.BALANCE,2) BALANCE,

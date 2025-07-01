@@ -6,6 +6,7 @@ import {
   MecListMachine,
   findEmploye,
   qryGetAllMachine,
+  qryGetAllMachineByDepartment,
   qryGetDtlTransPart,
   qryGetOneItem,
   qryGetOneMachine,
@@ -18,6 +19,7 @@ import {
 } from "../../models/mechanics/machines.mod.js";
 import { QueryTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
+import StorageInventoryModel from "../../models/storage/storageInventory.mod.js";
 
 export const getOneMachine = async (req, res) => {
   try {
@@ -42,11 +44,20 @@ export const getOneMachine = async (req, res) => {
 };
 
 export const getListMachine = async (req, res) => {
-  try {
-    const listMach = await db.query(qryGetAllMachine, {
-      type: QueryTypes.SELECT,
-    });
+  const { departmentId } = req.query;
 
+  try {
+    var listMach = []
+    if (Number(departmentId)) {
+      listMach = await db.query(qryGetAllMachineByDepartment, {
+        replacements: { departmentId },
+        type: QueryTypes.SELECT
+      });
+    } else {
+      listMach = await db.query(qryGetAllMachine, {
+        type: QueryTypes.SELECT,
+      });
+    }
     const listType = await db.query(qryGetlistType, {
       type: QueryTypes.SELECT,
     });
@@ -117,10 +128,56 @@ export const updateMachine = async (req, res) => {
       message: "Data Update Success",
     });
   } catch (error) {
-    console.log(error);
     res.status(404).json({
       success: false,
       message: "error processing request post list machine",
+    });
+  }
+};
+
+export const updateMachineAndStorage = async (req, res) => {
+  try {
+    const { machineNo, serialNumberInventory } = req.params;
+
+    if (!machineNo || !serialNumberInventory) {
+      return res.status(400).json({
+        success: false,
+        message: "Machine number and serial number inventory must be provided",
+      });
+    }
+
+    const machine = await MecListMachine.findOne({
+      where: { MACHINE_ID: machineNo },
+    });
+
+    if (!machine) {
+      return res.status(404).json({
+        success: false,
+        message: "Machine not found",
+      });
+    }
+    const storageInventory = await StorageInventoryModel.findOne({ where: { SERIAL_NUMBER: serialNumberInventory } });
+    if (!storageInventory) {
+      return res.status(404).json({
+        success: false,
+        message: "Storage inventory not found",
+      });
+    }
+
+    await machine.update({
+      STORAGE_INVENTORY_ID: storageInventory.dataValues.ID,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Machine and storage updated successfully",
+      data: null,
+    });
+  } catch (error) {
+    console.error("Error updating machine and storage:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to update machine and storage: ${error.message}`,
     });
   }
 };
@@ -514,6 +571,41 @@ export const getDtlMecTrans = async (req, res) => {
       success: false,
       data: error,
       message: "error processing request get list detail",
+    });
+  }
+};
+
+
+
+export const getMachinesByStorageInventoryId = async (req, res) => {
+  try {
+    const { storageInventoryId } = req.params;
+
+
+    if (!storageInventoryId) {
+      return res.status(400).json({
+        success: false,
+        message: "Storage inventory ID is required",
+      });
+    }
+
+
+    const machines = await MecListMachine.findAll({
+      where: { STORAGE_INVENTORY_ID: storageInventoryId },
+    });
+
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Machines retrieved successfully",
+      data: machines,
+    });
+  } catch (error) {
+    console.error("Error retrieving machines by storage inventory ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve machines: ${error.message}`,
     });
   }
 };
