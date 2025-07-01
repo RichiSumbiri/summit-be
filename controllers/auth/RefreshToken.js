@@ -25,7 +25,7 @@ export const refreshToken = async (req, res) => {
         const userId = user[0].USER_ID;
         const username = user[0].USER_NAME;
         const userDept = user[0].USER_DEP;
-        const userUnit = user[0].USER_UNIT;
+        const userUnit = user[0].UNIT_ID;
         const userLevel = user[0].USER_LEVEL;
         const userMode = user[0].USER_DARK_MODE;
         const userPath = user[0].USER_PATH;
