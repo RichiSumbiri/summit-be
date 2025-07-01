@@ -13,7 +13,7 @@ export const getDeptAll = async(req,res)=> {
     if(getDepartemenRedis){
         dataDepartemen = JSON.parse(getDepartemenRedis);
     } else {
-        dataDepartemen = await dbSPL.query('SELECT * FROM master_departemen', { type: QueryTypes.SELECT });
+        dataDepartemen = await dbSPL.query('SELECT * FROM master_department', { type: QueryTypes.SELECT });
         redisConn.set('list-departemen', JSON.stringify(dataDepartemen), { EX: 604800 })
     }
     return res.status(200).json({
