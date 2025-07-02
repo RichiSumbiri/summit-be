@@ -486,10 +486,10 @@ export const IeCtMpProcesses = db.define(`ie_ct_mp_processes`, {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-  // CT_ACT_TAKET_TIME : {
-  //       type: DataTypes.INTEGER,
-  //       allowNull: true,
-  //   },
+  CT_MPP_REMARK : {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
   // CT_ACT_TARGET_PCS : {
   //       type: DataTypes.INTEGER,
   //       allowNull: true,
@@ -521,13 +521,14 @@ export const qryGetIctMpProcces = `SELECT
  icmp.CT_MPP_ID,
  icmp.OB_DETAIL_ID,
  icmp.OB_DETAIL_NO,
+ IFNULL(icmp.CT_MPP_REMARK,'') AS CT_MPP_REMARK,
 -- icmp.CT_ACT_TAKET_TIME,
 -- icmp.CT_ACT_TARGET_PCS,
  icth.CT_WH,
  icth.CT_MP,
  icod.OB_DETAIL_SMV,
  ctco.COUNT_USING,
- ROUND(((icth.CT_WH*60)/(icth.CT_WH/icod.OB_DETAIL_SMV))/ctco.COUNT_USING) AS CT_TAKET_TIME,
+ ROUND(((icth.CT_WH*60)/(icth.CT_WH/icod.OB_DETAIL_SMV))/ctco.COUNT_USING, 2) AS CT_TAKET_TIME,
  ROUND((icth.CT_WH/icod.OB_DETAIL_SMV)/ctco.COUNT_USING) AS CT_TARGET_PCS
 FROM ie_ct_mp_processes icmp 
 LEFT JOIN ie_cycle_time_header icth ON icth.CT_ID = icmp.CT_ID
@@ -541,6 +542,7 @@ LEFT JOIN (
 	GROUP BY  icmp2.CT_ID, icmp2.OB_DETAIL_ID
 ) ctco ON ctco.OB_DETAIL_ID = icmp.OB_DETAIL_ID
 WHERE icmp.CT_ID = :ctId
+ORDER BY icmp.OB_DETAIL_NO
 `
 
 
@@ -791,7 +793,7 @@ sumMpp AS  (
 	 Ma.CT_GC_ID,
 	 Ma.CT_DATE,
 --	 Ma.OB_DETAIL_ID,
---	 Ma.OB_DETAIL_NO,
+   Ma.OB_DETAIL_NO,
 	 Ma.CT_WH,
 --	 Ma.CT_MP,
 	 COUNT(Ma.CT_MP_ID) COUNT_PROCCES,
@@ -823,4 +825,5 @@ SELECT
  ROUND((smp.CT_WH*60)/smp.CT_ACT_TAKE_TIME) AS CT_ACT_TARGET_PCS
 FROM sumMpp AS smp
 LEFT JOIN ie_ct_group_count icgc ON icgc.CT_GC_ID = smp.CT_GC_ID
+ORDER BY smp.OB_DETAIL_NO
 `

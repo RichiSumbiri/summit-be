@@ -303,7 +303,7 @@ export const afterPostHeaderCt = async (req, res) => {
 }
 
 
-export const patchHeaderIeCt = async (req, res) => {
+export const patchHeaderIeCt = async (req, res, next) => {
   try {
     const dataPost = req.body 
     if(!dataPost.CT_ID) return res.status(404).json({message : 'CT ID required'})
@@ -312,11 +312,17 @@ export const patchHeaderIeCt = async (req, res) => {
         CT_ID : dataPost.CT_ID
       }
     })
-    let dataReturn = {}
     if(ieCtHeaderPost){
-       dataReturn =  !dataPost.CT_ID ? ieCtHeaderPost.get({ plain: true }) : dataPost      
-      return res.json({message: 'success post Ie Cycletime Header', data : dataReturn})
+      const getDataCtHeader = await IeCycleTimeHeader.findOne({
+        where : {
+          CT_ID : dataPost.CT_ID  
+        },
+        raw: true
+      })
+      return res.status(200).json({message : 'Success update header CT', data : getDataCtHeader})
+
     }else{
+      
       return res.status(404).json({message : 'Failed to create new header CT'})
     }
     
@@ -619,6 +625,34 @@ export const postIeCtMpProccesses = async (req, res) => {
   }
 }
 
+
+export const patchIeCtMpProccesses = async (req, res) => {
+  try {
+    //data remark
+      const objMppRemark = req.body
+
+      const setRemarks =  await IeCtMpProcesses.update(objMppRemark, {
+        where : {
+          CT_ID : objMppRemark.CT_ID,
+          CT_MPP_ID : objMppRemark.CT_MPP_ID
+        },
+        raw: true
+      })
+
+    if(setRemarks){
+      return res.json({message : 'Success Set Remarks', data: objMppRemark})
+    }else{
+      return res.status(404).json({message : 'Failed Set Proccess To Manpower'})
+    }
+  } catch (error) {
+      console.log(error);
+      return res.status(404).json({
+        message: "error set manpower proccess",
+        data: error,
+      }); 
+  }
+}
+
 //handle uncheck all untuk satu mp
 export const deleteIeCtMpProccesses = async (req, res) => {
   try {
@@ -649,24 +683,41 @@ export const deleteIeCtMpProccesses = async (req, res) => {
 
 export const postIeGroupCount = async (req, res) => {
   try {
-    const dataBody = req.body
-
+    const {dataMPp, mpProccesSel, userId} = req.body
+    if(!dataMPp.CT_ID) return res.status(404).json({message : 'CT ID required'})
+    if(mpProccesSel.length === 0) return res.status(404).json({message : 'Manpower Proccesses required'})
+    
        const getAllIeGc = await IeCtGroupCount.findAll({
         where : {
-          CT_ID : dataBody.CT_ID,
-          CT_MP_ID : dataBody.CT_MP_ID
+          CT_ID : dataMPp.CT_ID,
+          CT_MP_ID : dataMPp.CT_MP_ID
         },
         raw : true
       })
 
       const dataPost = {
-        ...dataBody,
+        ...dataMPp,
         CT_GC_NO : getAllIeGc.length+1
       }
 
     const postIeGc = await IeCtGroupCount.create(dataPost)
+    const dataPostId = postIeGc.get({ plain: true });
 
     if(postIeGc){
+      //periapkan data detail count intitals
+      const groupMppCount = mpProccesSel.map((item, index) => ({
+        CT_ID: item.CT_ID,
+        CT_GC_ID: dataPostId.CT_GC_ID,
+        CT_MP_ID: item.CT_MP_ID,
+        CT_MPP_ID: item.CT_MPP_ID,
+        CT_ACT_TAKE_TIME: 0,
+        CT_ACT_TARGET_PCS: 0,
+        ADD_ID : userId
+      }))
+
+        const postIeGc = await IeCtMpProcessGroup.bulkCreate(groupMppCount)
+
+
       const getAllIeGc = await IeCtGroupCount.findAll({
         where : {
           CT_ID : dataPost.CT_ID,
@@ -731,15 +782,15 @@ export const postIeCtDetailCount = async (req, res, next) => {
       }
 
       //check apakah kpo ambil time yang sama (untuk menghindari cheat)
-      const checkExistTime = getAllIeDtlCount.some(item => {
-        const dbTime = new Date(item.CT_DETAIL_GET_TIME).getTime();
-        const inputTime = new Date(dataBody.CT_DETAIL_GET_TIME).getTime();
-        return dbTime === inputTime && parseInt(item.CT_DETAIL_TTIME) === dataBody.CT_DETAIL_TTIME;
-      });
+      // const checkExistTime = getAllIeDtlCount.some(item => {
+      //   const dbTime = new Date(item.CT_DETAIL_GET_TIME).getTime();
+      //   const inputTime = new Date(dataBody.CT_DETAIL_GET_TIME).getTime();
+      //   return dbTime === inputTime && parseInt(item.CT_DETAIL_TTIME) === dataBody.CT_DETAIL_TTIME;
+      // });
 
-      if(checkExistTime){
-        return res.status(202).json({message: "Already get this time"})
-      }
+      // if(checkExistTime){
+      //   return res.status(202).json({message: "Already get this time"})
+      // }
 
 
       const dataPost = {
@@ -848,7 +899,7 @@ export const midGetAvgMpp = async (req, res) => {
       raw: true
     });
 
-    //handle array kosong
+    //handle array kosong jika kosong maka delete count group
     if (!Array.isArray(arrResult) || arrResult.length === 0) {
       // return res.status(400).json({ message: "arrResult is required and must be a non-empty array." });
 
@@ -1045,13 +1096,20 @@ function getCategoryStrings(data) {
     categoriesMap[mpId].add(obDetailNo);
   });
 
-  const categoryStrings = Object.values(categoriesMap).map(obDetailSet => {
-    const sortedNos = Array.from(obDetailSet).sort((a, b) => a - b);
-    return sortedNos.join('+');
-  });
+  const categoryStrings = Object.values(categoriesMap)
+    .map(obDetailSet => {
+      const sortedNos = Array.from(obDetailSet).sort((a, b) => a - b);
+      return {
+        firstNo: sortedNos[0],            // nilai terkecil OB_DETAIL_NO
+        joined: sortedNos.join('+')
+      };
+    })
+    .sort((a, b) => a.firstNo - b.firstNo)  // urutkan berdasarkan OB_DETAIL_NO terkecil
+    .map(item => item.joined);              // ambil string gabungan saja
 
   return categoryStrings;
 }
+
 
 
 
@@ -1079,6 +1137,8 @@ export const getIeCtBarChartSeries = async(req,res) => {
       replacements: {ctId : ctId},
       type: QueryTypes.SELECT,
     })
+    // console.log({getDataOne, getDataAllMpp});
+    
 
     const onlyGroupOne = getDataOne.filter(br => br.CT_GC_NO === 1)
     //ambil array mpid untuk filter Mpp
