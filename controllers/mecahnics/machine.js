@@ -3,6 +3,7 @@ import db from "../../config/database.js";
 import {
   MacItemIn,
   MacPartOut,
+  MacTypeOfMachine,
   MecListMachine,
   findEmploye,
   qryGetAllMachine,
@@ -145,7 +146,7 @@ export const updateMachineAndStorage = async (req, res) => {
         message: "Machine number and serial number inventory must be provided",
       });
     }
-
+    
     const machine = await MecListMachine.findOne({
       where: { MACHINE_ID: machineNo },
     });
@@ -156,7 +157,11 @@ export const updateMachineAndStorage = async (req, res) => {
         message: "Machine not found",
       });
     }
-    const storageInventory = await StorageInventoryModel.findOne({ where: { SERIAL_NUMBER: serialNumberInventory } });
+    
+    const storageInventory = await StorageInventoryModel.findOne({
+      where: { SERIAL_NUMBER: serialNumberInventory },
+    });
+
     if (!storageInventory) {
       return res.status(404).json({
         success: false,
@@ -164,20 +169,100 @@ export const updateMachineAndStorage = async (req, res) => {
       });
     }
 
+    const machinesInStorage = await MecListMachine.findAll({
+      where: { STORAGE_INVENTORY_ID: storageInventory.ID },
+      order: [["SEQ_NO", "DESC"]], 
+    });
+    
+    const newSeqNo = machinesInStorage.length > 0 ? machinesInStorage[0].SEQ_NO + 1 : 1;
+
     await machine.update({
-      STORAGE_INVENTORY_ID: storageInventory.dataValues.ID,
+      STORAGE_INVENTORY_ID: storageInventory.ID,
+      SEQ_NO: newSeqNo,
     });
 
     return res.status(200).json({
       success: true,
       message: "Machine and storage updated successfully",
-      data: null,
+      data: {
+        MACHINE_ID: machine.MACHINE_ID,
+        STORAGE_INVENTORY_ID: storageInventory.ID,
+        SEQ_NO: newSeqNo,
+      },
     });
   } catch (error) {
     console.error("Error updating machine and storage:", error);
     return res.status(500).json({
       success: false,
       message: `Failed to update machine and storage: ${error.message}`,
+    });
+  }
+};
+
+export const updateSequenceByStorageAndMachine = async (req, res) => {
+  try {
+    const { storageInventoryId } = req.params;
+    const { machineId, newSeqNo } = req.body;
+
+  
+    if (!storageInventoryId || !machineId || !newSeqNo) {
+      return res.status(400).json({
+        success: false,
+        message: "Storage inventory ID, machine ID, and new sequence number must be provided",
+      });
+    }
+
+  
+    const machinesInStorage = await MecListMachine.findAll({
+      where: { STORAGE_INVENTORY_ID: storageInventoryId },
+      order: [["SEQ_NO", "ASC"]],
+    });
+
+  
+    const targetMachine = machinesInStorage.find((machine) => machine.MACHINE_ID === machineId);
+
+    if (!targetMachine) {
+      return res.status(404).json({
+        success: false,
+        message: "Machine not found in the specified storage inventory",
+      });
+    }
+
+  
+    if (newSeqNo < 1 || newSeqNo > machinesInStorage.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid sequence number. It must be between 1 and the total number of machines in the storage.",
+      });
+    }
+
+  
+    machinesInStorage.forEach((machine) => {
+      if (machine.SEQ_NO === newSeqNo && machine.MACHINE_ID !== machineId) {
+      
+        machine.SEQ_NO = targetMachine.SEQ_NO;
+        machine.save();
+      }
+    });
+
+  
+    targetMachine.SEQ_NO = newSeqNo;
+    await targetMachine.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Sequence updated successfully",
+      data: {
+        MACHINE_ID: targetMachine.MACHINE_ID,
+        STORAGE_INVENTORY_ID: storageInventoryId,
+        NEW_SEQ_NO: newSeqNo,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating sequence:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to update sequence: ${error.message}`,
     });
   }
 };
@@ -592,6 +677,14 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
 
     const machines = await MecListMachine.findAll({
       where: { STORAGE_INVENTORY_ID: storageInventoryId },
+      include: [
+        {
+          model: MacTypeOfMachine,
+          as: "MEC_TYPE_OF_MACHINE",
+          attributes: ["TYPE_DESCRIPTION", "COLOR"]
+        }
+      ],
+      order: [["SEQ_NO"]]
     });
 
 

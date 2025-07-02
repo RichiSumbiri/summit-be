@@ -20,6 +20,7 @@ import {
   postMachine,
   updateMachine,
   updateMachineAndStorage,
+  updateSequenceByStorageAndMachine,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
@@ -31,6 +32,8 @@ router.get("/type-machines", getListTypeMec);
 router.post("/machines", postMachine);
 router.patch("/machines", updateMachine);
 router.patch("/machine/:machineNo/storage/:serialNumberInventory", updateMachineAndStorage);
+router.patch("/storage/change-sequence/:storageInventoryId", updateSequenceByStorageAndMachine);
+
 
 router.delete("/machines/:macId", deleteMachine);
 
