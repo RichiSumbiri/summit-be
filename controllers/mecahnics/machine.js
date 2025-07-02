@@ -138,23 +138,13 @@ export const updateMachine = async (req, res) => {
 
 export const updateMachineAndStorage = async (req, res) => {
   try {
-    const { machineNo, serialNumberInventory } = req.params;
+    const { serialNumberInventory } = req.params;
+    const { machineNos } = req.body; 
 
-    if (!machineNo || !serialNumberInventory) {
+    if (!Array.isArray(machineNos) || machineNos.length === 0 || !serialNumberInventory) {
       return res.status(400).json({
         success: false,
-        message: "Machine number and serial number inventory must be provided",
-      });
-    }
-    
-    const machine = await MecListMachine.findOne({
-      where: { MACHINE_ID: machineNo },
-    });
-
-    if (!machine) {
-      return res.status(404).json({
-        success: false,
-        message: "Machine not found",
+        message: "Machine numbers must be an array and serial number inventory must be provided",
       });
     }
     
@@ -173,28 +163,51 @@ export const updateMachineAndStorage = async (req, res) => {
       where: { STORAGE_INVENTORY_ID: storageInventory.ID },
       order: [["SEQ_NO", "DESC"]], 
     });
+
+    let newSeqNo = machinesInStorage.length > 0 ? machinesInStorage[0].SEQ_NO + 1 : 1;
     
-    const newSeqNo = machinesInStorage.length > 0 ? machinesInStorage[0].SEQ_NO + 1 : 1;
+    const updatedMachines = [];
+    for (const machineNo of machineNos) {
+      const machine = await MecListMachine.findOne({
+        where: { MACHINE_ID: machineNo },
+      });
 
-    await machine.update({
-      STORAGE_INVENTORY_ID: storageInventory.ID,
-      SEQ_NO: newSeqNo,
-    });
+      if (!machine) {
+        console.warn(`Machine with ID ${machineNo} not found. Skipping...`);
+        continue; 
+      }
+      
+      await machine.update({
+        STORAGE_INVENTORY_ID: storageInventory.ID,
+        SEQ_NO: newSeqNo,
+      });
 
-    return res.status(200).json({
-      success: true,
-      message: "Machine and storage updated successfully",
-      data: {
+      updatedMachines.push({
         MACHINE_ID: machine.MACHINE_ID,
         STORAGE_INVENTORY_ID: storageInventory.ID,
         SEQ_NO: newSeqNo,
-      },
+      });
+
+      newSeqNo++;
+    }
+
+    if (updatedMachines.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No valid machines found to update",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Machines and storage updated successfully",
+      data: updatedMachines,
     });
   } catch (error) {
-    console.error("Error updating machine and storage:", error);
+    console.error("Error updating machines and storage:", error);
     return res.status(500).json({
       success: false,
-      message: `Failed to update machine and storage: ${error.message}`,
+      message: `Failed to update machines and storage: ${error.message}`,
     });
   }
 };

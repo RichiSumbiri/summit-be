@@ -31,7 +31,7 @@ router.get('/storage/:storageInventoryId', getMachinesByStorageInventoryId);
 router.get("/type-machines", getListTypeMec);
 router.post("/machines", postMachine);
 router.patch("/machines", updateMachine);
-router.patch("/machine/:machineNo/storage/:serialNumberInventory", updateMachineAndStorage);
+router.put("/storage/change-location/:serialNumberInventory", updateMachineAndStorage);
 router.patch("/storage/change-sequence/:storageInventoryId", updateSequenceByStorageAndMachine);
 
 
