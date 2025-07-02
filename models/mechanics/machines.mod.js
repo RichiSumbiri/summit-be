@@ -72,12 +72,43 @@ export const MecListMachine = db.define(
     DEPARTMENT_ID: {
       type: DataTypes.INTEGER,
       allowNull: true,
-    }
+    },
+    SEQ_NO: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
   }
 );
+
+export const MacTypeOfMachine = db.define(
+  "mec_type_of_machine",
+  {
+    TYPE_ID: {
+      type: DataTypes.BIGINT(20),
+      allowNull: false,
+      primaryKey: true,
+    },
+    TYPE_DESCRIPTION: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    COLOR: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+
+MecListMachine.belongsTo(MacTypeOfMachine, {
+  foreignKey: "MACHINE_TYPE",
+  as: "MEC_TYPE_OF_MACHINE"
+})
 
 // Define any associations or hooks here if needed
 

@@ -32,10 +32,7 @@ export const createStorageInventory = async (req, res) => {
       });
     }
 
-    const SERIAL_NUMBER =
-      CATEGORY === "ROOM"
-        ? `${building.CODE}-${room.CODE}-${RAK_NUMBER}-${LEVEL}-${POSITION}`
-        : `${building.CODE}-${room.CODE}-${RAK_NUMBER}-${LEVEL}`;
+    const SERIAL_NUMBER =`${building.CODE}-${room.CODE}-${RAK_NUMBER}-${LEVEL}-${POSITION}`
 
 
     const newInventory = await StorageInventoryModel.create({
@@ -230,14 +227,7 @@ export const updateStorageInventory = async (req, res) => {
         });
       }
     }
-
-
-    const SERIAL_NUMBER =
-      CATEGORY === "ROOM"
-        ? `${building?.CODE || inventory.Building.CODE}-${room?.CODE || inventory.Room.CODE}-${RAK_NUMBER || inventory.RAK_NUMBER}-${LEVEL || inventory.LEVEL}-${POSITION || inventory.POSITION}`
-        : `${building?.CODE || inventory.Building.CODE}-${room?.CODE || inventory.Room.CODE}-${RAK_NUMBER || inventory.RAK_NUMBER}-${LEVEL || inventory.LEVEL}`;
-
-
+    const SERIAL_NUMBER =`${building?.CODE || inventory.Building.CODE}-${room?.CODE || inventory.Room.CODE}-${RAK_NUMBER || inventory.RAK_NUMBER}-${LEVEL || inventory.LEVEL}-${POSITION || inventory.POSITION}`
     await inventory.update({
       UNIT_ID,
       BUILDING_ID,
