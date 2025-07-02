@@ -1428,6 +1428,7 @@ export const queryRecapAbsMonth = `WITH employee AS (
 	FROM sumbiri_absens sa
 	JOIN sumbiri_employee se ON se.Nik = sa.Nik
 	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate 
+	-- AND sa.Nik = '102412003'
 	GROUP BY sa.Nik
 ), 
 emp_group AS (
@@ -1460,7 +1461,8 @@ emp_group AS (
 			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
 			    WHERE sgs.scheduleDate BETWEEN :startDate AND :endDate 
-			    
+			   -- AND se.Nik = '102412003'
+
 			    UNION ALL 
 			
 				SELECT  
@@ -1474,28 +1476,47 @@ emp_group AS (
 			        sis.jk_id AS jadwal_indv
 			    FROM employee se 
 			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
-			    WHERE sis.scheduleDate_inv BETWEEN :startDate AND :endDate 
-			) nm 
-			GROUP BY 
+			    WHERE sis.scheduleDate_inv BETWEEN :startDate AND :endDate -- AND se.Nik = '102412003'
+			) nm GROUP BY 
 			    nm.scheduleDate, nm.Nik, nm.NamaLengkap 
 	) nx
+), absen_only AS (
+		SELECT 
+	    sa.Nik,
+	    se.NamaLengkap,
+	    se.IDDepartemen,
+	    se.IDSubDepartemen,
+	    se.IDPosisi,
+	    se.IDSection,
+        se.StatusAktif AS resignStatus,
+		sa.tanggal_in,
+		sa.groupId, 
+		sa.calendar,
+		sa.keterangan,
+		sa.ot,
+		sa.jk_id
+	FROM sumbiri_absens sa
+	JOIN sumbiri_employee se ON se.Nik = sa.Nik
+	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate 
+	-- AND sa.Nik = '102412003'
+	GROUP BY sa.Nik, sa.tanggal_in
 ),
 sch_and_absen AS (
 	SELECT 
-		eg.Nik,
-    eg.NamaLengkap,
-		sa.tanggal_in,
-		sa.groupId, 
-		eg.calendar,
-    COALESCE(sa.calendar, eg.calendar) AS actual_calendar,
+		COALESCE(eg.Nik, sa.Nik) Nik,
+        COALESCE(eg.NamaLengkap, sa.NamaLengkap) NamaLengkap,
+	    sa.tanggal_in,
+	    COALESCE(sa.groupId, eg.groupId) groupId, 
+	    COALESCE(eg.calendar, sa.calendar) calendar,
+        COALESCE(sa.calendar, eg.calendar) AS actual_calendar,
 		sa.keterangan,
 		sa.ot,
-		eg.jk_id,
+		COALESCE(sa.jk_id, eg.jk_id) jk_id,
 		mjk.idGroup
-	FROM emp_group eg
-	LEFT JOIN sumbiri_absens sa ON eg.Nik = sa.Nik AND eg.scheduleDate = sa.tanggal_in AND
+	FROM absen_only sa  
+	LEFT JOIN emp_group eg ON eg.Nik = sa.Nik AND eg.scheduleDate = sa.tanggal_in AND
 	sa.tanggal_in BETWEEN :startDate AND :endDate 
-	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = eg.jk_id
+	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, eg.jk_id)
 )
 SELECT 
     YEAR(:startDate) AS sum_year,
@@ -1537,7 +1558,8 @@ SELECT
     SUM(CASE WHEN saa.actual_calendar <> 'WD' AND saa.ot <> 0 THEN saa.ot ELSE 0 END) AS ot_h
 FROM sch_and_absen saa
 LEFT JOIN employee sa ON sa.Nik = saa.Nik 
-GROUP BY saa.Nik, saa.NamaLengkap;
+GROUP BY saa.Nik, saa.NamaLengkap
+
 `
 
 export const SumbiriAbsensSum = dbSPL.define('sumbiri_absens_sum', {
