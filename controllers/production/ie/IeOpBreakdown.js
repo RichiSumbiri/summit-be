@@ -371,6 +371,33 @@ export const patchIeOb = async (req, res) =>{
   }
 }
 
+
+export const chgStatusIeOb = async (req, res) =>{
+  try {
+    let dataNewOb = req.body
+
+
+    if(!dataNewOb.OB_ID) return res.status(400).json({message: "OB ID is required"})
+    
+    const updateHedaer = await IeObHeader.update(dataNewOb , {
+      where : {
+        OB_ID : dataNewOb.OB_ID
+      }
+    })
+
+  
+
+    return res.status(200).json({message:'Success Update OB'})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get data",
+      error: error.message,
+      });
+  }
+}
+
 //update only remarks
 export const postObRemark = async (req, res) =>{
   try {

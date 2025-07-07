@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
+import { chgStatusIeOb, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
 import { afterPostHeaderCt, deleteCtHeader, deleteCtMp, deleteIeCtDetailCount, deleteIeCtMpProccesses, getBaseDataIeCyc, getIeCtBarChartSeries, getIeCtDetailCount, getIeCtGroupCount, getIeCtMppGroupCount, getListCtHeader, getSewRepEffforCt, midGetAvgMpp, patchHeaderIeCt, patchIeCtMpProccesses, postHeaderIeCt, postIeCtDetailCount, postIeCtMp, postIeCtMpProccesses, postIeGroupCount, qryGetEmpForCt } from "../../controllers/production/ie/IeCycleTime.js";
 const router = express.Router();
 
@@ -10,6 +10,7 @@ router.get("/list-sizes/:prodType", getSizesOb);
 router.post("/ob", postIeOb);
 router.patch("/ob", patchIeOb);
 router.post("/ob-remarks", postObRemark);
+router.post("/ob-change-status", chgStatusIeOb);
 router.delete("/ob/:obId", deletIeOb);
 router.get("/list-ob/:prodItemId", getlistObApi);
 router.get("/ob-sizes/:obId", getSizesObSelected);
