@@ -10,7 +10,7 @@ import {
   getEmpKontrak,
   getEmpLikeNIK,
   getEmployeAktif,
-  getEmployeAll,
+  getEmployeAll, getEmpMechanicActive,
   getEmpNewEmpAmipay,
   getMasterUnit,
   getPositionAll,
@@ -248,9 +248,11 @@ router.get("/emp-skills/:idcategory", getEmpSkillDataByCat);
 router.get("/emp-skills-page/:page/:limit/:search", getEmpSkillDataPaginated);
 router.get("/emp-skills-all", getEmpSkillDataAll);
 router.post("/emp-skills", postEmpSKill);
+
 router.delete("/emp-skills/:idskill/:idsubskill/:empnik", deleteEmpSKill);
 router.post("/emp-skills-mass", postMassEmpSKill);
 router.get("/emp-skill-nik/:nik", getEmpSKillByNIK);
+router.get("/emp-mechanic", getEmpMechanicActive);
 router.get("/report-matrix-skill/:idskill", getMatrixSkillReportByCat);
 router.post("/report-matrix-skill-custom", getMatrixSkillReportCustom);
 

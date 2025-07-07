@@ -45,6 +45,10 @@ const BuildingRoomModel = db.define(
       defaultValue: DataTypes.NOW,
       onUpdate: DataTypes.NOW,
     },
+      TYPE: {
+          type: DataTypes.ENUM('PRODUCTION', 'STORAGE', 'ROOM', 'OTHER'),
+          defaultValue: 'ROOM',
+      }
   },
   {
     tableName: "building_room",

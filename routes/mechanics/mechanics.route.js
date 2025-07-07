@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  ListTypeMachine,
   delMachItemIn,
   delMachItemOut,
   deleteMachine,
@@ -47,6 +48,7 @@ router.get("/employe/:nik", getEmploye);
 router.get("/machine-no/:macId", getMachineNo);
 router.get("/item-out/:date", getMacItemOut);
 router.delete("/item-out/:LOG_ID/:inputDate", delMachItemOut);
+router.get("/list-type", ListTypeMachine)
 
 //report
 router.get(

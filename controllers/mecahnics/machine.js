@@ -21,6 +21,7 @@ import {
 import { QueryTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import StorageInventoryModel from "../../models/storage/storageInventory.mod.js";
+import StorageInventoryLogModel from "../../models/storage/storageInvnetoryLog.mod.js";
 
 export const getOneMachine = async (req, res) => {
   try {
@@ -139,7 +140,7 @@ export const updateMachine = async (req, res) => {
 export const updateMachineAndStorage = async (req, res) => {
   try {
     const { serialNumberInventory } = req.params;
-    const { machineNos } = req.body; 
+    const { machineNos, userId } = req.body; 
 
     if (!Array.isArray(machineNos) || machineNos.length === 0 || !serialNumberInventory) {
       return res.status(400).json({
@@ -187,6 +188,12 @@ export const updateMachineAndStorage = async (req, res) => {
         STORAGE_INVENTORY_ID: storageInventory.ID,
         SEQ_NO: newSeqNo,
       });
+
+      StorageInventoryLogModel.create({
+        STORAGE_INVENTORY_ID: storageInventory.ID,
+        MACHINE_ID: machineNo,
+        USER_ADD_ID: userId
+      })
 
       newSeqNo++;
     }
@@ -252,7 +259,6 @@ export const updateSequenceByStorageAndMachine = async (req, res) => {
   
     machinesInStorage.forEach((machine) => {
       if (machine.SEQ_NO === newSeqNo && machine.MACHINE_ID !== machineId) {
-      
         machine.SEQ_NO = targetMachine.SEQ_NO;
         machine.save();
       }
@@ -715,3 +721,19 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
     });
   }
 };
+
+export const ListTypeMachine = async (req, res) => {
+  try {
+    const resp = await MacTypeOfMachine.findAll()
+    return res.status(200).json({
+      success: true,
+      message: "Machines retrieved successfully",
+      data: resp,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve machines: ${err.message}`,
+    });
+  }
+}

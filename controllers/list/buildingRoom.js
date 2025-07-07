@@ -5,7 +5,7 @@ import BuildingModel from "../../models/list/buildings.mod.js";
 
 export const createRoom = async (req, res) => {
     try {
-        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL, UNIT_ID } = req.body;
+        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL, TYPE, UNIT_ID } = req.body;
 
 
         if (!BUILDING_ID || !NAME) {
@@ -18,6 +18,7 @@ export const createRoom = async (req, res) => {
         const newRoom = await BuildingRoomModel.create({
             BUILDING_ID,
             NAME,
+            TYPE,
             DESCRIPTION, CODE,
             FLOOR_LEVEL,
             UNIT_ID
@@ -102,7 +103,7 @@ export const getRoomById = async (req, res) => {
 export const updateRoom = async (req, res) => {
     try {
         const { id } = req.params;
-        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL, UNIT_ID } = req.body;
+        const { BUILDING_ID, NAME, DESCRIPTION, CODE, FLOOR_LEVEL, TYPE, UNIT_ID } = req.body;
 
         const room = await BuildingRoomModel.findByPk(id);
 
@@ -116,6 +117,7 @@ export const updateRoom = async (req, res) => {
         await room.update({
             BUILDING_ID,
             NAME,
+            TYPE,
             DESCRIPTION, CODE,
             FLOOR_LEVEL,
             UNIT_ID

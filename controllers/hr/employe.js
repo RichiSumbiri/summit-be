@@ -1,4 +1,4 @@
-import { QueryTypes } from "sequelize";
+import {Op, QueryTypes} from "sequelize";
 import { modelMasterDepartment, modelMasterSiteline, modelMasterSubDepartment, modelSumbiriEmployee, qryEmployeAktif, qryEmployeAll, qryGetEmpDetail, queryEmpBurekol, queryNewEmpAmipay, sqlFindEmpByNIK, sqlFindEmpByNIKActive, sqlFindEmpByNIKKTP, sqlFindEmpKontrak, sqlFindEmpLikeNIK, sqlSummaryEmpByDept } from "../../models/hr/employe.mod.js";
 import { dbSPL, redisConn } from "../../config/dbAudit.js";
 import moment from "moment";
@@ -682,5 +682,39 @@ export const getEmpDetailByNik = async(req,res) => {
       error: err,
       message: "error cannot get employee for amipay",
     });
+  }
+}
+
+export const getEmpMechanicActive = async  (req, res) => {
+  try {
+    const whereCondition = {
+      KodeDepartemen: 200205,
+      StatusAktif: '0',
+    }
+    const {nik} = req.query
+    if (nik) {
+      whereCondition.Nik = {
+        [Op.like]: `%${nik}%`,
+      }
+    }
+
+    const resp = await modelSumbiriEmployee.findAll({
+      where: whereCondition,
+
+    })
+
+    res.status(200).json({
+      success: true,
+      message: "Success get mechanic",
+      data: resp
+    })
+
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err,
+      message: "error get emp mechanic active"
+    })
   }
 }
