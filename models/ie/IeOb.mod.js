@@ -313,6 +313,25 @@ export const dbListFeatures = db.define('item_list_features', {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    ADD_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    MOD_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    DELETED_STATUS: {
+      type: DataTypes.ENUM('0', '1'),
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   }, {
     freezeTableName: true,
     timestamps: false
@@ -360,7 +379,7 @@ export const qryListFeatures = `SELECT
 	ilf.*
 FROM item_list_features ilf
 LEFT JOIN ie_ob_features iof ON iof.OB_ID = :obId AND iof.FEATURES_ID = ilf.FEATURES_ID
-WHERE ilf.PRODUCT_TYPE IN (:prodType, 'ALL')
+WHERE ilf.PRODUCT_TYPE IN (:prodType, 'ALL') AND ilf.DELETED_STATUS = '0'
 ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`
 
 // helper.js

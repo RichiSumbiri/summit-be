@@ -1641,3 +1641,89 @@ export const getImageOb = async(req,res) => {
     });
   }
 }
+
+
+export const postNewFeatures = async (req, res) => {
+  try {
+    const { FEATURES_NAME, FEATURES_CATEGORY, PRODUCT_TYPE } = req.body;
+
+    if (!FEATURES_NAME || !FEATURES_CATEGORY || !PRODUCT_TYPE) {
+      return res.status(400).json({ success: false, message: "FEATURES_NAME, FEATURES_CATEGORY and PRODUCT_TYPE are required" });
+    }
+
+    // Cek apakah fitur sudah ada
+    const existingFeature = await dbListFeatures.findOne({
+      where: {
+        FEATURES_NAME,
+        FEATURES_CATEGORY,
+        PRODUCT_TYPE,
+        DELETED_STATUS: 0 // Pastikan fitur yang dicari belum dihapus
+      }
+    });
+
+    if (existingFeature) {
+      return res.status(202).json({ success: false, message: "Feature already exists" });
+    }
+    
+    // Buat fitur baru
+    const newFeature = await dbListFeatures.create({
+      FEATURES_NAME,
+      FEATURES_CATEGORY,
+      PRODUCT_TYPE
+    });
+    const plainFeature = newFeature.get({ plain: true });
+
+    // Kembalikan respons sukses
+    return res.status(200).json({ success: true, data: plainFeature });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create new feature",
+      error: error.message,
+    });
+  }
+}
+
+
+export const deleteFeatures = async (req, res) => {
+  try {
+    const {prodType, obId, featuresId}= req.params;
+
+    if (!featuresId) {
+      return res.status(400).json({ success: false, message: "featuresId are required" });
+    }
+
+    // Cek apakah fitur sudah ada
+    const usedObFeatures = await IeObFeatures.findOne({
+      where: {
+        FEATURES_ID: featuresId
+      },
+      raw: true
+    });
+
+    if (usedObFeatures) {
+      return res.status(202).json({ success: false, message: "Can't Delete, Feature already used" });
+    }
+    
+    // Buat fitur baru
+    const newFeature = await dbListFeatures.update({DELETED_STATUS: 1},{where : {
+        FEATURES_ID: featuresId
+    }});
+
+    const listFeatures = await db.query(qryListFeatures, {
+      replacements: {prodType, obId},
+      type: QueryTypes.SELECT,
+    })
+
+    // Kembalikan respons sukses
+    return res.status(200).json({ success: true, data: listFeatures });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create new feature",
+      error: error.message,
+    });
+  }
+}
