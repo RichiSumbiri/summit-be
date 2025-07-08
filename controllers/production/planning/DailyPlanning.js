@@ -305,7 +305,6 @@ export const postSwitchToOt = async (req, res) => {
     if (getLog.length > 0) {
       const dataLog = getLog.map((item) => ({
         ...item,
-        PLAN_TARGET: 0,
         ACT_TARGET: 0,
         PLAN_MP: null,
         PLAN_MP_OT: item.PLAN_MP ? item.PLAN_MP : item.PLAN_MP_OT,
@@ -321,7 +320,6 @@ export const postSwitchToOt = async (req, res) => {
         PLAN_TARGET_OT: item.PLAN_TARGET
           ? item.PLAN_TARGET
           : item.PLAN_TARGET_OT,
-        ACT_TARGET: null,
         ACT_TARGET_OT: item.ACT_TARGET ? item.ACT_TARGET : item.ACT_TARGET_OT,
         NORMAL_OUTPUT: 0,
         OT_OUTPUT: item.NORMAL_OUTPUT ? item.NORMAL_OUTPUT : item.OT_OUTPUT,

@@ -25,6 +25,7 @@ import StorageInventoryLogModel from "../../models/storage/storageInvnetoryLog.m
 import {LogDailyOutput} from "../../models/planning/dailyPlan.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import {modelSumbiriEmployee} from "../../models/hr/employe.mod.js";
+import BuildingModel from "../../models/list/buildings.mod.js";
 
 export const getOneMachine = async (req, res) => {
   try {
@@ -874,6 +875,19 @@ export const getAllDownTimeWithOutput = async (req, res) => {
             where: {Nik: dl.MECHANIC_ID}
           })
           const machine = await MecListMachine.findOne({where: {MACHINE_ID: dl.MACHINE_ID}})
+          const storage = await StorageInventoryModel.findOne({
+            where: {
+              ID: dl.STORAGE_INVENTORY_ID
+            },
+            include: [
+              {
+                model: BuildingModel,
+                as: "Building",
+                attributes: ['NAME']
+              }
+            ]
+          })
+
           return {
             ...dtD,
             TOTAL_OUTPUT: dtD.TOTAL_OUTPUT || 0,
@@ -881,6 +895,7 @@ export const getAllDownTimeWithOutput = async (req, res) => {
             COLOR: dtD.ITEM_COLOR_NAME,
             LINE_NAME: dtD.LINE_NAME,
             SHIFT: dtD.SHIFT,
+            BUILDING: storage?.Building?.NAME,
             DURATION_DOWN: dl.END_TIME ? `${durationInMinutes} Minute` : `In Progress`,
             MECHANIC_NAME: mechanic?.NamaLengkap,
             MACHINE_NAME: machine?.MACHINE_DESCRIPTION,

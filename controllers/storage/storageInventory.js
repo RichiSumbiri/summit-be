@@ -103,7 +103,30 @@ export const getAllStorageInventory = async (req, res) => {
   }
 };
 
+export  const getStorageInventoryBySitelineId = async  (req, res) => {
+  try {
+    const {idSiteline} = req.params
+    const inventory = await StorageInventoryModel.findOne({where: {RAK_NUMBER: idSiteline, CATEGORY: 'LINE' }});
 
+    if (!inventory) {
+      return res.status(404).json({
+        success: false,
+        message: "Storage inventory not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Storage inventory retrieved successfully",
+      data: inventory,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve storage inventory: ${err.message}`,
+    });
+  }
+}
 
 
 export const getStorageInventoryById = async (req, res) => {
