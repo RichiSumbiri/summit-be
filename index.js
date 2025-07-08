@@ -92,6 +92,7 @@ function logOriginalUrl(req, res, next) {
 var whitelist = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://localhost:3002",
   "http://dashboard-mechanic.sumbiri.com",
   "http://summittvhrstay.sumbiri.com",
   "https://spmqc.sumbiri.com",
