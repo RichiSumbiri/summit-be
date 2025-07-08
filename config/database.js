@@ -4,13 +4,11 @@ import { Sequelize } from "sequelize";
 dotenv.config();
 tedious.Connection;
 
-const { DB_NAME, DBHOST, USER, PASS } = process.env;
+const { DB_NAME, DB_HOST, DB_USER, DB_PASS } = process.env;
 
 
-console.log(process.env.DBHOST)
-
-const db = new Sequelize(DB_NAME, USER, PASS, {
-  host: '192.168.6.83',
+const db = new Sequelize(`${DB_NAME}`, `${DB_USER}`, `${DB_PASS}`, {
+  host: `${DB_HOST}`,
   port: 3306,
   dialect: "mysql",
   logging: false,
