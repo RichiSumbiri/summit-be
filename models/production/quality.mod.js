@@ -1,23 +1,23 @@
-import { DataTypes } from "sequelize";
+import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
 
 export const ScanQuality = db.define(
-  "order_scan_log",
-  {
-    BARCODE_SERIAL: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
+    "order_scan_log",
+    {
+        BARCODE_SERIAL: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+        },
+        QC_SCANTIME: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     },
-    QC_SCANTIME: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-  },
-  {
-    freezeTableName: true,
-    createdAt: false,
-    updatedAt: false,
-  }
+    {
+        freezeTableName: true,
+        createdAt: false,
+        updatedAt: false,
+    }
 );
 
 ScanQuality.removeAttribute("id");
@@ -25,131 +25,130 @@ ScanQuality.removeAttribute("id");
 export const QCWorkdoneByDate = `SELECT * FROM ViewWorkdoneQC WHERE ScanDate BETWEEN :startDate AND :endDate`;
 
 export const QcType = db.define(
-  "qc_inspection_type",
-  {
-    QC_TYPE_ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "qc_inspection_type",
+    {
+        QC_TYPE_ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        QC_TYPE_NAME: {type: DataTypes.STRING, allowNull: false},
+        QC_CATEGORY: {type: DataTypes.STRING},
+        QC_SAMPLING_RULE: {type: DataTypes.DECIMAL},
+        QC_TYPE_ADD_ID: {type: DataTypes.INTEGER},
+        QC_TYPE_MOD_ID: {type: DataTypes.INTEGER},
+        createdAt: {type: DataTypes.DATE},
+        updatedAt: {type: DataTypes.DATE},
     },
-    QC_TYPE_NAME: { type: DataTypes.STRING, allowNull: false },
-    QC_CATEGORY: { type: DataTypes.STRING },
-    QC_SAMPLING_RULE: { type: DataTypes.DECIMAL },
-    QC_TYPE_ADD_ID: { type: DataTypes.INTEGER },
-    QC_TYPE_MOD_ID: { type: DataTypes.INTEGER },
-    createdAt: { type: DataTypes.DATE },
-    updatedAt: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "createdAt",
-    updatedAt: "updatedAt",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "createdAt",
+        updatedAt: "updatedAt",
+    }
 );
 
 export const listGroupShift = db.define(
-  "item_group_shift",
-  {
-    GROUP_SHIFT_ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "item_group_shift",
+    {
+        GROUP_SHIFT_ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        GROUP_SHIFT_NAME: {type: DataTypes.STRING, allowNull: false},
+        GROUP_SHIFT_DEPT: {type: DataTypes.STRING},
+        GROUP_SHIFT_DESC: {type: DataTypes.STRING},
+        GROUP_SHIFT_COLOR: {type: DataTypes.STRING},
     },
-    GROUP_SHIFT_NAME: { type: DataTypes.STRING, allowNull: false },
-    GROUP_SHIFT_DEPT: { type: DataTypes.STRING },
-    GROUP_SHIFT_DESC: { type: DataTypes.STRING },
-    GROUP_SHIFT_COLOR: { type: DataTypes.STRING },
-  },
-  {
-    freezeTableName: true,
-    createdAt: false,
-    updatedAt: false,
-  }
+    {
+        freezeTableName: true,
+        createdAt: false,
+        updatedAt: false,
+    }
 );
 
 export const QcRemarks = db.define(
-  "qc_endline_remark",
-  {
-    SCHD_ID: {
-      type: DataTypes.INTEGER,
+    "qc_endline_remark",
+    {
+        SCHD_ID: {
+            type: DataTypes.INTEGER,
+        },
+        ID_SITELINE: {type: DataTypes.STRING, allowNull: false},
+        TYPE_PROD: {type: DataTypes.STRING, allowNull: false},
+        REMARK: {type: DataTypes.TEXT},
+        PROD_DATE: {type: DataTypes.DATE},
+        ADD_ID: {type: DataTypes.INTEGER},
+        MOD_ID: {type: DataTypes.INTEGER},
+        ADD_DATE: {type: DataTypes.DATE},
+        MOD_DATE: {type: DataTypes.DATE},
     },
-    ID_SITELINE: { type: DataTypes.STRING, allowNull: false },
-    TYPE_PROD: { type: DataTypes.STRING, allowNull: false },
-    REMARK: { type: DataTypes.TEXT },
-    PROD_DATE: { type: DataTypes.DATE },
-    ADD_ID: { type: DataTypes.INTEGER },
-    MOD_ID: { type: DataTypes.INTEGER },
-    ADD_DATE: { type: DataTypes.DATE },
-    MOD_DATE: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "ADD_DATE",
-    updatedAt: "MOD_DATE",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "ADD_DATE",
+        updatedAt: "MOD_DATE",
+    }
 );
 
 QcRemarks.removeAttribute("id");
 
 export const QcUsers = db.define(
-  "qc_inspection_user",
-  {
-    QC_USER_ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "qc_inspection_user",
+    {
+        QC_USER_ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        QC_USERNAME: {type: DataTypes.STRING, allowNull: false},
+        QC_NAME: {type: DataTypes.STRING},
+        QC_TYPE_ID: {type: DataTypes.INTEGER},
+        SITE_NAME: {type: DataTypes.STRING},
+        ID_SITELINE: {type: DataTypes.STRING},
+        LINE_NAME: {type: DataTypes.STRING},
+        QC_USER_PASSWORD: {type: DataTypes.STRING},
+        QC_USER_REF_TOKEN: {type: DataTypes.STRING},
+        QC_USER_ACTIVE: {type: DataTypes.STRING},
+        QC_BYPASS_LOGIN: {type: DataTypes.STRING},
+        QC_USER_ADD_ID: {type: DataTypes.INTEGER},
+        QC_USER_DEL: {type: DataTypes.INTEGER},
+        GROUP_SHIFT_ID: {type: DataTypes.INTEGER},
+        createdAt: {type: DataTypes.DATE},
+        updatedAt: {type: DataTypes.DATE},
+        QC_USER_MOD_ID: {type: DataTypes.INTEGER},
     },
-    QC_USERNAME: { type: DataTypes.STRING, allowNull: false },
-    QC_NAME: { type: DataTypes.STRING },
-    QC_TYPE_ID: { type: DataTypes.INTEGER },
-    SITE_NAME: { type: DataTypes.STRING },
-    ID_SITELINE: { type: DataTypes.STRING },
-    LINE_NAME: { type: DataTypes.STRING },
-    QC_USER_PASSWORD: { type: DataTypes.STRING },
-    QC_USER_REF_TOKEN: { type: DataTypes.STRING },
-    QC_USER_ACTIVE: { type: DataTypes.STRING },
-    QC_BYPASS_LOGIN: { type: DataTypes.STRING },
-    QC_USER_ADD_ID: { type: DataTypes.INTEGER },
-    QC_USER_DEL: { type: DataTypes.INTEGER },
-    QC_USER_MOD_ID: { type: DataTypes.INTEGER },
-    QC_USER_MOD_ID: { type: DataTypes.INTEGER },
-    GROUP_SHIFT_ID: { type: DataTypes.INTEGER },
-    createdAt: { type: DataTypes.DATE },
-    updatedAt: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "createdAt",
-    updatedAt: "updatedAt",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "createdAt",
+        updatedAt: "updatedAt",
+    }
 );
 
 export const QcUsersSchedule = db.define(
-  "qc_user_schedule",
-  {
-    ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "qc_user_schedule",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        GROUP_ID: {type: DataTypes.INTEGER, allowNull: false},
+        SHIFT: {type: DataTypes.STRING},
+        START_DATE: {type: DataTypes.DATE},
+        END_DATE: {type: DataTypes.DATE},
+        ADD_ID: {type: DataTypes.INTEGER},
+        MOD_ID: {type: DataTypes.INTEGER},
+        createdAt: {type: DataTypes.DATE},
+        updatedAt: {type: DataTypes.DATE},
     },
-    GROUP_ID: { type: DataTypes.INTEGER, allowNull: false },
-    SHIFT: { type: DataTypes.STRING },
-    START_DATE: { type: DataTypes.DATE },
-    END_DATE: { type: DataTypes.DATE },
-    ADD_ID: { type: DataTypes.INTEGER },
-    MOD_ID: { type: DataTypes.INTEGER },
-    createdAt: { type: DataTypes.DATE },
-    updatedAt: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "createdAt",
-    updatedAt: "updatedAt",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "createdAt",
+        updatedAt: "updatedAt",
+    }
 );
 
 export const QueryGetListUserQc = `SELECT a.QC_USER_ID, a.QC_USERNAME, a.QC_NAME, a.QC_TYPE_ID, c.QC_TYPE_NAME, a.ID_SITELINE,  b.SITE_NAME, b.LINE_NAME, b.SHIFT, a.QC_USER_ACTIVE, a.QC_BYPASS_LOGIN, a.QC_USER_DEL, d.GROUP_SHIFT_NAME, d.GROUP_SHIFT_ID
@@ -241,44 +240,44 @@ export const QueryGetListPart = `SELECT a.PART_CODE, a.PART_NAME FROM item_part 
 export const QueryGetListDefect = `SELECT a.DEFECT_SEW_CODE, a.DEFECT_NAME FROM item_defect_internal a WHERE a.DEFECT_SEW_CODE IS NOT NULL`;
 
 export const QcEndlineOutput = db.define(
-  "qc_endline_output",
-  {
-    ENDLINE_OUT_ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "qc_endline_output",
+    {
+        ENDLINE_OUT_ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        PLANSIZE_ID: {type: DataTypes.INTEGER, allowNull: true},
+        BARCODE_SERIAL: {type: DataTypes.STRING},
+        ENDLINE_OUT_TYPE: {type: DataTypes.STRING, allowNull: false},
+        ENDLINE_PORD_TYPE: {type: DataTypes.STRING, allowNull: false},
+        ENDLINE_PLAN_SIZE: {type: DataTypes.STRING, allowNull: false},
+        ENDLINE_OUT_QTY: {type: DataTypes.INTEGER},
+        ENDLINE_DEFECT_CODE: {type: DataTypes.STRING},
+        ENDLINE_PART_CODE: {type: DataTypes.STRING},
+        ENDLINE_ID_SITELINE: {type: DataTypes.STRING},
+        ENDLINE_LINE_NAME: {type: DataTypes.STRING},
+        ENDLINE_SCH_ID: {type: DataTypes.INTEGER},
+        ENDLINE_SCHD_ID: {type: DataTypes.INTEGER},
+        ENDLINE_ACT_SCHD_ID: {type: DataTypes.INTEGER},
+        ENDLINE_ACT_RPR_SCHD_ID: {type: DataTypes.INTEGER},
+        ENDLINE_SCHD_DATE: {type: DataTypes.DATE},
+        ENDLINE_SEQUANCE: {type: DataTypes.INTEGER},
+        ENDLINE_TIME: {type: DataTypes.TIME},
+        ENDLINE_OUT_UNDO: {type: DataTypes.STRING},
+        ENDLINE_REPAIR: {type: DataTypes.STRING},
+        GROUP_ID: {type: DataTypes.INTEGER},
+        ENDLINE_ADD_ID: {type: DataTypes.INTEGER},
+        ENDLINE_MOD_ID: {type: DataTypes.INTEGER},
+        ENDLINE_ADD_TIME: {type: DataTypes.DATE},
+        ENDLINE_MOD_TIME: {type: DataTypes.DATE},
     },
-    PLANSIZE_ID: { type: DataTypes.INTEGER, allowNull: true },
-    BARCODE_SERIAL: { type: DataTypes.STRING },
-    ENDLINE_OUT_TYPE: { type: DataTypes.STRING, allowNull: false },
-    ENDLINE_PORD_TYPE: { type: DataTypes.STRING, allowNull: false },
-    ENDLINE_PLAN_SIZE: { type: DataTypes.STRING, allowNull: false },
-    ENDLINE_OUT_QTY: { type: DataTypes.INTEGER },
-    ENDLINE_DEFECT_CODE: { type: DataTypes.STRING },
-    ENDLINE_PART_CODE: { type: DataTypes.STRING },
-    ENDLINE_ID_SITELINE: { type: DataTypes.STRING },
-    ENDLINE_LINE_NAME: { type: DataTypes.STRING },
-    ENDLINE_SCH_ID: { type: DataTypes.INTEGER },
-    ENDLINE_SCHD_ID: { type: DataTypes.INTEGER },
-    ENDLINE_ACT_SCHD_ID: { type: DataTypes.INTEGER },
-    ENDLINE_ACT_RPR_SCHD_ID: { type: DataTypes.INTEGER },
-    ENDLINE_SCHD_DATE: { type: DataTypes.DATE },
-    ENDLINE_SEQUANCE: { type: DataTypes.INTEGER },
-    ENDLINE_TIME: { type: DataTypes.TIME },
-    ENDLINE_OUT_UNDO: { type: DataTypes.STRING },
-    ENDLINE_REPAIR: { type: DataTypes.STRING },
-    GROUP_ID: { type: DataTypes.INTEGER },
-    ENDLINE_ADD_ID: { type: DataTypes.INTEGER },
-    ENDLINE_MOD_ID: { type: DataTypes.INTEGER },
-    ENDLINE_ADD_TIME: { type: DataTypes.DATE },
-    ENDLINE_MOD_TIME: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "ENDLINE_ADD_TIME",
-    updatedAt: "ENDLINE_MOD_TIME",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "ENDLINE_ADD_TIME",
+        updatedAt: "ENDLINE_MOD_TIME",
+    }
 );
 
 export const getEndllineQROutput = `SELECT 
@@ -388,79 +387,79 @@ ORDER BY a.ENDLINE_TIME`;
 
 //plan size for undo and history
 export const PlanSize = db.define(
-  "qc_endline_plansize",
-  {
-    PLANSIZE_ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "qc_endline_plansize",
+    {
+        PLANSIZE_ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        SCH_ID: {type: DataTypes.INTEGER, allowNull: false},
+        SCHD_ID: {type: DataTypes.INTEGER, allowNull: false},
+        SCHD_PROD_DATE: {type: DataTypes.DATE, allowNull: false},
+        // BUYER_CODE: { type: DataTypes.STRING },
+        // SITE_NAME: { type: DataTypes.STRING },
+        // LINE_NAME: { type: DataTypes.STRING },
+        // ORDER_NO: { type: DataTypes.STRING },
+        // MO_NO: { type: DataTypes.STRING },
+        // ORDER_REF: { type: DataTypes.STRING },
+        // ORDER_COLOR: { type: DataTypes.STRING },
+        // ORDER_STYLE: { type: DataTypes.STRING },
+        ORDER_SIZE: {type: DataTypes.STRING, allowNull: false},
+        LINE_NAME: {type: DataTypes.STRING},
+        SITE_NAME: {type: DataTypes.STRING},
+        COMPLETE_STATUS: {type: DataTypes.STRING},
+        // QTY: { type: DataTypes.INTEGER },
+        // BDL_TOTAL: { type: DataTypes.INTEGER },
+        BDL_TOTAL: {type: DataTypes.INTEGER},
+        QTY: {type: DataTypes.INTEGER},
+        RTT: {type: DataTypes.INTEGER},
+        DEFECT: {type: DataTypes.INTEGER},
+        BS: {type: DataTypes.INTEGER},
+        REPAIRED: {type: DataTypes.INTEGER},
+        // UNDO_RTT: { type: DataTypes.INTEGER },
+        // UNDO_DEFECT: { type: DataTypes.INTEGER },
+        // UNDO_BS: { type: DataTypes.INTEGER },
+        // UNDO_REPAIR: { type: DataTypes.INTEGER },
+        PLANSIZE_ADD_ID: {type: DataTypes.INTEGER},
+        PLANSIZE_MOD_ID: {type: DataTypes.INTEGER},
+        PLANSIZE_ADD_TIME: {type: DataTypes.DATE},
+        PLANSIZE_MOD_TIME: {type: DataTypes.DATE},
     },
-    SCH_ID: { type: DataTypes.INTEGER, allowNull: false },
-    SCHD_ID: { type: DataTypes.INTEGER, allowNull: false },
-    SCHD_PROD_DATE: { type: DataTypes.DATE, allowNull: false },
-    // BUYER_CODE: { type: DataTypes.STRING },
-    // SITE_NAME: { type: DataTypes.STRING },
-    // LINE_NAME: { type: DataTypes.STRING },
-    // ORDER_NO: { type: DataTypes.STRING },
-    // MO_NO: { type: DataTypes.STRING },
-    // ORDER_REF: { type: DataTypes.STRING },
-    // ORDER_COLOR: { type: DataTypes.STRING },
-    // ORDER_STYLE: { type: DataTypes.STRING },
-    ORDER_SIZE: { type: DataTypes.STRING, allowNull: false },
-    LINE_NAME: { type: DataTypes.STRING },
-    SITE_NAME: { type: DataTypes.STRING },
-    COMPLETE_STATUS: { type: DataTypes.STRING },
-    // QTY: { type: DataTypes.INTEGER },
-    // BDL_TOTAL: { type: DataTypes.INTEGER },
-    BDL_TOTAL: { type: DataTypes.INTEGER },
-    QTY: { type: DataTypes.INTEGER },
-    RTT: { type: DataTypes.INTEGER },
-    DEFECT: { type: DataTypes.INTEGER },
-    BS: { type: DataTypes.INTEGER },
-    REPAIRED: { type: DataTypes.INTEGER },
-    // UNDO_RTT: { type: DataTypes.INTEGER },
-    // UNDO_DEFECT: { type: DataTypes.INTEGER },
-    // UNDO_BS: { type: DataTypes.INTEGER },
-    // UNDO_REPAIR: { type: DataTypes.INTEGER },
-    PLANSIZE_ADD_ID: { type: DataTypes.INTEGER },
-    PLANSIZE_MOD_ID: { type: DataTypes.INTEGER },
-    PLANSIZE_ADD_TIME: { type: DataTypes.DATE },
-    PLANSIZE_MOD_TIME: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "PLANSIZE_ADD_TIME",
-    updatedAt: "PLANSIZE_MOD_TIME",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "PLANSIZE_ADD_TIME",
+        updatedAt: "PLANSIZE_MOD_TIME",
+    }
 );
 
 //qc endline undo
 export const EndlineUndo = db.define(
-  "qc_endline_undo",
-  {
-    PLANSIZE_ID: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      allowNull: false,
-      autoIncrement: true,
+    "qc_endline_undo",
+    {
+        PLANSIZE_ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        SCHD_ID: {type: DataTypes.INTEGER, allowNull: false},
+        USER_ID: {type: DataTypes.INTEGER, allowNull: false},
+        UNDO_RTT: {type: DataTypes.INTEGER},
+        UNDO_DEFECT: {type: DataTypes.INTEGER},
+        UNDO_BS: {type: DataTypes.INTEGER},
+        UNDO_REPAIR: {type: DataTypes.INTEGER},
+        ADD_ID: {type: DataTypes.INTEGER},
+        MOD_ID: {type: DataTypes.INTEGER},
+        ADD_DATE: {type: DataTypes.DATE},
+        MOD_DATE: {type: DataTypes.DATE},
     },
-    SCHD_ID: { type: DataTypes.INTEGER, allowNull: false },
-    USER_ID: { type: DataTypes.INTEGER, allowNull: false },
-    UNDO_RTT: { type: DataTypes.INTEGER },
-    UNDO_DEFECT: { type: DataTypes.INTEGER },
-    UNDO_BS: { type: DataTypes.INTEGER },
-    UNDO_REPAIR: { type: DataTypes.INTEGER },
-    ADD_ID: { type: DataTypes.INTEGER },
-    MOD_ID: { type: DataTypes.INTEGER },
-    ADD_DATE: { type: DataTypes.DATE },
-    MOD_DATE: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "ADD_DATE",
-    updatedAt: "MOD_DATE",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "ADD_DATE",
+        updatedAt: "MOD_DATE",
+    }
 );
 EndlineUndo.removeAttribute("id");
 //query for find last record Defect RTT BS
@@ -597,28 +596,27 @@ ORDER BY  b.ORDER_SIZE, h.BUNDLE_SEQUENCE`;
 
 //qc endline undo
 export const SewingBdlReturn = db.define(
-  "scan_sewing_return",
-  {
-    BARCODE_SERIAL: {
-      type: DataTypes.STRING,
-      primaryKey: true,
+    "scan_sewing_return",
+    {
+        BARCODE_SERIAL: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+        },
+        SCH_ID: {type: DataTypes.INTEGER},
+        SCHD_ID: {type: DataTypes.INTEGER},
+        PLANSIZE_ID: {type: DataTypes.INTEGER},
+        SEWING_RETURN_BY: {type: DataTypes.INTEGER},
+        CONFIRM_RETURN_BY: {type: DataTypes.INTEGER},
+        CONFIRM_STATUS: {type: DataTypes.INTEGER},
+        SEWING_SCAN_LOCATION: {type: DataTypes.STRING},
+        SEWING_SCAN_TIME: {type: DataTypes.DATE},
+        CONFRIM_DATE: {type: DataTypes.DATE},
     },
-    SCH_ID: { type: DataTypes.INTEGER },
-    SCHD_ID: { type: DataTypes.INTEGER },
-    SEWING_RETURN_BY: { type: DataTypes.INTEGER },
-    PLANSIZE_ID: { type: DataTypes.INTEGER },
-    SEWING_RETURN_BY: { type: DataTypes.INTEGER },
-    CONFIRM_RETURN_BY: { type: DataTypes.INTEGER },
-    CONFIRM_STATUS: { type: DataTypes.INTEGER },
-    SEWING_SCAN_LOCATION: { type: DataTypes.STRING },
-    SEWING_SCAN_TIME: { type: DataTypes.DATE },
-    CONFRIM_DATE: { type: DataTypes.DATE },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "SEWING_SCAN_TIME",
-    updatedAt: false,
-  }
+    {
+        freezeTableName: true,
+        createdAt: "SEWING_SCAN_TIME",
+        updatedAt: false,
+    }
 );
 
 export const queryTotalCheck = `SELECT m.SCH_ID, m.SCHD_ID, m.BUYER_CODE, m.ORDER_NO,
@@ -668,23 +666,23 @@ m.ORDER_NO, m.ORDER_COLOR, m.ORDER_STYLE, m.ORDER_SIZE`;
 
 //qc endline undo
 export const logEndlineCheck = db.define(
-  "log_endline_check",
-  {
-    SCH_ID: { type: DataTypes.INTEGER },
-    SCHD_ID: { type: DataTypes.INTEGER },
-    SCHD_PROD_DATE: { type: DataTypes.DATE },
-    ID_SITELINE: { type: DataTypes.STRING },
-    CHECKED: { type: DataTypes.INTEGER },
-    RTT: { type: DataTypes.INTEGER },
-    DEFECT: { type: DataTypes.INTEGER },
-    REPAIRED: { type: DataTypes.INTEGER },
-    BS: { type: DataTypes.INTEGER },
-  },
-  {
-    freezeTableName: true,
-    createdAt: false,
-    updatedAt: false,
-  }
+    "log_endline_check",
+    {
+        SCH_ID: {type: DataTypes.INTEGER},
+        SCHD_ID: {type: DataTypes.INTEGER},
+        SCHD_PROD_DATE: {type: DataTypes.DATE},
+        ID_SITELINE: {type: DataTypes.STRING},
+        CHECKED: {type: DataTypes.INTEGER},
+        RTT: {type: DataTypes.INTEGER},
+        DEFECT: {type: DataTypes.INTEGER},
+        REPAIRED: {type: DataTypes.INTEGER},
+        BS: {type: DataTypes.INTEGER},
+    },
+    {
+        freezeTableName: true,
+        createdAt: false,
+        updatedAt: false,
+    }
 );
 
 logEndlineCheck.removeAttribute("id");
