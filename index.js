@@ -102,6 +102,7 @@ var whitelist = [
   "https://api.sumbiri.com",
   "https://rekrutmen.sumbiri.com",
   "https://line-service.sumbiri.com",
+  "https://line-service.sumbiri.com:5003",
 ];
 
 // const options = {
