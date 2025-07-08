@@ -3,12 +3,12 @@ import tedious from "tedious";
 dotenv.config();
 import { Sequelize } from "sequelize";
 import redis from "redis";
-const { REDIS_PASS, DB_HR, DB_NAME, DB_HOST, DB_USER, DB_PASS } = process.env;
+const { REDIS_PASS, DB_HR, HR_NAME, HR_HOST, HR_USER, HR_PASS } = process.env;
 tedious.Connection;
 
 
-export const dbSPL = new Sequelize(`${DB_HR}`, `${DB_USER}`, `${DB_PASS}`, {
-  host: "192.168.6.83",
+export const dbSPL = new Sequelize(`${DB_HR}`, `${HR_USER}`, `${HR_PASS}`, {
+  host: HR_HOST,
   port: 3306,
   dialect: "mysql",
   logging: false,
