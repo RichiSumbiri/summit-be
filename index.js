@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import { Server } from 'socket.io'
+
 dotenv.config();
 
 import db from "./config/database.js";
@@ -20,6 +22,8 @@ import sumbiriOneRoute from "./routes/index.js";
 // import moment from "moment";
 import path from "path";
 import { fileURLToPath } from "url";
+import http from "http";
+import {setupWebSocket} from "./util/soket.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -158,6 +162,28 @@ app.use(cookieParser());
 app.use(express.json({ limit: "45mb" }));
 app.use(FileUpload());
 
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: function (origin, callback) {
+      if (!origin || whitelist.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST"]
+  }
+});
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+setupWebSocket(io)
+
 app.use("/", sumbiriOneRoute);
 
-app.listen(PORT, () => console.log(`Server Runing On port : ${PORT}`));
+server.listen(PORT, () => console.log(`Server Runing On port : ${PORT}`));
