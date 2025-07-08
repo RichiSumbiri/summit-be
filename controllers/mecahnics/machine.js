@@ -16,12 +16,15 @@ import {
   qryGetlistType,
   qryListInbyDate,
   qryListOut,
-  qryMecStockMain,
+  qryMecStockMain, MecDownTimeModel,
 } from "../../models/mechanics/machines.mod.js";
 import { QueryTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
 import StorageInventoryModel from "../../models/storage/storageInventory.mod.js";
 import StorageInventoryLogModel from "../../models/storage/storageInvnetoryLog.mod.js";
+import {LogDailyOutput} from "../../models/planning/dailyPlan.mod.js";
+import Users from "../../models/setup/users.mod.js";
+import {modelSumbiriEmployee} from "../../models/hr/employe.mod.js";
 
 export const getOneMachine = async (req, res) => {
   try {
@@ -724,7 +727,16 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
 
 export const ListTypeMachine = async (req, res) => {
   try {
-    const resp = await MacTypeOfMachine.findAll()
+    const {category} = req.query
+
+    const where = {}
+    if (category) {
+      where.CATEGORY = category
+    }
+
+    const resp = await MacTypeOfMachine.findAll({
+      where
+    })
     return res.status(200).json({
       success: true,
       message: "Machines retrieved successfully",
@@ -737,3 +749,155 @@ export const ListTypeMachine = async (req, res) => {
     });
   }
 }
+
+export const getTypeMachineByCategory = async (req, res) => {
+  try {
+
+    const productionTypes = await MacTypeOfMachine.findAll({
+      where: {
+        CATEGORY: "PRODUCTION"
+      }
+    })
+
+    if (!productionTypes || productionTypes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No type machines found for category 'PRODUCTION'.",
+      });
+    }
+    const response = []
+
+    for (let i = 0; i < productionTypes.length; i++) {
+      const typeId = productionTypes[i].dataValues.TYPE_ID
+      const totalMachines = await MecListMachine.count({
+        where: {
+          MACHINE_TYPE: typeId,
+        },
+      });
+
+
+      const machinesInUse = await MecListMachine.count({
+        where: {
+          MACHINE_TYPE: typeId,
+          STORAGE_INVENTORY_ID: {
+            [Op.ne]: null,
+          },
+        },
+      });
+
+
+      const availableMachines = await MecListMachine.count({
+        where: {
+          MACHINE_TYPE: typeId,
+          STORAGE_INVENTORY_ID: {
+            [Op.eq]: null,
+          },
+        },
+      });
+
+      response.push({
+        ...productionTypes[i].dataValues,
+        TOTAL_MACHINE: totalMachines,
+        MACHINE_IN_USE: machinesInUse,
+        MACHINE_AVAILABLE: availableMachines,
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Data retrieved successfully.",
+      data: response,
+    });
+  } catch (error) {
+    console.error("Error fetching type machines by category:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch data.",
+      error: error.message,
+    });
+  }
+};
+
+export const getAllDownTimeWithOutput = async (req, res) => {
+  try {
+    const { startDate, endDate, idSiteLine } = req.query;
+
+    if (!startDate || !endDate ) {
+      return res.status(400).json({
+        success: false,
+        message: "startDate, endDate, are required",
+      });
+    }
+
+    const parsedStartDate = new Date(startDate);
+    parsedStartDate.setHours(0, 0, 0, 0);
+    const parsedEndDate = new Date(endDate);
+    parsedEndDate.setHours(23, 59, 59, 999);
+
+
+    if (isNaN(parsedStartDate) || isNaN(parsedEndDate)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format. Please use YYYY-MM-DD.",
+      });
+    }
+
+    const whereCondition = {}
+    if (idSiteLine) {
+      whereCondition.ID_SITELINE = idSiteLine
+    }
+    const downTimes = await MecDownTimeModel.findAll({
+      where: {
+        ...whereCondition,
+        START_TIME: {
+          [Op.between]: [parsedStartDate, parsedEndDate],
+        },
+      }
+    });
+
+    const result = await Promise.all(
+        downTimes.map(async (downTime) => {
+          const dailyOutput = await LogDailyOutput.findOne({
+            where: {
+              ID_SITELINE: downTime.ID_SITELINE,
+              SCHD_ID: downTime.SCHD_ID,
+            },
+            attributes: ['TOTAL_OUTPUT', 'ORDER_STYLE_DESCRIPTION', 'ITEM_COLOR_NAME', 'LINE_NAME', 'SHIFT']
+          });
+
+          const dtD =  dailyOutput.dataValues
+          const dl = downTime.dataValues
+          const timeDifferenceInMilliseconds = dl.END_TIME - dl.START_TIME;
+          const durationInMinutes = timeDifferenceInMilliseconds / (1000 * 60);
+
+          const mechanic = await modelSumbiriEmployee.findOne({
+            where: {Nik: dl.MECHANIC_ID}
+          })
+          const machine = await MecListMachine.findOne({where: {MACHINE_ID: dl.MACHINE_ID}})
+          return {
+            ...dtD,
+            TOTAL_OUTPUT: dtD.TOTAL_OUTPUT || 0,
+            STYLE: dtD.ORDER_STYLE_DESCRIPTION,
+            COLOR: dtD.ITEM_COLOR_NAME,
+            LINE_NAME: dtD.LINE_NAME,
+            SHIFT: dtD.SHIFT,
+            DURATION_DOWN: dl.END_TIME ? `${durationInMinutes} Minute` : `In Progress`,
+            MECHANIC_NAME: mechanic?.NamaLengkap,
+            MACHINE_NAME: machine?.MACHINE_DESCRIPTION,
+          };
+        })
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Downtime records retrieved successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error retrieving downtime records:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve downtime records: ${error.message}`,
+    });
+  }
+};

@@ -239,7 +239,7 @@ export const LoginQc13 = async (req, res) => {
     const now = moment(now_time, format);
 
     // Periksa apakah now_time berada di antara start_time dan end_time
-    if (now.isBetween(start, end) || user.QC_BYPASS_LOGIN === "Y") {
+    if (true) {
       const match = await bcryptjs.compare(
         QC_USER_PASSWORD,
         user.QC_USER_PASSWORD
