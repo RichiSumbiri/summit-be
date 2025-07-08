@@ -1,10 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
+//dotenv.config();
+
 import db from "./config/database.js";
-import db2 from "./config/database.js";
+// import db2 from "./config/database.js";
 import { redisConn } from "./config/dbAudit.js";
 
-dotenv.config();
 import cookieParser from "cookie-parser";
 import FileUpload from "express-fileupload";
 import cors from "cors";
@@ -32,7 +33,7 @@ const app = express();
 const runDb = async () => {
   try {
     await db.authenticate();
-    await db2.authenticate();
+    // await db2.authenticate();
     console.log("DB Connected");
     await redisConn.connect();
     console.log("Redis Connected");
