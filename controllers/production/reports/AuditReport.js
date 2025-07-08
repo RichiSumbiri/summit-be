@@ -1,6 +1,6 @@
 import { QueryTypes, Op } from "sequelize";
 import { mainTraceOrder } from "../../../models/reports/auditTracking.mod.js";
-import { dbAudit } from "../../../config/dbAudit.js";
+import { dbSPL } from "../../../config/dbAudit.js";
 
 //query get main Audit Tracking
 export const getAuditTrack = async (req, res) => {
@@ -11,7 +11,7 @@ export const getAuditTrack = async (req, res) => {
       .split("-")
       .map((month) => decodeURIComponent(month));
 
-    const listTrace = await dbAudit.query(mainTraceOrder, {
+    const listTrace = await dbSPL.query(mainTraceOrder, {
       // const pland = await db.query(QueryDailyPlann, {
       replacements: {
         listMonth: months,
