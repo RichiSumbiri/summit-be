@@ -759,6 +759,10 @@ export const IeObDetail = db.define('ie_ob_detail', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+    CD_NO_REF: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
     ADD_ID: {
         type: DataTypes.INTEGER,
         allowNull: true,
