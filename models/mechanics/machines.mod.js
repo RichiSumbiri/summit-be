@@ -107,6 +107,10 @@ export const MacTypeOfMachine = db.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+      CATEGORY: {
+          type: DataTypes.ENUM('PRODUCTION', 'SPERPART', 'MACHINE'),
+          allowNull: true,
+      }
   },
   {
     freezeTableName: true,
@@ -118,6 +122,67 @@ MecListMachine.belongsTo(MacTypeOfMachine, {
   foreignKey: "MACHINE_TYPE",
   as: "MEC_TYPE_OF_MACHINE"
 })
+
+export const MecDownTimeModel = db.define(
+    "mec_down_time",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        START_TIME: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        END_TIME: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        DESCRIPTION: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+        },
+        MACHINE_ID: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+        },
+        STORAGE_INVENTORY_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        MECHANIC_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        STATUS: {
+            type: DataTypes.ENUM('DONE', 'BROKEN', 'ON_FIX', 'REPLACE'),
+            defaultValue: 'BROKEN'
+        },
+        IS_COMPLETE: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        CREATED_AT: {
+            type: DataTypes.DATE
+        },
+        UPDATED_AT: {
+            type: DataTypes.DATE
+        },
+        ID_SITELINE: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        SCHD_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        }
+    },
+    {
+        tableName: "mec_down_time",
+        timestamps: false,
+    }
+);
 
 // Define any associations or hooks here if needed
 

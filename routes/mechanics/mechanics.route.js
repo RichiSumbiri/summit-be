@@ -21,7 +21,7 @@ import {
   postMachine,
   updateMachine,
   updateMachineAndStorage,
-  updateSequenceByStorageAndMachine,
+  updateSequenceByStorageAndMachine, getTypeMachineByCategory, getAllDownTimeWithOutput,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
@@ -49,6 +49,9 @@ router.get("/machine-no/:macId", getMachineNo);
 router.get("/item-out/:date", getMacItemOut);
 router.delete("/item-out/:LOG_ID/:inputDate", delMachItemOut);
 router.get("/list-type", ListTypeMachine)
+
+router.get('/type-summary', getTypeMachineByCategory)
+router.get('/report-downtime', getAllDownTimeWithOutput)
 
 //report
 router.get(
