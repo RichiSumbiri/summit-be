@@ -1,6 +1,7 @@
 import BuildingModel from "../../models/list/buildings.mod.js";
 import BuildingRoomModel from "../../models/list/buildingRoom.mod.js";
 import StorageInventoryModel from "../../models/storage/storageInventory.mod.js"
+import {MecListMachine} from "../../models/mechanics/machines.mod.js";
 
 export const createStorageInventory = async (req, res) => {
   try {
@@ -65,7 +66,6 @@ export const getAllStorageInventory = async (req, res) => {
   try {
     const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, CATEGORY } = req.query;
 
-
     const whereCondition = {};
     if (UNIT_ID) whereCondition.UNIT_ID = UNIT_ID;
     if (BUILDING_ID) whereCondition.BUILDING_ID = BUILDING_ID;
@@ -73,8 +73,13 @@ export const getAllStorageInventory = async (req, res) => {
     if (CATEGORY) whereCondition.CATEGORY = CATEGORY;
 
 
+    const listStorage = []
+
     const inventories = await StorageInventoryModel.findAll({
-      where: whereCondition,
+      where: {
+        IS_DELETE: false,
+        ...whereCondition
+      },
       include: [
         {
           model: BuildingModel,
@@ -89,10 +94,17 @@ export const getAllStorageInventory = async (req, res) => {
       ],
     });
 
+    for (let i = 0; i < inventories.length; i++) {
+      const data = inventories[i]
+
+      const valid = await MecListMachine.findAll({where: {STORAGE_INVENTORY_ID: data.ID}})
+      listStorage.push({...data.dataValues, MACHINE_AVAILABLE: !!valid.length})
+    }
+
     return res.status(200).json({
       success: true,
       message: "Storage inventory records retrieved successfully",
-      data: inventories,
+      data: listStorage,
     });
   } catch (error) {
     console.error("Error retrieving storage inventory:", error);
@@ -290,7 +302,9 @@ export const deleteStorageInventory = async (req, res) => {
       });
     }
 
-    await inventory.destroy();
+    inventory.update({
+      IS_DELETE: true
+    })
 
     return res.status(200).json({
       success: true,

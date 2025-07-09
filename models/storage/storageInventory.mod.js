@@ -47,7 +47,11 @@ const StorageInventoryModel = db.define(
     SERIAL_NUMBER: {
       type: DataTypes.STRING(255),
       allowNull: true,
-    }
+    },
+      IS_DELETE: {
+        type: DataTypes.BOOLEAN,
+          defaultValue: false
+      }
   },
   {
     tableName: "storage_inventory",

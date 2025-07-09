@@ -821,38 +821,41 @@ export const getTypeMachineByCategory = async (req, res) => {
 
 export const getAllDownTimeWithOutput = async (req, res) => {
   try {
-    const { startDate, endDate, idSiteLine } = req.query;
+    const { startDate, endDate, idSiteLine, idDashboard } = req.query;
 
-    if (!startDate || !endDate ) {
-      return res.status(400).json({
-        success: false,
-        message: "startDate, endDate, are required",
-      });
-    }
-
-    const parsedStartDate = new Date(startDate);
-    parsedStartDate.setHours(0, 0, 0, 0);
-    const parsedEndDate = new Date(endDate);
-    parsedEndDate.setHours(23, 59, 59, 999);
-
-
-    if (isNaN(parsedStartDate) || isNaN(parsedEndDate)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid date format. Please use YYYY-MM-DD.",
-      });
-    }
 
     const whereCondition = {}
     if (idSiteLine) {
       whereCondition.ID_SITELINE = idSiteLine
     }
+
+    if (idDashboard) {
+      whereCondition.STATUS = {
+        [Op.in]: ["BROKEN", "ON_FIX", "REPLACE"]
+      }
+    }
+
+    if (startDate && endDate) {
+      const parsedStartDate = new Date(startDate);
+      parsedStartDate.setHours(0, 0, 0, 0);
+      const parsedEndDate = new Date(endDate);
+      parsedEndDate.setHours(23, 59, 59, 999);
+
+
+      if (isNaN(parsedStartDate) || isNaN(parsedEndDate)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid date format. Please use YYYY-MM-DD.",
+        });
+      }
+      whereCondition.START_TIME = {
+        [Op.between]: [parsedStartDate, parsedEndDate],
+      }
+    }
+
     const downTimes = await MecDownTimeModel.findAll({
       where: {
         ...whereCondition,
-        START_TIME: {
-          [Op.between]: [parsedStartDate, parsedEndDate],
-        },
       }
     });
 
@@ -868,13 +871,17 @@ export const getAllDownTimeWithOutput = async (req, res) => {
 
           const dtD =  dailyOutput.dataValues
           const dl = downTime.dataValues
-          const timeDifferenceInMilliseconds = dl.END_TIME - dl.START_TIME;
-          const durationInMinutes = timeDifferenceInMilliseconds / (1000 * 60);
 
           const mechanic = await modelSumbiriEmployee.findOne({
             where: {Nik: dl.MECHANIC_ID}
           })
-          const machine = await MecListMachine.findOne({where: {MACHINE_ID: dl.MACHINE_ID}})
+          const machine = await MecListMachine.findOne({where: {MACHINE_ID: dl.MACHINE_ID}, include: [
+              {
+                model: MacTypeOfMachine,
+                as: "MEC_TYPE_OF_MACHINE",
+                attributes:['COLOR']
+              }
+            ]})
           const storage = await StorageInventoryModel.findOne({
             where: {
               ID: dl.STORAGE_INVENTORY_ID
@@ -888,6 +895,7 @@ export const getAllDownTimeWithOutput = async (req, res) => {
             ]
           })
 
+
           return {
             ...dtD,
             TOTAL_OUTPUT: dtD.TOTAL_OUTPUT || 0,
@@ -896,9 +904,12 @@ export const getAllDownTimeWithOutput = async (req, res) => {
             LINE_NAME: dtD.LINE_NAME,
             SHIFT: dtD.SHIFT,
             BUILDING: storage?.Building?.NAME,
-            DURATION_DOWN: dl.END_TIME ? `${durationInMinutes} Minute` : `In Progress`,
+            START_DATE: dl.START_TIME,
+            END_DATE: dl.END_TIME,
+            STATUS: dl.STATUS,
             MECHANIC_NAME: mechanic?.NamaLengkap,
-            MACHINE_NAME: machine?.MACHINE_DESCRIPTION,
+            MACHINE_ID: machine?.MACHINE_ID,
+            MACHINE_COLOR: machine?.MEC_TYPE_OF_MACHINE?.COLOR || '#f3f3f3'
           };
         })
     );
