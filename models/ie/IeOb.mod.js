@@ -413,7 +413,7 @@ export const qryGetFeaturs = `SELECT
 FROM ie_ob_features iof 
 LEFT JOIN item_list_features ilf ON iof.FEATURES_ID = ilf.FEATURES_ID
 WHERE iof.OB_ID = :obId
-ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`
+ORDER BY iof.SEQ_NO`
 
 
 
