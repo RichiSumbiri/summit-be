@@ -3,8 +3,8 @@ import momentRange from "moment-range";
 import multer from "multer";
 const moment = momentRange.extendMoment(Moment);
 
-export const baseUrl = "http://localhost:5001";
-// export const baseUrl = "https://api.sumbiri.com";
+// export const baseUrl = "http://localhost:5001";
+export const baseUrl = "https://api.sumbiri.com";
 
 export const CheckNilai = (nilai) => {
   if (!nilai || isNaN(nilai)) return 0;
