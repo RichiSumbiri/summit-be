@@ -41,6 +41,12 @@ import ie from "./ie/ie.route.js";
 import reservation from "./hr/reservation.route.js";
 import storage from "./storage/storage.route.js"
 import building from "./list/building.route.js"
+import company from "./setup/company.route.js"
+import unit from "./setup/unit.route.js"
+import site from "./setup/site.route.js"
+import department from "./setup/department.route.js"
+import siteFxRoute from "./setup/siteFx.route.js";
+import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 
 const router = express.Router();
 
@@ -82,6 +88,12 @@ router.use("/ie", ie);
 router.use("/reservation", reservation)
 router.use("/storage", storage)
 router.use("/building", building)
+router.use("/company", company)
+router.use("/unit", unit)
+router.use("/site", site)
+router.use("/site-fx", siteFxRoute)
+router.use("/department", department)
+router.use("/site-department", siteDepartmentRoute)
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
