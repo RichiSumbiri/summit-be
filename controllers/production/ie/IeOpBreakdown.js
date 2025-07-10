@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
+import { dbItemListSizes, dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
 import { baseUrl, getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/ie/IeOb.mod.js";
@@ -528,19 +528,20 @@ export const postFeatures = async (req, res) => {
     }
 
     // Ambil data existing dari DB
-    const existingFeatures = await IeObFeatures.findAll({
-      where: { OB_ID: obId },
-    });
+    // const existingFeatures = await IeObFeatures.findAll({
+    //   where: { OB_ID: obId },
+    // });
 
-    const idsToDelete = getIdsToDelete(existingFeatures, data);
+    // const idsToDelete = getIdsToDelete(existingFeatures, data);
 
-    if (idsToDelete.length > 0) {
-      await IeObFeatures.destroy({
-        where: { ID_OB_FEATURES: idsToDelete },
-      });
-    }
+    // if (idsToDelete.length > 0) {
+    //   await IeObFeatures.destroy({
+    //     where: { ID_OB_FEATURES: idsToDelete },
+    //   });
+    // }
 
     const { dataToUpdate, dataToCreate } = splitDataForUpdateAndCreate(data);
+// console.log({ dataToUpdate, dataToCreate });
 
     if (dataToUpdate.length > 0) {
       await IeObFeatures.bulkCreate(dataToUpdate, {
@@ -549,7 +550,18 @@ export const postFeatures = async (req, res) => {
     }
 
     if (dataToCreate.length > 0) {
-      await IeObFeatures.bulkCreate(dataToCreate);
+      //jika ada data check exist maka kita perlu ubah SEQ_NO menjadi increment
+      const listFeaturesExist = await db.query(qryGetFeaturs, {
+        replacements: {obId},
+        type: QueryTypes.SELECT,
+      })
+
+      const maxSeqNo = listFeaturesExist.length;
+      const incrementedData = dataToCreate.map((item, idx) => ({
+        ...item,
+        SEQ_NO: maxSeqNo + idx + 1,
+      }));
+      await IeObFeatures.bulkCreate(incrementedData);
     }
 
     // Ambil hasil terbaru dari DB
@@ -591,6 +603,129 @@ export const postFeatures = async (req, res) => {
   }
 };
 
+
+export const sortFeatures = async (req, res) => {
+  try {
+    const dataFeatures = req.body
+    // console.log("Data Features to sort:", dataFeatures);
+    
+     const sortFt = await IeObFeatures.bulkCreate(dataFeatures, {
+        updateOnDuplicate: [ "SEQ_NO"],
+      });
+
+
+  if (sortFt) {
+          const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId: dataFeatures[0].OB_ID},
+            type: QueryTypes.SELECT,
+          }) 
+
+          if(allObDetail.length > 0){
+            const reSortObDetail = allObDetail.map((item, index) => ({
+              ...item,
+              OB_DETAIL_NO: index + 1, // Mulai dari 1
+            }));
+
+            // Update the OB_DETAIL_NO in the database
+            await IeObDetail.bulkCreate(reSortObDetail, {
+              updateOnDuplicate: ["OB_DETAIL_NO"],
+            }
+            );
+          }
+  }
+
+    return res.status(200).json({ success: true, message: "Features sorted successfully" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to sort features",
+      error: error.message,
+    });
+  }
+}
+
+export const deleteOneObFtrs = async (req, res) => {
+  try {
+    const {idObFeatures, obId} = req.params
+    // console.log("Data Features to sort:", dataFeatures);
+    
+     const deleteFeat = await IeObFeatures.destroy({
+        where: {
+          ID_OB_FEATURES: idObFeatures,
+        },
+      });
+
+
+  if (deleteFeat) {
+       //cek apakah ada detail yang terkait dengan fitur ini
+          const existObDetail = await IeObDetail.findAll({
+            where: {
+              ID_OB_FEATURES: idObFeatures,
+            },
+            raw: true, // supaya hasilnya plain object
+          });
+
+          if(existObDetail.length > 0){
+            const deleteObDetail = await IeObDetail.destroy({
+              where: {
+                ID_OB_FEATURES: idObFeatures,
+              },
+            });
+
+          }
+
+          //jika sudah delete maka kita harus urut ulan seq no
+              const listFeatures = await db.query(qryGetFeaturs, {
+              replacements: {obId},
+              type: QueryTypes.SELECT,
+            })
+
+            if(listFeatures.length > 0){
+              const reSortFeatures = listFeatures.map((item, index) => ({
+                ...item,
+                SEQ_NO: index + 1, // Mulai dari 1
+              }));
+
+              // Update the SEQ_NO in the database
+              await IeObFeatures.bulkCreate(reSortFeatures, {
+                updateOnDuplicate: ["SEQ_NO"],
+              });
+            }
+
+     
+          //jika sudah delete semua maka kita harus urut ulang ob detail no
+          const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId},
+            type: QueryTypes.SELECT,
+          }) 
+
+          if(allObDetail.length > 0){
+            const reSortObDetail = allObDetail.map((item, index) => ({
+              ...item,
+              OB_DETAIL_NO: index + 1, // Mulai dari 1
+            }));
+
+            // Update the OB_DETAIL_NO in the database
+            await IeObDetail.bulkCreate(reSortObDetail, {
+              updateOnDuplicate: ["OB_DETAIL_NO"],
+            }
+            );
+          }
+  }
+
+    return res.status(200).json({ success: true, message: "Features delete successfully" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete features",
+      error: error.message,
+    });
+  }
+}
 
 //get referensi for ob detail
 export const getRefObDetail = async (req, res) => {
@@ -1215,7 +1350,7 @@ export const getListSugesObRow = async (req, res) => {
     });
 
     if (listObDetail.length === 0) {
-      return res.status(404).json({ success: false, message: "OB details not found" });
+      return res.status(202).json({ success: false, message: "OB details not found" });
     }
 
     return res.status(200).json({ success: true, data: listObDetail });
@@ -1723,6 +1858,49 @@ export const deleteFeatures = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create new feature",
+      error: error.message,
+    });
+  }
+}
+
+
+export const addNewListSize = async (req, res) => {
+  try {
+    const { SIZE_NAME, PRODUCT_TYPE, SIZE_COUNTRY } = req.body;
+console.log(req.body);
+
+    if (!SIZE_NAME || !PRODUCT_TYPE || !SIZE_COUNTRY) {
+      return res.status(400).json({ success: false, message: "SIZE_NAME and PRODUCT_TYPE are required" });
+    }
+
+    // Cek apakah ukuran sudah ada
+    const existingSize = await dbItemListSizes.findOne({
+      where: {
+        SIZE_NAME,
+        PRODUCT_TYPE,
+        SIZE_COUNTRY,
+        DELETED_STATUS: 0 // Pastikan ukuran yang dicari belum dihapus
+      }
+    });
+
+    if (existingSize) {
+      return res.status(202).json({ success: false, message: "Size already exists" });
+    }
+    
+    // Buat ukuran baru
+    const newSize = await dbItemListSizes.create({
+      SIZE_NAME,
+      PRODUCT_TYPE,
+      SIZE_COUNTRY      
+    });
+    const plainSize = newSize.get({ plain: true }); 
+    // Kembalikan respons sukses
+    return res.status(200).json({ success: true, data: plainSize });
+  }catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create new size",
       error: error.message,
     });
   }

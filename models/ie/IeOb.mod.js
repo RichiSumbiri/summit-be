@@ -290,7 +290,33 @@ LEFT JOIN item_list_style ils ON ils.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID AND i
 WHERE ioh.OB_ID = :obId
 AND ioh.OB_DELETE_STATUS = 0
 `
-
+export const dbItemListSizes = db.define('item_list_sizes', {
+    SIZE_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    PRODUCT_TYPE: {
+      type: DataTypes.STRING(100),
+      allowNull: false  
+    },
+    SIZE_COUNTRY: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    SIZE_NAME: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    DELETED_STATUS: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+  }, {
+    freezeTableName: true,
+    timestamps: false
+  });
+  
 export const dbListFeatures = db.define('item_list_features', {
     FEATURES_ID: {
       type: DataTypes.INTEGER,
@@ -407,6 +433,7 @@ export const splitDataForUpdateAndCreate = (incomingItems) => {
 
 
 export const qryGetFeaturs = `SELECT
+	iof.OB_ID,
 	iof.ID_OB_FEATURES,
 	iof.SEQ_NO,
 	ilf.*
