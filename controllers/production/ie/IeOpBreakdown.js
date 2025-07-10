@@ -632,6 +632,17 @@ export const sortFeatures = async (req, res) => {
             }
             );
           }
+
+              //masukan ke ie history
+              const featureName = dataFeatures.map(item => item.FEATURES_NAME).join(', ');
+              const historyData = {
+                OB_ID: dataFeatures[0].OB_ID,
+                OB_USER_ID: dataFeatures[0].USER_ID,
+                OB_TYPE_ACTION: 'Sort Features',
+                OB_VALUE_AFTER : featureName
+              }
+              const postHistory = await IeObHistory.create(historyData);
+              
   }
 
     return res.status(200).json({ success: true, message: "Features sorted successfully" });
@@ -648,9 +659,17 @@ export const sortFeatures = async (req, res) => {
 
 export const deleteOneObFtrs = async (req, res) => {
   try {
-    const {idObFeatures, obId} = req.params
+    const {idObFeatures, obId, userId} = req.params
     // console.log("Data Features to sort:", dataFeatures);
     
+     const findFeatures = await IeObFeatures.findOne({
+        where: {
+          ID_OB_FEATURES: idObFeatures,
+        },
+        raw: true
+      });
+
+
      const deleteFeat = await IeObFeatures.destroy({
         where: {
           ID_OB_FEATURES: idObFeatures,
@@ -659,6 +678,16 @@ export const deleteOneObFtrs = async (req, res) => {
 
 
   if (deleteFeat) {
+        //masukan ke ie history
+    const historyData = {
+      OB_ID: obId,
+      OB_USER_ID: userId,
+      OB_TYPE_ACTION: 'Delete Features',
+      OB_VALUE_AFTER : findFeatures.FEATURES_CATEGORY
+    }
+    const postHistory = await IeObHistory.create(historyData);
+              
+
        //cek apakah ada detail yang terkait dengan fitur ini
           const existObDetail = await IeObDetail.findAll({
             where: {
