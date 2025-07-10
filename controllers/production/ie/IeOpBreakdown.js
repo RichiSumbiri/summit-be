@@ -683,7 +683,7 @@ export const deleteOneObFtrs = async (req, res) => {
       OB_ID: obId,
       OB_USER_ID: userId,
       OB_TYPE_ACTION: 'Delete Features',
-      OB_VALUE_AFTER : findFeatures.FEATURES_CATEGORY
+      OB_VALUE_AFTER : findFeatures.FEATURES_NAME
     }
     const postHistory = await IeObHistory.create(historyData);
               
