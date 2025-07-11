@@ -29,12 +29,12 @@ router.delete("/ob-detail/:obDetailId/:userId", deleteIeObDetail, reNoIeObDetail
 router.get("/ob-detail/:obId", getListObDetail);
 router.get("/ob-sugest-list/:featId", getListSugesObRow);
 router.post("/ob-sketch", postIeObSketch);
-router.delete("/ob-sketch/:obId", deleteIeObSketch);
+router.delete("/ob-sketch/:obId/:tabsSketch", deleteIeObSketch);
 router.post("/ob-detail/delete-multiple", deleteMultipleIeObDetail, reNoIeObDetail, returnPostIeObDetail); //delete multiple sketches
 router.post("/ob-sort-detail", sortObDetail); //sort based on features
 router.get("/ob-history/:obId", getListObHistory); //get history of ob detail
 router.post("/ob-import-detail-excel", postImportObDetail, returnPostIeObDetail);
-router.get("/ob-image/:obid", getImageOb);
+router.get("/ob-image/:obid/:skecthStatus", getImageOb);
 
 
 //ie cycle time

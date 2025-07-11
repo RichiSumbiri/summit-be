@@ -456,6 +456,12 @@ export const getObData = async (req, res) =>{
         dataObDetail.obHeader.OB_SKETCH = sketchUrl; // Update the OB_SKETCH field with the full URL
       }
       
+      if(obHeader[0].OB_SKETCH_BACK){
+        const sketchPath = `/images/sketch/${obHeader[0].OB_SKETCH_BACK}`;
+        const sketchUrl = `${baseUrl}${sketchPath}`;
+        dataObDetail.obHeader.OB_SKETCH_BACK = sketchUrl; // Update the OB_SKETCH back field with the full URL
+      }
+      
     const listFeatures = await db.query(qryGetFeaturs, {
       replacements: {obId},
       type: QueryTypes.SELECT,
@@ -1146,8 +1152,13 @@ export const postIeObSketch = async (req, res) => {
       
       const imageFile = req.files.file; // Ambil file gambar dari request
       const fileName = imageFile.name; // Ambil nama file
+      const status = dataSketch.status; // status back or front 
       const fileExtension = path.extname(fileName).toLowerCase(); // Ambil ekstensi file
-      const newFileName = `${dataSketch.OB_ID}${fileExtension}`; // Buat nama file baru dengan OB_ID
+      let newFileName = `${dataSketch.OB_ID}${fileExtension}`; // Buat nama file baru dengan OB_ID
+
+      if(status === 'Back'){
+        newFileName = `${dataSketch.OB_ID}_BACK${fileExtension}`
+      }
       if (!imageFile) {
         return res.status(400).json({ success: false, message: "Image file is required" });
       }
@@ -1162,9 +1173,15 @@ export const postIeObSketch = async (req, res) => {
               msg = msg + ` but error upload front Img`
             }
         })
+
+      let objPost = { OB_SKETCH: newFileName, OB_MOD_ID: userId }
+      
+      if(status === 'Back'){
+        objPost = { OB_SKETCH_BACK: newFileName, OB_MOD_ID: userId }
+      }
+
       // upadate nama file sketch di database
-      const updateSketch = await IeObHeader.update(
-        { OB_SKETCH: newFileName, OB_MOD_ID: userId },
+      const updateSketch = await IeObHeader.update(objPost,
         {
           where: { OB_ID: obId, OB_DELETE_STATUS: 0 },
         }
@@ -1188,22 +1205,26 @@ export const postIeObSketch = async (req, res) => {
 
 export const deleteIeObSketch = async (req, res) => {
   try {
-      const { obId } = req.params;
-      if (!obId) {
+      const { obId, tabsSketch } = req.params;
+      if (!obId && !tabsSketch) {
         return res.status(400).json({ success: false, message: "OB_ID is required" });
       }
       const getOb = await IeObHeader.findOne({
         where: { OB_ID: obId, OB_DELETE_STATUS: 0 },
       });
       
+      const  sketchFileName = tabsSketch === 'Front' ?  getOb.OB_SKETCH : getOb.OB_SKETCH_BACK
+
       // Hapus file sketch dari server
-      const sketchPath = path.join(__dirname, "../../../assets/images/sketch", getOb.OB_SKETCH);
+      const sketchPath = path.join(__dirname, "../../../assets/images/sketch", sketchFileName);
       if (fs.existsSync(sketchPath)) {
         fs.unlinkSync(sketchPath);
       }
+
+      const objUpdate = tabsSketch === 'Front' ? { OB_SKETCH: null } : { OB_SKETCH_BACK: null }
+
       // Update database untuk menghapus nama file sketch
-      await IeObHeader.update(
-        { OB_SKETCH: null },
+      await IeObHeader.update(objUpdate,
         { where: { OB_ID: obId, OB_DELETE_STATUS: 0 } }
       );
       return res.status(200).json({ success: true, message: "Sketch deleted successfully" });
@@ -1778,14 +1799,17 @@ export const postImportObDetail = async (req, res, next) => {
 
 export const getImageOb = async(req,res) => {
   try {
-    const { obid } = req.params;
+    const { obid , skecthStatus} = req.params;
     const getFileName = await IeObHeader.findOne({
       where: {
         OB_ID: obid
       }, raw: true
     });
+
+    let fileName = skecthStatus === 'Front' ? getFileName.OB_SKETCH : getFileName.OB_SKETCH_BACK
+
     if(getFileName){
-      const filePath = path.join( __dirname, "../../../assets/images/sketch", getFileName.OB_SKETCH );
+      const filePath = path.join( __dirname, "../../../assets/images/sketch", fileName );
       if(filePath){
         res.sendFile(filePath, (err) => {
           if (err) {
@@ -1897,7 +1921,6 @@ export const deleteFeatures = async (req, res) => {
 export const addNewListSize = async (req, res) => {
   try {
     const { SIZE_NAME, PRODUCT_TYPE, SIZE_COUNTRY } = req.body;
-console.log(req.body);
 
     if (!SIZE_NAME || !PRODUCT_TYPE || !SIZE_COUNTRY) {
       return res.status(400).json({ success: false, message: "SIZE_NAME and PRODUCT_TYPE are required" });
