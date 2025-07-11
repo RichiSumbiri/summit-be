@@ -1007,7 +1007,7 @@ export const reNoIeObDetail = async (req, res, next) => {
   try {
     const dataObDetail = req.body;
     
-    if(!dataObDetail.OB_DETAIL_ID) {
+    // if(dataObDetail.OB_DETAIL_ID) {
       const {OB_ID} = dataObDetail;
         // Ambil data terbaru dari DB
         const allObDetail =   await db.query(qryGetObDetailForBe, {
@@ -1022,6 +1022,7 @@ export const reNoIeObDetail = async (req, res, next) => {
           const smv = parseFloat(item.OB_DETAIL_SMV);
           return total + (isNaN(smv) ? 0 : smv);
         }, 0);
+        // console.log(totalObDetailSvm);
         
         const obHeader = await IeObHeader.findOne({
           where: { OB_ID },
@@ -1065,9 +1066,9 @@ export const reNoIeObDetail = async (req, res, next) => {
           await Promise.all(updatePromises);
         }
       next(); // lanjutkan ke proses penyimpanan data detail OB
-    }else {
-      next(); // lanjutkan ke proses penyimpanan data detail OB
-    }
+    // }else {
+    //   next(); // lanjutkan ke proses penyimpanan data detail OB
+    // }
   } catch (error) {
     console.error(error);
     return res.status(500).json({
