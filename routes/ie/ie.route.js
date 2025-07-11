@@ -1,10 +1,11 @@
 import express from "express";
-import { chgStatusIeOb, deleteFeatures, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postNewFeatures, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
+import { addNewListSize, chgStatusIeOb, deleteFeatures, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deleteOneObFtrs, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postNewFeatures, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortFeatures, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
 import { afterPostHeaderCt, deleteCtHeader, deleteCtMp, deleteIeCtDetailCount, deleteIeCtMpProccesses, getBaseDataIeCyc, getIeCtBarChartSeries, getIeCtDetailCount, getIeCtGroupCount, getIeCtMppGroupCount, getListCtHeader, getSewRepEffforCt, midGetAvgMpp, patchHeaderIeCt, patchIeCtMpProccesses, postHeaderIeCt, postIeCtDetailCount, postIeCtMp, postIeCtMpProccesses, postIeGroupCount, qryGetEmpForCt } from "../../controllers/production/ie/IeCycleTime.js";
 const router = express.Router();
 
 router.get("/style-three", getDataTreeStyleOb);
 router.get("/list-style/:buyer", getListStyleByOb);
+router.post("/list-sizes", addNewListSize);
 router.get("/list-sizes/:prodType", getSizesOb);
 
 router.post("/ob", postIeOb);
@@ -16,6 +17,8 @@ router.get("/list-ob/:prodItemId", getlistObApi);
 router.get("/ob-sizes/:obId", getSizesObSelected);
 router.get("/ob/:obId", getObData);
 router.post("/ob-features", postFeatures);
+router.delete("/ob-features/:idObFeatures/:obId/:userId", deleteOneObFtrs );
+router.patch("/ob-sort-features", sortFeatures);
 router.post("/list-features", postNewFeatures);
 router.delete("/list-features/:prodType/:obId/:featuresId", deleteFeatures);
 router.get("/ob-features/:prodType/:obId", getListFeatures); //ini untuk modal ob
