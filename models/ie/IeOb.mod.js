@@ -224,11 +224,17 @@ LIMIT 1`
 
 export const getListOb = `SELECT 
 ioh.*,
+ils2.PRODUCT_TYPE,
 xuw.USER_INISIAL AS USER_ADD,
 xux.USER_INISIAL AS USER_MOD
 FROM ie_ob_header ioh 
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
 LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
+LEFT JOIN (
+	  SELECT ils.PRODUCT_ITEM_ID, ils.PRODUCT_TYPE 
+	  FROM item_list_style ils 
+	  GROUP BY ils.PRODUCT_ITEM_ID 
+	) ils2 ON ils2.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID
 WHERE ioh.PRODUCT_ITEM_ID = :prodItemId
 AND ioh.OB_DELETE_STATUS = 0
 `
@@ -846,6 +852,7 @@ ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
 export const qryGetObDetailForBe = `SELECT 
  iod.*,
  iof.ID_OB_FEATURES,
+ iof.FEATURES_ID,
  iof.SEQ_NO,
  ilf.FEATURES_CATEGORY
 FROM ie_ob_detail iod

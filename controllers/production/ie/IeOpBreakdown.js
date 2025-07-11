@@ -1958,3 +1958,151 @@ export const addNewListSize = async (req, res) => {
     });
   }
 }
+
+
+export const copyIeOb = async (req, res) =>{
+  try {
+    let {dataNewOb, dataSize} = req.body
+    const obIdOld = dataNewOb.OB_ID
+    //ambil ob id
+    const getLastId = await db.query(getLasIdOb, {
+      replacements: {prodItemId : dataNewOb.PRODUCT_ITEM_ID},
+      type: QueryTypes.SELECT,
+    })
+
+    //jika belum ada ob id sebelumnya maka masukan initial id 0001
+    const lastId = getLastId[0]? getLastId[0].LATST_ID.toString().padStart(3, "0") : '001'
+
+    //masukan ob id ke object ob header
+    const OB_ID = dataNewOb.OB_CODE+lastId
+    dataNewOb.OB_ID = OB_ID
+
+    //masukan ob id ke array of obj sizes
+    const sizeOb = dataSize.map(({OB_SIZE_ID, ...rest}) => ({...rest, OB_ID}))
+
+    //check apakah memiliki sketch
+  // Folder tujuan
+    const sketchFolder = path.join(__dirname, "../../../assets/images/sketch");
+
+    // Proses OB_SKETCH
+    if (dataNewOb.OB_SKETCH) {
+      const oldFilePath = path.join(sketchFolder, dataNewOb.OB_SKETCH);
+      const ext = path.extname(dataNewOb.OB_SKETCH); // ambil ekstensi file, contoh ".jpg" atau ".png"
+      const newFileName = `${OB_ID}${ext}`;
+      const newFilePath = path.join(sketchFolder, newFileName);
+
+      // Salin file
+      fs.copyFileSync(oldFilePath, newFilePath);
+
+      // Ubah nama file di dataNewOb
+      dataNewOb.OB_SKETCH = newFileName;
+    }
+
+    // Proses OB_SKETCH_BACK
+    if (dataNewOb.OB_SKETCH_BACK) {
+      const oldFilePath = path.join(sketchFolder, dataNewOb.OB_SKETCH_BACK);
+      const ext = path.extname(dataNewOb.OB_SKETCH_BACK);
+      const newFileName = `${OB_ID}_BACK${ext}`;
+      const newFilePath = path.join(sketchFolder, newFileName);
+
+      fs.copyFileSync(oldFilePath, newFilePath);
+
+      dataNewOb.OB_SKETCH_BACK = newFileName;
+    }
+    
+    const createNewOb = await IeObHeader.create(dataNewOb)
+    
+    if(createNewOb){
+      const createNewObSize = await IeObSize.bulkCreate(sizeOb)
+
+      
+      //setelah sukkess create ob maka kita lakukan get data features dan detail ob
+      const listObFeatures = await IeObFeatures.findAll({
+        where : {
+          OB_ID : obIdOld
+        },
+        raw: true
+      })
+
+      if(listObFeatures.length > 0){
+        const listFeatWuserId = listObFeatures.map(({ ID_OB_FEATURES, ...rest }) => ({
+          ...rest,
+          OB_ID : OB_ID,
+          ADD_ID: dataNewOb.OB_ADD_ID
+        }));
+        const postFeatures = await IeObFeatures.bulkCreate(listFeatWuserId)
+        
+        const resultFeatures = postFeatures.map(f => f.get({ plain: true }));
+
+        const listObDetail =  await db.query(qryGetObDetailForBe, {
+            replacements: {obId: obIdOld},
+            type: QueryTypes.SELECT,
+          }) 
+  
+        if(listObDetail.length > 0){
+          
+          const listObDetailNew = listObDetail.map(({OB_DETAIL_ID, ...obd}) => {
+            //datapatkan nilai target detail ob
+             const getTarget = (dataNewOb.OB_WH * 60)/parseFloat(obd.OB_DETAIL_SMV); 
+             const OB_DETAIL_TARGET = getTarget
+             const findFeatId = resultFeatures.find(ft => ft.FEATURES_ID === obd.FEATURES_ID)             
+             return ({...obd, OB_ID, OB_DETAIL_TARGET, ID_OB_FEATURES : findFeatId.ID_OB_FEATURES,  ADD_ID : dataNewOb.OB_ADD_ID })
+          })
+  
+          const createObDetail = await IeObDetail.bulkCreate(listObDetailNew)
+          
+          //ambil ob detail yang ada seq no dan category features
+          const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId: OB_ID},
+            type: QueryTypes.SELECT,
+          }) 
+  
+          //hitung semua ob_detail_smv yang bernilai decimal
+          const totalObDetailSvm = allObDetail.filter(od => od.FEATURES_CATEGORY === 'SEWING').reduce((total, item) => {
+            const smv = parseFloat(item.OB_DETAIL_SMV);
+            return total + (isNaN(smv) ? 0 : smv);
+          }, 0);
+
+          //hitung total target header  (Work Hours / TOTAL SEWING SMV)*Manpower lalu pembulatan 2
+          const totalTargetHeader = Math.round((dataNewOb.OB_WH * 60 / totalObDetailSvm) * dataNewOb.OB_MP);
+
+          //hitung take time = (Work Hours*60*60)/Target (pcs.) lalu pembulatan nilai
+          const takeTime = Math.round((dataNewOb.OB_WH * 60 * 60) / totalTargetHeader, 1);
+
+          
+          //update total target header dan total smv di header
+          await IeObHeader.update(
+            {
+              OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
+              OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
+              OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+            },
+            {
+              where: { OB_ID },
+            }
+          );
+      
+
+        }else{
+          return res.status(202).json({message: 'No OB Detail'})
+        }
+      }else{
+        return res.status(202).json({message: 'No  OB Features'})
+      }
+
+
+    }else{
+      return res.status(404).json({message: 'failed copy OB'})
+    }
+
+
+    return res.status(200).json({message:'Success Copy  OB'})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed copy ie ob data",
+      error: error.message,
+      });
+  }
+}

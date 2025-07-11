@@ -1,5 +1,5 @@
 import express from "express";
-import { addNewListSize, chgStatusIeOb, deleteFeatures, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deleteOneObFtrs, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postNewFeatures, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortFeatures, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
+import { addNewListSize, chgStatusIeOb, copyIeOb, deleteFeatures, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deleteOneObFtrs, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postNewFeatures, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortFeatures, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
 import { afterPostHeaderCt, deleteCtHeader, deleteCtMp, deleteIeCtDetailCount, deleteIeCtMpProccesses, getBaseDataIeCyc, getIeCtBarChartSeries, getIeCtDetailCount, getIeCtGroupCount, getIeCtMppGroupCount, getListCtHeader, getSewRepEffforCt, midGetAvgMpp, patchHeaderIeCt, patchIeCtMpProccesses, postHeaderIeCt, postIeCtDetailCount, postIeCtMp, postIeCtMpProccesses, postIeGroupCount, qryGetEmpForCt } from "../../controllers/production/ie/IeCycleTime.js";
 const router = express.Router();
 
@@ -9,6 +9,7 @@ router.post("/list-sizes", addNewListSize);
 router.get("/list-sizes/:prodType", getSizesOb);
 
 router.post("/ob", postIeOb);
+router.post("/copy-ob", copyIeOb);
 router.patch("/ob", patchIeOb);
 router.post("/ob-remarks", postObRemark);
 router.post("/ob-change-status", chgStatusIeOb);
