@@ -64,7 +64,7 @@ export const createStorageInventory = async (req, res) => {
 
 export const getAllStorageInventory = async (req, res) => {
   try {
-    const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, CATEGORY } = req.query;
+    const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, CATEGORY, SHOW_MACHINE } = req.query;
 
     const whereCondition = {};
     if (UNIT_ID) whereCondition.UNIT_ID = UNIT_ID;
@@ -98,7 +98,14 @@ export const getAllStorageInventory = async (req, res) => {
       const data = inventories[i]
 
       const valid = await MecListMachine.findAll({where: {STORAGE_INVENTORY_ID: data.ID}})
-      listStorage.push({...data.dataValues, MACHINE_AVAILABLE: !!valid.length})
+
+      let respon = {...data.dataValues, MACHINE_AVAILABLE: !!valid.length}
+
+      if (SHOW_MACHINE) {
+        respon = {...respon, MACHINE_LIST: valid}
+      }
+
+      listStorage.push(respon)
     }
 
     return res.status(200).json({

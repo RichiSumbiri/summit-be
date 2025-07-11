@@ -21,7 +21,7 @@ import {
   postMachine,
   updateMachine,
   updateMachineAndStorage,
-  updateSequenceByStorageAndMachine, getTypeMachineByCategory, getAllDownTimeWithOutput,
+  updateSequenceByStorageAndMachine, getTypeMachineByCategory, getAllDownTimeWithOutput, getMecDownTimeValidation,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
@@ -52,6 +52,7 @@ router.get("/list-type", ListTypeMachine)
 
 router.get('/type-summary', getTypeMachineByCategory)
 router.get('/report-downtime', getAllDownTimeWithOutput)
+router.get('/check-downtime', getMecDownTimeValidation)
 
 //report
 router.get(

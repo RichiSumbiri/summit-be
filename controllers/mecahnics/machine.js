@@ -173,6 +173,18 @@ export const updateMachineAndStorage = async (req, res) => {
     
     const updatedMachines = [];
     for (const machineNo of machineNos) {
+      const downtimeValid = await MecDownTimeModel.findOne({
+        where: {
+          MACHINE_ID: machineNo,
+          IS_COMPLETE: false
+        }
+      })
+      if (downtimeValid) {
+        return res.status(500).json({
+          success: false,
+          message: `the machine cannot be moved because it is in downtime mode`,
+        });
+      }
       const machine = await MecListMachine.findOne({
         where: { MACHINE_ID: machineNo },
       });
@@ -790,16 +802,24 @@ export const getTypeMachineByCategory = async (req, res) => {
       const availableMachines = await MecListMachine.count({
         where: {
           MACHINE_TYPE: typeId,
-          STORAGE_INVENTORY_ID: {
-            [Op.eq]: null,
+          STATUS: "NORMAL",
+          STORAGE_INVENTORY_ID: null,
+        },
+      });
+      const brokenMachines = await MecListMachine.count({
+        where: {
+          MACHINE_TYPE: typeId,
+          STATUS: {
+            [Op.ne]: "NORMAL"
           },
         },
       });
 
-      response.push({
+        response.push({
         ...productionTypes[i].dataValues,
         TOTAL_MACHINE: totalMachines,
         MACHINE_IN_USE: machinesInUse,
+        MACHINE_BROKEN: brokenMachines,
         MACHINE_AVAILABLE: availableMachines,
       })
     }
@@ -818,6 +838,38 @@ export const getTypeMachineByCategory = async (req, res) => {
     });
   }
 };
+
+export  const getMecDownTimeValidation = async  (req, res) => {
+  try {
+      const {status, machineId} = req.query
+    const downtimeValid = await MecDownTimeModel.findOne({
+      where: {
+        MACHINE_ID: machineId,
+        IS_COMPLETE: false
+      }
+    })
+    if (downtimeValid) {
+      const validData = downtimeValid.STATUS !== status;
+      res.status(200).json({
+        success: true,
+        message: "Get Down Time Validation success",
+        data: validData
+      })
+    }  else {
+      res.status(200).json({
+        success: true,
+        message: "Get Down Time Validation success",
+        data: false
+      })
+    }
+  } catch (err) {
+    console.error("Error retrieving downtime records:", err);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve downtime records: ${err.message}`,
+    });
+  }
+}
 
 export const getAllDownTimeWithOutput = async (req, res) => {
   try {
