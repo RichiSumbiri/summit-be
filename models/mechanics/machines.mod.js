@@ -135,6 +135,10 @@ export const MecDownTimeModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        RESPONSE_TIME: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
         END_TIME: {
             type: DataTypes.DATE,
             allowNull: true,
