@@ -19,7 +19,7 @@ export const createSiteDepartment = async (req, res) => {
         if (!site) {
             return res.status(404).json({
                 success: false,
-                message: "SITE_ID not found in master_site_fx",
+                message: "SITE_ID not found",
             });
         }
 
@@ -28,10 +28,9 @@ export const createSiteDepartment = async (req, res) => {
         if (!unit) {
             return res.status(404).json({
                 success: false,
-                message: "UNIT_ID not found in master_unit",
+                message: "UNIT_ID not found",
             });
         }
-
 
         const department = await modelMasterDepartment.findOne({
             where: { IdDept: DEPT_ID },
@@ -39,12 +38,29 @@ export const createSiteDepartment = async (req, res) => {
         if (!department) {
             return res.status(404).json({
                 success: false,
-                message: "DEPT_ID not found in master_department",
+                message: "DEPT_ID not found",
+            });
+        }
+
+
+        const existDepartment = await SiteDepartmentModel.findOne({
+            where: {
+                SITE_ID: SITE_ID,
+                DEPT_ID: DEPT_ID,
+                IS_DELETED: false,
+            }
+        })
+
+        if (existDepartment) {
+            return res.status(500).json({
+                success: false,
+                message: `Department Already Exists`,
             });
         }
 
 
         const total = await SiteDepartmentModel.count()
+
         const ID =  `DEP${('0' + (total + 1)).slice(-2)}`
 
 
@@ -72,28 +88,27 @@ export const createSiteDepartment = async (req, res) => {
 
 export const getAllSiteDepartments = async (req, res) => {
     try {
-        const {unitId, companyId, siteId} = req.query
+        const {unitId, siteId} = req.query
 
         const where = {}
         if (unitId) {
             where.UNIT_ID = unitId
         }
-        if (companyId) {
-            where.COMPANY_ID = companyId
-        }
+
         if (siteId) {
             where.SITE_ID = siteId
         }
 
+
         const siteDepartments = await SiteDepartmentModel.findAll({
-            where,
+            where: {
+                ...where,
+                IS_DELETED: false,
+            },
             include: [
-                { model: MasterUnitModel, as: "unit" },
-                { model: modelMasterDepartment, as: "department" },
-                { model: MasterSiteFxModel, as: "site" },
+                { model: modelMasterDepartment, as: "department"},
             ],
         });
-
         return res.status(200).json({
             success: true,
             message: "Site Departments retrieved successfully",
@@ -164,7 +179,7 @@ export const updateSiteDepartment = async (req, res) => {
             if (!site) {
                 return res.status(404).json({
                     success: false,
-                    message: "SITE_ID not found in master_site_fx",
+                    message: "SITE_ID not found",
                 });
             }
         }
@@ -175,7 +190,7 @@ export const updateSiteDepartment = async (req, res) => {
             if (!unit) {
                 return res.status(404).json({
                     success: false,
-                    message: "UNIT_ID not found in master_unit",
+                    message: "UNIT_ID not found",
                 });
             }
         }
@@ -188,9 +203,25 @@ export const updateSiteDepartment = async (req, res) => {
             if (!department) {
                 return res.status(404).json({
                     success: false,
-                    message: "DEPT_ID not found in master_department",
+                    message: "DEPT_ID not found",
                 });
             }
+        }
+
+
+        const existDepartment = await SiteDepartmentModel.findOne({
+            where: {
+                SITE_ID: SITE_ID,
+                DEPT_ID: DEPT_ID,
+                IS_DELETED: false,
+            }
+        })
+
+        if (existDepartment) {
+            return res.status(500).json({
+                success: false,
+                message: `Department Already Exists`,
+            });
         }
 
 
@@ -229,7 +260,10 @@ export const deleteSiteDepartment = async (req, res) => {
         }
 
 
-        await siteDepartment.destroy();
+        await siteDepartment.update({
+            IS_DELETED: true,
+            DELETED_AT: new Date()
+        });
 
         return res.status(200).json({
             success: true,

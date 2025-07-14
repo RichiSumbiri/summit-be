@@ -78,6 +78,14 @@ const MasterSiteFxModel = db.define(
             type: DataTypes.INTEGER,
             defaultValue: 0,
         },
+        IS_DELETED:{
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true
+        }
     },
     {
         tableName: "master_site_fx",

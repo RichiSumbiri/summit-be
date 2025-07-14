@@ -26,6 +26,14 @@ import db from "../../config/database.js";
             type: DataTypes.INTEGER,
             allowNull: true,
         },
+        IS_DELETED: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     },
     {
         tableName: "site_department",

@@ -1,4 +1,5 @@
 import MasterSiteFxModel from "../../models/setup/siteFx.mod.js";
+import {Op} from "sequelize";
 
 export const createSiteFx = async (req, res) => {
     try {
@@ -29,8 +30,22 @@ export const createSiteFx = async (req, res) => {
             });
         }
 
+        const existCode = await MasterSiteFxModel.findOne({
+            where: {
+                CODE,
+                IS_DELETED: false
+            }
+        })
 
-        const total = await MasterSiteFxModel.count({})
+
+        if (existCode) {
+            return res.status(500).json({
+                success: false,
+                message: `CODE already exist`,
+            });
+        }
+
+        const total = await MasterSiteFxModel.count()
         const ID = `Site${total+1}`
         const newSite = await MasterSiteFxModel.create({
             ID,
@@ -50,7 +65,9 @@ export const createSiteFx = async (req, res) => {
             COMPANY_ID,
             WS1,
             WS2,
-            UNIT_ID
+            UNIT_ID,
+            IS_DELETED: false,
+            DELETED_AT: new Date()
         });
 
         return res.status(201).json({
@@ -79,7 +96,8 @@ export const getAllSitesFx = async (req, res) => {
         }
 
         const sites = await MasterSiteFxModel.findAll({
-            where: whereCondition
+            where: {...whereCondition, IS_DELETED: false},
+            distinct: true
         });
 
         return res.status(200).json({
@@ -155,6 +173,25 @@ export const updateSiteFx = async (req, res) => {
             });
         }
 
+
+
+        const existCode = await MasterSiteFxModel.findOne({
+            where: {
+                CODE,
+                IS_DELETED: false,
+                ID: {
+                    [Op.ne]: id
+                }
+            }
+        })
+
+        if (existCode) {
+            return res.status(500).json({
+                success: false,
+                message: `CODE already exist`,
+            });
+        }
+
         await site.update({
             CODE,
             NAME,
@@ -193,8 +230,7 @@ export const deleteSiteFx = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const site = await MasterSiteFxModel.findOne({ where: { ID: id } });
-
+        const site = await MasterSiteFxModel.findByPk(id);
         if (!site) {
             return res.status(404).json({
                 success: false,
@@ -202,7 +238,10 @@ export const deleteSiteFx = async (req, res) => {
             });
         }
 
-        await site.destroy();
+        await site.update({
+            IS_DELETED: true,
+            DELETED_AT: new Date()
+        })
 
         return res.status(200).json({
             success: true,

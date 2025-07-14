@@ -106,7 +106,13 @@ export const getMasterProv = async(req,res) => {
 
 export const getMasterKabkota = async(req,res) => {
     try {
-        const query     = ` SELECT * FROM master_alamat_kabkota `;
+        const { idProvince } = req.query
+        let query     = ` SELECT * FROM master_alamat_kabkota `;
+
+        if (idProvince) {
+            query += ` WHERE id_prov = '${idProvince}'`
+        }
+
         const result    = await dbSPL.query(query, { type: QueryTypes.SELECT });
         res.status(200).json({
             success: true,
