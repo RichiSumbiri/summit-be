@@ -11,8 +11,10 @@ import {
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
 import { getMasterLocation } from "../../controllers/list/listLocation.js";
-import { getMasterItemCategory, getMasterItemGroup, getMasterItemType, getMasterWarehouseClassAll, postMasterItemCategory, postMasterItemGroup, postMasterItemType, postMasterWarehouseClass } from "../../controllers/setup/TypeWarehouseClass.js";
-import { MasterItemTypes } from "../../models/setup/TypeWarehouseClass.js";
+import { getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
+import { getMasterItemGroup, postMasterItemGroup } from "../../controllers/setup/ItemGroups.js";
+import { getMasterItemType, postMasterItemType } from "../../controllers/setup/ItemTypes.js";
+import { getMasterItemCategory, postMasterItemCategory } from "../../controllers/setup/ItemCategories.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
