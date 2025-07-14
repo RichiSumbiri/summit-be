@@ -47,7 +47,7 @@ router.get("/get-base-detail-ct/:ctId", getBaseDataIeCyc);
 router.get("/get-barchart-ct/:ctId", getIeCtBarChartSeries);
 // router.get("/get-mpp-group-ct/:ctId", getIeCtMppGroupCount);
 router.get("/cycle-time-group-count/:ctId/:ieMpId", getIeCtGroupCount);
-router.get("/cycle-time-detail-count/:ctId/:ieMpId/:ieMppId", getIeCtDetailCount);
+router.get("/cycle-time-detail-count/:ctId/:ieMpId/:ieMppId/:ctGcActive", getIeCtDetailCount);
 
 router.post("/cycle-time-header", postHeaderIeCt, afterPostHeaderCt)
 router.patch("/cycle-time-header", patchHeaderIeCt)

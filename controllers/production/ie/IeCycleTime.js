@@ -5,7 +5,7 @@ import {  ieCtDetailCount, IeCtGroupCount, IeCtMpProcesses, IeCtMpProcessGroup, 
 import { qryGetEmpForIeCt } from "../../../models/hr/employe.mod.js";
 import { dbSPL } from "../../../config/dbAudit.js";
 import { IeObDetail, IeObFeatures, IeObHeader } from "../../../models/ie/IeOb.mod.js";
-import { averageCol, CheckNilai, totalCol } from "../../util/Utility.js";
+import { averageCol, CheckNilai, getUniqueAttribute, totalCol } from "../../util/Utility.js";
 
 //query get dailly eff report
 export const getSewRepEffforCt = async (req, res) => {
@@ -1034,12 +1034,13 @@ export const midGetAvgMpp = async (req, res) => {
 
 export const getIeCtDetailCount = async(req,res) => {
   try {
-    const {ctId, ieMpId, ieMppId} = req.params
+    const {ctId, ieMpId, ieMppId, ctGcActive} = req.params
       const getAllIeDetailCount = await ieCtDetailCount.findAll({
         where : {
           CT_ID : ctId,
           CT_MP_ID : ieMpId,
           CT_MPP_ID : ieMppId,
+          CT_GC_ID : ctGcActive,
         },
         raw : true
       })
@@ -1138,22 +1139,25 @@ export const getIeCtBarChartSeries = async(req,res) => {
       type: QueryTypes.SELECT,
     })
     // console.log({getDataOne, getDataAllMpp});
-    
+  
+    const getUniqGroup = getUniqueAttribute(getDataOne, 'CT_GC_NO')
+    //lalu urutkan
+     
 
     const onlyGroupOne = getDataOne.filter(br => br.CT_GC_NO === 1)
     //ambil array mpid untuk filter Mpp
     const arrMpId = onlyGroupOne.map(br => br.CT_MP_ID)
     const mppWithValue = getDataAllMpp.filter(mp => arrMpId.includes(mp.CT_MP_ID))
-
+    
    // time
     const arrTargetTT = onlyGroupOne.map(br => br.CT_TAKET_TIME)
     const arrStdTt = onlyGroupOne.map(br => getHeaderCt.CT_TAKE_TIME ? Math.round(getHeaderCt.CT_TAKE_TIME).toFixed() : 0)
-    const arrActTT = getDataOne.map(br => br.CT_ACT_TAKE_TIME)
+    const arrActTT = onlyGroupOne.map(br => br.CT_ACT_TAKE_TIME)
 
     // pcs
     const arrStdPcs = onlyGroupOne.map(br => getHeaderCt.CT_TARGET ? getHeaderCt.CT_TARGET : 0)
     const arrTargetPcs = onlyGroupOne.map(br => br.CT_TARGET_PCS)
-    const arrActTTPcs = getDataOne.map(br => br.CT_ACT_TARGET_PCS)
+    const arrActTTPcs = onlyGroupOne.map(br => br.CT_ACT_TARGET_PCS)
 
     let seriesTT = []
     if(arrStdTt.length > 0){
@@ -1176,7 +1180,7 @@ export const getIeCtBarChartSeries = async(req,res) => {
 
     if(arrActTT.length > 0){
       const objSeriesTT = {
-              name: 'Actual',
+              name: 'Actual Count-1',
               type: 'column',
               data: arrActTT
             }
@@ -1204,11 +1208,40 @@ export const getIeCtBarChartSeries = async(req,res) => {
 
     if(arrActTTPcs.length > 0){
       const objSeriesTTPcs = {
-              name: 'Actual',
+              name: 'Actual  Count-1',
               type: 'column',
               data: arrActTTPcs
             }
         seriesPcs.push(objSeriesTTPcs)
+    }
+
+    if(getUniqGroup.filter(gNo => gNo !== 1).length > 1){
+      const uniqGroupNo = getUniqGroup.filter(gNo => gNo !== 1).sort((a, b) => a-b);
+
+       for (const [i, item] of uniqGroupNo.entries()) {
+
+          const dataByGcNo = getDataOne.filter(br => br.CT_GC_NO === item)
+
+          if(dataByGcNo.length > 0){
+              const arrTtGroup = arrMpId.map(mp => {
+                const findTtByMp = dataByGcNo.find(tt => tt.CT_MP_ID === mp)
+                if(findTtByMp){
+                  return findTtByMp.CT_ACT_TAKE_TIME
+                }else{
+                  return 0
+                }
+              })
+
+              const objSeriesTT = {
+                      name: `Actual Count-${item}`,
+                      type: 'column',
+                      data: arrTtGroup
+                    }
+                seriesTT.push(objSeriesTT)
+            }
+          
+       }
+      
     }
 
     const categories = getCategoryStrings(mppWithValue)
@@ -1226,3 +1259,6 @@ export const getIeCtBarChartSeries = async(req,res) => {
     });
   }
 }
+
+
+
