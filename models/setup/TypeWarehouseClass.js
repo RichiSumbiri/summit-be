@@ -124,7 +124,8 @@ export const MasterItemTypes = db.define('master_item_type', {
     },
     WHC_REF_CODE: {
       type: DataTypes.STRING(200),
-      allowNull: true
+      allowNull: false,
+      unique: 'master_warehouse_class_unique'
     },
     WHC_DESCRIPTION: {
       type: DataTypes.STRING(200),
