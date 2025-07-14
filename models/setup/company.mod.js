@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
-import {dbSPL} from "../../config/dbAudit.js";
+import db from "../../config/database.js";
 
-const MasterCompanyModel = dbSPL.define(
+const MasterCompanyModel = db.define(
     "master_company",
     {
         ID: {
@@ -11,6 +11,10 @@ const MasterCompanyModel = dbSPL.define(
         },
         NAME: {
             type: DataTypes.STRING(255),
+            allowNull: false,
+        },
+        CODE: {
+            type: DataTypes.STRING(3),
             allowNull: false,
         },
         CREATED_AT: {

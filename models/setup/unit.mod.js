@@ -1,7 +1,9 @@
 import { DataTypes } from "sequelize";
-import {dbSPL} from "../../config/dbAudit.js";
 
-const MasterUnitModel = dbSPL.define(
+import db from "../../config/database.js";
+
+
+const MasterUnitModel = db.define(
     "master_unit",
     {
         UNIT_ID: {

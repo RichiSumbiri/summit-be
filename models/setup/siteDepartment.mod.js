@@ -1,10 +1,12 @@
 import {DataTypes} from "sequelize";
-import {dbSPL} from "../../config/dbAudit.js";
 import MasterSiteFxModel from "./siteFx.mod.js";
 import {modelMasterDepartment} from "../hr/employe.mod.js";
 import MasterUnitModel from "./unit.mod.js";
 
- const SiteDepartmentModel = dbSPL.define(
+import db from "../../config/database.js";
+
+
+ const SiteDepartmentModel = db.define(
     "site_department",
     {
         ID: {

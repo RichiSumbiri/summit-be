@@ -1,7 +1,8 @@
 import { DataTypes } from "sequelize";
-import {dbSPL} from "../../config/dbAudit.js";
+import db from "../../config/database.js";
 
-const MasterSiteFxModel = dbSPL.define(
+
+const MasterSiteFxModel = db.define(
     "master_site_fx",
     {
         ID: {
