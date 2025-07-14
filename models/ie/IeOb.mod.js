@@ -134,6 +134,10 @@ export const IeObHeader = db.define('ie_ob_header', {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    OB_SKETCH_BACK: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     OB_REMARKS: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -220,11 +224,17 @@ LIMIT 1`
 
 export const getListOb = `SELECT 
 ioh.*,
+ils2.PRODUCT_TYPE,
 xuw.USER_INISIAL AS USER_ADD,
 xux.USER_INISIAL AS USER_MOD
 FROM ie_ob_header ioh 
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
 LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
+LEFT JOIN (
+	  SELECT ils.PRODUCT_ITEM_ID, ils.PRODUCT_TYPE 
+	  FROM item_list_style ils 
+	  GROUP BY ils.PRODUCT_ITEM_ID 
+	) ils2 ON ils2.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID
 WHERE ioh.PRODUCT_ITEM_ID = :prodItemId
 AND ioh.OB_DELETE_STATUS = 0
 `
@@ -290,7 +300,33 @@ LEFT JOIN item_list_style ils ON ils.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID AND i
 WHERE ioh.OB_ID = :obId
 AND ioh.OB_DELETE_STATUS = 0
 `
-
+export const dbItemListSizes = db.define('item_list_sizes', {
+    SIZE_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    PRODUCT_TYPE: {
+      type: DataTypes.STRING(100),
+      allowNull: false  
+    },
+    SIZE_COUNTRY: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    SIZE_NAME: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    DELETED_STATUS: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+  }, {
+    freezeTableName: true,
+    timestamps: false
+  });
+  
 export const dbListFeatures = db.define('item_list_features', {
     FEATURES_ID: {
       type: DataTypes.INTEGER,
@@ -407,13 +443,14 @@ export const splitDataForUpdateAndCreate = (incomingItems) => {
 
 
 export const qryGetFeaturs = `SELECT
+	iof.OB_ID,
 	iof.ID_OB_FEATURES,
 	iof.SEQ_NO,
 	ilf.*
 FROM ie_ob_features iof 
 LEFT JOIN item_list_features ilf ON iof.FEATURES_ID = ilf.FEATURES_ID
 WHERE iof.OB_ID = :obId
-ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`
+ORDER BY iof.SEQ_NO`
 
 
 
@@ -815,6 +852,7 @@ ORDER BY iof.SEQ_NO, iod.OB_DETAIL_NO`
 export const qryGetObDetailForBe = `SELECT 
  iod.*,
  iof.ID_OB_FEATURES,
+ iof.FEATURES_ID,
  iof.SEQ_NO,
  ilf.FEATURES_CATEGORY
 FROM ie_ob_detail iod

@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
+import { dbItemListSizes, dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
 import { baseUrl, getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/ie/IeOb.mod.js";
@@ -456,6 +456,12 @@ export const getObData = async (req, res) =>{
         dataObDetail.obHeader.OB_SKETCH = sketchUrl; // Update the OB_SKETCH field with the full URL
       }
       
+      if(obHeader[0].OB_SKETCH_BACK){
+        const sketchPath = `/images/sketch/${obHeader[0].OB_SKETCH_BACK}`;
+        const sketchUrl = `${baseUrl}${sketchPath}`;
+        dataObDetail.obHeader.OB_SKETCH_BACK = sketchUrl; // Update the OB_SKETCH back field with the full URL
+      }
+      
     const listFeatures = await db.query(qryGetFeaturs, {
       replacements: {obId},
       type: QueryTypes.SELECT,
@@ -528,19 +534,20 @@ export const postFeatures = async (req, res) => {
     }
 
     // Ambil data existing dari DB
-    const existingFeatures = await IeObFeatures.findAll({
-      where: { OB_ID: obId },
-    });
+    // const existingFeatures = await IeObFeatures.findAll({
+    //   where: { OB_ID: obId },
+    // });
 
-    const idsToDelete = getIdsToDelete(existingFeatures, data);
+    // const idsToDelete = getIdsToDelete(existingFeatures, data);
 
-    if (idsToDelete.length > 0) {
-      await IeObFeatures.destroy({
-        where: { ID_OB_FEATURES: idsToDelete },
-      });
-    }
+    // if (idsToDelete.length > 0) {
+    //   await IeObFeatures.destroy({
+    //     where: { ID_OB_FEATURES: idsToDelete },
+    //   });
+    // }
 
     const { dataToUpdate, dataToCreate } = splitDataForUpdateAndCreate(data);
+// console.log({ dataToUpdate, dataToCreate });
 
     if (dataToUpdate.length > 0) {
       await IeObFeatures.bulkCreate(dataToUpdate, {
@@ -549,7 +556,18 @@ export const postFeatures = async (req, res) => {
     }
 
     if (dataToCreate.length > 0) {
-      await IeObFeatures.bulkCreate(dataToCreate);
+      //jika ada data check exist maka kita perlu ubah SEQ_NO menjadi increment
+      const listFeaturesExist = await db.query(qryGetFeaturs, {
+        replacements: {obId},
+        type: QueryTypes.SELECT,
+      })
+
+      const maxSeqNo = listFeaturesExist.length;
+      const incrementedData = dataToCreate.map((item, idx) => ({
+        ...item,
+        SEQ_NO: maxSeqNo + idx + 1,
+      }));
+      await IeObFeatures.bulkCreate(incrementedData);
     }
 
     // Ambil hasil terbaru dari DB
@@ -591,6 +609,158 @@ export const postFeatures = async (req, res) => {
   }
 };
 
+
+export const sortFeatures = async (req, res) => {
+  try {
+    const dataFeatures = req.body
+    // console.log("Data Features to sort:", dataFeatures);
+    
+     const sortFt = await IeObFeatures.bulkCreate(dataFeatures, {
+        updateOnDuplicate: [ "SEQ_NO"],
+      });
+
+
+  if (sortFt) {
+          const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId: dataFeatures[0].OB_ID},
+            type: QueryTypes.SELECT,
+          }) 
+
+          if(allObDetail.length > 0){
+            const reSortObDetail = allObDetail.map((item, index) => ({
+              ...item,
+              OB_DETAIL_NO: index + 1, // Mulai dari 1
+            }));
+
+            // Update the OB_DETAIL_NO in the database
+            await IeObDetail.bulkCreate(reSortObDetail, {
+              updateOnDuplicate: ["OB_DETAIL_NO"],
+            }
+            );
+          }
+
+              //masukan ke ie history
+              const featureName = dataFeatures.map(item => item.FEATURES_NAME).join(', ');
+              const historyData = {
+                OB_ID: dataFeatures[0].OB_ID,
+                OB_USER_ID: dataFeatures[0].USER_ID,
+                OB_TYPE_ACTION: 'Sort Features',
+                OB_VALUE_AFTER : featureName
+              }
+              const postHistory = await IeObHistory.create(historyData);
+              
+  }
+
+    return res.status(200).json({ success: true, message: "Features sorted successfully" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to sort features",
+      error: error.message,
+    });
+  }
+}
+
+export const deleteOneObFtrs = async (req, res) => {
+  try {
+    const {idObFeatures, obId, userId} = req.params
+    // console.log("Data Features to sort:", dataFeatures);
+    
+     const findFeatures = await IeObFeatures.findOne({
+        where: {
+          ID_OB_FEATURES: idObFeatures,
+        },
+        raw: true
+      });
+
+
+     const deleteFeat = await IeObFeatures.destroy({
+        where: {
+          ID_OB_FEATURES: idObFeatures,
+        },
+      });
+
+
+  if (deleteFeat) {
+        //masukan ke ie history
+    const historyData = {
+      OB_ID: obId,
+      OB_USER_ID: userId,
+      OB_TYPE_ACTION: 'Delete Features',
+      OB_VALUE_AFTER : findFeatures.FEATURES_NAME
+    }
+    const postHistory = await IeObHistory.create(historyData);
+              
+
+       //cek apakah ada detail yang terkait dengan fitur ini
+          const existObDetail = await IeObDetail.findAll({
+            where: {
+              ID_OB_FEATURES: idObFeatures,
+            },
+            raw: true, // supaya hasilnya plain object
+          });
+
+          if(existObDetail.length > 0){
+            const deleteObDetail = await IeObDetail.destroy({
+              where: {
+                ID_OB_FEATURES: idObFeatures,
+              },
+            });
+
+          }
+
+          //jika sudah delete maka kita harus urut ulan seq no
+              const listFeatures = await db.query(qryGetFeaturs, {
+              replacements: {obId},
+              type: QueryTypes.SELECT,
+            })
+
+            if(listFeatures.length > 0){
+              const reSortFeatures = listFeatures.map((item, index) => ({
+                ...item,
+                SEQ_NO: index + 1, // Mulai dari 1
+              }));
+
+              // Update the SEQ_NO in the database
+              await IeObFeatures.bulkCreate(reSortFeatures, {
+                updateOnDuplicate: ["SEQ_NO"],
+              });
+            }
+
+     
+          //jika sudah delete semua maka kita harus urut ulang ob detail no
+          const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId},
+            type: QueryTypes.SELECT,
+          }) 
+
+          if(allObDetail.length > 0){
+            const reSortObDetail = allObDetail.map((item, index) => ({
+              ...item,
+              OB_DETAIL_NO: index + 1, // Mulai dari 1
+            }));
+
+            // Update the OB_DETAIL_NO in the database
+            await IeObDetail.bulkCreate(reSortObDetail, {
+              updateOnDuplicate: ["OB_DETAIL_NO"],
+            }
+            );
+          }
+  }
+
+    return res.status(200).json({ success: true, message: "Features delete successfully" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete features",
+      error: error.message,
+    });
+  }
+}
 
 //get referensi for ob detail
 export const getRefObDetail = async (req, res) => {
@@ -843,7 +1013,7 @@ export const reNoIeObDetail = async (req, res, next) => {
   try {
     const dataObDetail = req.body;
     
-    if(!dataObDetail.OB_DETAIL_ID) {
+    // if(dataObDetail.OB_DETAIL_ID) {
       const {OB_ID} = dataObDetail;
         // Ambil data terbaru dari DB
         const allObDetail =   await db.query(qryGetObDetailForBe, {
@@ -858,6 +1028,7 @@ export const reNoIeObDetail = async (req, res, next) => {
           const smv = parseFloat(item.OB_DETAIL_SMV);
           return total + (isNaN(smv) ? 0 : smv);
         }, 0);
+        // console.log(totalObDetailSvm);
         
         const obHeader = await IeObHeader.findOne({
           where: { OB_ID },
@@ -901,9 +1072,9 @@ export const reNoIeObDetail = async (req, res, next) => {
           await Promise.all(updatePromises);
         }
       next(); // lanjutkan ke proses penyimpanan data detail OB
-    }else {
-      next(); // lanjutkan ke proses penyimpanan data detail OB
-    }
+    // }else {
+    //   next(); // lanjutkan ke proses penyimpanan data detail OB
+    // }
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -981,8 +1152,13 @@ export const postIeObSketch = async (req, res) => {
       
       const imageFile = req.files.file; // Ambil file gambar dari request
       const fileName = imageFile.name; // Ambil nama file
+      const status = dataSketch.status; // status back or front 
       const fileExtension = path.extname(fileName).toLowerCase(); // Ambil ekstensi file
-      const newFileName = `${dataSketch.OB_ID}${fileExtension}`; // Buat nama file baru dengan OB_ID
+      let newFileName = `${dataSketch.OB_ID}${fileExtension}`; // Buat nama file baru dengan OB_ID
+
+      if(status === 'Back'){
+        newFileName = `${dataSketch.OB_ID}_BACK${fileExtension}`
+      }
       if (!imageFile) {
         return res.status(400).json({ success: false, message: "Image file is required" });
       }
@@ -997,9 +1173,15 @@ export const postIeObSketch = async (req, res) => {
               msg = msg + ` but error upload front Img`
             }
         })
+
+      let objPost = { OB_SKETCH: newFileName, OB_MOD_ID: userId }
+      
+      if(status === 'Back'){
+        objPost = { OB_SKETCH_BACK: newFileName, OB_MOD_ID: userId }
+      }
+
       // upadate nama file sketch di database
-      const updateSketch = await IeObHeader.update(
-        { OB_SKETCH: newFileName, OB_MOD_ID: userId },
+      const updateSketch = await IeObHeader.update(objPost,
         {
           where: { OB_ID: obId, OB_DELETE_STATUS: 0 },
         }
@@ -1023,22 +1205,26 @@ export const postIeObSketch = async (req, res) => {
 
 export const deleteIeObSketch = async (req, res) => {
   try {
-      const { obId } = req.params;
-      if (!obId) {
+      const { obId, tabsSketch } = req.params;
+      if (!obId && !tabsSketch) {
         return res.status(400).json({ success: false, message: "OB_ID is required" });
       }
       const getOb = await IeObHeader.findOne({
         where: { OB_ID: obId, OB_DELETE_STATUS: 0 },
       });
       
+      const  sketchFileName = tabsSketch === 'Front' ?  getOb.OB_SKETCH : getOb.OB_SKETCH_BACK
+
       // Hapus file sketch dari server
-      const sketchPath = path.join(__dirname, "../../../assets/images/sketch", getOb.OB_SKETCH);
+      const sketchPath = path.join(__dirname, "../../../assets/images/sketch", sketchFileName);
       if (fs.existsSync(sketchPath)) {
         fs.unlinkSync(sketchPath);
       }
+
+      const objUpdate = tabsSketch === 'Front' ? { OB_SKETCH: null } : { OB_SKETCH_BACK: null }
+
       // Update database untuk menghapus nama file sketch
-      await IeObHeader.update(
-        { OB_SKETCH: null },
+      await IeObHeader.update(objUpdate,
         { where: { OB_ID: obId, OB_DELETE_STATUS: 0 } }
       );
       return res.status(200).json({ success: true, message: "Sketch deleted successfully" });
@@ -1215,7 +1401,7 @@ export const getListSugesObRow = async (req, res) => {
     });
 
     if (listObDetail.length === 0) {
-      return res.status(404).json({ success: false, message: "OB details not found" });
+      return res.status(202).json({ success: false, message: "OB details not found" });
     }
 
     return res.status(200).json({ success: true, data: listObDetail });
@@ -1613,14 +1799,17 @@ export const postImportObDetail = async (req, res, next) => {
 
 export const getImageOb = async(req,res) => {
   try {
-    const { obid } = req.params;
+    const { obid , skecthStatus} = req.params;
     const getFileName = await IeObHeader.findOne({
       where: {
         OB_ID: obid
       }, raw: true
     });
+
+    let fileName = skecthStatus === 'Front' ? getFileName.OB_SKETCH : getFileName.OB_SKETCH_BACK
+
     if(getFileName){
-      const filePath = path.join( __dirname, "../../../assets/images/sketch", getFileName.OB_SKETCH );
+      const filePath = path.join( __dirname, "../../../assets/images/sketch", fileName );
       if(filePath){
         res.sendFile(filePath, (err) => {
           if (err) {
@@ -1725,5 +1914,195 @@ export const deleteFeatures = async (req, res) => {
       message: "Failed to create new feature",
       error: error.message,
     });
+  }
+}
+
+
+export const addNewListSize = async (req, res) => {
+  try {
+    const { SIZE_NAME, PRODUCT_TYPE, SIZE_COUNTRY } = req.body;
+
+    if (!SIZE_NAME || !PRODUCT_TYPE || !SIZE_COUNTRY) {
+      return res.status(400).json({ success: false, message: "SIZE_NAME and PRODUCT_TYPE are required" });
+    }
+
+    // Cek apakah ukuran sudah ada
+    const existingSize = await dbItemListSizes.findOne({
+      where: {
+        SIZE_NAME,
+        PRODUCT_TYPE,
+        SIZE_COUNTRY,
+        DELETED_STATUS: 0 // Pastikan ukuran yang dicari belum dihapus
+      }
+    });
+
+    if (existingSize) {
+      return res.status(202).json({ success: false, message: "Size already exists" });
+    }
+    
+    // Buat ukuran baru
+    const newSize = await dbItemListSizes.create({
+      SIZE_NAME,
+      PRODUCT_TYPE,
+      SIZE_COUNTRY      
+    });
+    const plainSize = newSize.get({ plain: true }); 
+    // Kembalikan respons sukses
+    return res.status(200).json({ success: true, data: plainSize });
+  }catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create new size",
+      error: error.message,
+    });
+  }
+}
+
+
+export const copyIeOb = async (req, res) =>{
+  try {
+    let {dataNewOb, dataSize} = req.body
+    const obIdOld = dataNewOb.OB_ID
+    //ambil ob id
+    const getLastId = await db.query(getLasIdOb, {
+      replacements: {prodItemId : dataNewOb.PRODUCT_ITEM_ID},
+      type: QueryTypes.SELECT,
+    })
+
+    //jika belum ada ob id sebelumnya maka masukan initial id 0001
+    const lastId = getLastId[0]? getLastId[0].LATST_ID.toString().padStart(3, "0") : '001'
+
+    //masukan ob id ke object ob header
+    const OB_ID = dataNewOb.OB_CODE+lastId
+    dataNewOb.OB_ID = OB_ID
+
+    //masukan ob id ke array of obj sizes
+    const sizeOb = dataSize.map(({OB_SIZE_ID, ...rest}) => ({...rest, OB_ID}))
+
+    //check apakah memiliki sketch
+  // Folder tujuan
+    const sketchFolder = path.join(__dirname, "../../../assets/images/sketch");
+
+    // Proses OB_SKETCH
+    if (dataNewOb.OB_SKETCH) {
+      const oldFilePath = path.join(sketchFolder, dataNewOb.OB_SKETCH);
+      const ext = path.extname(dataNewOb.OB_SKETCH); // ambil ekstensi file, contoh ".jpg" atau ".png"
+      const newFileName = `${OB_ID}${ext}`;
+      const newFilePath = path.join(sketchFolder, newFileName);
+
+      // Salin file
+      fs.copyFileSync(oldFilePath, newFilePath);
+
+      // Ubah nama file di dataNewOb
+      dataNewOb.OB_SKETCH = newFileName;
+    }
+
+    // Proses OB_SKETCH_BACK
+    if (dataNewOb.OB_SKETCH_BACK) {
+      const oldFilePath = path.join(sketchFolder, dataNewOb.OB_SKETCH_BACK);
+      const ext = path.extname(dataNewOb.OB_SKETCH_BACK);
+      const newFileName = `${OB_ID}_BACK${ext}`;
+      const newFilePath = path.join(sketchFolder, newFileName);
+
+      fs.copyFileSync(oldFilePath, newFilePath);
+
+      dataNewOb.OB_SKETCH_BACK = newFileName;
+    }
+    
+    const createNewOb = await IeObHeader.create(dataNewOb)
+    
+    if(createNewOb){
+      const createNewObSize = await IeObSize.bulkCreate(sizeOb)
+
+      
+      //setelah sukkess create ob maka kita lakukan get data features dan detail ob
+      const listObFeatures = await IeObFeatures.findAll({
+        where : {
+          OB_ID : obIdOld
+        },
+        raw: true
+      })
+
+      if(listObFeatures.length > 0){
+        const listFeatWuserId = listObFeatures.map(({ ID_OB_FEATURES, ...rest }) => ({
+          ...rest,
+          OB_ID : OB_ID,
+          ADD_ID: dataNewOb.OB_ADD_ID
+        }));
+        const postFeatures = await IeObFeatures.bulkCreate(listFeatWuserId)
+        
+        const resultFeatures = postFeatures.map(f => f.get({ plain: true }));
+
+        const listObDetail =  await db.query(qryGetObDetailForBe, {
+            replacements: {obId: obIdOld},
+            type: QueryTypes.SELECT,
+          }) 
+  
+        if(listObDetail.length > 0){
+          
+          const listObDetailNew = listObDetail.map(({OB_DETAIL_ID, ...obd}) => {
+            //datapatkan nilai target detail ob
+             const getTarget = (dataNewOb.OB_WH * 60)/parseFloat(obd.OB_DETAIL_SMV); 
+             const OB_DETAIL_TARGET = getTarget
+             const findFeatId = resultFeatures.find(ft => ft.FEATURES_ID === obd.FEATURES_ID)             
+             return ({...obd, OB_ID, OB_DETAIL_TARGET, ID_OB_FEATURES : findFeatId.ID_OB_FEATURES,  ADD_ID : dataNewOb.OB_ADD_ID })
+          })
+  
+          const createObDetail = await IeObDetail.bulkCreate(listObDetailNew)
+          
+          //ambil ob detail yang ada seq no dan category features
+          const allObDetail =   await db.query(qryGetObDetailForBe, {
+            replacements: {obId: OB_ID},
+            type: QueryTypes.SELECT,
+          }) 
+  
+          //hitung semua ob_detail_smv yang bernilai decimal
+          const totalObDetailSvm = allObDetail.filter(od => od.FEATURES_CATEGORY === 'SEWING').reduce((total, item) => {
+            const smv = parseFloat(item.OB_DETAIL_SMV);
+            return total + (isNaN(smv) ? 0 : smv);
+          }, 0);
+
+          //hitung total target header  (Work Hours / TOTAL SEWING SMV)*Manpower lalu pembulatan 2
+          const totalTargetHeader = Math.round((dataNewOb.OB_WH * 60 / totalObDetailSvm) * dataNewOb.OB_MP);
+
+          //hitung take time = (Work Hours*60*60)/Target (pcs.) lalu pembulatan nilai
+          const takeTime = Math.round((dataNewOb.OB_WH * 60 * 60) / totalTargetHeader, 1);
+
+          
+          //update total target header dan total smv di header
+          await IeObHeader.update(
+            {
+              OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
+              OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
+              OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+            },
+            {
+              where: { OB_ID },
+            }
+          );
+      
+
+        }else{
+          return res.status(202).json({message: 'No OB Detail'})
+        }
+      }else{
+        return res.status(202).json({message: 'No  OB Features'})
+      }
+
+
+    }else{
+      return res.status(404).json({message: 'failed copy OB'})
+    }
+
+
+    return res.status(200).json({message:'Success Copy  OB'})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed copy ie ob data",
+      error: error.message,
+      });
   }
 }
