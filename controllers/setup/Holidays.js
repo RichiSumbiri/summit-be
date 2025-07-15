@@ -8,7 +8,7 @@ import {
 } from "../../models/setup/holidays.mod.js";
 import CalendarHolidays from "../../models/setup/calendarHolidays.mod.js";
 import WorkingDays from "../../models/setup/workingDays.js";
-import { GeneratedWorkingDays } from "../../models/setup/GeneratedWorkingDays.js";
+import { GeneratedWorkingDays } from "../../models/setup/generatedWorkingDays.js";
 import moment from "moment/moment.js";
 
 export const getCalendarHolidays = async (req, res) => {
