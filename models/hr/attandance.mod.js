@@ -2059,3 +2059,218 @@ ORDER BY
 
 `;
 
+export const mpRecap = dbSPL.define('sumbiri_mp_recap', {
+	recap_id: {
+	  type: DataTypes.INTEGER,
+	  autoIncrement: true,
+	  primaryKey: true,
+	  allowNull: false,
+
+	},
+	tgl_recap: {
+	  type: DataTypes.DATEONLY,
+	  allowNull: true,
+	},
+	IDDepartemen: {
+		type: DataTypes.INTEGER,
+		allowNull: true,
+	  },
+	IDSection: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true,
+	},
+	IDSubDepartemen: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	IDPosisi: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_total: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_present: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_absen: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_in: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_out: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_male: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	emp_female: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	schedule_jk: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	}
+  }, {
+	createdAt: false,
+	updatedAt: false,
+	freezeTableName: true,
+  });
+
+  export const mpRecapDetail = dbSPL.define('sumbiri_mp_recap_detail', {
+	recap_dtl_id: {
+	  type: DataTypes.INTEGER,
+	  autoIncrement: true,
+	  primaryKey: true,
+	  allowNull: false,
+	},
+	tgl_recap: {
+	  type: DataTypes.DATEONLY,
+	  allowNull: true,
+	},
+	Nik: {
+		type: DataTypes.INTEGER,
+		allowNull: true,
+	  },
+	IDDepartemen: {
+		type: DataTypes.INTEGER,
+		allowNull: true,
+	  },
+	IDSection: {
+	  type: DataTypes.STRING(100),
+	  allowNull: true,
+	},
+	IDSubDepartemen: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	},
+	IDPosisi: {
+	  type: DataTypes.INTEGER,
+	  allowNull: true,
+	}
+  }, {
+	createdAt: false,
+	updatedAt: false,
+	freezeTableName: true,
+  });
+
+
+  export const qryForRecap = `WITH base_absen AS (
+	SELECT 
+      se.Nik, 
+	  se.NamaLengkap,
+	  se.IDDepartemen,
+	  se.IDSubDepartemen,
+	  se.IDSection,
+	  se.TanggalMasuk,
+	  se.TanggalKeluar,
+	  se.JenisKelamin,
+	  se.StatusKaryawan,
+      msd.Name subDeptName,
+      md.NameDept,
+      se.IDSiteline,
+      se.IDPosisi,
+	  CASE WHEN sis.jk_id THEN sis.jk_id ELSE sgs.jk_id END AS jk_id,
+	  CASE WHEN se.TanggalMasuk = :tglRecap THEN 1 ELSE 0 END AS new_emp
+	FROM sumbiri_employee se
+	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
+	LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId AND sgs.scheduleDate = :tglRecap
+	LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik AND sis.scheduleDate_inv = :tglRecap
+	WHERE se.CancelMasuk = 'N' AND  (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :tglRecap ) -- Belum keluar pada tanggal tertentu
+	  AND se.TanggalMasuk <= :tglRecap
+    -- AND se.IDDepartemen = '100103' AND se.IDPosisi = 6
+),
+empAbsens AS (
+	SELECT 
+	:tglRecap AS tgl_recap,
+	ba.Nik, 
+	ba.NamaLengkap,
+	ba.NameDept,
+	ba.IDDepartemen,
+	ba.IDSubDepartemen,
+	ba.subDeptName,
+	ba.IDSection,
+	ba.IDPosisi,
+	ba.TanggalMasuk,
+	ba.TanggalKeluar,
+	ba.JenisKelamin,
+	ba.StatusKaryawan,
+	ba.new_emp,
+	sa.id, 
+	sa.tanggal_in,
+	sa.scan_in,
+	sa.ot,
+	sa.scan_out,
+	CASE WHEN sa.jk_id <> 0 THEN sa.jk_id ELSE ba.jk_id END AS jk_id,
+	sa.keterangan
+	FROM base_absen ba
+	LEFT JOIN sumbiri_absens sa ON sa.Nik = ba.Nik AND sa.tanggal_in= :tglRecap
+-- 	LEFT JOIN master_jam_kerja mjk ON mjk.jk_id = COALESCE(sa.jk_id, ba.jk_id)
+-- 	LEFT JOIN master_siteline mst ON mst.IDSiteline = ba.IDSiteline
+-- 	LEFT JOIN master_section msts ON msts.IDSection = ba.IDSection
+),
+JOINAbsens AS (
+	SELECT 
+		ea.*,
+	CASE WHEN ea.jk_id THEN 1 ELSE 0 END AS schedule_jk
+	FROM empAbsens ea
+)
+SELECT 
+	jb.tgl_recap,
+	jb.IDDepartemen,
+	jb.IDSection,
+	jb.IDSubDepartemen,
+	jb.IDPosisi,
+	-- jb.IDSiteline,
+	COUNT(jb.Nik) AS emp_total,
+	COUNT(jb.scan_in) AS emp_present,
+	SUM(jb.new_emp) AS emp_in,
+	SUM(jb.JenisKelamin) as emp_female,
+	SUM(jb.schedule_jk) as schedule_jk
+FROM JOINAbsens jb
+GROUP BY jb.tgl_recap,
+		jb.IDDepartemen,
+		jb.IDSection,
+		jb.IDSubDepartemen,
+		jb.IDPosisi`
+
+export const forRecapEmpOut = `SELECT 
+	:tglRecap tgl_recap,
+   	 se.IDDepartemen,
+   	 se.IDSection,
+	 se.IDSubDepartemen,
+	 se.IDSiteline,
+	 se.IDPosisi,
+    COUNT(se.TanggalKeluar) AS emp_out 
+FROM sumbiri_employee se
+LEFT JOIN master_section ms ON ms.IDSection = se.IDSection
+WHERE se.CancelMasuk = 'N' AND se.TanggalKeluar = :tglRecap 
+GROUP BY se.IDDepartemen,
+ 		se.IDSection,
+	 	se.IDSubDepartemen,
+		se.IDPosisi
+	`
+
+export const empOutstandPosision = `SELECT 
+  :tglRecap tgl_recap,
+  se.Nik, 
+  se.NamaLengkap,
+  se.IDDepartemen,
+  se.IDSection,
+  se.IDSubDepartemen,
+  se.IDPosisi
+FROM sumbiri_employee se
+WHERE se.CancelMasuk = 'N' 
+  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :tglRecap ) -- Belum keluar pada tanggal tertentu
+  AND se.TanggalMasuk <= :tglRecap`;
+
