@@ -1,7 +1,7 @@
 import BuildingModel from "../../models/list/buildings.mod.js";
 import BuildingRoomModel from "../../models/list/buildingRoom.mod.js";
 import StorageInventoryModel from "../../models/storage/storageInventory.mod.js"
-import {MecListMachine} from "../../models/mechanics/machines.mod.js";
+import {MacTypeOfMachine, MecListMachine} from "../../models/mechanics/machines.mod.js";
 
 export const createStorageInventory = async (req, res) => {
   try {
@@ -97,15 +97,24 @@ export const getAllStorageInventory = async (req, res) => {
     for (let i = 0; i < inventories.length; i++) {
       const data = inventories[i]
 
-      const valid = await MecListMachine.findAll({where: {STORAGE_INVENTORY_ID: data.ID}})
+      const valid = await MecListMachine.findAll(
+          {
+            where: {STORAGE_INVENTORY_ID: data.ID},
+            include: [
+              {
+                model: MacTypeOfMachine,
+                as: "MEC_TYPE_OF_MACHINE",
+                attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+              }
+            ],
+            order: [['SEQ_NO', 'ASC']]
+          })
 
-      let respon = {...data.dataValues, MACHINE_AVAILABLE: !!valid.length}
-
+      let machineList = {...data.dataValues, MACHINE_AVAILABLE: !!valid.length}
       if (SHOW_MACHINE) {
-        respon = {...respon, MACHINE_LIST: valid}
+        machineList = {...machineList, MACHINE_LIST: valid}
       }
-
-      listStorage.push(respon)
+      listStorage.push(machineList)
     }
 
     return res.status(200).json({

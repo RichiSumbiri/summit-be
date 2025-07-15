@@ -932,7 +932,7 @@ export const getAllDownTimeWithOutput = async (req, res) => {
               ID_SITELINE: downTime.ID_SITELINE,
               SCHD_ID: downTime.SCHD_ID,
             },
-            attributes: ['TOTAL_OUTPUT', 'ORDER_STYLE_DESCRIPTION', 'ITEM_COLOR_NAME', 'LINE_NAME', 'SHIFT']
+            attributes: ['TOTAL_OUTPUT', 'ORDER_STYLE_DESCRIPTION', 'ITEM_COLOR_NAME', 'LINE_NAME', 'SHIFT', 'ORDER_NO', 'ORDER_REFERENCE_PO_NO']
           });
 
           const dtD =  dailyOutput.dataValues
@@ -967,6 +967,8 @@ export const getAllDownTimeWithOutput = async (req, res) => {
             COLOR: dtD.ITEM_COLOR_NAME,
             LINE_NAME: dtD.LINE_NAME,
             SHIFT: dtD.SHIFT,
+            ORDER_NO: dtD.ORDER_NO,
+            ORDER_REFERENCE_PO_NO: dtD.ORDER_REFERENCE_PO_NO,
             BUILDING: storage?.Building?.NAME,
             START_DATE: dl.START_TIME,
             RESPONSE_DATE: dl.RESPONSE_TIME,
