@@ -690,7 +690,7 @@ export const postIeGroupCount = async (req, res) => {
        const getAllIeGc = await IeCtGroupCount.findAll({
         where : {
           CT_ID : dataMPp.CT_ID,
-          CT_MP_ID : dataMPp.CT_MP_ID
+          CT_MP_ID : dataMPp.CT_MP_ID,
         },
         raw : true
       })
@@ -772,7 +772,8 @@ export const postIeCtDetailCount = async (req, res, next) => {
         where : {
           CT_ID : dataBody.CT_ID,
           CT_MP_ID : dataBody.CT_MP_ID,
-          CT_MPP_ID : dataBody.CT_MPP_ID
+          CT_MPP_ID : dataBody.CT_MPP_ID,
+          CT_GC_ID: dataBody.CT_GC_ID,
         },
         raw : true
       })
@@ -807,6 +808,7 @@ export const postIeCtDetailCount = async (req, res, next) => {
           CT_ID : dataPost.CT_ID,
           CT_MP_ID : dataPost.CT_MP_ID,
           CT_MPP_ID : dataPost.CT_MPP_ID,
+          CT_GC_ID: dataPost.CT_GC_ID,
         },
         raw : true
       })
@@ -1113,6 +1115,8 @@ function getCategoryStrings(data) {
 
 
 
+const isNotAllZero = (arr) => arr.some(val => val !== 0);
+
 
 export const getIeCtBarChartSeries = async(req,res) => {
   try {
@@ -1226,18 +1230,23 @@ export const getIeCtBarChartSeries = async(req,res) => {
               const arrTtGroup = arrMpId.map(mp => {
                 const findTtByMp = dataByGcNo.find(tt => tt.CT_MP_ID === mp)
                 if(findTtByMp){
-                  return findTtByMp.CT_ACT_TAKE_TIME
+                  return parseInt(findTtByMp.CT_ACT_TAKE_TIME)
                 }else{
                   return 0
                 }
               })
 
-              const objSeriesTT = {
-                      name: `Actual Count-${item}`,
-                      type: 'column',
-                      data: arrTtGroup
-                    }
+              const checkNoAllZero = isNotAllZero(arrTtGroup)
+              
+              if(checkNoAllZero){
+                
+                   const objSeriesTT = {
+                        name: `Actual Count-${item}`,
+                        type: 'column',
+                        data: arrTtGroup
+                      }
                 seriesTT.push(objSeriesTT)
+              }
             }
           
        }
