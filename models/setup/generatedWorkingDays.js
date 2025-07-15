@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 
-const GeneratedWorkingDays = db.define(
+export const GeneratedWorkingDays = db.define(
   "generated_working_days",
   {
     GENERATED_WORKING_DAY_ID: {
@@ -54,5 +54,3 @@ const GeneratedWorkingDays = db.define(
     updatedAt: "UPDATED_AT",
   }
 );
-
-export default GeneratedWorkingDays;
