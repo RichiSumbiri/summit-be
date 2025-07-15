@@ -1219,7 +1219,8 @@ export const getIeCtBarChartSeries = async(req,res) => {
         seriesPcs.push(objSeriesTTPcs)
     }
 
-    if(getUniqGroup.filter(gNo => gNo !== 1).length > 1){
+    if(getUniqGroup.filter(gNo => gNo !== 1).length > 0){
+
       const uniqGroupNo = getUniqGroup.filter(gNo => gNo !== 1).sort((a, b) => a-b);
 
        for (const [i, item] of uniqGroupNo.entries()) {
