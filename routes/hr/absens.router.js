@@ -1,5 +1,6 @@
 import express from "express";
 import { ConfirmVerifAbs, deleteAbsen, delteHrVerifAbs, getAbsenDaily, getAbsenIndividu, getTblConfirm, getVerifAbsDayNik, getVerifAbsenDaily, updateAbsen, verifAbsenCtr, verifAbsenCtr1, getViewDetailLog, deleteIndvAbsen, getMonthAttd, getListSecAndSubdept, genSumAbsen, getSumAbsen, deleteSchHoliday, validasiAbsensi, getAbsenAmano, getMonthAttdAll, getAbsenDailyDakintai } from "../../controllers/hr/absensi.js";
+import { postLogRecapMpWithRange } from "../../controllers/hr/recapLogManpower.js";
 const router = express.Router();
 
 //all absensi daily
@@ -40,5 +41,8 @@ router.post("/validasi", validasiAbsensi);
 // export absen daily csv amano
 router.get("/export-amano-daily/:startDate/:endDate", getAbsenAmano);
 
+
+// running log recap manpower monthly
+router.post("/log-recap-mp-range", postLogRecapMpWithRange); 
 
 export default router;
