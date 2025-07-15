@@ -107,7 +107,7 @@ AND se.TanggalMasuk < :tglCuti
 AND se.CancelMasuk = 'N'
 ORDER BY se.Nik ASC `;
 
-export const modelMasterDepartment = db.define('master_department',
+export const modelMasterDepartment = dbSPL.define('master_department',
     {
         IdDept: {
             type: DataTypes.INTEGER(6),
