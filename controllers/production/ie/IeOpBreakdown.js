@@ -1473,6 +1473,7 @@ export const postImportObDetail = async (req, res, next) => {
 
     const pureData = dataImport.filter(item => !item.hasOwnProperty('REMARKS'));
     const remaks = dataImport.filter(item => item.hasOwnProperty('REMARKS'));
+    
 
     //jika ada remarks header maka post remarks
     if(remaks.length > 0){
@@ -1508,6 +1509,7 @@ export const postImportObDetail = async (req, res, next) => {
       where: {
         FEATURES_NAME: uniqueFeatures,
         PRODUCT_TYPE : [prodType, 'ALL'], // pastikan prodType didefinisikan sebelumnya
+        DELETED_STATUS : '0'
       }, 
       attributes: ['FEATURES_NAME', 'FEATURES_ID'],
       raw: true,
