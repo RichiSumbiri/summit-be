@@ -136,7 +136,7 @@ export const modelMasterDepartment = dbSPL.define('master_department',
     }
 );
 
-export const modelMasterSubDepartment = db.define('master_subdepartment',
+export const modelMasterSubDepartment = dbSPL.define('master_subdepartment',
     {
         IDDept: {
             type: DataTypes.INTEGER(6),
