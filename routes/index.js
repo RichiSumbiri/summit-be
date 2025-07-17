@@ -44,6 +44,7 @@ import building from "./list/building.route.js"
 import company from "./setup/company.route.js"
 import unit from "./setup/unit.route.js"
 import site from "./setup/site.route.js"
+import role from "./setup/role.route.js"
 import department from "./setup/department.route.js"
 import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
@@ -92,6 +93,7 @@ router.use("/building", building)
 router.use("/company", company)
 router.use("/unit", unit)
 router.use("/site", site)
+router.use("/role", role)
 router.use("/site-fx", siteFxRoute)
 router.use("/department", department)
 router.use("/site-department", siteDepartmentRoute)
