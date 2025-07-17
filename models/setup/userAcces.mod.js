@@ -66,3 +66,40 @@ LEFT JOIN xref_user_web b ON a.USER_ID = b.USER_ID
 LEFT JOIN xref_menu_web c ON a.MENU_ID = c.MENU_ID
 WHERE b.USER_ID = :userid  AND a.USER_ACESS_VIEW = 1
 ORDER BY c.MENU_ORDER`;
+
+
+export const UserRole = db.define(
+  //module user axces
+  "xref_user_role",
+  {
+    ROLE_ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    ROLE_UNIT: { type: DataTypes.INTEGER },
+    ROLE_DEPT: { type: DataTypes.INTEGER },
+    ROLE_NAME: { type: DataTypes.STRING },
+    ROLE_NOTE: { type: DataTypes.STRING },
+    ROLE_PATH: { type: DataTypes.STRING },
+    ROLE_STATUS: { type: DataTypes.INTEGER },
+    ADD_ID: { type: DataTypes.INTEGER },
+    MOD_ID: { type: DataTypes.INTEGER },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+  },
+  {
+    freezeTableName: true,
+    // createdAt: false,
+    // updatedAt: false,
+  }
+);
+
+export const qryGetDeptAll = `SELECT 
+ md.*
+FROM master_department md `
+
+
+export const qryGetAllRole = `SELECT 
+ xur.*,
+ mu.UNIT_NAME AS UNIT_NAME,
+ md.NAME_DEPT 
+FROM xref_user_role xur
+LEFT JOIN master_unit mu ON mu.UNIT_ID = xur.ROLE_UNIT
+LEFT JOIN master_department md ON md.ID_DEPT  = xur.ROLE_DEPT `
