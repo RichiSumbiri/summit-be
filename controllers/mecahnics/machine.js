@@ -972,6 +972,7 @@ export const getAllDownTimeWithOutput = async (req, res) => {
             BUILDING: storage?.Building?.NAME,
             START_DATE: dl.START_TIME,
             RESPONSE_DATE: dl.RESPONSE_TIME,
+            DESCRIPTION: dl.DESCRIPTION,
             END_DATE: dl.END_TIME,
             STATUS: dl.STATUS,
             MECHANIC_NAME: mechanic?.NamaLengkap,
