@@ -1,6 +1,9 @@
 import Users from "../../models/setup/users.mod.js";
 import bcryptjs from "bcryptjs";
 import moment from "moment/moment.js";
+import { qryGetAllRole, qryGetDeptAll, UserRole } from "../../models/setup/userAcces.mod.js";
+import db from "../../config/database.js";
+import { QueryTypes } from "sequelize";
 
 //controller Get ALL User
 export const getUsers = async (req, res) => {
@@ -81,6 +84,101 @@ export const updateUserMode = async (req, res) => {
   } catch (error) {
     res.json({
       message: error.message,
+    });
+  }
+};
+
+
+
+//controller All Dept role
+export const getAllDept = async (req, res) => {
+  try {  
+    const getDept = await db.query(qryGetDeptAll,{ type: QueryTypes.SELECT });
+
+    return  res.json({ data: getDept });
+
+  } catch (error) {
+    console.log(error);
+    
+      return res.status(500).json({
+        success: false,
+        message: `Failed to get dept role`,
+    });
+  }
+};
+
+
+//controller Create role
+export const getAllRole = async (req, res) => {
+  try {  
+
+    const facthRole = await db.query(qryGetAllRole,{type: QueryTypes.SELECT });
+
+    return  res.json({ data: facthRole });
+
+  } catch (error) {
+    console.log(error);
+    
+      return res.status(500).json({
+        success: false,
+        message: `Failed to get data role`,
+    });
+  }
+};
+
+
+export const createRole = async (req, res) => {
+  try {
+    const dataRole = req.body;
+  
+    const checkRole = await UserRole.findAll({
+      attributes: ["ROLE_NAME"],
+      where: {
+        ROLE_NAME: dataRole.ROLE_NAME,
+        ROLE_UNIT: dataRole.ROLE_UNIT,
+      },
+      raw: true
+    });
+  
+    // res.json(cekUsername);
+    if (checkRole.length !== 0)  return res.status(400).json({ message: "Already Role Name " });
+  
+  
+  
+    await UserRole.create(dataRole);
+    return  res.json({  message: "User Role Created" });
+
+  } catch (error) {
+    console.log(error);
+    
+      return res.status(500).json({
+        success: false,
+        message: `Failed to created role: ${error.message}`,
+    });
+  }
+};
+
+
+export const updateRole = async (req, res) => {
+  try {
+    const dataRole = req.body;
+    
+    // res.json(cekUsername);
+    if (!dataRole.ROLE_ID)  return res.status(400).json({ message: "Role ID Required" });
+
+    await UserRole.update(dataRole, {
+      where : {
+        ROLE_ID : dataRole.ROLE_ID
+      }
+    });
+    return  res.json({  message: "User Role Updated" });
+
+  } catch (error) {
+    console.log(error);
+    
+      return res.status(500).json({
+        success: false,
+        message: `Failed to created role: ${error.message}`,
     });
   }
 };

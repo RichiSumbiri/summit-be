@@ -430,7 +430,7 @@ export const qryGetFeatCt = `SELECT
 FROM ie_ct_ob_features iof 
 LEFT JOIN item_list_features ilf ON iof.FEATURES_ID = ilf.FEATURES_ID
 WHERE iof.OB_ID = :obId AND iof.CT_DATE = :ctDate
-ORDER BY iof.ID_OB_FEATURES, iof.SEQ_NO, ilf.FEATURES_ID`
+ORDER BY iof.SEQ_NO`
 
 export const qryGetObDetailCt = `SELECT 
  iod.*,
