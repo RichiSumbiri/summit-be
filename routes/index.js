@@ -48,6 +48,7 @@ import role from "./setup/role.route.js"
 import department from "./setup/department.route.js"
 import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
+import warehouseDetail from "./setup/warehouse.route.js";
 
 const router = express.Router();
 
@@ -96,6 +97,7 @@ router.use("/role", role)
 router.use("/site-fx", siteFxRoute)
 router.use("/department", department)
 router.use("/site-department", siteDepartmentRoute)
+router.use("/warehouse-detail", warehouseDetail);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
