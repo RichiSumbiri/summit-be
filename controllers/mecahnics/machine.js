@@ -977,7 +977,7 @@ export const getAllDownTimeWithOutput = async (req, res) => {
 
     if (idDashboard) {
       whereCondition.STATUS = {
-        [Op.in]: ["BROKEN", "ON_FIX", "REPLACE"]
+        [Op.in]: ["BROKEN", "ON_FIX"]
       }
     }
 
