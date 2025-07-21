@@ -21,7 +21,11 @@ import {
   postMachine,
   updateMachine,
   updateMachineAndStorage,
-  updateSequenceByStorageAndMachine, getTypeMachineByCategory, getAllDownTimeWithOutput, getMecDownTimeValidation,
+  updateSequenceByStorageAndMachine,
+  getTypeMachineByCategory,
+  getAllDownTimeWithOutput,
+  getMecDownTimeValidation,
+  updateSequenceByStorageAndMachineBulk,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
@@ -34,7 +38,7 @@ router.post("/machines", postMachine);
 router.patch("/machines", updateMachine);
 router.put("/storage/change-location/:serialNumberInventory", updateMachineAndStorage);
 router.patch("/storage/change-sequence/:storageInventoryId", updateSequenceByStorageAndMachine);
-
+router.put("/storage/change-sequence/:storageInventoryId/bulk", updateSequenceByStorageAndMachineBulk);
 
 router.delete("/machines/:macId", deleteMachine);
 

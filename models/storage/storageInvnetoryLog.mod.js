@@ -24,7 +24,11 @@ const StorageInventoryLogModel = db.define(
     CREATED_AT: {
         type: DataTypes.DATE,
         allowNull: true,
-    }
+    },
+      DESCRIPTION: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+      },
   },
   {
     tableName: "storage_inventory_log",

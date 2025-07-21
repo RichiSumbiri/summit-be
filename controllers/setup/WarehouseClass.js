@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
-import { MasterWarehouseClass, queryGetAllMasterWarehouseClass } from "../../models/setup/WarehouseClass.mod.js";
+import { MasterWarehouseClass, ModelMasterLocationType, ModelMasterOperationType, queryGetAllMasterWarehouseClass } from "../../models/setup/WarehouseClass.mod.js";
 
 
 
@@ -34,7 +34,7 @@ export const postMasterWarehouseClass = async(req,res) => {
                 raw: true
             }); 
             const newIncrement = parseInt(getLastWHCID.WHC_ID.slice(-7)) + 1;
-            const newWHCID = 'WHI' + newIncrement.toString().padStart(7, '0');
+            const newWHCID = 'WHC' + newIncrement.toString().padStart(7, '0');
             await MasterWarehouseClass.create({
                 WHC_ID: newWHCID,
                 WHC_REF_CODE: DataWarehouseClass.WHC_REF_CODE,
@@ -59,11 +59,44 @@ export const postMasterWarehouseClass = async(req,res) => {
             message: "success post master warehouse class",
         });
     } catch(err){
-        console.error(err);
         return res.status(500).json({
             success: false,
             error: err,
             message: "error post warehouse class"
+        });
+    }
+}
+
+export const getMasterOperationType = async(req,res) => {
+    try {
+        const data = await ModelMasterOperationType.findAll({raw:true});
+        return res.status(200).json({
+            success: true,
+            message: "success get master operation type",
+            data: data
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get warehouse class"
+        });
+    }
+}
+
+export const getMasterLocationType = async(req,res) => {
+    try {
+        const data = await ModelMasterLocationType.findAll({raw:true});
+        return res.status(200).json({
+            success: true,
+            message: "success get master location type",
+            data: data
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get location type"
         });
     }
 }

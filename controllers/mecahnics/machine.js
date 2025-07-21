@@ -208,7 +208,8 @@ export const updateMachineAndStorage = async (req, res) => {
       StorageInventoryLogModel.create({
         STORAGE_INVENTORY_ID: storageInventory.ID,
         MACHINE_ID: machineNo,
-        USER_ADD_ID: userId
+        USER_ADD_ID: userId,
+        DESCRIPTION: 'CHANGE TO STORAGE'
       })
 
       newSeqNo++;
@@ -302,7 +303,85 @@ export const updateSequenceByStorageAndMachine = async (req, res) => {
   }
 };
 
-//untuk Delete machine
+export const updateSequenceByStorageAndMachineBulk = async (req, res) => {
+  try {
+    const { storageInventoryId } = req.params;
+    const { reorderData } = req.body;
+
+    if (!storageInventoryId || !Array.isArray(reorderData) || reorderData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Storage inventory ID and valid reorder data array must be provided",
+      });
+    }
+
+    const machinesInStorage = await MecListMachine.findAll({
+      where: { STORAGE_INVENTORY_ID: storageInventoryId },
+      order: [["SEQ_NO", "ASC"]],
+    });
+
+    if (machinesInStorage.length !== reorderData.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Reorder data must include all machines in the storage",
+      });
+    }
+
+    for (const item of reorderData) {
+      if (!item.machineId || !item.newSeqNo) {
+        return res.status(400).json({
+          success: false,
+          message: "Each reorder item must have machineId and newSeqNo",
+        });
+      }
+
+      if (item.newSeqNo < 1 || item.newSeqNo > machinesInStorage.length) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid sequence number ${item.newSeqNo}. It must be between 1 and ${machinesInStorage.length}`,
+        });
+      }
+
+      const machineExists = machinesInStorage.some(
+          (machine) => machine.MACHINE_ID === item.machineId
+      );
+      if (!machineExists) {
+        return res.status(404).json({
+          success: false,
+          message: `Machine ${item.machineId} not found in storage`,
+        });
+      }
+    }
+
+    await MecListMachine.sequelize.transaction(async (t) => {
+      for (const item of reorderData) {
+        await MecListMachine.update(
+            { SEQ_NO: item.newSeqNo },
+            {
+              where: {
+                MACHINE_ID: item.machineId,
+                STORAGE_INVENTORY_ID: storageInventoryId,
+              },
+              transaction: t,
+            }
+        );
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Sequence updated successfully",
+      data: reorderData,
+    });
+  } catch (error) {
+    console.error("Error updating sequence:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to update sequence: ${error.message}`,
+    });
+  }
+};
+
 export const deleteMachine = async (req, res) => {
   try {
     const { macId } = req.params;
@@ -898,7 +977,7 @@ export const getAllDownTimeWithOutput = async (req, res) => {
 
     if (idDashboard) {
       whereCondition.STATUS = {
-        [Op.in]: ["BROKEN", "ON_FIX", "REPLACE"]
+        [Op.in]: ["BROKEN", "ON_FIX"]
       }
     }
 

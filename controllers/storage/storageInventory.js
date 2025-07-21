@@ -62,6 +62,7 @@ export const createStorageInventory = async (req, res) => {
   }
 };
 
+
 export const getAllStorageInventory = async (req, res) => {
   try {
     const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, CATEGORY, SHOW_MACHINE } = req.query;
