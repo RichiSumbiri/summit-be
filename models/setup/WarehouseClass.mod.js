@@ -54,3 +54,45 @@ LEFT JOIN master_item_category m2 ON m2.ITEM_CATEGORY_ID = m.WHC_ITEM_CATEGORY_I
 LEFT JOIN master_item_type m3 ON m3.ITEM_TYPE_ID = m2.ITEM_TYPE_ID
 LEFT JOIN master_item_group m4 ON m4.ITEM_GROUP_ID = m3.ITEM_GROUP_ID 
   `;
+
+
+export const ModelMasterLocationType = db.define('master_location_type', {
+    LTC_ID: {
+      type: DataTypes.STRING(6),
+      primaryKey: true,
+      allowNull: false,
+    },
+    LTC_NAME: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    }
+  }, {
+    tableName: 'master_location_type',
+    timestamps: false, // Assuming no timestamps (createdAt/updatedAt)
+    charset: 'utf8mb4',
+    collate: 'utf8mb4_general_ci',
+    indexes: [
+      {
+        unique: true,
+        fields: ['LTC_ID']
+      }
+    ]
+  });
+
+
+export const ModelMasterOperationType = db.define('master_operation_type', {
+  OID_ID: {
+    type: DataTypes.STRING(6),
+    allowNull: false,
+    primaryKey: true
+  },
+  OID_NAME: {
+    type: DataTypes.STRING(100),
+    allowNull: false
+  }
+}, {
+  tableName: 'master_operation_type',
+  timestamps: false, // If the table doesn't include `createdAt` and `updatedAt`
+  charset: 'utf8mb4',
+  collate: 'utf8mb4_general_ci'
+});

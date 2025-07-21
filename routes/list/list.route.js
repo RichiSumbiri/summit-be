@@ -11,10 +11,12 @@ import {
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
 import { getMasterLocation } from "../../controllers/list/listLocation.js";
-import { getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
+import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
 import { getMasterItemGroup, postMasterItemGroup } from "../../controllers/setup/ItemGroups.js";
 import { getMasterItemType, postMasterItemType } from "../../controllers/setup/ItemTypes.js";
 import { getMasterItemCategory, postMasterItemCategory } from "../../controllers/setup/ItemCategories.js";
+import { getMasterItemQuality } from "../../controllers/setup/ItemQuality.js";
+import { getMasterItemStatus } from "../../controllers/setup/ItemStatus.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -48,5 +50,13 @@ router.post("/item-category", postMasterItemCategory);
 // warehouse class
 router.get("/warehouse-class", getMasterWarehouseClassAll);
 router.post("/warehouse-class", postMasterWarehouseClass);
+
+// list & type operation
+router.get("/operation-type", getMasterOperationType);
+router.get("/location-type", getMasterLocationType);
+
+// list master quality 
+router.get("/item-quality", getMasterItemQuality);
+router.get("/item-status", getMasterItemStatus);
 
 export default router;
