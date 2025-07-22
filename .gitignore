@@ -6,3 +6,4 @@ assets/images/styles/*
 package-lock.json
 .env
 .env.dev
+.env.prod
