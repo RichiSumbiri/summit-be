@@ -79,6 +79,7 @@ export const UserRole = db.define(
     ROLE_NOTE: { type: DataTypes.STRING },
     ROLE_PATH: { type: DataTypes.STRING },
     ROLE_STATUS: { type: DataTypes.INTEGER },
+    ROLE_DELETE: { type: DataTypes.INTEGER },
     ADD_ID: { type: DataTypes.INTEGER },
     MOD_ID: { type: DataTypes.INTEGER },
     createdAt: { type: DataTypes.DATE },
@@ -102,4 +103,121 @@ export const qryGetAllRole = `SELECT
  md.NAME_DEPT 
 FROM xref_user_role xur
 LEFT JOIN master_unit mu ON mu.UNIT_ID = xur.ROLE_UNIT
-LEFT JOIN master_department md ON md.ID_DEPT  = xur.ROLE_DEPT `
+LEFT JOIN master_department md ON md.ID_DEPT  = xur.ROLE_DEPT 
+WHERE xur.ROLE_DELETE = 0`
+
+
+
+export const AllMenus = `SELECT 
+a.MENU_ID, 
+a.MENU_CONTROL_ID, 
+a.MENU_MODUL,
+a.MENU_GROUP,
+a.MENU_GROUP_SUB,
+a.MENU_SUB,
+a.MENU_SUB_KEY,
+a.MENU_KEY,
+a.MENU_NAME, 
+a.MENU_TITLE,
+a.MENU_ACT_VIW, 
+a.MENU_ACT_ADD, 
+a.MENU_ACT_MOD, 
+a.MENU_ACT_DEL, 
+a.MENU_ACT_SAV, 
+a.MENU_ACT_PRN,
+a.MENU_ACT_EXPORT,
+IFNULL(xra.USER_ACESS_VIEW,0) USER_ACESS_VIEW,
+IFNULL(xra.USER_ACESS_ADD,0) USER_ACESS_ADD,
+IFNULL(xra.USER_ACESS_MOD,0) USER_ACESS_MOD,
+IFNULL(xra.USER_ACESS_DELETE,0) USER_ACESS_DELETE,
+IFNULL(xra.USER_ACESS_EXPORT,0) USER_ACESS_EXPORT,
+IFNULL(xra.USER_ACESS_PRINT,0) USER_ACESS_PRINT
+FROM xref_menu_web a
+LEFT JOIN xref_role_acess xra ON a.MENU_ID = xra.MENU_ID AND xra.ROLE_ID = :roleId`
+
+
+export const XrefRoleAccess = db.define('xref_role_acess', {
+    ID: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    ROLE_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    MENU_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    USER_ACESS_VIEW: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_ADD: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_MOD: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_DELETE: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_SAVE: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_PRINT: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_IMPORT: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_EXPORT: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    USER_ACESS_ADD_DATE: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+    USER_ACESS_ADD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    USER_ACESS_MOD_DATE: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+    USER_ACESS_MOD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    }
+  }, {
+    freezeTableName: true,
+    createdAt: 'USER_ACESS_ADD_DATE',
+    updatedAt: 'USER_ACESS_MOD_DATE',
+  });
+
+
+export const qryUserRole = (qry) => {
+  
+  return `SELECT 
+xuw.USER_ID,
+xuw.USER_INISIAL,
+xuw.USER_NAME,
+CONCAT(xuw.USER_INISIAL, ' - ', xuw.USER_NAME ) AS LABEL_USER,
+xuw.ROLE_ID,
+xur.ROLE_NAME,
+mu.UNIT_NAME,
+md.NAME_DEPT
+FROM xref_user_web xuw
+LEFT JOIN xref_user_role xur ON xuw.ROLE_ID = xur.ROLE_ID
+LEFT JOIN master_unit mu ON xuw.UNIT_ID = mu.UNIT_ID
+LEFT JOIN master_department md ON md.ID_DEPT = xuw.ID_DEPT
+WHERE ${qry} ` }
