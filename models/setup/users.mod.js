@@ -49,6 +49,10 @@ const Users = db.define(
       type: DataTypes.TEXT('medium'),
       allowNull: true
     },
+    ROLE_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
     UNIT_ID: {
       type: DataTypes.INTEGER,
       allowNull: true
