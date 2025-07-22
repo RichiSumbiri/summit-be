@@ -695,7 +695,6 @@ export const ConfirmVerifAbs = async (req, res) => {
 
     for (const [i, abs] of withOutValidasi.entries()) {
       const checkAbs = await Attandance.findOne({where: { tanggal_in : abs.tanggal_in, Nik : abs.Nik}, raw: true})
-      console.log(checkAbs);
       
       if(checkAbs){
         await Attandance.update(abs, {
