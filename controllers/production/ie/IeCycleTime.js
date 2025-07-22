@@ -184,7 +184,8 @@ export const postHeaderIeCt = async (req, res, next) => {
 
     const checkExist = await IeCycleTimeHeader.findOne({
       where : { 
-        SCHD_ID : dataPost.SCHD_ID
+        SCHD_ID : dataPost.SCHD_ID,
+        ID_SITELINE : dataPost.ID_SITELINE
       } })
 
     if(checkExist){
