@@ -54,6 +54,9 @@ import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 import masterAttributeRoute from "./system/masterAttribute.route.js";
 import warehouseDetail from "./setup/warehouse.route.js";
 
+import "../models/associations.js";
+
+
 const router = express.Router();
 
 router.post("/login", Login);
