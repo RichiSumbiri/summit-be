@@ -1529,7 +1529,7 @@ SELECT
     sa.IDPosisi,
     sa.IDSection,
     COUNT(*) AS total_hari,  -- Menghitung total hari dalam periode
-    SUM(CASE WHEN saa.calendar = 'WD' THEN 1 ELSE 0 END) AS sch_wd, -- Menghitung jumlah scheduel 'WD'
+    SUM(CASE WHEN saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS sch_wd, -- Menghitung jumlah scheduel 'WD'
     -- SUM(CASE WHEN saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd,
       SUM(CASE WHEN (saa.keterangan = 'H' OR saa.keterangan = 'DL') AND saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd, -- actual masuk sesuai schedule
     SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'H' THEN 1 ELSE 0 END) AS H_NH, -- masuk di hari libur
