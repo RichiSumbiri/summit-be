@@ -1,9 +1,9 @@
 import {DataTypes} from "sequelize";
 import MasterSiteFxModel from "./siteFx.mod.js";
-import {modelMasterDepartment} from "../hr/employe.mod.js";
 import MasterUnitModel from "./unit.mod.js";
 
 import db from "../../config/database.js";
+import {modelMasterDepartmentFx} from "./departmentFx.mod.js";
 
 
  const SiteDepartmentModel = db.define(
@@ -48,9 +48,9 @@ SiteDepartmentModel.belongsTo(MasterUnitModel, {
 });
 
 
-SiteDepartmentModel.belongsTo(modelMasterDepartment, {
+SiteDepartmentModel.belongsTo(modelMasterDepartmentFx, {
     foreignKey: "DEPT_ID",
-    targetKey: "IdDept",
+    targetKey: "ID_DEPT",
     as: "department",
 });
 

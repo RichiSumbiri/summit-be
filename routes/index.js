@@ -48,8 +48,10 @@ import unit from "./setup/unit.route.js"
 import site from "./setup/site.route.js"
 import role from "./setup/role.route.js"
 import department from "./setup/department.route.js"
+import departmentFx from "./setup/departmentFx.route.js"
 import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
+import masterAttributeRoute from "./system/masterAttribute.route.js";
 import warehouseDetail from "./setup/warehouse.route.js";
 
 const router = express.Router();
@@ -100,7 +102,9 @@ router.use("/site", site)
 router.use("/role", role)
 router.use("/site-fx", siteFxRoute)
 router.use("/department", department)
+router.use("/department-fx", departmentFx)
 router.use("/site-department", siteDepartmentRoute)
+router.use("/attribute", masterAttributeRoute)
 router.use("/warehouse-detail", warehouseDetail);
 
 router.all("*", (req, res, next) => {

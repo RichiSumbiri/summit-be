@@ -1,7 +1,7 @@
 import MasterSiteFxModel from "../../models/setup/siteFx.mod.js";
 import MasterUnitModel from "../../models/setup/unit.mod.js";
-import {modelMasterDepartment} from "../../models/hr/employe.mod.js";
 import SiteDepartmentModel from "../../models/setup/siteDepartment.mod.js";
+import {modelMasterDepartmentFx} from "../../models/setup/departmentFx.mod.js";
 
 export const createSiteDepartment = async (req, res) => {
     try {
@@ -32,8 +32,8 @@ export const createSiteDepartment = async (req, res) => {
             });
         }
 
-        const department = await modelMasterDepartment.findOne({
-            where: { IdDept: DEPT_ID },
+        const department = await modelMasterDepartmentFx.findOne({
+            where: { ID_DEPT: DEPT_ID },
         });
         if (!department) {
             return res.status(404).json({
@@ -106,7 +106,7 @@ export const getAllSiteDepartments = async (req, res) => {
                 IS_DELETED: false,
             },
             include: [
-                { model: modelMasterDepartment, as: "department"},
+                { model: modelMasterDepartmentFx, as: "department"},
             ],
         });
         return res.status(200).json({
@@ -132,7 +132,7 @@ export const getSiteDepartmentById = async (req, res) => {
             where: { ID: id },
             include: [
                 { model: MasterUnitModel, as: "unit" },
-                { model: modelMasterDepartment, as: "department" },
+                { model: modelMasterDepartmentFx, as: "department" },
                 { model: MasterSiteFxModel, as: "site" },
             ],
         });
@@ -197,8 +197,8 @@ export const updateSiteDepartment = async (req, res) => {
 
 
         if (DEPT_ID) {
-            const department = await modelMasterDepartment.findOne({
-                where: { IdDept: DEPT_ID },
+            const department = await modelMasterDepartmentFx.findOne({
+                where: { ID_DEPT: DEPT_ID },
             });
             if (!department) {
                 return res.status(404).json({
