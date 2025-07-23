@@ -2,41 +2,44 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('generated_working_days', {
-      GENERATED_WORKING_DAY_ID: {
-        type: Sequelize.INTEGER,
+    await queryInterface.createTable('service_attributes', {
+      SERVICE_ATTRIBUTE_ID: {
+        type: Sequelize.STRING(25),
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true
       },
-      YEAR: {
+      ATTRIBUTE_NAME: {
+        type: Sequelize.STRING(255),
+        allowNull: false,
+      },
+      SERVICE_ATTRIBUTE_GROUP_ID: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      MONTH: {
-        type: Sequelize.STRING(20),
-        allowNull: false,
-      },
-      ALLOCATED_WORK_DAYS: {
+      SERVICE_ATTRIBUTE_TYPE_ID: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      SCHEDULING_WORK_DAYS: {
+      SERVICE_ATTRIBUTE_CATEGORY_ID: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      CONFIRMED_FLAG: {
+      SERVICE_ITEM_GROUP_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      SERVICE_ITEM_TYPE_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      SERVICE_ITEM_CATEGORY_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      IS_ACTIVE: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: true,
-      },
-      CONFIRMED_DATE: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
-      CONFIRMED_BY: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
       },
       CREATED_BY: {
         type: Sequelize.INTEGER,
@@ -58,6 +61,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('generated_working_days');
+    await queryInterface.dropTable('service_attributes');
   }
 };

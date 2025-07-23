@@ -691,36 +691,36 @@ export const ConfirmVerifAbs = async (req, res) => {
       return datas;
     });
     const withOutValidasi = dataPost.filter(items => items.validasi !== 1)
-    const updatedAbsen = withOutValidasi.map(abs => {
-      return Attandance.upsert(abs, {
-        where: {
-          tanggal_in : abs.tanggal_in,
-          Nik : abs.Nik
-          // id: abs.id,
-        },
-      });
 
-    })
-      await Promise.all(updatedAbsen);
 
-    if (updatedAbsen) {
-      const idVerif = arrConfirm.map((item) => item.id_verif);
-
-      const updateVerif = await VerifAbsen.update(
-        { verifikasi: 1 },
-        {
+    for (const [i, abs] of withOutValidasi.entries()) {
+      const checkAbs = await Attandance.findOne({where: { tanggal_in : abs.tanggal_in, Nik : abs.Nik}, raw: true})
+      
+      if(checkAbs){
+        await Attandance.update(abs, {
           where: {
-            id: idVerif,
+            id: checkAbs.id,
+            tanggal_in : abs.tanggal_in,
+            Nik : abs.Nik
           },
-        }
-      );
-      if (updateVerif) {
-        return res.json({ message: "Success Verifikasi Absen" });
+        });
+      }else{
+        await Attandance.create(abs);
       }
-    } else {
-      return res
-        .status(500)
-        .json({ message: "Terjadi kesalahan saat confirm absen" });
+    }
+     
+    const idVerif = arrConfirm.map((item) => item.id_verif);
+
+    const updateVerif = await VerifAbsen.update(
+      { verifikasi: 1 },
+      {
+        where: {
+          id: idVerif,
+        },
+      }
+    );
+    if (updateVerif) {
+      return res.json({ message: "Success Verifikasi Absen" });
     }
   } catch (error) {
     console.log(error);

@@ -19,6 +19,8 @@ import { getDept, getDeptById } from "../controllers/setup/Dept.js";
 import holidaysRoute from "./setup/holidays.route.js";
 import orderRoute from "./production/order.route.js";
 import cuttingRoute from "./production/cutting.route.js";
+import systemServiceAttributesRoute from "./system/serviceAttributes.route.js";
+import systemServiceAttributeValuesRoute from "./system/serviceAttributeValues.route.js";
 import sewingRoute from "./production/sewing.route.js";
 import planningRoute from "./production/planning.route.js";
 import pocapacityRoute from "./production/poByCap.route.js";
@@ -50,6 +52,7 @@ import departmentFx from "./setup/departmentFx.route.js"
 import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 import masterAttributeRoute from "./system/masterAttribute.route.js";
+import warehouseDetail from "./setup/warehouse.route.js";
 
 const router = express.Router();
 
@@ -69,6 +72,8 @@ router.use("/user", userRoute);
 router.use("/holidays", holidaysRoute);
 router.use("/order", orderRoute);
 router.use("/cutting", cuttingRoute);
+router.use("/system", systemServiceAttributesRoute);
+router.use("/system", systemServiceAttributeValuesRoute);
 router.use("/sewing", sewingRoute);
 router.use("/planning", planningRoute);
 router.use("/pocapacity", pocapacityRoute);
@@ -100,6 +105,7 @@ router.use("/department", department)
 router.use("/department-fx", departmentFx)
 router.use("/site-department", siteDepartmentRoute)
 router.use("/attribute", masterAttributeRoute)
+router.use("/warehouse-detail", warehouseDetail);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));

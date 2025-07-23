@@ -1531,17 +1531,17 @@ SELECT
     COUNT(*) AS total_hari,  -- Menghitung total hari dalam periode
     SUM(CASE WHEN saa.calendar = 'WD' THEN 1 ELSE 0 END) AS sch_wd, -- Menghitung jumlah scheduel 'WD'
     -- SUM(CASE WHEN saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd,
-    SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd, -- actual masuk sesuai schedule
+    SUM(CASE WHEN saa.keterangan = 'H' OR saa.keterangan = 'DL' AND saa.actual_calendar = 'WD' THEN 1 ELSE 0 END) AS act_wd, -- actual masuk sesuai schedule
     SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'H' THEN 1 ELSE 0 END) AS H_NH, -- masuk di hari libur
     SUM(CASE WHEN saa.keterangan = 'H' AND saa.actual_calendar = 'PH' THEN 1 ELSE 0 END) AS RH, -- masuk di public holiday
-    SUM(CASE WHEN saa.keterangan = 'H' THEN 1 ELSE 0 END) AS days_work, -- jumlah kehadiran
-    SUM(CASE WHEN saa.keterangan <> 'H' THEN 1 ELSE 0 END) AS days_abs, -- jumlah tidak masuk kerja
+    SUM(CASE WHEN saa.keterangan = 'H' OR saa.keterangan = 'DL' THEN 1 ELSE 0 END) AS days_work, -- jumlah kehadiran
+    SUM(CASE WHEN saa.keterangan <> 'H' AND saa.keterangan <> 'DL'  THEN 1 ELSE 0 END) AS days_abs, -- jumlah tidak masuk kerja
     SUM(CASE WHEN saa.keterangan = 'DL' THEN 1 ELSE 0 END) AS DL, -- dinas luar
     SUM(CASE WHEN saa.keterangan = 'A' THEN 1 ELSE 0 END) AS A, -- alpha
     SUM(CASE WHEN saa.keterangan = 'I' THEN 1 ELSE 0 END) AS I, -- Ijin
     SUM(CASE WHEN saa.keterangan = 'CD' THEN 1 ELSE 0 END) AS CD, -- sakit atau cuti dokter
     SUM(CASE WHEN saa.keterangan = 'CH' THEN 1 ELSE 0 END) AS CH, -- cuti hami/melahirkan
-    SUM(CASE WHEN saa.keterangan = 'CM' THEN 1 ELSE 0 END) AS CM, -- cuti menikah
+    SUM(CASE WHEN saa.keterangan = 'CM' THEN 1 ELSE 0 END) AS CM, -- cuti mens
     SUM(CASE WHEN saa.keterangan = 'CK1' THEN 1 ELSE 0 END) AS CK1, 
     SUM(CASE WHEN saa.keterangan = 'CK2' THEN 1 ELSE 0 END) AS CK2, 
     SUM(CASE WHEN saa.keterangan = 'CK3' THEN 1 ELSE 0 END) AS CK3, 

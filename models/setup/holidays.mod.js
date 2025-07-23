@@ -26,4 +26,4 @@ FROM working_days ORDER BY WORKING_DAY_ID`;
 export const QueryGetGenerateWorkingDays = `SELECT a.GENERATED_WORKING_DAY_ID , a.YEAR , a.MONTH , a.ALLOCATED_WORK_DAYS , a.SCHEDULING_WORK_DAYS , a.CONFIRMED_FLAG , a.CONFIRMED_DATE , a.CREATED_AT , b.USER_INISIAL CREATED_BY, c.USER_INISIAL CONFIRMED_BY   from generated_working_days a
 INNER JOIN xref_user_web b on a.CREATED_BY = b.USER_ID
 INNER JOIN xref_user_web c on a.CONFIRMED_BY = c.USER_ID
-WHERE a.YEAR = 2025`;
+WHERE a.YEAR = :year`;

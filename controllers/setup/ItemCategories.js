@@ -1,5 +1,26 @@
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 
+export const getAllMasterItemCategory = async(req, res) => {
+    try {
+        const getData = await MasterItemCategories.findAll({
+            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+        });
+
+        if(getData){
+            return res.status(200).json({
+                success: true,
+                message: "success get master item group",
+                data: getData,
+        });
+        }
+    } catch(err){
+        res.status(404).json({
+            success: false,
+            error: err,
+            message: "error get list item group",
+        });
+    }
+}
 
 export const getMasterItemCategory = async(req, res) => {
     try {

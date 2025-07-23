@@ -11,10 +11,17 @@ import {
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
 import { getMasterLocation } from "../../controllers/list/listLocation.js";
-import { getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
+import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
+
 import { getMasterItemGroup, postMasterItemGroup } from "../../controllers/setup/ItemGroups.js";
-import { getMasterItemType, postMasterItemType } from "../../controllers/setup/ItemTypes.js";
-import { getMasterItemCategory, postMasterItemCategory } from "../../controllers/setup/ItemCategories.js";
+import { getMasterItemType, postMasterItemType, getAllMasterItemType } from "../../controllers/setup/ItemTypes.js";
+import { getMasterItemCategory, postMasterItemCategory, getAllMasterItemCategory } from "../../controllers/setup/ItemCategories.js";
+import { getMasterItemQuality } from "../../controllers/setup/ItemQuality.js";
+import { getMasterItemStatus } from "../../controllers/setup/ItemStatus.js";
+
+import { getMasterServiceGroup } from "../../controllers/setup/ServiceGroups.js";
+import { getMasterServiceType } from "../../controllers/setup/ServiceTypes.js";
+import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategories.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -38,15 +45,38 @@ router.get("/item-group", getMasterItemGroup);
 router.post("/item-group", postMasterItemGroup);
 
 // item types
+router.get("/item-type", getAllMasterItemType);
 router.get("/item-type/:id", getMasterItemType);
 router.post("/item-type", postMasterItemType);
 
 // item categoryes
+router.get("/item-category", getAllMasterItemCategory);
 router.get("/item-category/:id", getMasterItemCategory);
 router.post("/item-category", postMasterItemCategory);
+
+
+
+// service group
+router.get("/service-group", getMasterServiceGroup);
+
+// service types
+router.get("/service-type", getMasterServiceType);
+
+// service categoryes
+router.get("/service-category", getMasterServiceCategory);
+
+
 
 // warehouse class
 router.get("/warehouse-class", getMasterWarehouseClassAll);
 router.post("/warehouse-class", postMasterWarehouseClass);
+
+// list & type operation
+router.get("/operation-type", getMasterOperationType);
+router.get("/location-type", getMasterLocationType);
+
+// list master quality 
+router.get("/item-quality", getMasterItemQuality);
+router.get("/item-status", getMasterItemStatus);
 
 export default router;
