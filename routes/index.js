@@ -21,6 +21,7 @@ import orderRoute from "./production/order.route.js";
 import cuttingRoute from "./production/cutting.route.js";
 import systemServiceAttributesRoute from "./system/serviceAttributes.route.js";
 import systemServiceAttributeValuesRoute from "./system/serviceAttributeValues.route.js";
+import systemRoutes from "./system/index.route.js";
 import sewingRoute from "./production/sewing.route.js";
 import planningRoute from "./production/planning.route.js";
 import pocapacityRoute from "./production/poByCap.route.js";
@@ -55,6 +56,9 @@ import masterAttributeRoute from "./system/masterAttribute.route.js";
 import warehouseDetail from "./setup/warehouse.route.js";
 import masterItemId from "./system/masterItemId.js";
 
+import "../models/associations.js";
+
+
 const router = express.Router();
 
 router.post("/login", Login);
@@ -75,6 +79,7 @@ router.use("/order", orderRoute);
 router.use("/cutting", cuttingRoute);
 router.use("/system", systemServiceAttributesRoute);
 router.use("/system", systemServiceAttributeValuesRoute);
+router.use("/system", systemRoutes);
 router.use("/sewing", sewingRoute);
 router.use("/planning", planningRoute);
 router.use("/pocapacity", pocapacityRoute);
