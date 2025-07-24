@@ -53,6 +53,7 @@ import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 import masterAttributeRoute from "./system/masterAttribute.route.js";
 import warehouseDetail from "./setup/warehouse.route.js";
+import masterItemId from "./system/masterItemId.js";
 
 const router = express.Router();
 
@@ -106,6 +107,7 @@ router.use("/department-fx", departmentFx)
 router.use("/site-department", siteDepartmentRoute)
 router.use("/attribute", masterAttributeRoute)
 router.use("/warehouse-detail", warehouseDetail);
+router.use("/master-item-id", masterItemId);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
