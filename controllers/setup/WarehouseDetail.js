@@ -157,11 +157,10 @@ export const postMasterWarehouseDetail = async(req,res) => {
             await ModelWarehouseDetailStatus.bulkCreate(DataWarehouse.WHI_ITEM_STATUS);
         }
 
-        
         return res.status(200).json({
             success: true,
             message: "success post master warehouse details",
-            data: CreatedData.toJSON()
+            data: DataWarehouse.WHI_ID==="<< NEW >>" || DataWarehouse.WHI_ID==="" ? CreatedData.toJSON() : DataWarehouse
         });
 
     } catch(err){
