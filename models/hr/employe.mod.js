@@ -684,7 +684,7 @@ SELECT
     	WHEN se.StatusKaryawan ='TETAP' THEN '01'
    	 	ELSE '02'
     END AS KodeStatusKaryawan,
-    CONCAT(UPPER(LEFT(se.StatusKaryawan, 1)), LOWER(SUBSTRING(se.StatusKaryawan , 2))) AS StatusKaryawan,
+    CONCAT(UPPER(LEFT(se.StatusKaryawan, 1)), LOWER(SUBSTRING(se.StatusKaryawan , 2))) AS NamaStatusKaryawan,
     DATE_FORMAT(spkk.FinishKontrak, '%d-%m-%Y') AS FinishKontrak,
     CASE 
         WHEN se.JenjangPendidikan = 'S3' THEN '01'
