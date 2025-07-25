@@ -53,7 +53,7 @@ import departmentFx from "./setup/departmentFx.route.js"
 import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 import masterAttributeRoute from "./system/masterAttribute.route.js";
-import warehouseDetail from "./setup/warehouse.route.js";
+import warehouseDetail from "./system/warehouse.route.js";
 
 import "../models/associations.js";
 

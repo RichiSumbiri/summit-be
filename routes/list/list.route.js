@@ -11,7 +11,7 @@ import {
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
 import { getMasterLocation } from "../../controllers/list/listLocation.js";
-import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
+import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/system/WarehouseClass.js";
 
 import { getMasterItemGroup, postMasterItemGroup } from "../../controllers/setup/ItemGroups.js";
 import { getMasterItemType, postMasterItemType, getAllMasterItemType } from "../../controllers/setup/ItemTypes.js";

@@ -1,5 +1,5 @@
 import express from "express";
-import { getMasterWarehouseDetail, getWarehouseDetailQuality, getWarehouseDetailStatus, postMasterWarehouseDetail } from "../../controllers/setup/WarehouseDetail.js";
+import { getMasterWarehouseDetail, getWarehouseDetailQuality, getWarehouseDetailStatus, postMasterWarehouseDetail } from "../../controllers/system/WarehouseDetail.js";
 
 const router = express.Router();
 
