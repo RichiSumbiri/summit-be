@@ -151,6 +151,5 @@ export const ModelVendorDetail = db.define('vendor_detail', {
     }
   }, {
     tableName: 'vendor_detail',
-    timestamps: false,
-    underscored: true
+    timestamps: false
   });
