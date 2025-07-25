@@ -54,6 +54,7 @@ import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 import masterAttributeRoute from "./system/masterAttribute.route.js";
 import warehouseDetail from "./system/warehouse.route.js";
+import vendorDetail from "./system/vendordetail.route.js";
 
 import "../models/associations.js";
 
@@ -111,6 +112,7 @@ router.use("/department-fx", departmentFx)
 router.use("/site-department", siteDepartmentRoute)
 router.use("/attribute", masterAttributeRoute)
 router.use("/warehouse-detail", warehouseDetail);
+router.use("/vendor-detail", vendorDetail);
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
