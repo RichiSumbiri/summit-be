@@ -1,6 +1,6 @@
 import db from "../../../config/database.js";
 import { QueryTypes, Op, where } from "sequelize";
-import { dbItemListSizes, dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
+import { dbItemListSizes, dbListFeatures, getIdsToDelete, getLasIdOb, getListOb, getListObByThree, getListObItemCOde, getListSugestObDetail, IeObDetail, IeObFeatures, IeObHeader, IeObHistory, IeObSize, lastObNoBYSeq, listBobinThread, listGauge, listMachine, listNeedle, listNeedleThread, listSeamAllow, listStiches, listThrow, qryGetFeaturs, qryGetObDetail, qryGetObDetailForBe, qryGetObHistory, qryGetOpsiListOb, qryGetSizeOb, qryGetStyleByTree, qryGetThreeStyle, qryIListBobinThreads, qryIListNeedleThreads, qryListFeatures, qryListSizesOb, qryObDetail, splitDataForUpdateAndCreate } from "../../../models/ie/IeOb.mod.js";
 import { baseUrl, getUniqueAttribute } from "../../util/Utility.js";
 import { pharsingImgStyle } from "../../list/listReferensi.js";
 import { qryIListGauge, qryIListMachine, qryIListNeedle, qryIListSeamAllow, qryIListStitch, qryIListThrow } from "../../../models/ie/IeOb.mod.js";
@@ -2104,6 +2104,29 @@ export const copyIeOb = async (req, res) =>{
     return res.status(500).json({
       success: false,
       message: "Filed copy ie ob data",
+      error: error.message,
+      });
+  }
+}
+
+
+export const getOpsiObId = async (req, res) => {
+  try {
+    const {producType, qryObId} = req.params
+
+    const stringQry= `%${qryObId}%`
+    
+    const getListOpsiOb = await db.query(qryGetOpsiListOb, {
+      replacements: {producType, qryObId : stringQry},
+      type: QueryTypes.SELECT,
+    })
+
+    return res.json({data: getListOpsiOb})
+  } catch (error) {
+      console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Filed get list ie ob id",
       error: error.message,
       });
   }

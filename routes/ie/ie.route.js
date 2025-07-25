@@ -1,5 +1,5 @@
 import express from "express";
-import { addNewListSize, chgStatusIeOb, copyIeOb, deleteFeatures, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deleteOneObFtrs, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postNewFeatures, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortFeatures, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
+import { addNewListSize, chgStatusIeOb, copyIeOb, deleteFeatures, deleteIeObDetail, deleteIeObSketch, deleteMultipleIeObDetail, deleteOneObFtrs, deletIeOb, getDataTreeStyleOb, getImageOb, getListFeatures, getlistObApi, getListObDetail, getListObHistory, getlistObItemCode, getListStyleByOb, getListSugesObRow, getObData, getObFeatures, getOpsiObId, getRefObDetail, getSizesOb, getSizesObSelected, patchIeOb, postFeatures, postIeOb, postIeObDetail, postIeObSketch, postImportObDetail, postNewFeatures, postObRemark, prePostIeObDetail, reNoIeObDetail, returnPostIeObDetail, sortFeatures, sortObDetail } from "../../controllers/production/ie/IeOpBreakdown.js";
 import { afterPostHeaderCt, deleteCtHeader, deleteCtMp, deleteIeCtDetailCount, deleteIeCtMpProccesses, getBaseDataIeCyc, getIeCtBarChartSeries, getIeCtDetailCount, getIeCtGroupCount, getIeCtMppGroupCount, getListCtHeader, getSewRepEffforCt, midGetAvgMpp, patchHeaderIeCt, patchIeCtMpProccesses, postHeaderIeCt, postIeCtDetailCount, postIeCtMp, postIeCtMpProccesses, postIeGroupCount, qryGetEmpForCt } from "../../controllers/production/ie/IeCycleTime.js";
 const router = express.Router();
 
@@ -36,6 +36,7 @@ router.post("/ob-sort-detail", sortObDetail); //sort based on features
 router.get("/ob-history/:obId", getListObHistory); //get history of ob detail
 router.post("/ob-import-detail-excel", postImportObDetail, returnPostIeObDetail);
 router.get("/ob-image/:obid/:skecthStatus", getImageOb);
+router.get("/opsi-ob-copy/:producType/:qryObId", getOpsiObId);
 
 
 //ie cycle time
