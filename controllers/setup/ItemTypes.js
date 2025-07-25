@@ -2,9 +2,7 @@ import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 
 export const getAllMasterItemType = async(req, res) => {
     try {
-        const getData = await MasterItemTypes.findAll({
-            attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
-        });
+        const getData = await MasterItemTypes.findAll({raw:true});
         if(getData){
             return res.status(200).json({
                 success: true,
