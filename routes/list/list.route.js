@@ -24,6 +24,7 @@ import { getMasterServiceType } from "../../controllers/setup/ServiceTypes.js";
 import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategories.js";
 import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
 import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
+import { getAllFOBPoint } from "../../controllers/system/FOBPoint.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -86,6 +87,10 @@ router.get("/shipping-terms", getAllShippingTerms);
 
 // list delivery model
 router.get("/delivery-mode", getAllDeliveryMode);
+
+// list fob point
+router.get("/fob-point", getAllFOBPoint);
+
 
 
 export default router;
