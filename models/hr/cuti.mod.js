@@ -146,49 +146,60 @@ SELECT
     e.NamaLengkap AS employee_name,
     e.TanggalMasuk,
     YEAR(CURDATE()) AS current_year,
-    CASE
-        WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
+	CASE
+        WHEN DATE_FORMAT(CURDATE(), '%m-%d') < DATE_FORMAT(e.TanggalMasuk, '%m-%d') 
+        THEN YEAR(CURDATE()) - 1
         ELSE YEAR(CURDATE())
     END AS leave_reset_year,
     MONTH(e.TanggalMasuk) AS leave_reset_month,
     12 AS yearly_quota,
+
+    -- Calculate used leaves based on full date comparison
     IFNULL(SUM(
         CASE 
-            WHEN 
-                (YEAR(l.cuti_date_start) > CASE 
-                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
-                    ELSE YEAR(CURDATE())
-                END OR
-                (YEAR(l.cuti_date_start) = CASE 
-                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
-                    ELSE YEAR(CURDATE())
-                END AND MONTH(l.cuti_date_start) >= MONTH(e.TanggalMasuk)))
+            WHEN l.cuti_date_start >= STR_TO_DATE(
+                CONCAT(
+                    CASE
+                        WHEN DATE_FORMAT(CURDATE(), '%m-%d') < DATE_FORMAT(e.TanggalMasuk, '%m-%d') 
+                        THEN YEAR(CURDATE()) - 1
+                        ELSE YEAR(CURDATE())
+                    END, '-', DATE_FORMAT(e.TanggalMasuk, '%m-%d')
+                ), '%Y-%m-%d'
+            )
             THEN l.cuti_length
             ELSE 0
         END
     ), 0) AS used_leaves,
+
+    -- Remaining = quota - used
     (12 - IFNULL(SUM(
         CASE 
-            WHEN 
-                (YEAR(l.cuti_date_start) > CASE 
-                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
-                    ELSE YEAR(CURDATE())
-                END OR
-                (YEAR(l.cuti_date_start) = CASE 
-                    WHEN MONTH(e.TanggalMasuk) > MONTH(CURDATE()) THEN YEAR(CURDATE()) - 1
-                    ELSE YEAR(CURDATE())
-                END AND MONTH(l.cuti_date_start) >= MONTH(e.TanggalMasuk)))
+            WHEN l.cuti_date_start >= STR_TO_DATE(
+                CONCAT(
+                    CASE
+                        WHEN DATE_FORMAT(CURDATE(), '%m-%d') < DATE_FORMAT(e.TanggalMasuk, '%m-%d') 
+                        THEN YEAR(CURDATE()) - 1
+                        ELSE YEAR(CURDATE())
+                    END, '-', DATE_FORMAT(e.TanggalMasuk, '%m-%d')
+                ), '%Y-%m-%d'
+            )
             THEN l.cuti_length
             ELSE 0
         END
     ), 0)) AS remaining_leaves
+
 FROM 
     sumbiri_employee e
 LEFT JOIN 
     sumbiri_cuti_main l ON e.Nik = l.cuti_emp_nik 
-WHERE l.cuti_purpose ='CUTI TAHUNAN' AND l.cuti_active='Y' AND l.cuti_emp_nik = :empNik
+
+WHERE 
+    l.cuti_purpose = 'CUTI TAHUNAN' AND 
+    l.cuti_active = 'Y' AND 
+    l.cuti_emp_nik = :empNik
+
 GROUP BY 
-    e.Nik, e.NamaLengkap, YEAR(CURDATE()), MONTH(e.TanggalMasuk);
+    e.Nik, e.NamaLengkap, e.TanggalMasuk;
 
 `;
 

@@ -12,6 +12,7 @@ export const getAllMasterItemType = async(req, res) => {
 
         const getData = await MasterItemTypes.findAll({
             where: whereCondition,
+            raw:true,
             attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION', 'ITEM_TYPE_ACTIVE']
         });
 

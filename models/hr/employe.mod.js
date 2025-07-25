@@ -659,7 +659,7 @@ SELECT
     se.NamaIbu,
     '2' AS MetodePajak,
     CASE 
-    	WHEN se.StatusPerkawinan ='K' THEN 'K0'
+    	WHEN se.StatusPerkawinan ='K' AND se.JenisKelamin='0' THEN 'K0'
    	 	ELSE 'T0'
     END AS StatusPajak,
     se.NPWP,
@@ -749,6 +749,7 @@ LEFT JOIN (
 	SELECT * FROM sumbiri_spkk ss WHERE ss.Nik=:empNik ORDER BY ss.FinishKontrak DESC
 ) spkk ON spkk.Nik = se.Nik
 WHERE se.Nik=:empNik
+
 `;
 
 

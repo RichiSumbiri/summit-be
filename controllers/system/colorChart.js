@@ -6,7 +6,16 @@ import { successResponse, errorResponse } from "../helpers/responseHelper.js";
 
 export const getColors = async (req, res) => {
   try {
+    const { ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = req.query;
+
+    const where = {
+      ...(ITEM_CATEGORY_ID && { ITEM_CATEGORY_ID }),
+      ...(ITEM_GROUP_ID && { ITEM_GROUP_ID }),
+      ...(ITEM_TYPE_ID && { ITEM_TYPE_ID }),
+    };
+
     const colorsData = await colorChart.findAll({
+      where: where,
       include: [
         {
           model: MasterItemCategories,

@@ -24,44 +24,76 @@ export const getUserAcces = async (req, res) => {
 };
 
 //Update User Access
-export const updateOrCreateUserAccess = async (req, res) => {
+export const postAccessUser = async (req, res) => {
   try {
-    const foundItem = await UserAcc.findOne({
+    const arrObjMenuAcc = req.body
+
+    if(arrObjMenuAcc.length === 0) return res.status(404).json({message: 'Data Access Required'})
+    
+    
+    const destAllMenu = await UserAcc.destroy({
       where: {
-        USER_ID: req.params.id,
-        MENU_ID: req.params.menuid,
+        USER_ID: arrObjMenuAcc[0].USER_ID,
       },
-      order: [["MENU_ID"]],
     });
 
-    const dataAxs = req.body;
 
-    if (!foundItem) {
-      const item = await UserAcc.create(dataAxs);
+    const postData = await UserAcc.bulkCreate(arrObjMenuAcc);
+
+    if(postData){
       return res.json({
-        item: item,
-        message: "User Access Added",
+        message: "User Access Update",
       });
+    }else{
+      res.status(404).json({message : 'Failed Update Access User'})
     }
-
-    const item = await UserAcc.update(dataAxs, {
-      where: {
-        USER_ID: req.params.id,
-        MENU_ID: req.params.menuid,
-      },
-    });
-
-    return res.json({
-      item: item,
-      message: "User Access Update",
-    });
   } catch (error) {
+    console.log(error);
+    
     res.json({ message: error.message });
   }
 };
 
+// export const updateOrCreateUserAccess = async (req, res) => {
+//   try {
+//     const foundItem = await UserAcc.findOne({
+//       where: {
+//         USER_ID: req.params.id,
+//         MENU_ID: req.params.menuid,
+//       },
+//       order: [["MENU_ID"]],
+//     });
+
+//     const dataAxs = req.body;
+
+//     if (!foundItem) {
+//       const item = await UserAcc.create(dataAxs);
+//       return res.json({
+//         item: item,
+//         message: "User Access Added",
+//       });
+//     }
+
+//     const item = await UserAcc.update(dataAxs, {
+//       where: {
+//         USER_ID: req.params.id,
+//         MENU_ID: req.params.menuid,
+//       },
+//     });
+
+//     return res.json({
+//       item: item,
+//       message: "User Access Update",
+//     });
+//   } catch (error) {
+//     res.json({ message: error.message });
+//   }
+// };
+
 //
 //menu Access View
+
+
 export const getViewAccess = async (req, res) => {
   try {
     const menuViewAccess = await db.query(QueryMenuView, {

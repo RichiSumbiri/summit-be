@@ -6,7 +6,16 @@ import { successResponse, errorResponse } from "../helpers/responseHelper.js";
 
 export const getSizes = async (req, res) => {
   try {
+    const { ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = req.query;
+
+    const where = {
+      ...(ITEM_CATEGORY_ID && { ITEM_CATEGORY_ID }),
+      ...(ITEM_GROUP_ID && { ITEM_GROUP_ID }),
+      ...(ITEM_TYPE_ID && { ITEM_TYPE_ID }),
+    };
+
     const sizesData = await sizeChart.findAll({
+      where: where,
       include: [
         {
           model: MasterItemCategories,
@@ -42,7 +51,12 @@ export const getSizes = async (req, res) => {
       order: [["SIZE_ID", "DESC"]],
     });
 
-    return successResponse(res, sizesData, "Sizes chart fetched successfully", 200);
+    return successResponse(
+      res,
+      sizesData,
+      "Sizes chart fetched successfully",
+      200
+    );
   } catch (err) {
     return errorResponse(res, err, "Failed to fetch sizes data", 500);
   }
@@ -109,7 +123,12 @@ export const showSize = async (req, res) => {
       return errorResponse(res, null, "Size not found", 404);
     }
 
-    return successResponse(res, sizeData, "Size chart fetched successfully", 200);
+    return successResponse(
+      res,
+      sizeData,
+      "Size chart fetched successfully",
+      200
+    );
   } catch (err) {
     return errorResponse(res, err, "Failed to fetch size data", 500);
   }
