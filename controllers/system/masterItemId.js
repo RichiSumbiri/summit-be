@@ -1,6 +1,15 @@
-import { Op } from "sequelize";
-import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
-
+import MasterItemIdModel, {
+    MasterItemIdAttributesModel,
+    MasterItemIdService
+} from "../../models/system/masterItemId.mod.js";
+import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
+import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
+import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import MasterAttributeSetting from "../../models/system/masterAttributeSetting.mod.js";
+import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.js";
+import {Op} from "sequelize";
+import ServiceAttributesMod from "../../models/system/serviceAttributes.mod.js";
+import ServiceAttributeValuesMod from "../../models/system/serviceAttributeValues.mod.js";
 
 export const createItem = async (req, res) => {
     try {
@@ -28,7 +37,7 @@ export const createItem = async (req, res) => {
             UNIT_ID,
         } = req.body;
 
-        
+
         if (!ITEM_CODE) {
             return res.status(400).json({
                 success: false,
@@ -36,10 +45,26 @@ export const createItem = async (req, res) => {
             });
         }
 
-        
-        const count = await MasterItemIdModel.count();
-        const newItem = await MasterItemIdModel.create({
-            ITEM_ID: `AFL${String(count + 1).padStart(7, "0")}`,
+
+        const masterCategory = await MasterItemCategories.findOne({
+            where: {
+                ITEM_CATEGORY_ID
+            }
+        })
+        if (!masterCategory) {
+            return res.status(404).json({
+                success: false,
+                message: `Item Category ID not found`,
+            });
+        }
+        const count = await MasterItemIdModel.count({
+            where: {
+                ITEM_CATEGORY_ID: masterCategory.ITEM_CATEGORY_ID
+            }
+        });
+
+        await MasterItemIdModel.create({
+            ITEM_ID: `${masterCategory.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
             ITEM_CODE,
             ITEM_DESCRIPTION,
             ITEM_ACTIVE,
@@ -67,7 +92,6 @@ export const createItem = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Item created successfully",
-            newItem,
         });
     } catch (error) {
         console.error("Error creating item:", error);
@@ -81,24 +105,41 @@ export const createItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const { unitId, search } = req.query;
+        const {unitId, search} = req.query;
 
         const whereCondition = {};
         if (unitId) {
-            whereCondition.UNIT_ID = unitId; 
+            whereCondition.UNIT_ID = unitId;
         }
         if (search) {
-            whereCondition.ITEM_CODE = { [Op.like]: `%${search}%` }; 
+            whereCondition.ITEM_CODE = {[Op.like]: `%${search}%`};
         }
 
         const items = await MasterItemIdModel.findAll({
             where: whereCondition,
+            include: [
+                {
+                    model: MasterItemGroup,
+                    as: 'ITEM_GROUP',
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                },
+                {
+                    model: MasterItemTypes,
+                    as: 'ITEM_TYPE',
+                    attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                },
+                {
+                    model: MasterItemCategories,
+                    as: 'ITEM_CATEGORY',
+                    attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                }
+            ]
         });
 
         return res.status(200).json({
             success: true,
             message: "Items retrieved successfully",
-            items,
+            data: items,
         });
     } catch (error) {
         console.error("Error retrieving items:", error);
@@ -112,10 +153,27 @@ export const getAllItems = async (req, res) => {
 
 export const getItemById = async (req, res) => {
     try {
-        const { itemId } = req.params;
+        const {itemId} = req.params;
 
         const item = await MasterItemIdModel.findOne({
-            where: { ITEM_ID: itemId },
+            where: {ITEM_ID: itemId},
+            include: [
+                {
+                    model: MasterItemGroup,
+                    as: 'ITEM_GROUP',
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                },
+                {
+                    model: MasterItemTypes,
+                    as: 'ITEM_TYPE',
+                    attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                },
+                {
+                    model: MasterItemCategories,
+                    as: 'ITEM_CATEGORY',
+                    attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                }
+            ]
         });
 
         if (!item) {
@@ -128,7 +186,7 @@ export const getItemById = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Item retrieved successfully",
-            item,
+            data: item,
         });
     } catch (error) {
         console.error("Error retrieving item:", error);
@@ -142,7 +200,7 @@ export const getItemById = async (req, res) => {
 
 export const updateItem = async (req, res) => {
     try {
-        const { itemId } = req.params;
+        const {itemId} = req.params;
         const {
             ITEM_CODE,
             ITEM_DESCRIPTION,
@@ -168,7 +226,7 @@ export const updateItem = async (req, res) => {
         } = req.body;
 
         const item = await MasterItemIdModel.findOne({
-            where: { ITEM_ID: itemId },
+            where: {ITEM_ID: itemId},
         });
 
         if (!item) {
@@ -178,7 +236,7 @@ export const updateItem = async (req, res) => {
             });
         }
 
-        
+
         await item.update({
             ITEM_CODE,
             ITEM_DESCRIPTION,
@@ -206,8 +264,7 @@ export const updateItem = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Item updated successfully",
-            item,
+            message: "Item updated successfully"
         });
     } catch (error) {
         console.error("Error updating item:", error);
@@ -221,10 +278,10 @@ export const updateItem = async (req, res) => {
 
 export const deleteItem = async (req, res) => {
     try {
-        const { itemId } = req.params;
+        const {itemId} = req.params;
 
         const item = await MasterItemIdModel.findOne({
-            where: { ITEM_ID: itemId },
+            where: {ITEM_ID: itemId},
         });
 
         if (!item) {
@@ -234,7 +291,7 @@ export const deleteItem = async (req, res) => {
             });
         }
 
-        
+
         await item.destroy();
 
         return res.status(200).json({
@@ -246,6 +303,490 @@ export const deleteItem = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Failed to delete item: ${error.message}`,
+        });
+    }
+};
+
+export const createAttribute = async (req, res) => {
+    try {
+        const {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, NOTE} = req.body;
+
+
+        if (!MASTER_ITEM_ID || !MASTER_ATTRIBUTE_ID || !MASTER_ATTRIBUTE_VALUE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, and MASTER_ATTRIBUTE_VALUE_ID are required",
+            });
+        }
+
+        const validation = await MasterItemIdAttributesModel.findOne({
+            where: {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, IS_DELETED: false}
+        })
+
+        if (validation) {
+            return res.status(500).json({
+                success: false,
+                message: "Data already exist"
+            })
+        }
+
+        await MasterItemIdAttributesModel.create({
+            MASTER_ITEM_ID,
+            MASTER_ATTRIBUTE_ID,
+            MASTER_ATTRIBUTE_VALUE_ID,
+            NOTE,
+            CREATED_AT: new Date(),
+        });
+
+
+        return res.status(201).json({
+            success: true,
+            message: "Attribute created successfully",
+        });
+    } catch (error) {
+        console.error("Error creating attribute:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to create attribute: ${error.message}`,
+        });
+    }
+};
+
+
+export const getAllAttributes = async (req, res) => {
+    try {
+        const {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID} = req.query;
+
+        const whereCondition = {
+            IS_DELETED: false,
+        };
+
+        if (MASTER_ITEM_ID) {
+            whereCondition.MASTER_ITEM_ID = MASTER_ITEM_ID;
+        }
+
+        if (MASTER_ATTRIBUTE_ID) {
+            whereCondition.MASTER_ATTRIBUTE_ID = MASTER_ATTRIBUTE_ID
+        }
+
+        if (MASTER_ATTRIBUTE_VALUE_ID) {
+            whereCondition.MASTER_ATTRIBUTE_VALUE_ID = MASTER_ATTRIBUTE_VALUE_ID
+        }
+
+        const attributes = await MasterItemIdAttributesModel.findAll({
+            where: whereCondition,
+            include: [
+                {
+                    model: MasterAttributeSetting,
+                    as: "MASTER_ATTRIBUTE",
+                },
+                {
+                    model: MasterAttributeValue,
+                    as: "MASTER_ATTRIBUTE_VALUE",
+                },
+            ],
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Attributes retrieved successfully",
+            data: attributes,
+        });
+    } catch (error) {
+        console.error("Error retrieving attributes:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve attributes: ${error.message}`,
+        });
+    }
+};
+
+
+export const getAttributeById = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const attribute = await MasterItemIdAttributesModel.findOne({
+            where: {ID: id, IS_DELETED: false},
+            include: [
+                {
+                    model: MasterAttributeSetting,
+                    as: "MASTER_ATTRIBUTE",
+                    attributes: ["ID", "NAME"],
+                },
+                {
+                    model: MasterAttributeValue,
+                    as: "MASTER_ATTRIBUTE_VALUE",
+                    attributes: ["ID", "VALUE"],
+                },
+            ],
+        });
+
+        if (!attribute) {
+            return res.status(404).json({
+                success: false,
+                message: "Attribute not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Attribute retrieved successfully",
+            data: attribute,
+        });
+    } catch (error) {
+        console.error("Error retrieving attribute:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve attribute: ${error.message}`,
+        });
+    }
+};
+
+
+export const updateAttribute = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, NOTE} = req.body;
+
+        const attribute = await MasterItemIdAttributesModel.findOne({
+            where: {ID: id, IS_DELETED: false},
+        });
+
+        if (!attribute) {
+            return res.status(404).json({
+                success: false,
+                message: "Attribute not found",
+            });
+        }
+
+        const validation = await MasterItemIdAttributesModel.findOne({
+            where: {
+                IS_DELETED: false, MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, ID: {
+                    [Op.not]: id
+                }
+            }
+        })
+
+        if (validation) {
+            return res.status(500).json({
+                success: false,
+                message: "Data already exist"
+            })
+        }
+
+        await attribute.update({
+            MASTER_ITEM_ID,
+            MASTER_ATTRIBUTE_ID,
+            MASTER_ATTRIBUTE_VALUE_ID,
+            NOTE,
+            UPDATED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Attribute updated successfully",
+        });
+    } catch (error) {
+        console.error("Error updating attribute:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update attribute: ${error.message}`,
+        });
+    }
+};
+
+
+export const deleteAttribute = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const attribute = await MasterItemIdAttributesModel.findOne({
+            where: {ID: id, IS_DELETED: false},
+        });
+
+        if (!attribute) {
+            return res.status(404).json({
+                success: false,
+                message: "Attribute not found",
+            });
+        }
+
+        await attribute.update({
+            IS_DELETED: true,
+            DELETED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Attribute soft-deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting attribute:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to delete attribute: ${error.message}`,
+        });
+    }
+};
+
+export const createService = async (req, res) => {
+    try {
+        const {
+            MASTER_ITEM_ID,
+            MASTER_SERVICE_ID,
+            MASTER_SERVICE_VALUE_ID,
+            NOTE,
+        } = req.body;
+
+        if (!MASTER_ITEM_ID || !MASTER_SERVICE_ID || !MASTER_SERVICE_VALUE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "MASTER_ITEM_ID, MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID are required",
+            });
+        }
+
+
+        const existingService = await MasterItemIdService.findOne({
+            where: {
+                MASTER_ITEM_ID,
+                MASTER_SERVICE_ID,
+                MASTER_SERVICE_VALUE_ID,
+                IS_DELETED: false
+            }
+        });
+
+        if (existingService) {
+            return res.status(409).json({
+                success: false,
+                message: "Service combination already exists",
+            });
+        }
+
+        const newService = await MasterItemIdService.create({
+            MASTER_ITEM_ID,
+            MASTER_SERVICE_ID,
+            MASTER_SERVICE_VALUE_ID,
+            NOTE,
+            CREATED_AT: new Date(),
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Service created successfully",
+            data: newService,
+        });
+    } catch (error) {
+        console.error("Error creating service:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to create service: ${error.message}`,
+        });
+    }
+};
+
+export const getAllServices = async (req, res) => {
+    try {
+        const { MASTER_ITEM_ID, MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID } = req.query;
+
+        const whereCondition = {
+            IS_DELETED: false,
+        };
+
+        if (MASTER_ITEM_ID) {
+            whereCondition.MASTER_ITEM_ID = MASTER_ITEM_ID;
+        }
+        if (MASTER_SERVICE_ID) {
+            whereCondition.MASTER_SERVICE_ID = MASTER_SERVICE_ID;
+        }
+        if (MASTER_SERVICE_VALUE_ID) {
+            whereCondition.MASTER_SERVICE_VALUE_ID = MASTER_SERVICE_VALUE_ID;
+        }
+
+        const services = await MasterItemIdService.findAll({
+            where: whereCondition,
+            include: [
+                {
+                    model: MasterItemIdModel,
+                    as: "MASTER_ITEM",
+                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"],
+                },
+                {
+                    model: ServiceAttributesMod,
+                    as: "MASTER_SERVICE",
+                    attributes: ["SERVICE_ATTRIBUTE_ID", "ATTRIBUTE_NAME"],
+                },
+                {
+                    model: ServiceAttributeValuesMod,
+                    as: "MASTER_SERVICE_VALUE",
+                    attributes: ["SERVICE_ATTRIBUTE_VALUE_ID", "SERVICE_ATTRIBUTE_VALUE_NAME"],
+                },
+            ],
+            order: [['ID', 'DESC']]
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Services retrieved successfully",
+            data: services,
+            count: services.length,
+        });
+    } catch (error) {
+        console.error("Error retrieving services:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve services: ${error.message}`,
+        });
+    }
+};
+
+export const getServiceById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const service = await MasterItemIdService.findOne({
+            where: {
+                ID: id,
+                IS_DELETED: false
+            },
+            include: [
+                {
+                    model: MasterItemIdModel,
+                    as: "MASTER_ITEM",
+                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"],
+                },
+                {
+                    model: ServiceAttributesMod,
+                    as: "MASTER_SERVICE",
+                    attributes: ["SERVICE_ATTRIBUTE_ID", "ATTRIBUTE_NAME"],
+                },
+                {
+                    model: ServiceAttributeValuesMod,
+                    as: "MASTER_SERVICE_VALUE",
+                    attributes: ["SERVICE_ATTRIBUTE_VALUE_ID", "SERVICE_ATTRIBUTE_VALUE_NAME"],
+                },
+            ],
+        });
+
+        if (!service) {
+            return res.status(404).json({
+                success: false,
+                message: "Service not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Service retrieved successfully",
+            data: service,
+        });
+    } catch (error) {
+        console.error("Error retrieving service:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve service: ${error.message}`,
+        });
+    }
+};
+
+export const updateService = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            MASTER_ITEM_ID,
+            MASTER_SERVICE_ID,
+            MASTER_SERVICE_VALUE_ID,
+            NOTE,
+        } = req.body;
+
+        const service = await MasterItemIdService.findOne({
+            where: {
+                ID: id,
+                IS_DELETED: false
+            },
+        });
+
+        if (!service) {
+            return res.status(404).json({
+                success: false,
+                message: "Service not found",
+            });
+        }
+
+
+        const existingService = await MasterItemIdService.findOne({
+            where: {
+                MASTER_ITEM_ID: MASTER_ITEM_ID || service.MASTER_ITEM_ID,
+                MASTER_SERVICE_ID: MASTER_SERVICE_ID || service.MASTER_SERVICE_ID,
+                MASTER_SERVICE_VALUE_ID: MASTER_SERVICE_VALUE_ID || service.MASTER_SERVICE_VALUE_ID,
+                IS_DELETED: false,
+                ID: {
+                    [Op.not]: id
+                }
+            }
+        });
+
+        if (existingService) {
+            return res.status(409).json({
+                success: false,
+                message: "Service combination already exists",
+            });
+        }
+
+        await service.update({
+            MASTER_ITEM_ID: MASTER_ITEM_ID || service.MASTER_ITEM_ID,
+            MASTER_SERVICE_ID: MASTER_SERVICE_ID || service.MASTER_SERVICE_ID,
+            MASTER_SERVICE_VALUE_ID: MASTER_SERVICE_VALUE_ID || service.MASTER_SERVICE_VALUE_ID,
+            NOTE: NOTE !== undefined ? NOTE : service.NOTE,
+            UPDATED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Service updated successfully",
+            data: service,
+        });
+    } catch (error) {
+        console.error("Error updating service:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update service: ${error.message}`,
+        });
+    }
+};
+
+export const deleteService = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const service = await MasterItemIdService.findOne({
+            where: {
+                ID: id,
+                IS_DELETED: false
+            },
+        });
+
+        if (!service) {
+            return res.status(404).json({
+                success: false,
+                message: "Service not found",
+            });
+        }
+
+        await service.update({
+            IS_DELETED: true,
+            DELETED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Service soft-deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting service:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to delete service: ${error.message}`,
         });
     }
 };

@@ -1,9 +1,8 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
-import MasterAttributeValue from "./masterAttributeValue.mod.js";
-import {MasterItemGroup} from "../setup/ItemGroups.mod.js";
-import {MasterItemTypes} from "../setup/ItemTypes.mod.js";
-import {MasterItemCategories} from "../setup/ItemCategories.mod.js";
+import { MasterItemGroup } from "../setup/ItemGroups.mod.js";
+import { MasterItemTypes } from "../setup/ItemTypes.mod.js";
+import { MasterItemCategories } from "../setup/ItemCategories.mod.js";
 
 const MasterAttributeSetting = db.define(
     "master_attribute_setting",
@@ -22,16 +21,28 @@ const MasterAttributeSetting = db.define(
             allowNull: true,
         },
         ITEM_GROUP_ID: {
-            type: DataTypes.STRING(5),
+            type: DataTypes.INTEGER,
             allowNull: true,
+            references: {
+                model: MasterItemGroup,
+                key: "ITEM_GROUP_ID",
+            },
         },
         ITEM_TYPE_ID: {
-            type: DataTypes.STRING(5),
+            type: DataTypes.INTEGER,
             allowNull: true,
+            references: {
+                model: MasterItemTypes,
+                key: "ITEM_TYPE_ID",
+            },
         },
         ITEM_CATEGORY_ID: {
-            type: DataTypes.STRING(5),
+            type: DataTypes.INTEGER,
             allowNull: true,
+            references: {
+                model: MasterItemCategories,
+                key: "ITEM_CATEGORY_ID",
+            },
         },
         IS_ACTIVE: {
             type: DataTypes.BOOLEAN,
@@ -78,23 +89,22 @@ const MasterAttributeSetting = db.define(
     }
 );
 
-
 MasterAttributeSetting.belongsTo(MasterItemGroup, {
     foreignKey: "ITEM_GROUP_ID",
-    targetKey: "ITEM_GROUP_CODE",
-    as: "ITEM_GROUP"
+    targetKey: "ITEM_GROUP_ID",
+    as: "ITEM_GROUP",
 });
 
 MasterAttributeSetting.belongsTo(MasterItemTypes, {
     foreignKey: "ITEM_TYPE_ID",
-    targetKey: "ITEM_TYPE_CODE",
-    as: "ITEM_TYPE"
+    targetKey: "ITEM_TYPE_ID",
+    as: "ITEM_TYPE",
 });
 
 MasterAttributeSetting.belongsTo(MasterItemCategories, {
     foreignKey: "ITEM_CATEGORY_ID",
-    targetKey: "ITEM_CATEGORY_CODE",
-    as: "ITEM_CATEGORY"
+    targetKey: "ITEM_CATEGORY_ID",
+    as: "ITEM_CATEGORY",
 });
 
 export default MasterAttributeSetting;

@@ -49,6 +49,10 @@ const MasterAttributeValue = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        DESCRIPTION: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
     },
     {
         tableName: "master_attribute_value",
