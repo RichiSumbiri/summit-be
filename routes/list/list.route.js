@@ -23,6 +23,7 @@ import { getMasterServiceGroup } from "../../controllers/setup/ServiceGroups.js"
 import { getMasterServiceType } from "../../controllers/setup/ServiceTypes.js";
 import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategories.js";
 import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
+import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -82,5 +83,9 @@ router.get("/item-status", getMasterItemStatus);
 
 // list shipping terms
 router.get("/shipping-terms", getAllShippingTerms);
+
+// list delivery model
+router.get("/delivery-mode", getAllDeliveryMode);
+
 
 export default router;
