@@ -94,6 +94,6 @@ router.get("/fob-point", getAllFOBPoint);
 
 
 //get list country international
-router.get("/country-code/:qry", getRefInterCountry);
+router.get("/country-code/:query", getRefInterCountry);
 
 export default router;
