@@ -6,6 +6,7 @@ import {
   getListCountry,
   getListItemCode,
   getListItemStyle,
+  getRefInterCountry,
   patchListItemStyle,
   postListCountry,
   postListItemStyle,
@@ -92,5 +93,7 @@ router.get("/delivery-mode", getAllDeliveryMode);
 router.get("/fob-point", getAllFOBPoint);
 
 
+//get list country international
+router.get("/country-code/:qry", getRefInterCountry);
 
 export default router;
