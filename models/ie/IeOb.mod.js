@@ -990,3 +990,19 @@ ie_ob_history ioh
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_USER_ID
 WHERE ioh.OB_ID = :obId
 `
+
+
+export const qryGetOpsiListOb = `SELECT 
+ ioh.OB_ID,
+ ioh.OB_NAME,
+ ioh.OB_REVISION,
+ ioh.OB_DESCRIPTION,
+ ioh.OB_SIZES,
+ DATE_FORMAT(ioh.createdAt, '%Y-%m-%d') AS CREATE_DATE,
+ DATE_FORMAT(ioh.updatedAt, '%Y-%m-%d') AS UPDATE_DATE,
+ xuw.USER_INISIAL,
+ CONCAT(ioh.OB_ID, ' - ' , ioh.OB_NAME, ' - ' ,ioh.OB_REVISION) AS LABEL_OBID
+FROM ie_ob_header ioh
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
+LEFT JOIN item_list_style ils ON ils.PRODUCT_ITEM_CODE  = ioh.PRODUCT_ITEM_CODE
+WHERE ioh.OB_DELETE_STATUS  = 0 AND ioh.OB_ID  LIKE :qryObId AND ils.PRODUCT_TYPE  = :producType`
