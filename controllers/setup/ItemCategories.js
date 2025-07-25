@@ -48,7 +48,7 @@ export const getMasterItemCategory = async(req, res) => {
 export const postMasterItemCategory = async (req, res) => {
     try {
         const { DataCategory } = req.body;
-        if (DataCategory.ITEM_CATEGORY_ID === 0) {
+        if (!DataCategory.ITEM_CATEGORY_ID) {
             await MasterItemCategories.create(DataCategory);
         } else {
             await MasterItemCategories.update(
@@ -75,6 +75,7 @@ export const postMasterItemCategory = async (req, res) => {
         });
 
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
