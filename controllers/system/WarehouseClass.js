@@ -33,7 +33,7 @@ export const postMasterWarehouseClass = async(req,res) => {
                 order: [['WHC_ID', 'DESC']],
                 raw: true
             }); 
-            const newIncrement = parseInt(getLastWHCID.WHC_ID.slice(-7)) + 1;
+            const newIncrement = !getLastWHCID ? '0000001' : parseInt(getLastWHCID.WHC_ID.slice(-7)) + 1;
             const newWHCID = 'WHC' + newIncrement.toString().padStart(7, '0');
             await MasterWarehouseClass.create({
                 WHC_ID: newWHCID,

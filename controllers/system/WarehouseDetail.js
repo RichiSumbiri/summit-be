@@ -82,7 +82,7 @@ export const postMasterWarehouseDetail = async(req,res) => {
                 order: [['WHI_ID', 'DESC']],
                 raw: true
             }); 
-            const newIncrement = parseInt(getLastWHID.WHI_ID.slice(-7)) + 1;
+            const newIncrement = !getLastWHIDparseInt ? '': (getLastWHID.WHI_ID.slice(-7)) + 1;
             const newWHID = 'WHI' + newIncrement.toString().padStart(7, '0');
             CreatedData = await ModelWarehouseDetail.create({
                 WHI_ID: newWHID,
