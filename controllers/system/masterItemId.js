@@ -11,6 +11,8 @@ import {Op} from "sequelize";
 import ServiceAttributesMod from "../../models/system/serviceAttributes.mod.js";
 import ServiceAttributeValuesMod from "../../models/system/serviceAttributeValues.mod.js";
 import ItemDimensionModel from "../../models/system/itemDimention.mod.js";
+import {buildMediaUrl} from "../../util/general.js";
+import MasterServiceCategories from "../../models/setup/ServiceCategories.mod.js";
 
 export const createItem = async (req, res) => {
     try {
@@ -39,13 +41,12 @@ export const createItem = async (req, res) => {
         } = req.body;
 
 
-        if (!ITEM_CODE) {
+        if (!ITEM_CODE || !ITEM_GROUP_ID || !ITEM_TYPE_ID || !ITEM_CATEGORY_ID) {
             return res.status(400).json({
                 success: false,
-                message: "ITEM_CODE is required",
+                message: "ITEM_CODE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID is required",
             });
         }
-
 
         const masterCategory = await MasterItemCategories.findOne({
             where: {
@@ -58,6 +59,7 @@ export const createItem = async (req, res) => {
                 message: `Item Category ID not found`,
             });
         }
+
         const count = await MasterItemIdModel.count({
             where: {
                 ITEM_CATEGORY_ID: masterCategory.ITEM_CATEGORY_ID
@@ -229,7 +231,10 @@ export const getAllItems = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Items retrieved successfully",
-            data: items,
+            data: items.map(data => ({
+                ...data.dataValues,
+                ITEM_IMAGE: buildMediaUrl(data.dataValues.ITEM_IMAGE)
+            })),
         });
     } catch (error) {
         console.error("Error retrieving items:", error);
@@ -705,11 +710,18 @@ export const getAllServices = async (req, res) => {
                     model: ServiceAttributesMod,
                     as: "MASTER_SERVICE",
                     attributes: ["SERVICE_ATTRIBUTE_ID", "ATTRIBUTE_NAME"],
+                    include: [
+                        {
+                            model: MasterServiceCategories,
+                            as: "SERVICE_ITEM_GROUP",
+                            attributes: ['SERVICE_CATEGORY_CODE']
+                        }
+                    ]
                 },
                 {
                     model: ServiceAttributeValuesMod,
                     as: "MASTER_SERVICE_VALUE",
-                    attributes: ["SERVICE_ATTRIBUTE_VALUE_ID", "SERVICE_ATTRIBUTE_VALUE_NAME"],
+                    attributes: ["SERVICE_ATTRIBUTE_VALUE_ID", "SERVICE_ATTRIBUTE_VALUE_NAME", "SERVICE_ATTRIBUTE_VALUE_CODE"],
                 },
             ],
             order: [['ID', 'DESC']]

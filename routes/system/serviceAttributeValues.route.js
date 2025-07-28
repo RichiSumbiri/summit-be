@@ -13,6 +13,6 @@ router.post("/", createServiceAttributeValues);
 router.post("/edit", editServiceAttributeValues);
 router.post("/delete", deleteServiceAttributeValues);
 
-router.get("/service-attribute-values/param", getServiceAttributeValuesParam);
+router.get("/param", getServiceAttributeValuesParam);
 
 export default router;

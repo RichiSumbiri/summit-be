@@ -142,6 +142,7 @@ app.use(
 app.use(express.static("public"));
 app.use("/images/sketch", express.static(path.join(__dirname, "assets/images/sketch")));
 app.use("/images/style", express.static(path.join(__dirname, "assets/images/styles")));
+app.use("/images/itemId", express.static(path.join(__dirname, "assets/images/itemId")));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
