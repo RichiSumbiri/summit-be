@@ -4,7 +4,15 @@ import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 
 export const getMasterItemGroup = async(req, res) => {
     try {
-        const getData = await MasterItemGroup.findAll();
+        const { ITEM_GROUP_ACTIVE } = req.query
+
+        const whereCondition = {}
+        if (ITEM_GROUP_ACTIVE) {
+            whereCondition.ITEM_GROUP_ACTIVE = ITEM_GROUP_ACTIVE
+        }
+        const getData = await MasterItemGroup.findAll({
+            where: whereCondition
+        });
         if(getData){
             return res.status(200).json({
                 success: true,

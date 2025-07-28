@@ -52,7 +52,7 @@ import department from "./setup/department.route.js"
 import departmentFx from "./setup/departmentFx.route.js"
 import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
-import masterAttributeRoute from "./system/masterAttribute.route.js";
+import uploadImageRoute from "./auth/uploadImage.route.js";
 
 import "../models/associations.js";
 
@@ -108,7 +108,7 @@ router.use("/site-fx", siteFxRoute)
 router.use("/department", department)
 router.use("/department-fx", departmentFx)
 router.use("/site-department", siteDepartmentRoute)
-router.use("/attribute", masterAttributeRoute)
+router.use("/upload-file", uploadImageRoute)
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));

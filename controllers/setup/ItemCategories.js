@@ -2,7 +2,19 @@ import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 
 export const getAllMasterItemCategory = async(req, res) => {
     try {
-        const getData = await MasterItemCategories.findAll({raw:true});
+        const {ITEM_CATEGORY_INSPECTION_FLAG} = req.query
+
+        const whereCondition = {}
+
+        if (ITEM_CATEGORY_INSPECTION_FLAG) {
+            whereCondition.ITEM_CATEGORY_INSPECTION_FLAG = ITEM_CATEGORY_INSPECTION_FLAG
+        }
+
+        const getData = await MasterItemCategories.findAll({
+            where: whereCondition,
+            raw:true,
+            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+        });
 
         if(getData){
             return res.status(200).json({
@@ -23,10 +35,17 @@ export const getAllMasterItemCategory = async(req, res) => {
 export const getMasterItemCategory = async(req, res) => {
     try {
         const { id } = req.params;
+        const {ITEM_CATEGORY_INSPECTION_FLAG} = req.query
+
+        const whereCondition = {
+            ITEM_TYPE_ID: id
+        }
+
+        if (ITEM_CATEGORY_INSPECTION_FLAG) {
+            whereCondition.ITEM_CATEGORY_INSPECTION_FLAG = ITEM_CATEGORY_INSPECTION_FLAG
+        }
         const getData = await MasterItemCategories.findAll({
-            where: {
-                ITEM_TYPE_ID: id 
-            }
+            where: whereCondition
         });
         if(getData){
             return res.status(200).json({
@@ -48,7 +67,7 @@ export const getMasterItemCategory = async(req, res) => {
 export const postMasterItemCategory = async (req, res) => {
     try {
         const { DataCategory } = req.body;
-        if (!DataCategory.ITEM_CATEGORY_ID) {
+        if (DataCategory.ITEM_CATEGORY_ID === 0) {
             await MasterItemCategories.create(DataCategory);
         } else {
             await MasterItemCategories.update(
@@ -75,7 +94,6 @@ export const postMasterItemCategory = async (req, res) => {
         });
 
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,

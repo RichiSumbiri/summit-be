@@ -5,6 +5,11 @@ import MasterAttributeSetting from "../../models/system/masterAttributeSetting.m
  * Get all attribute values (not deleted)
  */
 export const getAllAttributeValues = async (req, res) => {
+    const {attributeId } = req.query
+    const  whereCondition ={}
+    if (attributeId) {
+        whereCondition.MASTER_ATTRIBUTE_ID = attributeId
+    }
     try {
         const values = await MasterAttributeValue.findAll({
             include: [
@@ -15,7 +20,7 @@ export const getAllAttributeValues = async (req, res) => {
                     required: true
                 }
             ],
-            where: { IS_DELETED: false }
+            where: { IS_DELETED: false, ...whereCondition }
         });
 
         return res.status(200).json({
@@ -77,13 +82,14 @@ export const getAttributeValueById = async (req, res) => {
  */
 export const createAttributeValue = async (req, res) => {
     try {
-        const { ID, MASTER_ATTRIBUTE_ID, NAME, CODE, IS_ACTIVE, USER_ID } = req.body;
+        const { ID, MASTER_ATTRIBUTE_ID, NAME, CODE, IS_ACTIVE, USER_ID, DESCRIPTION } = req.body;
         let message = "Attribute Value created successfully"
         if (ID) {
             const [updated] = await MasterAttributeValue.update(
                 {
                     MASTER_ATTRIBUTE_ID,
                     NAME,
+                    DESCRIPTION,
                     CODE,
                     IS_ACTIVE,
                     UPDATE_ID: USER_ID,
@@ -107,6 +113,7 @@ export const createAttributeValue = async (req, res) => {
                 ID: `IAV${String(count + 1).padStart(7, "0")}`,
                 MASTER_ATTRIBUTE_ID,
                 NAME,
+                 DESCRIPTION,
                 CODE,
                 CREATE_ID: USER_ID,
                 CREATED_AT: new Date(),

@@ -2,14 +2,25 @@ import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 
 export const getAllMasterItemType = async(req, res) => {
     try {
-        const getData = await MasterItemTypes.findAll({raw:true});
-        if(getData){
-            return res.status(200).json({
-                success: true,
-                message: "success get master item group",
-                data: getData,
-        });
+        const {ITEM_TYPE_ACTIVE} = req.query
+
+        const whereCondition = {}
+
+        if (ITEM_TYPE_ACTIVE) {
+            whereCondition.ITEM_TYPE_ACTIVE = ITEM_TYPE_ACTIVE
         }
+
+        const getData = await MasterItemTypes.findAll({
+            where: whereCondition,
+            raw:true,
+            attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION', 'ITEM_TYPE_ACTIVE']
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "success get master item group",
+            data: getData,
+        });
     } catch(err){
         res.status(404).json({
             success: false,
@@ -22,10 +33,19 @@ export const getAllMasterItemType = async(req, res) => {
 export const getMasterItemType = async(req, res) => {
     try {
         const { id } = req.params;
+        const { ITEM_TYPE_STOCK } =req.query
+
+        const whereCondition = {
+            ITEM_GROUP_ID: id
+        }
+
+        if (ITEM_TYPE_STOCK) {
+            whereCondition.ITEM_TYPE_STOCK = ITEM_TYPE_STOCK
+        }
+
+
         const getData = await MasterItemTypes.findAll({
-            where: {
-                ITEM_GROUP_ID: id 
-            }
+            where: whereCondition
         });
         if(getData){
             return res.status(200).json({
