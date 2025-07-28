@@ -7,6 +7,7 @@ export const getMasterServiceType = async (req, res) => {
         "SERVICE_TYPE_ID",
         "SERVICE_TYPE_CODE",
         "SERVICE_TYPE_DESCRIPTION",
+        "SERVICE_GROUP_ID",
       ],
     });
     if (getData) {

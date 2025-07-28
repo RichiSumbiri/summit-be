@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import MasterServiceCategories from "../setup/ServiceCategories.mod.js";
 
 const serviceAttributes = db.define(
   "service_attributes",
@@ -57,6 +58,11 @@ const serviceAttributes = db.define(
     updatedAt: "UPDATED_AT",
   }
 );
+
+serviceAttributes.belongsTo(MasterServiceCategories, {
+    foreignKey: "SERVICE_ITEM_GROUP_ID",
+    as: "SERVICE_ITEM_GROUP"
+})
 
 export default serviceAttributes;
 

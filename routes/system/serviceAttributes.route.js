@@ -9,13 +9,13 @@ import {
 
 const router = express.Router();
 
-router.get("/service-attributes/", getServiceAttributes);
-router.post("/service-attributes/", createServiceAttributes);
-router.post("/service-attributes/edit", editServiceAttributes);
-router.post("/service-attributes/delete", deleteServiceAttributes);
-router.get("/service-attributes/param", getServiceAttributesParam)
+router.get("/", getServiceAttributes);
+router.post("/", createServiceAttributes);
+router.post("/edit", editServiceAttributes);
+router.post("/delete", deleteServiceAttributes);
+router.get("/param", getServiceAttributesParam)
 
 //get custom query service attribute for service attribute values dropdown
-router.get("/service-attributes/dropdown-list", getServiceAttributesDropdown);
+router.get("/dropdown-list", getServiceAttributesDropdown);
 
 export default router;

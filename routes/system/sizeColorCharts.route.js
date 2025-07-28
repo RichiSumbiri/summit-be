@@ -22,8 +22,7 @@ router.get("/size/", getSizes);
 router.post("/size/", createSize);
 router.get("/size/:SIZE_ID", showSize);
 router.put("/size/:SIZE_ID", editSize);
-router.post("/size/delete", deleteSize);
-
+router.delete("/size", deleteSize);
 
 
 //color

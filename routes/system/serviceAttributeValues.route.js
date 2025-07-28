@@ -8,11 +8,11 @@ import {
 
 const router = express.Router();
 
-router.get("/service-attribute-values/", getServiceAttributeValues);
-router.post("/service-attribute-values/", createServiceAttributeValues);
-router.post("/service-attribute-values/edit", editServiceAttributeValues);
-router.post("/service-attribute-values/delete", deleteServiceAttributeValues);
+router.get("/", getServiceAttributeValues);
+router.post("/", createServiceAttributeValues);
+router.post("/edit", editServiceAttributeValues);
+router.post("/delete", deleteServiceAttributeValues);
 
-router.get("/service-attribute-values/param", getServiceAttributeValuesParam);
+router.get("/param", getServiceAttributeValuesParam);
 
 export default router;
