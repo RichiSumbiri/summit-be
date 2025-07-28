@@ -6,6 +6,7 @@ module.exports = {
       {
         SERVICE_TYPE_CODE: "VA",
         SERVICE_TYPE_DESCRIPTION: "Value-Added Service",
+        SERVICE_GROUP_ID: 1,
         CREATED_BY: 0,
         UPDATED_BY: 0,
         CREATED_AT: new Date(),
@@ -14,6 +15,7 @@ module.exports = {
       {
         SERVICE_TYPE_CODE: "PS",
         SERVICE_TYPE_DESCRIPTION: "Product Material Service",
+        SERVICE_GROUP_ID: 2,
         CREATED_BY: 0,
         UPDATED_BY: 0,
         CREATED_AT: new Date(),

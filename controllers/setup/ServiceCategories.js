@@ -7,6 +7,7 @@ export const getMasterServiceCategory = async (req, res) => {
         "SERVICE_CATEGORY_ID",
         "SERVICE_CATEGORY_CODE",
         "SERVICE_CATEGORY_DESCRIPTION",
+        "SERVICE_TYPE_ID"
       ],
     });
 

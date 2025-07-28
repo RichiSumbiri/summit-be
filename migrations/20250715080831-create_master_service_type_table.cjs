@@ -17,6 +17,10 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
+      SERVICE_GROUP_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
       CREATED_BY: {
         type: Sequelize.INTEGER,
         allowNull: false,
