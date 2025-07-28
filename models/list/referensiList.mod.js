@@ -19,3 +19,6 @@ export const ListCountry = db.define(
     freezeTableName: true,
   }
 );
+
+
+export const qryRefIntCountry = `SELECT a.COUNTRY_ID id, CONCAT(a.COUNTRY_CODE, ' - ',a.COUNTRY_NAME) AS name, a.COUNTRY_CODE , a.COUNTRY_NAME FROM master_country a WHERE a.COUNTRY_CODE LIKE :qry OR a.COUNTRY_NAME LIKE :qry`

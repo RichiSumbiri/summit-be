@@ -1,6 +1,6 @@
 import db from "../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
-import { ListCountry } from "../../models/list/referensiList.mod.js";
+import { ListCountry, qryRefIntCountry } from "../../models/list/referensiList.mod.js";
 import { PackingPlanDetail } from "../../models/production/packing.mod.js";
 import { ItemListStyle, qryGetItemCode, qryListstyleWithUser } from "../../models/list/itemStyle.mod.js";
 import path from "path";
@@ -50,6 +50,29 @@ export const getListCountry = async (req, res) => {
     return res.status(404).json({
       message: "error get data country",
       data: error,
+    });
+  }
+};
+
+
+//query  referensi country code
+export const getRefInterCountry = async (req, res) => {
+  try {
+    const { query } = req.params;
+    const qry = `%${query}%`;
+    // const countryName = `%${query}%`;
+
+    const reqCountry = await db.query(qryRefIntCountry, {
+      replacements: { qry },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ status: "success", data: reqCountry });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      status: "error",
+      message: "Erro when get list country",
     });
   }
 };

@@ -635,18 +635,18 @@ export const queryNewEmpAmipay = `
 SELECT
 	se.Nik,
 	"" AS CPIN,
-	se.NamaLengkap,
+	CONCAT(UPPER(LEFT(se.NamaLengkap, 1)), LOWER(SUBSTRING(se.NamaLengkap, 2))) AS NamaLengkap,
 	DATE_FORMAT(se.TanggalMasuk, '%d-%m-%Y') AS TanggalMasuk,
 	DATE_FORMAT(se.TanggalLahir, '%d-%m-%Y') AS TanggalLahir,
-	se.TempatLahir,
+	CONCAT(UPPER(LEFT(se.TempatLahir, 1)), LOWER(SUBSTRING(se.TempatLahir, 2))) TempatLahir,
 	CASE 
     	WHEN se.JenisKelamin='0' THEN '1'
    	 	WHEN se.JenisKelamin='1' THEN '2'
    	 	ELSE '1'
     END AS JenisKelamin,
-    se.AlamatDetail,
-    mak.nama_kabkota AS AlamatKabKota,
-    map2.nama_prov AS AlamatProvinsi,
+    CONCAT(UPPER(LEFT(se.AlamatDetail, 1)), LOWER(SUBSTRING(se.AlamatDetail, 2))) AlamatDetail,
+    CONCAT(UPPER(LEFT(mak.nama_kabkota, 1)), LOWER(SUBSTRING(mak.nama_kabkota, 2)))  AS AlamatKabKota,
+    CONCAT(UPPER(LEFT(map2.nama_prov, 1)), LOWER(SUBSTRING(map2.nama_prov, 2))) AS AlamatProvinsi,
     "" AS AlamatKodePos,
     se.NoTelp1 AS Phone,
     se.NoTelp1 AS HP,
@@ -656,7 +656,7 @@ SELECT
     END AS StatusMenikah,
     '0' AS JumlahAnak,
     '0' AS JumlahTanggungan,
-    se.NamaIbu,
+    CONCAT(UPPER(LEFT(se.NamaIbu, 1)), LOWER(SUBSTRING(se.NamaIbu, 2))) AS NamaIbu,
     '2' AS MetodePajak,
     CASE 
     	WHEN se.StatusPerkawinan ='K' AND se.JenisKelamin='0' THEN 'K0'
@@ -672,19 +672,19 @@ SELECT
     se.BPJSKes AS NoBPJSKes,
     '1' AS MetodeBayarGaji,
     LEFT(se.IDDepartemen, 3) AS KodeCabang,
-    md.GolDept AS NamaCabang,
+    CONCAT(UPPER(LEFT(md.GolDept, 1)), LOWER(SUBSTRING(md.GolDept, 2)))  AS NamaCabang,
     se.IDDepartemen,
-    md.NameDept AS NamaDepartemen,
+    CONCAT(UPPER(LEFT(md.NameDept, 1)), LOWER(SUBSTRING(md.NameDept, 2))) AS NamaDepartemen,
     se.IDSection,
     ms.Name AS NamaSection,
     CONCAT(se.IDDepartemen, se.IDSection) AS GabunganKodeCabang,
     se.IDPosisi,
-    mp.Name AS NamePosisi,
+    CONCAT(UPPER(LEFT(mp.Name, 1)), LOWER(SUBSTRING(mp.Name, 2)))  AS NamePosisi,
     CASE 
     	WHEN se.StatusKaryawan ='TETAP' THEN '01'
    	 	ELSE '02'
     END AS KodeStatusKaryawan,
-    se.StatusKaryawan,
+    CONCAT(UPPER(LEFT(se.StatusKaryawan, 1)), LOWER(SUBSTRING(se.StatusKaryawan , 2))) AS NamaStatusKaryawan,
     DATE_FORMAT(spkk.FinishKontrak, '%d-%m-%Y') AS FinishKontrak,
     CASE 
         WHEN se.JenjangPendidikan = 'S3' THEN '01'
@@ -717,7 +717,7 @@ SELECT
     '01' AS KodeBank,
     'BNI' AS NamaBank,
     'KARANGJATI' AS CabangBank,
-    se.NamaLengkap AS AtasNama,
+    CONCAT(UPPER(LEFT(se.NamaLengkap, 1)), LOWER(SUBSTRING(se.NamaLengkap, 2)))  AS AtasNama,
     '01' AS KodeCur,
     'IDR' AS NamaCur,
     '01' AS KodeRep,
@@ -749,7 +749,6 @@ LEFT JOIN (
 	SELECT * FROM sumbiri_spkk ss WHERE ss.Nik=:empNik ORDER BY ss.FinishKontrak DESC
 ) spkk ON spkk.Nik = se.Nik
 WHERE se.Nik=:empNik
-
 `;
 
 
