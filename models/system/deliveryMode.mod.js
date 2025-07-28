@@ -17,6 +17,5 @@ export const ModelDeliveryMode = db.define('master_delivery_mode', {
     }
   }, {
     tableName: 'master_delivery_mode',
-    timestamps: false,
-    underscored: true
+    timestamps: false
   });

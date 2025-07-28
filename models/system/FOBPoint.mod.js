@@ -18,6 +18,5 @@ export const ModelFOBPoint = db.define('master_fob_point', {
     }
   }, {
     tableName: 'master_fob_point',
-    timestamps: false,
-    underscored: true
+    timestamps: false
   });
