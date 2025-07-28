@@ -1,7 +1,7 @@
 
 import db from "../../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
-import {  ieCtDetailCount, IeCtGroupCount, IeCtMpProcesses, IeCtMpProcessGroup, IeCycleTimeHeader, IeCycleTimeMp, IeObDetailCT, IeObFeaturesCT, IeObHeaderCT, qryGetDataBarChart, qryGetFeatCt, qryGetIctMpProcces, qryGetIeCtMppOne, qryGetListEffCt, qryGetObDetailCt, qryListCtSite } from "../../../models/ie/IeCT.mod.js";
+import {  ieCtDetailCount, IeCtGroupCount, IeCtMpProcesses, IeCtMpProcessGroup, IeCycleTimeHeader, IeCycleTimeMp, IeObDetailCT, IeObFeaturesCT, IeObHeaderCT, qryGetDataBarChart, qryGetFeatCt, qryGetIctMpProcces, qryGetIeCtMppOne, qryGetListEffCt, qryGetObDetailCt, qryListCtSite, queryCTHeader } from "../../../models/ie/IeCT.mod.js";
 import { qryGetEmpForIeCt } from "../../../models/hr/employe.mod.js";
 import { dbSPL } from "../../../config/dbAudit.js";
 import { IeObDetail, IeObFeatures, IeObHeader } from "../../../models/ie/IeOb.mod.js";
@@ -510,13 +510,20 @@ export const getBaseDataIeCyc = async (req, res) => {
   try {
     const CT_ID  = req.params.ctId
 
-    const dataCtHeader = await IeCycleTimeHeader.findOne({
-      where : {
-        CT_ID : CT_ID
-      }
-    })
+    // const dataCtHeader = await IeCycleTimeHeader.findOne({
+    //   where : {
+    //     CT_ID : CT_ID
+    //   }
+    // })
 
+    const getCtHeader = await db.query(queryCTHeader, {
+      replacements: {
+        ctID: CT_ID
+      }, type: QueryTypes.SELECT
+    });
 
+    const dataCtHeader = getCtHeader[0];
+    
     const dataCtMp = await IeCycleTimeMp.findAll({
       where : {
         CT_ID : CT_ID
