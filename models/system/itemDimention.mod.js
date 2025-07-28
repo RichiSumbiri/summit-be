@@ -70,7 +70,7 @@ const ItemDimensionModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
-        IS_DELETE: {
+        IS_DELETED: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
         },

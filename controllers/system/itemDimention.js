@@ -72,7 +72,7 @@ export const getAllItemDimensions = async (req, res) => {
         }
 
         const itemDimensions = await ItemDimensionModel.findAll({
-            where: {IS_DELETE: false, ...whereCondition},
+            where: {IS_DELETED: false, ...whereCondition},
             include: [
                 {
                     model: SizeChartMod,
@@ -206,7 +206,7 @@ export const deleteItemDimension = async (req, res) => {
 
 
         itemDimension.update({
-            IS_DELETE: true,
+            IS_DELETED: true,
             DELETED_AT: new Date()
         })
 

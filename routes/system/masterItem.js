@@ -5,7 +5,7 @@ import {
 
     deleteItem, deleteService, getAllAttributes,
     getAllItems, getAllServices, getAttributeById,
-    getItemById, getServiceById, updateAttribute,
+    getItemById, getServiceById, updateAttribute, updateCloneItem,
     updateItem, updateService,
 } from "../../controllers/system/masterItemId.js";
 import {
@@ -19,6 +19,7 @@ router.post("/id", createItem);
 router.get("/id", getAllItems);
 router.get("/id/:itemId", getItemById);
 router.put("/id/:itemId", updateItem);
+router.put("/id-clone", updateCloneItem);
 router.delete("/id/:itemId", deleteItem);
 
 router.post("/att", createAttribute);
