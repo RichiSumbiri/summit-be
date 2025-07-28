@@ -2,7 +2,7 @@ import db from "../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import serviceAttributes, {
   QueryGetServiceAttributes,
-  QueryGetServiceAttributesDropdown,
+  QueryGetServiceAttributesDropdown, QueryGetServiceAttributesParam,
 } from "../../models/system/serviceAttributes.mod.js";
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
@@ -25,6 +25,48 @@ export const getServiceAttributes = async (req, res) => {
     });
   }
 };
+
+export const getServiceAttributesParam = async (req, res) => {
+  const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query
+  try {
+    const where = {}
+
+    if (ITEM_GROUP_ID) {
+      where.ITEM_GROUP_ID = ITEM_GROUP_ID
+    }
+
+    if (ITEM_TYPE_ID) {
+      where.ITEM_TYPE_ID = ITEM_TYPE_ID
+    }
+
+    if (ITEM_CATEGORY_ID) {
+      where.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
+    }
+
+    const { query, replacements } = QueryGetServiceAttributesParam({
+      ITEM_GROUP_ID,
+      ITEM_TYPE_ID,
+      ITEM_CATEGORY_ID
+    });
+
+    const serviceAttributes = await db.query(query, {
+      type: QueryTypes.SELECT,
+      replacements
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Success Get All Service Attribute",
+      data: serviceAttributes
+    });
+  } catch (err) {
+    res.status(404).json({
+      message: "Action Problem With Get Service Attributes Data",
+      data: err.message,
+    });
+  }
+};
+
 
 export const createServiceAttributes = async (req, res) => {
   try {

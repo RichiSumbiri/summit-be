@@ -6,12 +6,13 @@ import {
   getListCountry,
   getListItemCode,
   getListItemStyle,
+  getRefInterCountry,
   patchListItemStyle,
   postListCountry,
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
 import { getMasterLocation } from "../../controllers/list/listLocation.js";
-import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/setup/WarehouseClass.js";
+import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/system/WarehouseClass.js";
 
 import { getMasterItemGroup, postMasterItemGroup } from "../../controllers/setup/ItemGroups.js";
 import { getMasterItemType, postMasterItemType, getAllMasterItemType } from "../../controllers/setup/ItemTypes.js";
@@ -22,6 +23,9 @@ import { getMasterItemStatus } from "../../controllers/setup/ItemStatus.js";
 import { getMasterServiceGroup } from "../../controllers/setup/ServiceGroups.js";
 import { getMasterServiceType } from "../../controllers/setup/ServiceTypes.js";
 import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategories.js";
+import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
+import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
+import { getAllFOBPoint } from "../../controllers/system/FOBPoint.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -78,5 +82,18 @@ router.get("/location-type", getMasterLocationType);
 // list master quality 
 router.get("/item-quality", getMasterItemQuality);
 router.get("/item-status", getMasterItemStatus);
+
+// list shipping terms
+router.get("/shipping-terms", getAllShippingTerms);
+
+// list delivery model
+router.get("/delivery-mode", getAllDeliveryMode);
+
+// list fob point
+router.get("/fob-point", getAllFOBPoint);
+
+
+//get list country international
+router.get("/country-code/:query", getRefInterCountry);
 
 export default router;

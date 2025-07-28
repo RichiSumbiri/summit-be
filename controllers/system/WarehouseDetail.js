@@ -82,7 +82,7 @@ export const postMasterWarehouseDetail = async(req,res) => {
                 order: [['WHI_ID', 'DESC']],
                 raw: true
             }); 
-            const newIncrement = parseInt(getLastWHID.WHI_ID.slice(-7)) + 1;
+            const newIncrement = !getLastWHIDparseInt ? '': (getLastWHID.WHI_ID.slice(-7)) + 1;
             const newWHID = 'WHI' + newIncrement.toString().padStart(7, '0');
             CreatedData = await ModelWarehouseDetail.create({
                 WHI_ID: newWHID,
@@ -157,11 +157,10 @@ export const postMasterWarehouseDetail = async(req,res) => {
             await ModelWarehouseDetailStatus.bulkCreate(DataWarehouse.WHI_ITEM_STATUS);
         }
 
-        
         return res.status(200).json({
             success: true,
             message: "success post master warehouse details",
-            data: CreatedData.toJSON()
+            data: DataWarehouse.WHI_ID==="<< NEW >>" || DataWarehouse.WHI_ID==="" ? CreatedData.toJSON() : DataWarehouse
         });
 
     } catch(err){

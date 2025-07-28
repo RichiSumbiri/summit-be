@@ -835,6 +835,7 @@ export const qryGetObDetail = `SELECT
  ilnt.NEEDLE_THREAD,
  ilbt.BOBIN_THREAD,
  iof.SEQ_NO,
+ ilf.FEATURES_NAME,
  ilf.FEATURES_CATEGORY
 FROM ie_ob_detail iod
 LEFT JOIN item_list_machine ilm ON ilm.MACHINE_ID = iod.OB_DETAIL_MACHINE

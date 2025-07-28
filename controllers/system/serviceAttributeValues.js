@@ -1,15 +1,14 @@
 import db from "../../config/database.js";
 import { QueryTypes, Op } from "sequelize";
 import serviceAttributeValues, {
-  QueryGetServiceAttributeValues,
+  QueryGetServiceAttributeValues, QueryGetServiceAttributeValuesParam,
 } from "../../models/system/serviceAttributeValues.mod.js";
 import serviceAttributes from "../../models/system/serviceAttributes.mod.js";
 
 export const getServiceAttributeValues = async (req, res) => {
   try {
     const serviceAttributeValues = await db.query(
-      QueryGetServiceAttributeValues,
-      {
+      QueryGetServiceAttributeValues,{
         type: QueryTypes.SELECT,
       }
     );
@@ -18,6 +17,28 @@ export const getServiceAttributeValues = async (req, res) => {
   } catch (err) {
     res.status(404).json({
       message: "Action Problem With Get Service Attributes Data",
+      data: err.message,
+    });
+  }
+};
+
+export const getServiceAttributeValuesParam = async (req, res) => {
+  const { SERVICE_ATTRIBUTE_ID } = req.query;
+
+  try {
+    const { query, replacements } = QueryGetServiceAttributeValuesParam({
+      SERVICE_ATTRIBUTE_ID
+    });
+
+    const serviceAttributeValues = await db.query(query, {
+      type: QueryTypes.SELECT,
+      replacements
+    });
+
+    res.status(200).json(serviceAttributeValues);
+  } catch (err) {
+    res.status(404).json({
+      message: "Action Problem With Get Service Attribute Values Data",
       data: err.message,
     });
   }
