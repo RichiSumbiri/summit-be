@@ -35,7 +35,7 @@ export const qryGetListEffCt = (params) => {
   FROM log_daily_output a
   LEFT JOIN remark_detail o ON o.SCHD_ID = a.SCHD_ID AND o.SHIFT = a.shift
   LEFT JOIN order_po_listing opl ON opl.ORDER_NO = a.ORDER_NO AND a.ORDER_REFERENCE_PO_NO = opl.ORDER_REFERENCE_PO_NO 
-        AND a.PRODUCT_ITEM_CODE = opl.ORDER_PRODUCT_ITEM_CODE AND a.ITEM_COLOR_CODE = opl.ITEM_COLOR_CODE
+        AND a.PRODUCT_ITEM_CODE = opl.PRODUCT_ITEM_CODE AND a.ITEM_COLOR_CODE = opl.ITEM_COLOR_CODE
   LEFT JOIN item_siteline ist ON ist.ID_SITELINE = a.ID_SITELINE
   WHERE ${params}
   GROUP BY a.SCHD_ID, a.ID_SITELINE
@@ -826,34 +826,4 @@ SELECT
 FROM sumMpp AS smp
 LEFT JOIN ie_ct_group_count icgc ON icgc.CT_GC_ID = smp.CT_GC_ID
 ORDER BY smp.OB_DETAIL_NO
-`;
-
-
-export const queryCTHeader = `
-SELECT
-	iect.CT_ID,
-	iect.CT_DATE,
-	iect.OB_ID,
-	iect.ID_SITELINE,
-	iect.CT_MP,
-	iect.CT_WH,
-	iect.CT_SMV,
-	iect.CT_TARGET,
-	iect.CT_TAKE_TIME,
-	iect.CT_NO_OF_DAYS,
-	iect.CT_SIZE_REF,
-	iect.CT_TTIME_ACTUAL,
-	iect.CT_TARGET_ACTUAL,
-	iect.CT_ACTUAL_SMV,
-	iect.SCHD_ID,
-	iect.OB_SIZE_ID,
-	iect.ADD_ID,
-	xuw.USER_INISIAL,
-	iect.MOD_ID,
-	iect.createdAt,
-	iect.updatedAt
-FROM
-	ie_cycle_time_header iect
-LEFT JOIN xref_user_web xuw ON xuw.USER_ID = iect.ADD_ID 
-WHERE iect.CT_ID= :ctID
-`;
+`
