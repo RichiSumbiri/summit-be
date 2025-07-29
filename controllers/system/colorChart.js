@@ -48,7 +48,7 @@ export const getColors = async (req, res) => {
           ],
         },
       ],
-      order: [["COLOR_ID", "DESC"]],
+      order: [["COLOR_ID"]],
     });
 
     successResponse(res, colorsData, "Colors chart fetched successfully", 200);
