@@ -8,7 +8,7 @@ import db from "../../config/database.js";
       primaryKey: true
     },
     CTC_CODE: {
-      type: DataTypes.STRING(3),
+      type: DataTypes.STRING(50),
       allowNull: false
     },
     CTC_NAME: {
@@ -109,6 +109,107 @@ import db from "../../config/database.js";
     CTC_PAY_LEADTIME: {
       type: DataTypes.STRING(100),
       allowNull: true
+    },
+    CTC_PAY_METHODE: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    ADD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    MOD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true
+    }
+  }, {
+    freezeTableName: true,
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  });
+
+  export const CustomerDeliveryLoc = db.define('customer_delivery_loc', {
+    CTLOC_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+      primaryKey: true
+    },
+    CTLOC_CODE: {
+      type: DataTypes.STRING(100),
+      allowNull: false
+    },
+    CTLOC_NAME: {
+      type: DataTypes.STRING(200),
+      allowNull: false
+    },
+    CTLOC_TITLE_OF_PERSON: {
+      type: DataTypes.STRING(5),
+      allowNull: true
+    },
+    CTLOC_NAME_OF_PERSON: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    CTLOC_POSITION_PERSON: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    CTLOC_PHONE1: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    CTLOC_PHONE2: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    CTLOC_FAX: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    CTLOC_EMAIL: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    CTLOC_SITE: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    CTLOC_ADDRESS1: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    CTLOC_ADDRESS2: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    CTLOC_CITY: {
+      type: DataTypes.STRING(60),
+      allowNull: true
+    },
+    CTLOC_PROVINCE: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    CTLOC_POS_CODE: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    CTLOC_COUNTRY_ID: {
+      type: DataTypes.STRING(2),
+      allowNull: true
+    },
+    CTC_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: false
     },
     ADD_ID: {
       type: DataTypes.BIGINT,

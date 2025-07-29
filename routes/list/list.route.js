@@ -26,6 +26,7 @@ import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategor
 import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
 import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
 import { getAllFOBPoint } from "../../controllers/system/FOBPoint.js";
+import { getListCurrency, getListPayMethode } from "../../controllers/system/masterFinance.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -95,5 +96,12 @@ router.get("/fob-point", getAllFOBPoint);
 
 //get list country international
 router.get("/country-code/:query", getRefInterCountry);
+
+
+//get list currency
+router.get("/currency", getListCurrency)
+;
+//get payment methode
+router.get("/payment-methode", getListPayMethode);
 
 export default router;
