@@ -10,7 +10,7 @@ import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.j
 import {Op} from "sequelize";
 import ServiceAttributesMod from "../../models/system/serviceAttributes.mod.js";
 import ServiceAttributeValuesMod from "../../models/system/serviceAttributeValues.mod.js";
-import ItemDimensionModel from "../../models/system/itemDimention.mod.js";
+import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
 import {buildMediaUrl} from "../../util/general.js";
 import MasterServiceCategories from "../../models/setup/ServiceCategories.mod.js";
 
@@ -45,6 +45,13 @@ export const createItem = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "ITEM_CODE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID is required",
+            });
+        }
+
+        if (MIN_UNDER_DELIVERY < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "MIN_UNDER_DELIVERY 0%",
             });
         }
 
@@ -91,6 +98,12 @@ export const createItem = async (req, res) => {
             UNIT_ID,
             CREATE_DATE: new Date(),
         });
+
+        // await  MasterItemDimensionModel.create({
+        //     DIMENSION_ID: 0,
+        //     MASTER_ITEM_ID: masterItemId.dataValues.ITEM_ID,
+        //     IS_ACTIVE: true
+        // })
 
         return res.status(201).json({
             success: true,
@@ -152,12 +165,13 @@ export const updateCloneItem = async (req, res) => {
         });
 
 
-        const itemDimentionList = await  ItemDimensionModel.findAll({
+        const itemDimentionList = await  MasterItemDimensionModel.findAll({
             where: {MASTER_ITEM_ID: ITEM_ID, IS_DELETED: false}
         })
 
         if (itemDimentionList.length) {
-            await ItemDimensionModel.bulkCreate(itemDimentionList.map(item => ({...item.dataValues,ID: null,  CREATED_AT: new Date(), MASTER_ITEM_ID: itemIdCreate.ITEM_ID, UPDATED_AT: null})))
+            const countMasterItemModel = await  MasterItemDimensionModel.count({where: {MASTER_ITEM_ID: itemIdCreate.ITEM_ID}})
+            await MasterItemDimensionModel.bulkCreate(itemDimentionList.map((item, idx) => ({...item.dataValues,DIMENSION_ID: countMasterItemModel+2,  CREATED_AT: new Date(), MASTER_ITEM_ID: itemIdCreate.ITEM_ID, UPDATED_AT: null})))
         }
 
         const masterItemIdAtt = await  MasterItemIdAttributesModel.findAll({
@@ -328,6 +342,20 @@ export const updateItem = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Item not found",
+            });
+        }
+
+        if (MIN_UNDER_DELIVERY < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "MIN_UNDER_DELIVERY 0%",
+            });
+        }
+
+        if (MAX_OVER_DELIVERY > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "MAX ORDER DELIVERY 4%",
             });
         }
 
@@ -543,6 +571,13 @@ export const updateAttribute = async (req, res) => {
     try {
         const {id} = req.params;
         const {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, NOTE} = req.body;
+
+        if (!MASTER_ATTRIBUTE_ID || !MASTER_ATTRIBUTE_VALUE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "MASTER_ATTRIBUTE_ID, and MASTER_ATTRIBUTE_VALUE_ID are required",
+            });
+        }
 
         const attribute = await MasterItemIdAttributesModel.findOne({
             where: {ID: id, IS_DELETED: false},
@@ -800,6 +835,14 @@ export const updateService = async (req, res) => {
             MASTER_SERVICE_VALUE_ID,
             NOTE,
         } = req.body;
+
+        if (!MASTER_SERVICE_ID || !MASTER_SERVICE_VALUE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID are required",
+            });
+        }
+
 
         const service = await MasterItemIdService.findOne({
             where: {

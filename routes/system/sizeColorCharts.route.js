@@ -14,6 +14,11 @@ import {
   editColor,
   deleteColor,
 } from "../../controllers/system/colorChart.js";
+import {
+  createSizeChartTemplate, deleteSizeChartTemplate,
+  getAllSizeChartTemplates,
+  getSizeChartTemplateById, updateSizeChartTemplate
+} from "../../controllers/system/sizeTemplate.js";
 
 const router = express.Router();
 
@@ -23,6 +28,13 @@ router.post("/size/", createSize);
 router.get("/size/:SIZE_ID", showSize);
 router.put("/size/:SIZE_ID", editSize);
 router.delete("/size", deleteSize);
+
+// size template
+router.get("/size-template", getAllSizeChartTemplates);
+router.post("/size-template", createSizeChartTemplate);
+router.get("/size-template/:id", getSizeChartTemplateById);
+router.put("/size-template/:id", updateSizeChartTemplate);
+router.delete("/size-template", deleteSizeChartTemplate);
 
 
 //color

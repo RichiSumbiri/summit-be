@@ -1,10 +1,10 @@
 import { Op } from "sequelize";
-import ItemDimensionModel from "../../models/system/itemDimention.mod.js";
+import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 
 
-export const createItemDimension = async (req, res) => {
+export const createMasterItemDimension = async (req, res) => {
     try {
         const {
             MASTER_ITEM_ID,
@@ -12,11 +12,11 @@ export const createItemDimension = async (req, res) => {
             SIZE_ID,
             SERIAL_NO,
             IS_ACTIVE,
-            LATEST_PURCHASE_1,
-            LATEST_PURCHASE_2,
-            LATEST_PURCHASE_3,
-            LATEST_PURCHASE_4,
-            LATEST_PURCHASE_5,
+            LATEST_PURCHASE_PRICE,
+            LATEST_PURCHASE_CURRENCY,
+            LATEST_PURCHASE_VENDOR,
+            LATEST_PURCHASE_DATE,
+            AVERAGE_PURCHASE_PRICE,
             CREATE_BY,
         } = req.body;
 
@@ -28,18 +28,40 @@ export const createItemDimension = async (req, res) => {
             });
         }
 
+        const count = await MasterItemDimensionModel.count({
+            where: {
+                MASTER_ITEM_ID,
+                [Op.and]: [
+                    { COLOR_ID: { [Op.not]: null } },
+                    { COLOR_ID: { [Op.ne]: "" } },
+                ],
+            }
+        })
 
-        const newItemDimension = await ItemDimensionModel.create({
+
+        const existItemDimension = await  MasterItemDimensionModel.findOne({
+            where: {COLOR_ID, SIZE_ID, IS_DELETED: false}
+        })
+
+        if (existItemDimension) {
+            return res.status(400).json({
+                status: false,
+                message: `Skipping addition: COLOR ${COLOR_ID}, SIZE ${SIZE_ID} already exists`,
+            })
+        }
+
+        const newItemDimension = await MasterItemDimensionModel.create({
+            DIMENSION_ID: count+1,
             MASTER_ITEM_ID,
             COLOR_ID,
             SIZE_ID,
             SERIAL_NO,
             IS_ACTIVE,
-            LATEST_PURCHASE_1,
-            LATEST_PURCHASE_2,
-            LATEST_PURCHASE_3,
-            LATEST_PURCHASE_4,
-            LATEST_PURCHASE_5,
+            LATEST_PURCHASE_PRICE,
+            LATEST_PURCHASE_CURRENCY,
+            LATEST_PURCHASE_VENDOR,
+            LATEST_PURCHASE_DATE,
+            AVERAGE_PURCHASE_PRICE,
             CREATE_BY,
             CREATED_AT: new Date(),
         });
@@ -59,19 +81,19 @@ export const createItemDimension = async (req, res) => {
 };
 
 
-export const getAllItemDimensions = async (req, res) => {
+export const getAllMasterItemDimensions = async (req, res) => {
     try {
-        const { masterItemId, isActive } = req.query;
+        const { masterItemId, isActive = '' } = req.query;
 
         const whereCondition = {};
         if (masterItemId) {
             whereCondition.MASTER_ITEM_ID = masterItemId;
         }
-        if (isActive) {
+        if (isActive !== '') {
             whereCondition.IS_ACTIVE = isActive;
         }
 
-        const itemDimensions = await ItemDimensionModel.findAll({
+        const itemDimensions = await MasterItemDimensionModel.findAll({
             where: {IS_DELETED: false, ...whereCondition},
             include: [
                 {
@@ -102,11 +124,11 @@ export const getAllItemDimensions = async (req, res) => {
 };
 
 
-export const getItemDimensionById = async (req, res) => {
+export const getMasterItemDimensionById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const itemDimension = await ItemDimensionModel.findOne({
+        const itemDimension = await MasterItemDimensionModel.findOne({
             where: { ID: id },
         });
 
@@ -132,7 +154,7 @@ export const getItemDimensionById = async (req, res) => {
 };
 
 
-export const updateItemDimension = async (req, res) => {
+export const updateMasterItemDimension = async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -141,15 +163,15 @@ export const updateItemDimension = async (req, res) => {
             SIZE_ID,
             SERIAL_NO,
             IS_ACTIVE,
-            LATEST_PURCHASE_1,
-            LATEST_PURCHASE_2,
-            LATEST_PURCHASE_3,
-            LATEST_PURCHASE_4,
-            LATEST_PURCHASE_5,
+            LATEST_PURCHASE_PRICE,
+            LATEST_PURCHASE_CURRENCY,
+            LATEST_PURCHASE_VENDOR,
+            LATEST_PURCHASE_DATE,
+            AVERAGE_PURCHASE_PRICE,
             UPDATE_BY,
         } = req.body;
 
-        const itemDimension = await ItemDimensionModel.findOne({
+        const itemDimension = await MasterItemDimensionModel.findOne({
             where: { ID: id },
         });
 
@@ -167,11 +189,11 @@ export const updateItemDimension = async (req, res) => {
             SIZE_ID,
             SERIAL_NO,
             IS_ACTIVE,
-            LATEST_PURCHASE_1,
-            LATEST_PURCHASE_2,
-            LATEST_PURCHASE_3,
-            LATEST_PURCHASE_4,
-            LATEST_PURCHASE_5,
+            LATEST_PURCHASE_PRICE,
+            LATEST_PURCHASE_CURRENCY,
+            LATEST_PURCHASE_VENDOR,
+            LATEST_PURCHASE_DATE,
+            AVERAGE_PURCHASE_PRICE,
             UPDATE_BY,
             UPDATED_AT: new Date(),
         });
@@ -191,11 +213,11 @@ export const updateItemDimension = async (req, res) => {
 };
 
 
-export const deleteItemDimension = async (req, res) => {
+export const deleteMasterItemDimension = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const itemDimension = await ItemDimensionModel.findByPk(id);
+        const itemDimension = await MasterItemDimensionModel.findByPk(id);
 
         if (!itemDimension) {
             return res.status(404).json({

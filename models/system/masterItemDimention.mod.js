@@ -3,13 +3,17 @@ import db from "../../config/database.js";
 import SizeChartMod from "./sizeChart.mod.js";
 import ColorChartMod from "./colorChart.mod.js";
 
-const ItemDimensionModel = db.define(
-    "item_dimension",
+const MasterItemDimensionModel = db.define(
+    "master_item_dimension",
     {
         ID: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
+            allowNull: false,
+        },
+        DIMENSION_ID: {
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
         MASTER_ITEM_ID: {
@@ -29,27 +33,27 @@ const ItemDimensionModel = db.define(
             allowNull: true,
         },
         IS_ACTIVE: {
-            type: DataTypes.ENUM("Y", "N"),
+            type: DataTypes.BOOLEAN,
             allowNull: true,
-            defaultValue: "N",
+            defaultValue: true,
         },
-        LATEST_PURCHASE_1: {
+        LATEST_PURCHASE_PRICE: {
             type: DataTypes.DOUBLE,
             allowNull: true,
         },
-        LATEST_PURCHASE_2: {
+        LATEST_PURCHASE_CURRENCY: {
             type: DataTypes.STRING(100),
             allowNull: true,
         },
-        LATEST_PURCHASE_3: {
+        LATEST_PURCHASE_VENDOR: {
             type: DataTypes.STRING(100),
             allowNull: true,
         },
-        LATEST_PURCHASE_4: {
-            type: DataTypes.STRING(100),
+        LATEST_PURCHASE_DATE: {
+            type: DataTypes.DATE,
             allowNull: true,
         },
-        LATEST_PURCHASE_5: {
+        AVERAGE_PURCHASE_PRICE: {
             type: DataTypes.DOUBLE,
             allowNull: true,
         },
@@ -80,19 +84,19 @@ const ItemDimensionModel = db.define(
         },
     },
     {
-        tableName: "item_dimension",
+        tableName: "master_item_dimension",
         timestamps: false,
     }
 );
 
-ItemDimensionModel.belongsTo(SizeChartMod, {
+MasterItemDimensionModel.belongsTo(SizeChartMod, {
     foreignKey: "SIZE_ID",
     as: "MASTER_SIZE"
 })
 
-ItemDimensionModel.belongsTo(ColorChartMod, {
+MasterItemDimensionModel.belongsTo(ColorChartMod, {
     foreignKey: "COLOR_ID",
     as: "MASTER_COLOR"
 })
 
-export default ItemDimensionModel;
+export default MasterItemDimensionModel;

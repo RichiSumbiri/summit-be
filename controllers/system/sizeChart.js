@@ -3,6 +3,7 @@ import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 import { successResponse, errorResponse } from "../helpers/responseHelper.js";
+import {Op, Sequelize} from "sequelize";
 
 export const getSizes = async (req, res) => {
   try {
@@ -66,11 +67,35 @@ export const createSize = async (req, res) => {
   try {
     const sizeData = req.body;
 
+    if (!sizeData?.SIZE_CODE) {
+      return errorResponse(res, err, "SIZE_CODE are Required", 400);
+    }
+
+    const normalizedSizeCode = sizeData.SIZE_CODE.trim().toLowerCase();
+
+    const existingSize = await sizeChart.findOne({
+      where: {
+        [Op.and]: [
+          { SIZE_CODE: { [Op.ne]: null } },
+          Sequelize.where(
+              Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("SIZE_CODE"))),
+              normalizedSizeCode
+          ),
+        ],
+      },
+    });
+
+
+    if (existingSize) {
+      return errorResponse(res, null, "SIZE_CODE already exists", 400);
+    }
+
     await chechMasterExist(sizeData);
-
     const customId = await generateCustomId();
-    sizeData.SIZE_ID = customId;
 
+
+
+    sizeData.SIZE_ID = customId;
     await sizeChart.create(sizeData);
 
     return successResponse(res, null, "Size created successfully", 201);
@@ -143,6 +168,29 @@ export const editSize = async (req, res) => {
 
     if (!sizeData) {
       return errorResponse(res, null, "Size not found", 404);
+    }
+
+    if (!sizeData?.SIZE_CODE) {
+      return errorResponse(res, err, "SIZE_CODE are Required", 400);
+    }
+
+    const normalizedSizeCode = sizeData.SIZE_CODE.trim().toLowerCase();
+
+    const existingSize = await sizeChart.findOne({
+      where: {
+        [Op.and]: [
+          { SIZE_CODE: { [Op.ne]: null } },
+          Sequelize.where(
+              Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("SIZE_CODE"))),
+              normalizedSizeCode
+          ),
+        ],
+      },
+    });
+
+
+    if (existingSize) {
+      return errorResponse(res, null, "SIZE_CODE already exists", 400);
     }
 
     await chechMasterExist(dataSizes);

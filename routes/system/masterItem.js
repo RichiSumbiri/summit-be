@@ -9,10 +9,10 @@ import {
     updateItem, updateService,
 } from "../../controllers/system/masterItemId.js";
 import {
-    createItemDimension, deleteItemDimension,
-    getAllItemDimensions,
-    getItemDimensionById, updateItemDimension
-} from "../../controllers/system/itemDimention.js";
+    createMasterItemDimension, deleteMasterItemDimension,
+    getAllMasterItemDimensions,
+    getMasterItemDimensionById, updateMasterItemDimension
+} from "../../controllers/system/masterItemDimention.js";
 
 const router = express.Router();
 router.post("/id", createItem);
@@ -35,10 +35,10 @@ router.put("/svc/:id", updateService);
 router.delete("/svc/:id", deleteService);
 
 
-router.post("/dimension", createItemDimension);
-router.get("/dimension", getAllItemDimensions);
-router.get("/dimension/:id", getItemDimensionById);
-router.put("/dimension/:id", updateItemDimension);
-router.delete("/dimension/:id", deleteItemDimension);
+router.post("/dimension", createMasterItemDimension);
+router.get("/dimension", getAllMasterItemDimensions);
+router.get("/dimension/:id", getMasterItemDimensionById);
+router.put("/dimension/:id", updateMasterItemDimension);
+router.delete("/dimension/:id", deleteMasterItemDimension);
 
 export default router;

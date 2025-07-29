@@ -5,9 +5,6 @@ import {MasterItemTypes} from "../setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../setup/ItemCategories.mod.js";
 import MasterAttributeSetting from "./masterAttributeSetting.mod.js";
 import MasterAttributeValue from "./masterAttributeValue.mod.js";
-import MasterServiceCategories from "../setup/ServiceCategories.mod.js";
-import MasterServiceGroups from "../setup/ServiceGroups.mod.js";
-import MasterServiceTypes from "../setup/ServiceTypes.mod.js";
 import ServiceAttributesMod from "./serviceAttributes.mod.js";
 import ServiceAttributeValuesMod from "./serviceAttributeValues.mod.js";
 
@@ -97,7 +94,7 @@ const MasterItemIdModel = db.define(
             defaultValue: false,
         },
         ITEM_IMAGE: {
-            type: DataTypes.STRING(100),
+            type: DataTypes.STRING(255),
             allowNull: true,
         },
         CREATE_BY: {
