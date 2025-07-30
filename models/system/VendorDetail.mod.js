@@ -5,150 +5,64 @@ import db from "../../config/database.js";
 
 
 export const ModelVendorDetail = db.define('vendor_detail', {
-    VENDOR_ID: {
+     VENDOR_ID: {
       type: DataTypes.STRING(10),
-      primaryKey: true
+      primaryKey: true,
+      allowNull: false
     },
-    VENDOR_CODE: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_NAME: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
+    VENDOR_CODE: DataTypes.STRING(100),
+    VENDOR_NAME: DataTypes.STRING(255),
     VENDOR_ACTIVE: {
       type: DataTypes.BOOLEAN,
-      allowNull: true
+      defaultValue: true
     },
-    VENDOR_COMPANY_NAME: {
-      type: DataTypes.STRING(200),
-      allowNull: true
+    VENDOR_COMPANY_NAME: DataTypes.STRING(200),
+    VENDOR_PHONE: DataTypes.STRING(100),
+    VENDOR_FAX: DataTypes.STRING(100),
+    VENDOR_WEB: DataTypes.STRING(100),
+    VENDOR_ADDRESS_1: DataTypes.TEXT,
+    VENDOR_ADDRESS_2: DataTypes.TEXT,
+    VENDOR_CITY: DataTypes.TEXT,
+    VENDOR_PROVINCE: DataTypes.TEXT,
+    VENDOR_POSTAL_CODE: DataTypes.TEXT,
+    VENDOR_COUNTRY_CODE: DataTypes.CHAR(2),
+    VENDOR_CONTACT_TITLE: {
+      type: DataTypes.STRING(10),
+      defaultValue: 'Mr. '
     },
-    VENDOR_PHONE: {
-      type: DataTypes.STRING(100),
-      allowNull: true
+    VENDOR_CONTACT_NAME: DataTypes.STRING(200),
+    VENDOR_CONTACT_POSITION: DataTypes.STRING(100),
+    VENDOR_CONTACT_PHONE_1: DataTypes.STRING(100),
+    VENDOR_CONTACT_PHONE_2: DataTypes.STRING(100),
+    VENDOR_CONTACT_EMAIL: DataTypes.STRING(100),
+    VENDOR_CLASS: DataTypes.STRING(100),
+    VENDOR_PAYMENT_CURRENCY: DataTypes.STRING(3),
+    VENDOR_PAYMENT_TERM_CODE: DataTypes.STRING(100),
+    VENDOR_PAYMENT_REF: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_BANK_NAME: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_BANK_BRANCH: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_BANK_CURRENCY_CODE: DataTypes.STRING(3),
+    VENDOR_ACCOUNT_BANK_COUNTRY_CODE: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_NAME: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_NO: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_SWIFT_CODE: DataTypes.STRING(100),
+    VENDOR_ACCOUNT_INSTRUCTION: DataTypes.TEXT,
+    VENDOR_REMITTANCE_TITLE: {
+      type: DataTypes.STRING(10),
+      defaultValue: 'Mr. '
     },
-    VENDOR_FAX: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_WEB: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ADDRESS_1: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    VENDOR_ADDRESS_2: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    VENDOR_CITY: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    VENDOR_PROVINCE: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    VENDOR_POSTAL_CODE: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    VENDOR_CONTACT_NAME: {
-      type: DataTypes.STRING(200),
-      allowNull: true
-    },
-    VENDOR_CONTACT_PHONE_1: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_CONTACT_PHONE_2: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_CONTACT_EMAIL: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_CLASS: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_PAYMENT_CURRENCY: {
-      type: DataTypes.STRING(3),
-      allowNull: true
-    },
-    VENDOR_PAYMENT_TERM_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    VENDOR_PAYMENT_REF: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_BANK_NAME: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_BANK_BRANCH: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_BANK_COUNTRY_ID: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_NAME: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_NO: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_SWIFT_CODE: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_ACCOUNT_INSTRUCTION: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    VENDOR_REMITTANCE_NAME: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_REMITTANCE_PHONE_1: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_REMITTANCE_PHONE_2: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    VENDOR_REMITTANCE_EMAIL: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    CREATE_BY: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    CREATE_DATE: {
-      type: DataTypes.DATE,
-      allowNull: true
-    },
-    UPDATE_BY: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    UPDATE_DATE: {
-      type: DataTypes.DATE,
-      allowNull: true
-    }
+    VENDOR_REMITTANCE_NAME: DataTypes.STRING(100),
+    VENDOR_REMITTANCE_POSITION: DataTypes.STRING(100),
+    VENDOR_REMITTANCE_PHONE_1: DataTypes.STRING(100),
+    VENDOR_REMITTANCE_PHONE_2: DataTypes.STRING(100),
+    VENDOR_REMITTANCE_EMAIL: DataTypes.STRING(100),
+    VENDOR_SHIPPING_TERMS_CODE: DataTypes.CHAR(3),
+    VENDOR_DELIVERY_MODE_CODE: DataTypes.CHAR(3),
+    VENDOR_FOB_POINT_CODE: DataTypes.CHAR(3),
+    CREATE_BY: DataTypes.STRING(100),
+    CREATE_DATE: DataTypes.DATE,
+    UPDATE_BY: DataTypes.STRING(100),
+    UPDATE_DATE: DataTypes.DATE
   }, {
     tableName: 'vendor_detail',
     timestamps: false
