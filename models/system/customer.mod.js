@@ -114,6 +114,10 @@ import db from "../../config/database.js";
       type: DataTypes.STRING(100),
       allowNull: true
     },
+    IS_DELETE: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
     ADD_ID: {
       type: DataTypes.BIGINT,
       allowNull: true
