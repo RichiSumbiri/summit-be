@@ -77,6 +77,30 @@ export const getRefInterCountry = async (req, res) => {
   }
 };
 
+
+//query  referensi country code
+export const getRefInterCountrySpecific = async (req, res) => {
+  try {
+    const { query } = req.params;
+    const qry = `${query}`;
+    // const countryName = `%${query}%`;
+
+    const reqCountry = await db.query(qryRefIntCountry, {
+      replacements: { qry },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.json({ status: "success", data: reqCountry });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      status: "error",
+      message: "Erro when get list country",
+    });
+  }
+};
+
+
 export const postListCountry = async (req, res) => {
   try {
     const dataPost = req.body;
