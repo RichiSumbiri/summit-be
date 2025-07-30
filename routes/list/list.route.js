@@ -7,6 +7,7 @@ import {
   getListItemCode,
   getListItemStyle,
   getRefInterCountry,
+  getRefInterCountrySpecific,
   patchListItemStyle,
   postListCountry,
   postListItemStyle,
@@ -96,6 +97,7 @@ router.get("/fob-point", getAllFOBPoint);
 
 //get list country international
 router.get("/country-code/:query", getRefInterCountry);
+router.get("/country-specific/:query", getRefInterCountrySpecific);
 
 
 //get list currency
