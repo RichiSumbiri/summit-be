@@ -34,7 +34,7 @@ router.get("/size-template", getAllSizeChartTemplates);
 router.post("/size-template", createSizeChartTemplate);
 router.get("/size-template/:id", getSizeChartTemplateById);
 router.put("/size-template/:id", updateSizeChartTemplate);
-router.delete("/size-template", deleteSizeChartTemplate);
+router.delete("/size-template/:id", deleteSizeChartTemplate);
 
 
 //color

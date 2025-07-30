@@ -37,7 +37,6 @@ export const createItem = async (req, res) => {
             ITEM_INSPECTION,
             ITEM_IMAGE,
             CREATE_BY,
-            UNIT_ID,
         } = req.body;
 
 
@@ -51,7 +50,14 @@ export const createItem = async (req, res) => {
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MIN_UNDER_DELIVERY 0%",
+                message: "MIN_UNDER_DELIVERY min 0%",
+            });
+        }
+
+        if (MAX_OVER_DELIVERY < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "MAX_OVER_DELIVERY min 0%",
             });
         }
 
@@ -95,7 +101,6 @@ export const createItem = async (req, res) => {
             ITEM_INSPECTION,
             ITEM_IMAGE,
             CREATE_BY,
-            UNIT_ID,
             CREATE_DATE: new Date(),
         });
 
@@ -157,7 +162,6 @@ export const updateCloneItem = async (req, res) => {
         }
 
         const count = await MasterItemIdModel.count({where: {ITEM_CATEGORY_ID: masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_ID}})
-
         const itemIdCreate = await MasterItemIdModel.create({
             ...masterItem.toJSON(),
             ITEM_ID: `${masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
@@ -171,7 +175,7 @@ export const updateCloneItem = async (req, res) => {
 
         if (itemDimentionList.length) {
             const countMasterItemModel = await  MasterItemDimensionModel.count({where: {MASTER_ITEM_ID: itemIdCreate.ITEM_ID}})
-            await MasterItemDimensionModel.bulkCreate(itemDimentionList.map((item, idx) => ({...item.dataValues,DIMENSION_ID: countMasterItemModel+2,  CREATED_AT: new Date(), MASTER_ITEM_ID: itemIdCreate.ITEM_ID, UPDATED_AT: null})))
+            await MasterItemDimensionModel.bulkCreate(itemDimentionList.map((item, idx) => ({...item.dataValues,ID: null, DIMENSION_ID: countMasterItemModel+1,  CREATED_AT: new Date(), MASTER_ITEM_ID: itemIdCreate.ITEM_ID, UPDATED_AT: null})))
         }
 
         const masterItemIdAtt = await  MasterItemIdAttributesModel.findAll({
@@ -207,12 +211,10 @@ export const updateCloneItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const {unitId, search} = req.query;
+        const {search} = req.query;
 
         const whereCondition = {};
-        if (unitId) {
-            whereCondition.UNIT_ID = unitId;
-        }
+
         if (search) {
             whereCondition[Op.or] = [
                 { ITEM_CODE: { [Op.like]: `%${search}%` } },
@@ -331,7 +333,6 @@ export const updateItem = async (req, res) => {
             ITEM_INSPECTION,
             ITEM_IMAGE,
             UPDATE_BY,
-            UNIT_ID,
         } = req.body;
 
         const item = await MasterItemIdModel.findOne({
@@ -348,14 +349,14 @@ export const updateItem = async (req, res) => {
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MIN_UNDER_DELIVERY 0%",
+                message: "MIN_UNDER_DELIVERY min 0%",
             });
         }
 
-        if (MAX_OVER_DELIVERY > 5) {
+        if (MAX_OVER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MAX ORDER DELIVERY 4%",
+                message: "MAX_OVER_DELIVERY min 0%",
             });
         }
 
@@ -381,7 +382,6 @@ export const updateItem = async (req, res) => {
             ITEM_INSPECTION,
             ITEM_IMAGE,
             UPDATE_BY,
-            UNIT_ID,
             UPDATE_DATE: new Date(),
         });
 
@@ -443,7 +443,7 @@ export const createAttribute = async (req, res) => {
         }
 
         const validation = await MasterItemIdAttributesModel.findOne({
-            where: {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, IS_DELETED: false}
+            where: {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, IS_DELETED: false}
         })
 
         if (validation) {
@@ -572,10 +572,10 @@ export const updateAttribute = async (req, res) => {
         const {id} = req.params;
         const {MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, NOTE} = req.body;
 
-        if (!MASTER_ATTRIBUTE_ID || !MASTER_ATTRIBUTE_VALUE_ID) {
+        if (!MASTER_ITEM_ID || !MASTER_ATTRIBUTE_ID || !MASTER_ATTRIBUTE_VALUE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_ATTRIBUTE_ID, and MASTER_ATTRIBUTE_VALUE_ID are required",
+                message: "MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, and MASTER_ATTRIBUTE_VALUE_ID are required",
             });
         }
 
@@ -592,7 +592,7 @@ export const updateAttribute = async (req, res) => {
 
         const validation = await MasterItemIdAttributesModel.findOne({
             where: {
-                IS_DELETED: false, MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, MASTER_ATTRIBUTE_VALUE_ID, ID: {
+                IS_DELETED: false, MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, ID: {
                     [Op.not]: id
                 }
             }
@@ -681,7 +681,6 @@ export const createService = async (req, res) => {
             where: {
                 MASTER_ITEM_ID,
                 MASTER_SERVICE_ID,
-                MASTER_SERVICE_VALUE_ID,
                 IS_DELETED: false
             }
         });
@@ -836,10 +835,10 @@ export const updateService = async (req, res) => {
             NOTE,
         } = req.body;
 
-        if (!MASTER_SERVICE_ID || !MASTER_SERVICE_VALUE_ID) {
+        if (!MASTER_ITEM_ID || !MASTER_SERVICE_ID || !MASTER_SERVICE_VALUE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID are required",
+                message: "MASTER_ITEM_ID, MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID are required",
             });
         }
 
@@ -861,10 +860,8 @@ export const updateService = async (req, res) => {
 
         const existingService = await MasterItemIdService.findOne({
             where: {
-                MASTER_ITEM_ID: MASTER_ITEM_ID || service.MASTER_ITEM_ID,
-                MASTER_SERVICE_ID: MASTER_SERVICE_ID || service.MASTER_SERVICE_ID,
-                MASTER_SERVICE_VALUE_ID: MASTER_SERVICE_VALUE_ID || service.MASTER_SERVICE_VALUE_ID,
-                IS_DELETED: false,
+                MASTER_ITEM_ID: MASTER_ITEM_ID,
+                MASTER_SERVICE_ID: MASTER_SERVICE_ID,
                 ID: {
                     [Op.not]: id
                 }
@@ -879,9 +876,9 @@ export const updateService = async (req, res) => {
         }
 
         await service.update({
-            MASTER_ITEM_ID: MASTER_ITEM_ID || service.MASTER_ITEM_ID,
-            MASTER_SERVICE_ID: MASTER_SERVICE_ID || service.MASTER_SERVICE_ID,
-            MASTER_SERVICE_VALUE_ID: MASTER_SERVICE_VALUE_ID || service.MASTER_SERVICE_VALUE_ID,
+            MASTER_ITEM_ID: MASTER_ITEM_ID,
+            MASTER_SERVICE_ID: MASTER_SERVICE_ID,
+            MASTER_SERVICE_VALUE_ID: MASTER_SERVICE_VALUE_ID,
             NOTE: NOTE !== undefined ? NOTE : service.NOTE,
             UPDATED_AT: new Date(),
         });

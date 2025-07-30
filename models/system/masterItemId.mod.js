@@ -109,10 +109,6 @@ const MasterItemIdModel = db.define(
             type: DataTypes.STRING(200),
             allowNull: true,
         },
-        UNIT_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
         UPDATE_DATE: {
             type: DataTypes.DATE,
             allowNull: true,

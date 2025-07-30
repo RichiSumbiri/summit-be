@@ -59,7 +59,11 @@ export const getSizes = async (req, res) => {
       200
     );
   } catch (err) {
-    return errorResponse(res, err, "Failed to fetch sizes data", 500);
+    return res.json(500).json({
+      status: false,
+      message: "Failed to fetch sizes data",
+      error: err.error
+    })
   }
 };
 
@@ -68,7 +72,7 @@ export const createSize = async (req, res) => {
     const sizeData = req.body;
 
     if (!sizeData?.SIZE_CODE) {
-      return errorResponse(res, err, "SIZE_CODE are Required", 400);
+      return errorResponse(res, null, "SIZE_CODE are Required", 400);
     }
 
     const normalizedSizeCode = sizeData.SIZE_CODE.trim().toLowerCase();
