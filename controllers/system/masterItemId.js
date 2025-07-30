@@ -211,10 +211,15 @@ export const updateCloneItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const {search} = req.query;
+        const {search, ITEM_ID} = req.query;
 
         const whereCondition = {};
-
+        // if (unitId) {
+        //     whereCondition.UNIT_ID = unitId;
+        // }
+        if (ITEM_ID) {
+            whereCondition.ITEM_ID = { [Op.like]: `%${ITEM_ID}%` };
+        }
         if (search) {
             whereCondition[Op.or] = [
                 { ITEM_CODE: { [Op.like]: `%${search}%` } },
