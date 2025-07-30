@@ -49,7 +49,7 @@ export const getSizes = async (req, res) => {
           ],
         },
       ],
-      order: [["SIZE_ID", "DESC"]],
+      order: [["SIZE_ID"]],
     });
 
     return successResponse(

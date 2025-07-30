@@ -226,7 +226,7 @@ const generateCustomId = async () => {
         nextId = `CID${padded}`;
     }
 
-    return nextId;
+  return nextId;
 };
 
 const chechMasterExist = async (data) => {

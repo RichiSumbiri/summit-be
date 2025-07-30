@@ -35,7 +35,7 @@ export const qryGetListEffCt = (params) => {
   FROM log_daily_output a
   LEFT JOIN remark_detail o ON o.SCHD_ID = a.SCHD_ID AND o.SHIFT = a.shift
   LEFT JOIN order_po_listing opl ON opl.ORDER_NO = a.ORDER_NO AND a.ORDER_REFERENCE_PO_NO = opl.ORDER_REFERENCE_PO_NO 
-        AND a.PRODUCT_ITEM_CODE = opl.ORDER_PRODUCT_ITEM_CODE AND a.ITEM_COLOR_CODE = opl.ITEM_COLOR_CODE
+        AND a.PRODUCT_ITEM_CODE = opl.PRODUCT_ITEM_CODE AND a.ITEM_COLOR_CODE = opl.ITEM_COLOR_CODE
   LEFT JOIN item_siteline ist ON ist.ID_SITELINE = a.ID_SITELINE
   WHERE ${params}
   GROUP BY a.SCHD_ID, a.ID_SITELINE
