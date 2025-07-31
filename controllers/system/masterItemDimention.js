@@ -40,7 +40,7 @@ export const createMasterItemDimension = async (req, res) => {
 
 
         const existItemDimension = await  MasterItemDimensionModel.findOne({
-            where: {COLOR_ID, SIZE_ID, IS_DELETED: false}
+            where: {COLOR_ID, SIZE_ID, MASTER_ITEM_ID, IS_DELETED: false}
         })
 
         if (existItemDimension) {

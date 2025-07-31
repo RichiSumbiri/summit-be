@@ -47,6 +47,13 @@ export const createItem = async (req, res) => {
             });
         }
 
+        if (ITEM_CODE.split(" ").length > 1) {
+            return res.status(400).json({
+                success: false,
+                message: "Item code must not contain spaces",
+            });
+        }
+
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
@@ -104,12 +111,6 @@ export const createItem = async (req, res) => {
             CREATE_DATE: new Date(),
         });
 
-        // await  MasterItemDimensionModel.create({
-        //     DIMENSION_ID: 0,
-        //     MASTER_ITEM_ID: masterItemId.dataValues.ITEM_ID,
-        //     IS_ACTIVE: true
-        // })
-
         return res.status(201).json({
             success: true,
             message: "Item created successfully",
@@ -132,6 +133,7 @@ export const updateCloneItem = async (req, res) => {
             message: "Item Id is required",
         })
     }
+
     try {
         const masterItem = await MasterItemIdModel.findOne({
             where: {ITEM_ID},
@@ -157,17 +159,18 @@ export const updateCloneItem = async (req, res) => {
         if (!masterItem) {
             return res.status(404).json({
                 status: false,
-                message: "Item Id not found",
+                message: "Item ID not found",
             })
         }
 
         const count = await MasterItemIdModel.count({where: {ITEM_CATEGORY_ID: masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_ID}})
         const itemIdCreate = await MasterItemIdModel.create({
             ...masterItem.toJSON(),
+            ITEM_DESCRIPTION:masterItem.dataValues.ITEM_DESCRIPTION  + " (Duplicate)",
+            ITEM_CODE: masterItem.dataValues.ITEM_CODE + "_Duplicate",
             ITEM_ID: `${masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
             CREATE_DATE: new Date(),
         });
-
 
         const itemDimentionList = await  MasterItemDimensionModel.findAll({
             where: {MASTER_ITEM_ID: ITEM_ID, IS_DELETED: false}
@@ -335,14 +338,10 @@ export const updateItem = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        const item = await MasterItemIdModel.findOne({
-            where: {ITEM_ID: itemId},
-        });
-
-        if (!item) {
-            return res.status(404).json({
+        if (ITEM_CODE.split(" ").length > 1) {
+            return res.status(400).json({
                 success: false,
-                message: "Item not found",
+                message: "Item code must not contain spaces",
             });
         }
 
@@ -360,6 +359,16 @@ export const updateItem = async (req, res) => {
             });
         }
 
+        const item = await MasterItemIdModel.findOne({
+            where: {ITEM_ID: itemId},
+        });
+
+        if (!item) {
+            return res.status(404).json({
+                success: false,
+                message: "Item not found",
+            });
+        }
 
         await item.update({
             ITEM_CODE,

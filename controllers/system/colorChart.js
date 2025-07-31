@@ -1,4 +1,4 @@
-import colorChart from "../../models/system/colorChart.mod.js";
+import colorChart, {FGColorChartModel} from "../../models/system/colorChart.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
@@ -73,10 +73,12 @@ export const createColor = async (req, res) => {
             where: {
                 [Op.and]: [
                     {COLOR_CODE: {[Op.ne]: null}},
+                    {ITEM_CATEGORY_ID: colorData.ITEM_CATEGORY_ID, ITEM_TYPE_ID: colorData.ITEM_TYPE_ID, ITEM_GROUP_ID: colorData.ITEM_GROUP_ID},
                     Sequelize.where(
                         Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("COLOR_CODE"))),
                         normalizedSizeCode
                     ),
+
                 ],
             },
         });
@@ -164,7 +166,11 @@ export const editColor = async (req, res) => {
         const existingSize = await colorChart.findOne({
             where: {
                 [Op.and]: [
+                    {COLOR_ID: {[Op.ne]: COLOR_ID}},
                     {COLOR_CODE: {[Op.ne]: null}},
+                    {ITEM_CATEGORY_ID: colorData.ITEM_CATEGORY_ID},
+                    {ITEM_TYPE_ID: colorData.ITEM_TYPE_ID},
+                    {ITEM_GROUP_ID: colorData.ITEM_GROUP_ID},
                     Sequelize.where(
                         Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("COLOR_CODE"))),
                         normalizedSizeCode
@@ -249,5 +255,200 @@ const chechMasterExist = async (data) => {
         if (!masterItem) {
             throw new Error(`${modelKey} not found`);
         }
+    }
+};
+
+
+export const createFGColorChart = async (req, res) => {
+    try {
+        const { MASTER_ITEM_ID, COLOR_ID } = req.body;
+
+        if (!MASTER_ITEM_ID || !COLOR_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "MASTER_ITEM_ID and COLOR_ID are required",
+            });
+        }
+
+        const color = await colorChart.findByPk(COLOR_ID);
+        if (!color) {
+            return res.status(404).json({
+                success: false,
+                message: "Color not found",
+            });
+        }
+
+
+        const exist = await FGColorChartModel.findOne({
+            where: {
+                MASTER_ITEM_ID,
+                COLOR_ID,
+                IS_DELETED: false,
+            }
+        });
+
+        if (exist) {
+            return res.status(400).json({
+                success: false,
+                message: "FG Color Already Exists",
+            });
+        }
+
+        const newEntry = await FGColorChartModel.create({
+            MASTER_ITEM_ID,
+            COLOR_ID,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "FG color chart created successfully",
+            data: newEntry,
+        });
+    } catch (error) {
+        console.error("Error creating FG color chart:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to create FG color chart: ${error.message}`,
+        });
+    }
+};
+
+export const getAllFGColorCharts = async (req, res) => {
+    try {
+        const { MASTER_ITEM_ID } = req.query;
+
+        const where = {IS_DELETED: false};
+        if (MASTER_ITEM_ID) {
+            where.MASTER_ITEM_ID = MASTER_ITEM_ID;
+        }
+
+        const entries = await FGColorChartModel.findAll({
+            where,
+            include: [
+                {
+                    model: colorChart,
+                    as: "COLOR",
+                    attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                },
+            ],
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "FG color charts retrieved successfully",
+            data: entries,
+        });
+    } catch (error) {
+        console.error("Error retrieving FG color charts:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve FG color charts: ${error.message}`,
+        });
+    }
+};
+
+export const getFGColorChartById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const entry = await FGColorChartModel.findByPk(id, {
+            include: [
+                {
+                    model: colorChart,
+                    as: "COLOR",
+                    attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                },
+            ],
+        });
+
+        if (!entry) {
+            return res.status(404).json({
+                success: false,
+                message: "FG color chart not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "FG color chart retrieved successfully",
+            data: entry,
+        });
+    } catch (error) {
+        console.error("Error retrieving FG color chart:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve FG color chart: ${error.message}`,
+        });
+    }
+};
+
+export const updateFGColorChart = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { MASTER_ITEM_ID, COLOR_ID } = req.body;
+
+        const entry = await FGColorChartModel.findByPk(id);
+        if (!entry) {
+            return res.status(404).json({
+                success: false,
+                message: "FG color chart not found",
+            });
+        }
+
+        if (COLOR_ID) {
+            const color = await colorChart.findByPk(COLOR_ID);
+            if (!color) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Color not found",
+                });
+            }
+        }
+
+        await entry.update({
+            MASTER_ITEM_ID,
+            COLOR_ID,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "FG color chart updated successfully",
+        });
+    } catch (error) {
+        console.error("Error updating FG color chart:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update FG color chart: ${error.message}`,
+        });
+    }
+};
+
+export const deleteFGColorChart = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const entry = await FGColorChartModel.findByPk(id);
+        if (!entry) {
+            return res.status(404).json({
+                success: false,
+                message: "FG color chart not found",
+            });
+        }
+
+        await entry.update({
+            IS_DELETED: true,
+            DELETED_AT: new Date()
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "FG color chart deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting FG color chart:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to delete FG color chart: ${error.message}`,
+        });
     }
 };

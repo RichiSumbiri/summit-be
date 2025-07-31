@@ -59,8 +59,6 @@ const colorChart = db.define(
   }
 );
 
-export default colorChart;
-
 colorChart.belongsTo(MasterItemCategories, {
     foreignKey: "ITEM_CATEGORY_ID",
     targetKey: "ITEM_CATEGORY_ID",
@@ -77,4 +75,49 @@ colorChart.belongsTo(MasterItemGroup, {
     foreignKey: "ITEM_GROUP_ID",
     targetKey: "ITEM_GROUP_ID",
     as: "item_groups",
+});
+
+export default colorChart;
+
+
+
+export const FGColorChartModel = db.define(
+    "fg_color_chart",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false,
+        },
+        MASTER_ITEM_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        COLOR_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        IS_DELETED: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+    },
+    {
+        freezeTableName: true,
+        timestamps: true,
+        createdAt: "CREATED_AT",
+        updatedAt: "UPDATED_AT",
+        deletedAt: "DELETED_AT",
+        paranoid: true,
+    }
+);
+
+FGColorChartModel.belongsTo(colorChart, {
+    foreignKey: "COLOR_ID",
+    as: "COLOR",
 });

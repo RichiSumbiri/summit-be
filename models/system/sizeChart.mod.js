@@ -59,8 +59,6 @@ const sizeChart = db.define(
   }
 );
 
-export default sizeChart;
-
 sizeChart.belongsTo(MasterItemCategories, {
     foreignKey: "ITEM_CATEGORY_ID",
     targetKey: "ITEM_CATEGORY_ID",
@@ -77,4 +75,49 @@ sizeChart.belongsTo(MasterItemGroup, {
     foreignKey: "ITEM_GROUP_ID",
     targetKey: "ITEM_GROUP_ID",
     as: "item_groups",
+});
+
+
+export default sizeChart;
+
+
+export const FGSizeChartModel = db.define(
+    "fg_size_chart",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false,
+        },
+        MASTER_ITEM_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        SIZE_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        IS_DELETED: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+    },
+    {
+        freezeTableName: true,
+        timestamps: true,
+        createdAt: "CREATED_AT",
+        updatedAt: "UPDATED_AT",
+        deletedAt: "DELETED_AT",
+        paranoid: true,
+    }
+);
+
+FGSizeChartModel.belongsTo(sizeChart, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE",
 });
