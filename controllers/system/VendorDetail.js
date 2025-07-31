@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ModelVendorDetail } from "../../models/system/VendorDetail.mod.js";
+import { ModelVendorDetail, ModelVendorShipperLocation } from "../../models/system/VendorDetail.mod.js";
 
 
 export const getAllVendorDetail = async(req,res) => {
@@ -136,6 +136,99 @@ export const postVendorDetail = async(req,res) => {
             success: false,
             error: err,
             message: "error post vendor detail"
+        });
+    }
+}
+
+
+
+export const getVendorShipperLocationByVDC = async(req,res) => {
+    try {
+        const { vdc } = req.params;
+        const dataVSL = await ModelVendorShipperLocation.findAll({
+            where: {
+                VENDOR_ID: vdc
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get vendor shipper location",
+            data: dataVSL
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get vendor shipper location"
+        });
+    }
+}
+
+
+export const postVendorShipperLocation = async(req,res) => {
+    try {
+        const { dataVSL } = req.body;
+        if(dataVSL.VSL_ID){
+            await ModelVendorShipperLocation.update({
+                VENDOR_ID: dataVSL.VENDOR_ID,
+                VSL_NAME: dataVSL.VSL_NAME,
+                VSL_CONTACT_TITLE: dataVSL.VSL_CONTACT_TITLE,
+                VSL_CONTACT_NAME: dataVSL.VSL_CONTACT_NAME,
+                VSL_CONTACT_POSITION: dataVSL.VSL_CONTACT_POSITION,
+                VSL_PHONE: dataVSL.VSL_PHONE,
+                VSL_EMAIL: dataVSL.VSL_EMAIL,
+                VSL_FAX: dataVSL.VSL_FAX,
+                VSL_ADDRESS_1: dataVSL.VSL_ADDRESS_1,
+                VSL_ADDRESS_2: dataVSL.VSL_ADDRESS_2,
+                VSL_ADDRESS_CITY: dataVSL.VSL_ADDRESS_CITY,
+                VSL_ADDRESS_PROVINCE: dataVSL.VSL_ADDRESS_PROVINCE,
+                VSL_ADDRESS_COUNTRY_CODE: dataVSL.VSL_ADDRESS_COUNTRY_CODE,
+                VSL_ADDRESS_POSTAL_CODE: dataVSL.VSL_ADDRESS_POSTAL_CODE,
+                VSL_DELIVERY_MODE_CODE: dataVSL.VSL_DELIVERY_MODE_CODE,
+                VSL_PORT_LOADING: dataVSL.VSL_PORT_LOADING,
+                VSL_DEFAULT: dataVSL.VSL_DEFAULT,
+                VSL_ACTIVE: dataVSL.VSL_ACTIVE,
+                UPDATE_BY: dataVSL.UPDATE_BY,
+                UPDATE_DATE:  moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    VSL_ID: dataVSL.VSL_ID
+                }
+            })
+        } else {
+            await ModelVendorShipperLocation.create({
+                VENDOR_ID: dataVSL.VENDOR_ID,
+                VSL_NAME: dataVSL.VSL_NAME,
+                VSL_CONTACT_TITLE: dataVSL.VSL_CONTACT_TITLE,
+                VSL_CONTACT_NAME: dataVSL.VSL_CONTACT_NAME,
+                VSL_CONTACT_POSITION: dataVSL.VSL_CONTACT_POSITION,
+                VSL_PHONE: dataVSL.VSL_PHONE,
+                VSL_EMAIL: dataVSL.VSL_EMAIL,
+                VSL_FAX: dataVSL.VSL_FAX,
+                VSL_ADDRESS_1: dataVSL.VSL_ADDRESS_1,
+                VSL_ADDRESS_2: dataVSL.VSL_ADDRESS_2,
+                VSL_ADDRESS_CITY: dataVSL.VSL_ADDRESS_CITY,
+                VSL_ADDRESS_PROVINCE: dataVSL.VSL_ADDRESS_PROVINCE,
+                VSL_ADDRESS_COUNTRY_CODE: dataVSL.VSL_ADDRESS_COUNTRY_CODE,
+                VSL_ADDRESS_POSTAL_CODE: dataVSL.VSL_ADDRESS_POSTAL_CODE,
+                VSL_DELIVERY_MODE_CODE: dataVSL.VSL_DELIVERY_MODE_CODE,
+                VSL_PORT_LOADING: dataVSL.VSL_PORT_LOADING,
+                VSL_DEFAULT: dataVSL.VSL_DEFAULT,
+                VSL_ACTIVE: dataVSL.VSL_ACTIVE,
+                CREATE_BY: dataVSL.UPDATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "success get vendor shipper location"
+        });
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get vendor shipper location"
         });
     }
 }
