@@ -13,7 +13,7 @@ export const getAllMasterItemCategory = async(req, res) => {
         const getData = await MasterItemCategories.findAll({
             where: whereCondition,
             raw:true,
-            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION', 'ITEM_TYPE_ID']
+            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION', 'ITEM_TYPE_ID','ITEM_CATEGORY_BASE_UOM']
         });
 
         if(getData){

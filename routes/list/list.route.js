@@ -24,6 +24,9 @@ import { getMasterItemStatus } from "../../controllers/setup/ItemStatus.js";
 import { getMasterServiceGroup } from "../../controllers/setup/ServiceGroups.js";
 import { getMasterServiceType } from "../../controllers/setup/ServiceTypes.js";
 import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategories.js";
+
+import { getMasterProductionProcess } from "../../controllers/setup/ProductionProcess.js";
+
 import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
 import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
 import { getAllFOBPoint } from "../../controllers/system/FOBPoint.js";
@@ -70,6 +73,11 @@ router.get("/service-type", getMasterServiceType);
 
 // service categoryes
 router.get("/service-category", getMasterServiceCategory);
+
+
+
+//production process
+router.get("/production-process", getMasterProductionProcess);
 
 
 

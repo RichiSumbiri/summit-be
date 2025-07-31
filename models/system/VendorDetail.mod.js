@@ -67,3 +67,89 @@ export const ModelVendorDetail = db.define('vendor_detail', {
     tableName: 'vendor_detail',
     timestamps: false
   });
+
+
+
+
+  export const ModelVendorShipperLocation = db.define('vendor_shipper_location', {
+    VSL_ID: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    VENDOR_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    VSL_NAME: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_CONTACT_TITLE: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    VSL_CONTACT_NAME: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_CONTACT_POSITION: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_ADDRESS_1: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_ADDRESS_2: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_ADDRESS_CITY: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_ADDRESS_PROVINCE: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_ADDRESS_POSTAL_CODE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    VSL_ADDRESS_COUNTRY_CODE: {
+      type: DataTypes.CHAR(2),
+      allowNull: true,
+    },
+    VSL_PHONE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    VSL_FAX: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    VSL_EMAIL: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    VSL_DELIVERY_MODE_CODE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    VSL_PORT_LOADING: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    VSL_DEFAULT: {
+      type: DataTypes.TINYINT,
+      allowNull: true,
+    },
+    VSL_ACTIVE: {
+      type: DataTypes.TINYINT,
+      allowNull: true,
+    },
+  }, {
+    tableName: 'vendor_shipper_location',
+    timestamps: false,
+  });
