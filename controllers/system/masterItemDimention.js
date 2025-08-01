@@ -51,7 +51,7 @@ export const createMasterItemDimension = async (req, res) => {
         }
 
         const newItemDimension = await MasterItemDimensionModel.create({
-            DIMENSION_ID: count+1,
+            DIMENSION_ID: count,
             MASTER_ITEM_ID,
             COLOR_ID,
             SIZE_ID,
