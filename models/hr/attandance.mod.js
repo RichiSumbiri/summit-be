@@ -114,7 +114,8 @@ FROM (
 			    LEFT JOIN sumbiri_employee_group seg ON seg.Nik = se.Nik
 			    LEFT JOIN sumbiri_group_schedule sgs ON sgs.groupId = seg.groupId
 			    WHERE  sgs.scheduleDate BETWEEN  :startDate AND  :endDate  
-			    
+			    AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :startDate)
+				AND se.CancelMasuk <> 'Y'
 			    UNION ALL 
 			
 				SELECT  
@@ -130,6 +131,8 @@ FROM (
 			    FROM sumbiri_employee se 
 			    LEFT JOIN sumbiri_individu_schedule sis ON sis.Nik = se.Nik 
 			    WHERE sis.scheduleDate_inv BETWEEN :startDate AND  :endDate 
+				AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :startDate)
+				AND se.CancelMasuk <> 'Y'
 			) nm 
 			GROUP BY 
 			    nm.scheduleDate, nm.Nik -- ,  nm.groupId dihapus karena untuk skip jadwal individu yang kosong
@@ -1427,7 +1430,7 @@ export const queryRecapAbsMonth = `WITH employee AS (
       se.StatusAktif AS resignStatus
 	FROM sumbiri_absens sa
 	JOIN sumbiri_employee se ON se.Nik = sa.Nik
-	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate 
+	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate AND se.CancelMasuk <> 'Y'
 	-- AND sa.Nik = '102412003'
 	GROUP BY sa.Nik
 ), 
@@ -1497,7 +1500,7 @@ emp_group AS (
 		sa.jk_id
 	FROM sumbiri_absens sa
 	JOIN sumbiri_employee se ON se.Nik = sa.Nik
-	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate 
+	WHERE sa.tanggal_in BETWEEN :startDate AND :endDate AND se.CancelMasuk <> 'Y'
 	-- AND sa.Nik = '102412003'
 	GROUP BY sa.Nik, sa.tanggal_in
 ),
