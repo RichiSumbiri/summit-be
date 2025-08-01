@@ -1,12 +1,18 @@
 import express from "express";
-import { getAllVendorDetail, getVendorShipperLocationByVDC, postVendorDetail, postVendorShipperLocation } from "../../controllers/system/VendorDetail.js";
+import { getAllVendorDetail, getVendorPurchaseDetailByVDC, getVendorShipperLocationByVDC, postVendorDetail, postVendorPurchaseDetail, postVendorShipperLocation } from "../../controllers/system/VendorDetail.js";
 
 const router = express.Router();
 
+// Vendor Detail
 router.get("/all", getAllVendorDetail);
 router.post("/", postVendorDetail);
 
+// Vendor Shipper Location
 router.get("/shipper-location/:vdc", getVendorShipperLocationByVDC);
 router.post("/shipper-location", postVendorShipperLocation);
+
+// Vendor Purchase Detail
+router.get("/purchase-detail/:vdc", getVendorPurchaseDetailByVDC);
+router.post("/purchase-detail", postVendorPurchaseDetail);
 
 export default router;

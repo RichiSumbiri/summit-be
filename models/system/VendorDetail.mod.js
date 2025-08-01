@@ -83,7 +83,8 @@ export const ModelVendorDetail = db.define('vendor_detail', {
     },
     VSL_NAME: {
       type: DataTypes.STRING(200),
-      allowNull: true,
+      allowNull: false,
+      unique: true
     },
     VSL_CONTACT_TITLE: {
       type: DataTypes.STRING(10),
@@ -133,7 +134,7 @@ export const ModelVendorDetail = db.define('vendor_detail', {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    VSL_DELIVERY_MODE_CODE: {
+    VSL_SHIPPING_TERMS_CODE: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
@@ -152,4 +153,104 @@ export const ModelVendorDetail = db.define('vendor_detail', {
   }, {
     tableName: 'vendor_shipper_location',
     timestamps: false,
+  });
+
+  export const ModelVendorPurchaseDetail = db.define('vendor_purchase_detail', {
+    VPD_ID: {
+      type: DataTypes.INTEGER(200),
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    VENDOR_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    CUSTOMER_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    ITEM_GROUP_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    ITEM_TYPE_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    ITEM_CATEGORY_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    MANUFACTURE_LEAD_TIME: {
+      type: DataTypes.INTEGER(200),
+      allowNull: true,
+    },
+    DELIVERY_MODE_CODE: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+    },
+    DELIVERY_LEAD_TIME: {
+      type: DataTypes.INTEGER(200),
+      allowNull: true,
+    },
+    MIN_ORDER_QTY: {
+      type: DataTypes.DECIMAL(60, 4),
+      allowNull: true,
+    },
+    UOM_CODE: {
+      type: DataTypes.STRING(3),
+      allowNull: true,
+    },
+    MIN_ORDER_QTY_COLOR_VALIDATION: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+    },
+    MIN_ORDER_QTY_COLOR_QTY: {
+      type: DataTypes.DECIMAL(60, 2),
+      allowNull: true,
+    },
+    MIN_ORDER_QTY_SIZE_VALIDATION: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+    },
+    MIN_ORDER_QTY_SIZE_QTY: {
+      type: DataTypes.DECIMAL(60, 2),
+      allowNull: true,
+    },
+    MIN_UNDER_RECEIPT: {
+      type: DataTypes.DECIMAL(60, 2),
+      allowNull: true,
+    },
+    MIN_OVER_RECEIPT: {
+      type: DataTypes.DECIMAL(60, 2),
+      allowNull: true,
+    },
+    NOTE_REMARKS: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    VPD_ACTIVE: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+    },
+    CREATE_BY: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    CREATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    UPDATE_BY: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    UPDATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  }, {
+    tableName: 'vendor_purchase_detail',
+    timestamps: false,
+    freezeTableName: true,
   });

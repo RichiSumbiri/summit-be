@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ModelVendorDetail, ModelVendorShipperLocation } from "../../models/system/VendorDetail.mod.js";
+import { ModelVendorDetail, ModelVendorPurchaseDetail, ModelVendorShipperLocation } from "../../models/system/VendorDetail.mod.js";
 
 
 export const getAllVendorDetail = async(req,res) => {
@@ -184,7 +184,7 @@ export const postVendorShipperLocation = async(req,res) => {
                 VSL_ADDRESS_PROVINCE: dataVSL.VSL_ADDRESS_PROVINCE,
                 VSL_ADDRESS_COUNTRY_CODE: dataVSL.VSL_ADDRESS_COUNTRY_CODE,
                 VSL_ADDRESS_POSTAL_CODE: dataVSL.VSL_ADDRESS_POSTAL_CODE,
-                VSL_DELIVERY_MODE_CODE: dataVSL.VSL_DELIVERY_MODE_CODE,
+                VSL_SHIPPING_TERMS_CODE: dataVSL.VSL_SHIPPING_TERMS_CODE,
                 VSL_PORT_LOADING: dataVSL.VSL_PORT_LOADING,
                 VSL_DEFAULT: dataVSL.VSL_DEFAULT,
                 VSL_ACTIVE: dataVSL.VSL_ACTIVE,
@@ -211,7 +211,7 @@ export const postVendorShipperLocation = async(req,res) => {
                 VSL_ADDRESS_PROVINCE: dataVSL.VSL_ADDRESS_PROVINCE,
                 VSL_ADDRESS_COUNTRY_CODE: dataVSL.VSL_ADDRESS_COUNTRY_CODE,
                 VSL_ADDRESS_POSTAL_CODE: dataVSL.VSL_ADDRESS_POSTAL_CODE,
-                VSL_DELIVERY_MODE_CODE: dataVSL.VSL_DELIVERY_MODE_CODE,
+                VSL_SHIPPING_TERMS_CODE: dataVSL.VSL_SHIPPING_TERMS_CODE,
                 VSL_PORT_LOADING: dataVSL.VSL_PORT_LOADING,
                 VSL_DEFAULT: dataVSL.VSL_DEFAULT,
                 VSL_ACTIVE: dataVSL.VSL_ACTIVE,
@@ -229,6 +229,96 @@ export const postVendorShipperLocation = async(req,res) => {
             success: false,
             error: err,
             message: "error get vendor shipper location"
+        });
+    }
+}
+
+
+export const getVendorPurchaseDetailByVDC = async(req,res) => {
+    try {
+        const { vdc } = req.params;
+        const dataPurchase = await ModelVendorPurchaseDetail.findAll({
+            where: {
+                VENDOR_ID: vdc
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get vendor purchase detail",
+            data: dataPurchase
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get vendor shipper location"
+        });
+    }
+}
+
+
+export const postVendorPurchaseDetail = async(req,res) => {
+    try {
+        const { dataVPD } = req.body;
+        if(dataVPD.VPD_ID){
+            await ModelVendorPurchaseDetail.update({
+                CUSTOMER_ID: dataVPD.CUSTOMER_ID,
+                VENDOR_ID: dataVPD.VENDOR_ID,
+                UPDATE_BY: dataVPD.UPDATE_BY,
+                UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
+                ITEM_GROUP_ID: dataVPD.ITEM_GROUP_ID,
+                ITEM_TYPE_ID: dataVPD.ITEM_TYPE_ID,
+                UOM_CODE: dataVPD.UOM_CODE,
+                ITEM_CATEGORY_ID: dataVPD.ITEM_CATEGORY_ID,
+                MANUFACTURE_LEAD_TIME: dataVPD.MANUFACTURE_LEAD_TIME,
+                DELIVERY_MODE_CODE: dataVPD.DELIVERY_MODE_CODE,
+                DELIVERY_LEAD_TIME: dataVPD.DELIVERY_MODE_CODE,
+                MIN_ORDER_QTY: dataVPD.MIN_ORDER_QTY,
+                MIN_ORDER_QTY_COLOR_VALIDATION: dataVPD.MIN_ORDER_QTY_COLOR_VALIDATION,
+                MIN_ORDER_QTY_SIZE_VALIDATION: dataVPD.MIN_ORDER_QTY_SIZE_VALIDATION,
+                MIN_ORDER_QTY_COLOR_QTY: dataVPD.MIN_ORDER_QTY_COLOR_QTY,
+                MIN_ORDER_QTY_SIZE_QTY: dataVPD.MIN_ORDER_QTY_SIZE_QTY,
+                MIN_UNDER_RECEIPT: dataVPD.MIN_UNDER_RECEIPT,
+                MIN_OVER_RECEIPT: dataVPD.MIN_OVER_RECEIPT,
+                NOTE_REMARKS: dataVPD.NOTE_REMARKS
+            }, {
+                where: {
+                    VPD_ID: dataVPD.VPD_ID
+                }
+            })
+        } else {
+            await ModelVendorPurchaseDetail.create({
+                CUSTOMER_ID: dataVPD.CUSTOMER_ID,
+                VENDOR_ID: dataVPD.VENDOR_ID,
+                CREATE_BY: dataVPD.CREATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
+                ITEM_GROUP_ID: dataVPD.ITEM_GROUP_ID,
+                ITEM_TYPE_ID: dataVPD.ITEM_TYPE_ID,
+                ITEM_CATEGORY_ID: dataVPD.ITEM_CATEGORY_ID,
+                UOM_CODE: dataVPD.UOM_CODE,
+                MANUFACTURE_LEAD_TIME: dataVPD.MANUFACTURE_LEAD_TIME,
+                DELIVERY_MODE_CODE: dataVPD.DELIVERY_MODE_CODE,
+                DELIVERY_LEAD_TIME: dataVPD.DELIVERY_LEAD_TIME,
+                MIN_ORDER_QTY: dataVPD.MIN_ORDER_QTY,
+                MIN_ORDER_QTY_COLOR_VALIDATION: dataVPD.MIN_ORDER_QTY_COLOR_VALIDATION,
+                MIN_ORDER_QTY_SIZE_VALIDATION: dataVPD.MIN_ORDER_QTY_SIZE_VALIDATION,
+                MIN_ORDER_QTY_COLOR_QTY: dataVPD.MIN_ORDER_QTY_COLOR_QTY,
+                MIN_ORDER_QTY_SIZE_QTY: dataVPD.MIN_ORDER_QTY_SIZE_QTY,
+                MIN_UNDER_RECEIPT: dataVPD.MIN_UNDER_RECEIPT,
+                MIN_OVER_RECEIPT: dataVPD.MIN_OVER_RECEIPT,
+                NOTE_REMARKS: dataVPD.NOTE_REMARKS
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "success post vendor purchase detail"
+        });
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post vendor shipper location"
         });
     }
 }
