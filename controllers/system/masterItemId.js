@@ -16,7 +16,7 @@ import MasterServiceCategories from "../../models/setup/ServiceCategories.mod.js
 
 export const createItem = async (req, res) => {
     try {
-        const {
+         let {
             ITEM_CODE,
             ITEM_DESCRIPTION,
             ITEM_ACTIVE,
@@ -46,13 +46,7 @@ export const createItem = async (req, res) => {
                 message: "ITEM_CODE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID is required",
             });
         }
-
-        if (ITEM_CODE.split(" ").length > 1) {
-            return res.status(400).json({
-                success: false,
-                message: "Item code must not contain spaces",
-            });
-        }
+        ITEM_CODE = ITEM_CODE.trim()
 
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
