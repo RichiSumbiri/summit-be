@@ -337,7 +337,12 @@ export const updateItem = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        ITEM_CODE = ITEM_CODE.trim()
+        if (!ITEM_CODE || !ITEM_GROUP_ID || !ITEM_TYPE_ID || !ITEM_CATEGORY_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "ITEM_CODE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID is required",
+            });
+        }
 
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
@@ -352,6 +357,9 @@ export const updateItem = async (req, res) => {
                 message: "MAX_OVER_DELIVERY min 0%",
             });
         }
+
+        ITEM_CODE = ITEM_CODE.trim()
+
 
         const item = await MasterItemIdModel.findOne({
             where: {ITEM_ID: itemId},
