@@ -314,7 +314,7 @@ export const getItemById = async (req, res) => {
 export const updateItem = async (req, res) => {
     try {
         const {itemId} = req.params;
-        const {
+        let {
             ITEM_CODE,
             ITEM_DESCRIPTION,
             ITEM_ACTIVE,
@@ -337,12 +337,7 @@ export const updateItem = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        if (ITEM_CODE.split(" ").length > 1) {
-            return res.status(400).json({
-                success: false,
-                message: "Item code must not contain spaces",
-            });
-        }
+        ITEM_CODE = ITEM_CODE.trim()
 
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
