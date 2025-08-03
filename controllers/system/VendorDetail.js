@@ -1,5 +1,7 @@
 import moment from "moment";
-import { ModelVendorDetail, ModelVendorPurchaseDetail, ModelVendorShipperLocation } from "../../models/system/VendorDetail.mod.js";
+import { ModelVendorDetail, ModelVendorPurchaseDetail, ModelVendorShipperLocation, queryGetVendorPurchaseDetailByVDC } from "../../models/system/VendorDetail.mod.js";
+import db from "../../config/database.js";
+import { QueryTypes } from "sequelize";
 
 
 export const getAllVendorDetail = async(req,res) => {
@@ -237,10 +239,16 @@ export const postVendorShipperLocation = async(req,res) => {
 export const getVendorPurchaseDetailByVDC = async(req,res) => {
     try {
         const { vdc } = req.params;
-        const dataPurchase = await ModelVendorPurchaseDetail.findAll({
-            where: {
-                VENDOR_ID: vdc
-            }
+        // const dataPurchase = await ModelVendorPurchaseDetail.findAll({
+        //     where: {
+        //         VENDOR_ID: vdc
+        //     }
+        // });
+        const dataPurchase = await db.query(queryGetVendorPurchaseDetailByVDC, {
+            replacements: {
+                vendorID: vdc
+            }, 
+            type: QueryTypes.SELECT
         });
         return res.status(200).json({
             success: true,

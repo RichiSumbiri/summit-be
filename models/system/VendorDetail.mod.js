@@ -254,3 +254,48 @@ export const ModelVendorDetail = db.define('vendor_detail', {
     timestamps: false,
     freezeTableName: true,
   });
+
+
+
+export const queryGetVendorPurchaseDetailByVDC = `
+SELECT
+	vpd.VPD_ID,
+	vpd.VENDOR_ID,
+	vpd.CUSTOMER_ID,
+	cd.CTC_NAME AS CUSTOMER_NAME,
+	vpd.ITEM_GROUP_ID,
+	mig.ITEM_GROUP_CODE,
+	mig.ITEM_GROUP_DESCRIPTION,
+	vpd.ITEM_TYPE_ID,
+	mit.ITEM_TYPE_CODE,
+	mit.ITEM_TYPE_DESCRIPTION,
+	vpd.ITEM_CATEGORY_ID,
+	mic.ITEM_CATEGORY_CODE,
+	mic.ITEM_CATEGORY_DESCRIPTION,
+	vpd.MANUFACTURE_LEAD_TIME,
+	vpd.DELIVERY_MODE_CODE,
+	mdm.DELIVERY_MODE_DESC,
+	vpd.DELIVERY_LEAD_TIME,
+	vpd.MIN_ORDER_QTY,
+	vpd.UOM_CODE,
+	vpd.MIN_ORDER_QTY_COLOR_VALIDATION,
+	vpd.MIN_ORDER_QTY_COLOR_QTY,
+	vpd.MIN_ORDER_QTY_SIZE_VALIDATION,
+	vpd.MIN_ORDER_QTY_SIZE_QTY,
+	vpd.MIN_UNDER_RECEIPT,
+	vpd.MIN_OVER_RECEIPT,
+	vpd.NOTE_REMARKS,
+	vpd.VPD_ACTIVE,
+	vpd.CREATE_BY,
+	vpd.CREATE_DATE,
+	vpd.UPDATE_BY,
+	vpd.UPDATE_DATE
+FROM
+	vendor_purchase_detail vpd
+LEFT JOIN customer_detail cd ON cd.CTC_ID = vpd.CUSTOMER_ID 
+LEFT JOIN master_item_group mig ON mig.ITEM_GROUP_ID = vpd.ITEM_GROUP_ID 
+LEFT JOIN master_item_type mit ON mit.ITEM_TYPE_ID = vpd.ITEM_TYPE_ID 
+LEFT JOIN master_item_category mic ON mic.ITEM_CATEGORY_ID = vpd.ITEM_CATEGORY_ID 
+LEFT JOIN master_delivery_mode mdm ON mdm.DELIVERY_MODE_CODE = vpd.DELIVERY_MODE_CODE 
+WHERE vpd.VENDOR_ID = :vendorID
+`
