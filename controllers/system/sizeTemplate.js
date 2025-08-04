@@ -19,7 +19,7 @@ export const createSizeChartTemplate = async (req, res) => {
 
 
         const count = await SizeChartTemplateModel.count();
-        const ID = `CSC-${String(count + 1).padStart(7, "0")}`;
+        const ID = `CSC${String(count + 1).padStart(7, "0")}`;
 
 
         const uniqueList = [...new Set(LIST)];
