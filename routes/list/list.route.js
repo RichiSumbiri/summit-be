@@ -31,6 +31,7 @@ import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
 import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
 import { getAllFOBPoint } from "../../controllers/system/FOBPoint.js";
 import { getListCurrency, getListPayMethode } from "../../controllers/system/masterFinance.js";
+import { getMasterUOMAll, getUOMConversion, postUOMConversion } from "../../controllers/system/uom.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -79,7 +80,10 @@ router.get("/service-category", getMasterServiceCategory);
 //production process
 router.get("/production-process", getMasterProductionProcess);
 
-
+// master UOM
+router.get("/uom", getMasterUOMAll);
+router.get("/uom-conversion", getUOMConversion);
+router.post("/uom-conversion", postUOMConversion);
 
 // warehouse class
 router.get("/warehouse-class", getMasterWarehouseClassAll);
