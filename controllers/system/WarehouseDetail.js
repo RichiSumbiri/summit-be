@@ -17,6 +17,7 @@ export const getMasterWarehouseDetail = async (req, res) => {
             data: warehouseDetails,
         });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,

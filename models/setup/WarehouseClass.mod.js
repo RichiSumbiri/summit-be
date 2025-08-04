@@ -35,25 +35,26 @@ import { DataTypes } from "sequelize";
 
   export const queryGetAllMasterWarehouseClass = `
   SELECT
-	m.WHC_ID,
-	m.WHC_REF_CODE,
-	m.WHC_DESCRIPTION,
-	m.WHC_ACTIVE,
-	m.WHC_ITEM_CATEGORY_ID,
-	m2.ITEM_CATEGORY_CODE,
-	m2.ITEM_CATEGORY_DESCRIPTION,
-	m3.ITEM_TYPE_ID,
-	m3.ITEM_TYPE_CODE,
-	m3.ITEM_TYPE_DESCRIPTION,
-	m4.ITEM_GROUP_ID,
-	m4.ITEM_GROUP_CODE,
-	m4.ITEM_GROUP_DESCRIPTION
+      m.WHC_ID,
+      m.WHC_REF_CODE,
+      m.WHC_DESCRIPTION,
+      m.WHC_ACTIVE,
+      m.WHC_ITEM_CATEGORY_ID,
+      m2.ITEM_CATEGORY_CODE,
+      m2.ITEM_CATEGORY_DESCRIPTION,
+      m3.ITEM_TYPE_ID,
+      m3.ITEM_TYPE_CODE,
+      m3.ITEM_TYPE_DESCRIPTION,
+      m4.ITEM_GROUP_ID,
+      m4.ITEM_GROUP_CODE,
+      m4.ITEM_GROUP_DESCRIPTION
 FROM
 	master_warehouse_class m
 LEFT JOIN master_item_category m2 ON m2.ITEM_CATEGORY_ID = m.WHC_ITEM_CATEGORY_ID
 LEFT JOIN master_item_type m3 ON m3.ITEM_TYPE_ID = m2.ITEM_TYPE_ID
 LEFT JOIN master_item_group m4 ON m4.ITEM_GROUP_ID = m3.ITEM_GROUP_ID 
-  `;
+ORDER BY m.WHC_ID
+`;
 
 
 export const ModelMasterLocationType = db.define('master_location_type', {
