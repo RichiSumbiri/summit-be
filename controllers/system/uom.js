@@ -46,7 +46,7 @@ export const postUOMConversion = async(req,res) => {
                 UOM_ID_SOURCE: DataUOMConversion.UOM_ID_SOURCE,
                 UOM_ID_DESTINATION: DataUOMConversion.UOM_ID_DESTINATION,
                 CONVERSION_FACTOR: DataUOMConversion.CONVERSION_FACTOR,
-                ACTIVE_FLAG: true
+                ACTIVE_FLAG: DataUOMConversion.ACTIVE_FLAG
             }, {
                 where: {
                     ID_CONVERSION: DataUOMConversion.ID_CONVERSION
@@ -57,7 +57,7 @@ export const postUOMConversion = async(req,res) => {
                 UOM_ID_SOURCE: DataUOMConversion.UOM_ID_SOURCE,
                 UOM_ID_DESTINATION: DataUOMConversion.UOM_ID_DESTINATION,
                 CONVERSION_FACTOR: DataUOMConversion.CONVERSION_FACTOR,
-                ACTIVE_FLAG: true
+                ACTIVE_FLAG: DataUOMConversion.ACTIVE_FLAG
             });
         }
 
