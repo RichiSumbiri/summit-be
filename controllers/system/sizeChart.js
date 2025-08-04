@@ -72,7 +72,7 @@ export const createSize = async (req, res) => {
       where: {
         [Op.and]: [
           { SIZE_CODE: { [Op.ne]: null } },
-          {ITEM_CATEGORY_ID: sizeData.ITEM_CATEGORY_ID, ITEM_TYPE_ID: sizeData.ITEM_TYPE_ID, ITEM_GROUP_ID: sizeData.ITEM_GROUP_ID},
+          // {ITEM_CATEGORY_ID: sizeData.ITEM_CATEGORY_ID, ITEM_TYPE_ID: sizeData.ITEM_TYPE_ID, ITEM_GROUP_ID: sizeData.ITEM_GROUP_ID},
           Sequelize.where(
             Sequelize.fn(
               "LOWER",
@@ -145,9 +145,9 @@ export const editSize = async (req, res) => {
         [Op.and]: [
           { SIZE_ID: { [Op.ne]: SIZE_ID } },
           { SIZE_CODE: { [Op.ne]: null } },
-          {ITEM_CATEGORY_ID: sizeData.ITEM_CATEGORY_ID},
-          {ITEM_TYPE_ID: sizeData.ITEM_TYPE_ID},
-          {ITEM_GROUP_ID: sizeData.ITEM_GROUP_ID},
+          // {ITEM_CATEGORY_ID: sizeData.ITEM_CATEGORY_ID},
+          // {ITEM_TYPE_ID: sizeData.ITEM_TYPE_ID},
+          // {ITEM_GROUP_ID: sizeData.ITEM_GROUP_ID},
           Sequelize.where(
             Sequelize.fn(
               "LOWER",
