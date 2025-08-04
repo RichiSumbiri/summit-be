@@ -3,6 +3,7 @@ import db from "../../config/database.js";
 import { MasterItemCategories } from "../setup/ItemCategories.mod.js";
 import { MasterItemTypes } from "../setup/ItemTypes.mod.js";
 import { MasterItemGroup } from "../setup/ItemGroups.mod.js";
+import Users from "../setup/users.mod.js";
 
 const colorChart = db.define(
   "master_color_chart",
@@ -49,11 +50,25 @@ const colorChart = db.define(
 
 export default colorChart;
 
-colorChart.belongsTo(MasterItemCategories, {
-    foreignKey: "ITEM_CATEGORY_ID",
-    targetKey: "ITEM_CATEGORY_ID",
-    as: "item_categories",
+colorChart.belongsTo(Users, {
+    foreignKey: "CREATED_BY",
+    targetKey: "USER_ID",
+    as: "created_by",
 });
+
+colorChart.belongsTo(Users, {
+    foreignKey: "UPDATED_BY",
+    targetKey: "USER_ID",
+    as: "updated_by",
+});
+
+
+
+// colorChart.belongsTo(MasterItemCategories, {
+//     foreignKey: "ITEM_CATEGORY_ID",
+//     targetKey: "ITEM_CATEGORY_ID",
+//     as: "item_categories",
+// });
 
 // colorChart.belongsTo(MasterItemTypes, {
 //     foreignKey: "ITEM_TYPE_ID",
@@ -61,11 +76,11 @@ colorChart.belongsTo(MasterItemCategories, {
 //     as: "item_types",
 // });
 
-colorChart.belongsTo(MasterItemGroup, {
-    foreignKey: "ITEM_GROUP_ID",
-    targetKey: "ITEM_GROUP_ID",
-    as: "item_groups",
-});
+// colorChart.belongsTo(MasterItemGroup, {
+//     foreignKey: "ITEM_GROUP_ID",
+//     targetKey: "ITEM_GROUP_ID",
+//     as: "item_groups",
+// });
 
 
 export const FGColorChartModel = db.define(

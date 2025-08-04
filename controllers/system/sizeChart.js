@@ -50,11 +50,7 @@ export const getSizes = async (req, res) => {
       200
     );
   } catch (err) {
-    return res.json(500).json({
-      status: false,
-      message: "Failed to fetch sizes data",
-      error: err.error,
-    });
+    return errorResponse(res, err, "Failed to fetch sizes data", 500);
   }
 };
 

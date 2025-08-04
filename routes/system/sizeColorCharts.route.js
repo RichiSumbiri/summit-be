@@ -26,6 +26,7 @@ import {
   getSizeItemCategories,
   deleteSizeItemCategory,
 } from "../../controllers/system/sizeItemCategory.js";
+import { createOrEditColorItemCategory, deleteColorItemCategory, getColorItemCategories } from "../../controllers/system/colorItemCategory.js";
 
 const router = express.Router();
 
@@ -62,10 +63,17 @@ router.post("/color/", createColor);
 router.get("/color/:COLOR_ID", showColor);
 router.put("/color/:COLOR_ID", editColor);
 router.post("/color/delete", deleteColor);
+
+// fg color
 router.get("/fg-color", getAllFGColorCharts);
 router.post("/fg-color", createFGColorChart);
 router.get("/fg-color/:id", getFGColorChartById);
 router.put("/fg-color/:id",  updateFGColorChart);
 router.delete("/fg-color/:id", deleteFGColorChart);
+
+//color item category
+router.get("/color-item-category", getColorItemCategories);
+router.put("/color-item-category/:COLOR_ID", createOrEditColorItemCategory);
+router.post("/color-item-category/delete", deleteColorItemCategory);
 
 export default router;

@@ -222,16 +222,28 @@ export const getGenerateWorkingDays = async (req, res) => {
 export const saveGeneratedWorkDaysFlag = async (req, res) => {
   try {
     const { data } = req.body;
+
     for (const dataRow of data) {
-      await GeneratedWorkingDays.update(
-        {
+      const existing = await GeneratedWorkingDays.findOne({
+        where: { GENERATED_WORKING_DAY_ID: dataRow.GENERATED_WORKING_DAY_ID },
+      });
+
+      if (!existing) continue;
+
+      const flagDB = !!existing.CONFIRMED_FLAG;
+      const flagInput = dataRow.CONFIRMED_FLAG === 1;
+
+      const needsUpdate = flagDB !== flagInput;
+
+      if (needsUpdate) {
+        await existing.update({
           CONFIRMED_DATE: dataRow.CONFIRMED_DATE,
           CONFIRMED_BY: dataRow.CONFIRMED_BY,
           CONFIRMED_FLAG: dataRow.CONFIRMED_FLAG,
-        },
-        { where: { GENERATED_WORKING_DAY_ID: dataRow.GENERATED_WORKING_DAY_ID } }
-      );
+        });
+      }
     }
+
     res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
     res.status(500).json({ message: "Update failed", error: err });
