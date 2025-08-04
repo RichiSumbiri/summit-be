@@ -3,53 +3,44 @@ import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 import { successResponse, errorResponse } from "../helpers/responseHelper.js";
-import {Op, Sequelize} from "sequelize";
+import { Op, Sequelize } from "sequelize";
+import Users from "../../models/setup/users.mod.js";
+import { getPagination } from "../util/Query.js";
 
 export const getSizes = async (req, res) => {
   try {
-    const { ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = req.query;
+    const { SIZE_ID, page, limit } = req.query;
 
-    const where = {
-      ...(ITEM_CATEGORY_ID && { ITEM_CATEGORY_ID }),
-      ...(ITEM_GROUP_ID && { ITEM_GROUP_ID }),
-      ...(ITEM_TYPE_ID && { ITEM_TYPE_ID }),
-    };
+    const include = SIZE_ID
+      ? [] // no joins if filtering by SIZE_ID
+      : [
+          {
+            model: Users,
+            as: "created_by",
+            required: true,
+            attributes: [["USER_INISIAL", "CREATED_BY"]],
+          },
+          {
+            model: Users,
+            as: "updated_by",
+            required: true,
+            attributes: [["USER_INISIAL", "UPDATED_BY"]],
+          },
+        ];
+
+    const where = SIZE_ID
+      ? {
+          SIZE_ID: {
+            [Op.like]: `%${SIZE_ID}%`,
+          },
+        }
+      : undefined;
 
     const sizesData = await sizeChart.findAll({
-      where: where,
-      include: [
-        {
-          model: MasterItemCategories,
-          as: "item_categories",
-          required: true,
-          attributes: [
-            "ITEM_CATEGORY_ID",
-            "ITEM_CATEGORY_CODE",
-            ["ITEM_CATEGORY_DESCRIPTION", "ITEM_CATEGORY_NAME"],
-          ],
-        },
-        {
-          model: MasterItemTypes,
-          as: "item_types",
-          required: true,
-          attributes: [
-            "ITEM_TYPE_ID",
-            "ITEM_TYPE_CODE",
-            ["ITEM_TYPE_DESCRIPTION", "ITEM_TYPE_NAME"],
-          ],
-        },
-        {
-          model: MasterItemGroup,
-          as: "item_groups",
-          required: true,
-          attributes: [
-            "ITEM_GROUP_ID",
-            "ITEM_GROUP_CODE",
-            ["ITEM_GROUP_DESCRIPTION", "ITEM_GROUP_NAME"],
-          ],
-        },
-      ],
+      where,
       order: [["SIZE_ID"]],
+      include,
+      ...getPagination(page, limit),
     });
 
     return successResponse(
@@ -62,8 +53,8 @@ export const getSizes = async (req, res) => {
     return res.json(500).json({
       status: false,
       message: "Failed to fetch sizes data",
-      error: err.error
-    })
+      error: err.error,
+    });
   }
 };
 
@@ -83,22 +74,21 @@ export const createSize = async (req, res) => {
           { SIZE_CODE: { [Op.ne]: null } },
           {ITEM_CATEGORY_ID: sizeData.ITEM_CATEGORY_ID, ITEM_TYPE_ID: sizeData.ITEM_TYPE_ID, ITEM_GROUP_ID: sizeData.ITEM_GROUP_ID},
           Sequelize.where(
-              Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("SIZE_CODE"))),
-              normalizedSizeCode
+            Sequelize.fn(
+              "LOWER",
+              Sequelize.fn("TRIM", Sequelize.col("SIZE_CODE"))
+            ),
+            normalizedSizeCode
           ),
         ],
       },
     });
 
-
     if (existingSize) {
       return errorResponse(res, null, "SIZE_CODE already exists", 400);
     }
 
-    await chechMasterExist(sizeData);
     const customId = await generateCustomId();
-
-
 
     sizeData.SIZE_ID = customId;
     await sizeChart.create(sizeData);
@@ -115,38 +105,7 @@ export const showSize = async (req, res) => {
 
     const sizeData = await sizeChart.findOne({
       where: { SIZE_ID: SIZE_ID },
-      include: [
-        {
-          model: MasterItemCategories,
-          as: "item_categories",
-          required: true,
-          attributes: [
-            "ITEM_CATEGORY_ID",
-            "ITEM_CATEGORY_CODE",
-            ["ITEM_CATEGORY_DESCRIPTION", "ITEM_CATEGORY_NAME"],
-          ],
-        },
-        {
-          model: MasterItemTypes,
-          as: "item_types",
-          required: true,
-          attributes: [
-            "ITEM_TYPE_ID",
-            "ITEM_TYPE_CODE",
-            ["ITEM_TYPE_DESCRIPTION", "ITEM_TYPE_NAME"],
-          ],
-        },
-        {
-          model: MasterItemGroup,
-          as: "item_groups",
-          required: true,
-          attributes: [
-            "ITEM_GROUP_ID",
-            "ITEM_GROUP_CODE",
-            ["ITEM_GROUP_DESCRIPTION", "ITEM_GROUP_NAME"],
-          ],
-        },
-      ],
+      attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
     });
 
     if (!sizeData) {
@@ -190,19 +149,20 @@ export const editSize = async (req, res) => {
           {ITEM_TYPE_ID: sizeData.ITEM_TYPE_ID},
           {ITEM_GROUP_ID: sizeData.ITEM_GROUP_ID},
           Sequelize.where(
-              Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("SIZE_CODE"))),
-              normalizedSizeCode
+            Sequelize.fn(
+              "LOWER",
+              Sequelize.fn("TRIM", Sequelize.col("SIZE_CODE"))
+            ),
+            normalizedSizeCode
           ),
         ],
       },
     });
 
-
     if (existingSize) {
       return errorResponse(res, null, "SIZE_CODE already exists", 400);
     }
 
-    await chechMasterExist(dataSizes);
     await sizeData.update(dataSizes);
 
     return successResponse(res, null, "Size updated successfully", 200);
@@ -253,28 +213,28 @@ const generateCustomId = async () => {
   return nextId;
 };
 
-const chechMasterExist = async (data) => {
-  const dropdowns = {
-    MasterItemCategories: "ITEM_CATEGORY_ID",
-    MasterItemGroup: "ITEM_GROUP_ID",
-    MasterItemTypes: "ITEM_TYPE_ID",
-  };
+// const chechMasterExist = async (data) => {
+//   const dropdowns = {
+//     MasterItemCategories: "ITEM_CATEGORY_ID",
+//     MasterItemGroup: "ITEM_GROUP_ID",
+//     MasterItemTypes: "ITEM_TYPE_ID",
+//   };
 
-  const models = {
-    MasterItemCategories,
-    MasterItemTypes,
-    MasterItemGroup,
-  };
+//   const models = {
+//     MasterItemCategories,
+//     MasterItemTypes,
+//     MasterItemGroup,
+//   };
 
-  for (const [modelKey, fieldKey] of Object.entries(dropdowns)) {
-    const model = models[modelKey];
-    const masterItem = await model.findByPk(data[fieldKey]);
+//   for (const [modelKey, fieldKey] of Object.entries(dropdowns)) {
+//     const model = models[modelKey];
+//     const masterItem = await model.findByPk(data[fieldKey]);
 
-    if (!masterItem) {
-      throw new Error(`${modelKey} not found`);
-    }
-  }
-};
+//     if (!masterItem) {
+//       throw new Error(`${modelKey} not found`);
+//     }
+//   }
+// };
 
 export const createFGSizeChart = async (req, res) => {
   try {

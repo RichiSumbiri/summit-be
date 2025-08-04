@@ -16,18 +16,6 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-      ITEM_GROUP_ID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      ITEM_TYPE_ID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      ITEM_CATEGORY_ID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
       IS_ACTIVE: {
         type: Sequelize.BOOLEAN,
         allowNull: false,

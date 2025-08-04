@@ -20,18 +20,6 @@ const colorChart = db.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    ITEM_GROUP_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    ITEM_TYPE_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    ITEM_CATEGORY_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     IS_ACTIVE: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -59,26 +47,25 @@ const colorChart = db.define(
   }
 );
 
+export default colorChart;
+
 colorChart.belongsTo(MasterItemCategories, {
     foreignKey: "ITEM_CATEGORY_ID",
     targetKey: "ITEM_CATEGORY_ID",
     as: "item_categories",
 });
 
-colorChart.belongsTo(MasterItemTypes, {
-    foreignKey: "ITEM_TYPE_ID",
-    targetKey: "ITEM_TYPE_ID",
-    as: "item_types",
-});
+// colorChart.belongsTo(MasterItemTypes, {
+//     foreignKey: "ITEM_TYPE_ID",
+//     targetKey: "ITEM_TYPE_ID",
+//     as: "item_types",
+// });
 
 colorChart.belongsTo(MasterItemGroup, {
     foreignKey: "ITEM_GROUP_ID",
     targetKey: "ITEM_GROUP_ID",
     as: "item_groups",
 });
-
-export default colorChart;
-
 
 
 export const FGColorChartModel = db.define(

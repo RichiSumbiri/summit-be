@@ -1,8 +1,6 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
-import { MasterItemCategories } from "../setup/ItemCategories.mod.js";
-import { MasterItemTypes } from "../setup/ItemTypes.mod.js";
-import { MasterItemGroup } from "../setup/ItemGroups.mod.js";
+import Users from "../setup/users.mod.js";
 
 const sizeChart = db.define(
   "master_size_chart",
@@ -18,18 +16,6 @@ const sizeChart = db.define(
     },
     SIZE_DESCRIPTION: {
       type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    ITEM_GROUP_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    ITEM_TYPE_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    ITEM_CATEGORY_ID: {
-      type: DataTypes.INTEGER,
       allowNull: false,
     },
     IS_ACTIVE: {
@@ -59,27 +45,19 @@ const sizeChart = db.define(
   }
 );
 
-sizeChart.belongsTo(MasterItemCategories, {
-    foreignKey: "ITEM_CATEGORY_ID",
-    targetKey: "ITEM_CATEGORY_ID",
-    as: "item_categories",
-});
-
-sizeChart.belongsTo(MasterItemTypes, {
-    foreignKey: "ITEM_TYPE_ID",
-    targetKey: "ITEM_TYPE_ID",
-    as: "item_types",
-});
-
-sizeChart.belongsTo(MasterItemGroup, {
-    foreignKey: "ITEM_GROUP_ID",
-    targetKey: "ITEM_GROUP_ID",
-    as: "item_groups",
-});
-
-
 export default sizeChart;
 
+sizeChart.belongsTo(Users, {
+    foreignKey: "CREATED_BY",
+    targetKey: "USER_ID",
+    as: "created_by",
+});
+
+sizeChart.belongsTo(Users, {
+    foreignKey: "UPDATED_BY",
+    targetKey: "USER_ID",
+    as: "updated_by",
+});
 
 export const FGSizeChartModel = db.define(
     "fg_size_chart",

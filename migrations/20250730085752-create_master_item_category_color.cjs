@@ -2,18 +2,27 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("master_color_chart", {
+    await queryInterface.createTable("master_item_category_color", {
+      ITEM_CATEGORY_COLOR_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       COLOR_ID: {
         type: Sequelize.STRING(25),
         allowNull: false,
-        primaryKey: true,
       },
-      COLOR_CODE: {
-        type: Sequelize.STRING(255),
+      ITEM_GROUP_ID: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      COLOR_DESCRIPTION: {
-        type: Sequelize.STRING(255),
+      ITEM_TYPE_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      ITEM_CATEGORY_ID: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       IS_ACTIVE: {
@@ -49,6 +58,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("master_color_chart");
+    await queryInterface.dropTable("master_item_category_color");
   },
 };
