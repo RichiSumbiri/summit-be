@@ -1,4 +1,6 @@
-import sizeChart, {FGSizeChartModel} from "../../models/system/sizeChart.mod.js";
+import sizeChart, {
+  FGSizeChartModel,
+} from "../../models/system/sizeChart.mod.js";
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
@@ -9,10 +11,10 @@ import { getPagination } from "../util/Query.js";
 
 export const getSizes = async (req, res) => {
   try {
-    const { SIZE_ID, page, limit } = req.query;
+    const { SEARCH_TEXT, page, limit } = req.query;
 
-    const include = SIZE_ID
-      ? [] // no joins if filtering by SIZE_ID
+    const include = SEARCH_TEXT
+      ? []
       : [
           {
             model: Users,
@@ -28,13 +30,15 @@ export const getSizes = async (req, res) => {
           },
         ];
 
-    const where = SIZE_ID
-      ? {
-          SIZE_ID: {
-            [Op.like]: `%${SIZE_ID}%`,
-          },
-        }
-      : undefined;
+    const where = {};
+
+    if (SEARCH_TEXT) {
+      where[Op.or] = [
+        { SIZE_CODE: { [Op.like]: `%${SEARCH_TEXT}%` } },
+        { SIZE_DESCRIPTION: { [Op.like]: `%${SEARCH_TEXT}%` } },
+        { SIZE_ID: { [Op.like]: `%${SEARCH_TEXT}%` } },
+      ];
+    }
 
     const sizesData = await sizeChart.findAll({
       where,
@@ -255,8 +259,8 @@ export const createFGSizeChart = async (req, res) => {
       where: {
         MASTER_ITEM_ID,
         SIZE_ID,
-        IS_DELETED: false
-      }
+        IS_DELETED: false,
+      },
     });
 
     if (exits) {
@@ -289,7 +293,7 @@ export const getAllFGSizeCharts = async (req, res) => {
     const { MASTER_ITEM_ID } = req.query;
 
     const where = {
-      IS_DELETED: false
+      IS_DELETED: false,
     };
 
     if (MASTER_ITEM_ID) {
@@ -411,8 +415,8 @@ export const deleteFGSizeChart = async (req, res) => {
 
     await entry.update({
       IS_DELETED: true,
-      DELETED_AT: new Date()
-    })
+      DELETED_AT: new Date(),
+    });
 
     return res.status(200).json({
       success: true,

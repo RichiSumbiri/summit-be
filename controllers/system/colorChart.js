@@ -11,10 +11,10 @@ import { getPagination } from "../util/Query.js";
 
 export const getColors = async (req, res) => {
   try {
-    const { COLOR_ID, page, limit } = req.query;
+    const { SEARCH_TEXT, page, limit } = req.query;
 
-    const include = COLOR_ID
-      ? [] // no joins if filtering by COLOR_ID
+    const include = SEARCH_TEXT
+      ? []
       : [
           {
             model: Users,
@@ -30,13 +30,15 @@ export const getColors = async (req, res) => {
           },
         ];
 
-    const where = COLOR_ID
-      ? {
-          COLOR_ID: {
-            [Op.like]: `%${COLOR_ID}%`,
-          },
-        }
-      : undefined;
+    const where = {};
+
+    if (SEARCH_TEXT) {
+      where[Op.or] = [
+        { COLOR_CODE: { [Op.like]: `%${SEARCH_TEXT}%` } },
+        { COLOR_DESCRIPTION: { [Op.like]: `%${SEARCH_TEXT}%` } },
+        { COLOR_ID: { [Op.like]: `%${SEARCH_TEXT}%` } },
+      ];
+    }
 
     const colorsData = await colorChart.findAll({
       where,
