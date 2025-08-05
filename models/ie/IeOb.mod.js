@@ -297,7 +297,7 @@ xux.USER_INISIAL AS USER_MOD
 FROM ie_ob_header ioh 
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = ioh.OB_ADD_ID
 LEFT JOIN xref_user_web xux ON xux.USER_ID = ioh.OB_MOD_ID 
-LEFT JOIN item_list_style ils ON ils.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID AND ils.CUSTOMER_NAME  = ioh.CUSTOMER_NAME
+LEFT JOIN item_list_style ils ON ils.PRODUCT_ITEM_ID = ioh.PRODUCT_ITEM_ID AND ils.CUSTOMER_NAME  = ioh.CUSTOMER_NAME AND ils.DELETE_STATUS = 0
 WHERE ioh.OB_ID = :obId
 AND ioh.OB_DELETE_STATUS = 0
 `
