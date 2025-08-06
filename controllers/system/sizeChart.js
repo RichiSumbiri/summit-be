@@ -89,7 +89,9 @@ export const createSize = async (req, res) => {
     sizeData.SIZE_ID = customId;
     await sizeChart.create(sizeData);
 
-    return successResponse(res, null, "Size created successfully", 201);
+    return successResponse(res, {
+      SIZE_ID: customId
+    }, "Size created successfully", 201);
   } catch (err) {
     return errorResponse(res, err, "Failed to create size data", 400);
   }
@@ -161,7 +163,9 @@ export const editSize = async (req, res) => {
 
     await sizeData.update(dataSizes);
 
-    return successResponse(res, null, "Size updated successfully", 200);
+    return successResponse(res, {
+      SIZE_ID
+    }, "Size updated successfully", 200);
   } catch (err) {
     return errorResponse(res, err, "Failed to update size", 400);
   }

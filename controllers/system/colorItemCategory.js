@@ -7,12 +7,24 @@ import colorChart from "../../models/system/colorChart.mod.js";
 
 export const getColorItemCategories = async (req, res) => {
   try {
-    const { COLOR_ID } = req.query;
+    const { COLOR_ID, ITEM_CATEGORY_ID, ITEM_TYPE_ID, ITEM_GROUP_ID } = req.query;
 
     const whereClause = {};
 
     if (COLOR_ID) {
       whereClause.COLOR_ID = COLOR_ID;
+    }
+
+    if (ITEM_CATEGORY_ID) {
+      whereClause.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID;
+    }
+
+    if (ITEM_TYPE_ID) {
+      whereClause.ITEM_TYPE_ID = ITEM_TYPE_ID;
+    }
+
+    if (ITEM_GROUP_ID) {
+      whereClause.ITEM_GROUP_ID = ITEM_GROUP_ID;
     }
 
     const colorsData = await colorItemCategory.findAll({

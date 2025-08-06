@@ -1,11 +1,12 @@
 import MasterAttributeSetting from "../../models/system/masterAttributeSetting.mod.js";
 import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.js";
-import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
-import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
-import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
+import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
+import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
+import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import {Op, Sequelize} from "sequelize";
 
 export const getAllAttributeSettings = async (req, res) => {
-    const {ITEM_CATEGORY_ID,ITEM_TYPE_ID,ITEM_GROUP_ID} = req.query
+    const {ITEM_CATEGORY_ID, ITEM_TYPE_ID, ITEM_GROUP_ID} = req.query
     const whereCondition = {}
     if (ITEM_CATEGORY_ID) {
         whereCondition.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
@@ -35,7 +36,7 @@ export const getAllAttributeSettings = async (req, res) => {
                     attributes: ["ITEM_CATEGORY_ID", "ITEM_CATEGORY_CODE", "ITEM_CATEGORY_DESCRIPTION"],
                 },
             ],
-            where: { IS_DELETED: false, ...whereCondition },
+            where: {IS_DELETED: false, ...whereCondition},
         });
 
         return res.status(200).json({
@@ -54,18 +55,18 @@ export const getAllAttributeSettings = async (req, res) => {
 
 export const getAttributeSettingById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const setting = await MasterAttributeSetting.findByPk(id, {
             include: [
                 {
                     model: MasterAttributeValue,
                     as: "attributeValues",
-                    where: { IS_DELETED: false },
+                    where: {IS_DELETED: false},
                     required: false,
                 },
             ],
-            where: { IS_DELETED: false },
+            where: {IS_DELETED: false},
         });
 
         if (!setting) {
@@ -91,12 +92,58 @@ export const getAttributeSettingById = async (req, res) => {
 
 export const createAttributeSetting = async (req, res) => {
     try {
-        const { ID, NAME, DATA_TYPE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, IS_ACTIVE, IS_ATTRIBUTE, IS_DISPLAY, USER_ID } = req.body;
+        const {
+            ID,
+            NAME,
+            DATA_TYPE,
+            ITEM_GROUP_ID,
+            ITEM_TYPE_ID,
+            ITEM_CATEGORY_ID,
+            IS_ACTIVE,
+            IS_ATTRIBUTE,
+            IS_DISPLAY,
+            USER_ID
+        } = req.body;
         let message = "Attribute Setting created successfully";
+
+
+        if (!NAME || !DATA_TYPE) {
+            return res.status(400).json({
+                success: false,
+                message: "NAME and DATA_TYPE are required",
+            });
+        }
+
+
+        const normalizedNAME = NAME.trim().toLowerCase();
+        const existingEntry = await MasterAttributeSetting.findOne({
+            where: {
+                [Op.and]: [
+                    {NAME: {[Op.ne]: null}},
+                    Sequelize.where(
+                        Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("NAME"))),
+                        normalizedNAME
+                    ),
+                    {ITEM_GROUP_ID},
+                    {ITEM_TYPE_ID},
+                    {ITEM_CATEGORY_ID},
+                    {IS_DELETED: false},
+                    ID ? {ID: {[Op.ne]: ID}} : {},
+                ],
+            },
+        });
+
+        if (existingEntry) {
+            return res.status(400).json({
+                success: false,
+                message: "NAME already exists",
+            });
+        }
+
         if (ID) {
             const [updated] = await MasterAttributeSetting.update(
                 {
-                    NAME,
+                    NAME: NAME.trim(),
                     DATA_TYPE,
                     ITEM_GROUP_ID,
                     ITEM_TYPE_ID,
@@ -108,7 +155,7 @@ export const createAttributeSetting = async (req, res) => {
                     UPDATED_AT: new Date(),
                 },
                 {
-                    where: { ID: ID, IS_DELETED: false },
+                    where: {ID: ID, IS_DELETED: false},
                 }
             );
             if (!updated) {
@@ -117,12 +164,13 @@ export const createAttributeSetting = async (req, res) => {
                     message: "Attribute Setting not found",
                 });
             }
-            message = "Attribute Setting update successfully";
+            message = "Attribute Setting updated successfully";
         } else {
+
             const count = await MasterAttributeSetting.count();
             await MasterAttributeSetting.create({
                 ID: `IAM${String(count + 1).padStart(7, "0")}`,
-                NAME,
+                NAME: NAME.trim(),
                 DATA_TYPE,
                 ITEM_GROUP_ID,
                 ITEM_TYPE_ID,
@@ -150,11 +198,11 @@ export const createAttributeSetting = async (req, res) => {
 };
 
 export const updateAttributeSettingAction = async (req, res) => {
-    const { id } = req.params;
+    const {id} = req.params;
     const body = req.body;
 
     const [updated] = await MasterAttributeSetting.update(body, {
-        where: { ID: id, IS_DELETED: false },
+        where: {ID: id, IS_DELETED: false},
         returning: true,
     });
 
@@ -173,8 +221,8 @@ export const updateAttributeSettingAction = async (req, res) => {
 
 export const updateAttributeSetting = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { NAME, DATA_TYPE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, USER_ID } = req.body;
+        const {id} = req.params;
+        const {NAME, DATA_TYPE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, USER_ID} = req.body;
 
         const [updated] = await MasterAttributeSetting.update(
             {
@@ -187,7 +235,7 @@ export const updateAttributeSetting = async (req, res) => {
                 UPDATED_AT: new Date(),
             },
             {
-                where: { ID: id, IS_DELETED: false },
+                where: {ID: id, IS_DELETED: false},
                 returning: true,
             }
         );
@@ -217,7 +265,7 @@ export const updateAttributeSetting = async (req, res) => {
 
 export const deleteAttributeSetting = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const [deleted] = await MasterAttributeSetting.update(
             {
@@ -225,7 +273,7 @@ export const deleteAttributeSetting = async (req, res) => {
                 DELETED_AT: new Date(),
             },
             {
-                where: { ID: id },
+                where: {ID: id},
                 returning: true,
             }
         );

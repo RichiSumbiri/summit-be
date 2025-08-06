@@ -50,7 +50,7 @@ export const createSiteFx = async (req, res) => {
         const newSite = await MasterSiteFxModel.create({
             ID,
             CODE,
-            NAME,
+            NAME: NAME.trim(),
             ADDRESS_1,
             ADDRESS_2,
             CITY,
@@ -164,16 +164,21 @@ export const updateSiteFx = async (req, res) => {
             UNIT_ID
         } = req.body;
 
-        const site = await MasterSiteFxModel.findOne({ where: { ID: id } });
+        if (!CODE || !NAME) {
+            return res.status(400).json({
+                success: false,
+                message: " CODE, and NAME are required",
+            });
+        }
 
+
+        const site = await MasterSiteFxModel.findOne({ where: { ID: id } });
         if (!site) {
             return res.status(404).json({
                 success: false,
                 message: "Site not found",
             });
         }
-
-
 
         const existCode = await MasterSiteFxModel.findOne({
             where: {
@@ -194,7 +199,7 @@ export const updateSiteFx = async (req, res) => {
 
         await site.update({
             CODE,
-            NAME,
+            NAME: NAME.trim(),
             ADDRESS_1,
             ADDRESS_2,
             CITY,

@@ -4,7 +4,7 @@ export const createSite = async (req, res) => {
     try {
         const { IDSECTION, IDDEPT, SITE_NAME, CUS_NAME } = req.body;
 
-        if (!IDSECTION || !IDDEPT) {
+        if (!IDSECTION || !IDDEPT || !SITE_NAME) {
             return res.status(400).json({
                 success: false,
                 message: "IDSECTION and IDDEPT are required",
@@ -25,7 +25,7 @@ export const createSite = async (req, res) => {
         const newSite = await MasterSitesModel.create({
             IDSECTION,
             IDDEPT,
-            SITE_NAME,
+            SITE_NAME: SITE_NAME.trim(),
             CUS_NAME,
         });
 
@@ -102,6 +102,12 @@ export const updateSite = async (req, res) => {
         const { idsection } = req.params;
         const { IDDEPT, SITE_NAME, CUS_NAME } = req.body;
 
+        if (!IDDEPT || !SITE_NAME) {
+            return res.status(400).json({
+                message: "IDDEPT | SITE_NAME are required"
+            })
+        }
+
         const site = await MasterSitesModel.findOne({
             where: { IDSECTION: idsection },
         });
@@ -115,7 +121,7 @@ export const updateSite = async (req, res) => {
 
         await site.update({
             IDDEPT,
-            SITE_NAME,
+            SITE_NAME: SITE_NAME.trim(),
             CUS_NAME,
         });
 

@@ -82,7 +82,7 @@ export const createItem = async (req, res) => {
 
         await MasterItemIdModel.create({
             ITEM_ID: `${masterCategory.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
-            ITEM_CODE,
+            ITEM_CODE: ITEM_CODE.trim(),
             ITEM_DESCRIPTION,
             ITEM_ACTIVE,
             ITEM_GROUP_ID,
@@ -103,6 +103,7 @@ export const createItem = async (req, res) => {
             ITEM_IMAGE,
             CREATE_BY,
             CREATE_DATE: new Date(),
+            IS_DELETED: false
         });
 
         return res.status(201).json({
@@ -130,7 +131,7 @@ export const updateCloneItem = async (req, res) => {
 
     try {
         const masterItem = await MasterItemIdModel.findOne({
-            where: {ITEM_ID},
+            where: {ITEM_ID, IS_DELETED: false},
             include: [
                 {
                     model: MasterItemGroup,
@@ -161,7 +162,7 @@ export const updateCloneItem = async (req, res) => {
         const itemIdCreate = await MasterItemIdModel.create({
             ...masterItem.toJSON(),
             ITEM_DESCRIPTION:masterItem.dataValues.ITEM_DESCRIPTION  + " (Duplicate)",
-            ITEM_CODE: masterItem.dataValues.ITEM_CODE + "_Duplicate",
+            ITEM_CODE: masterItem.dataValues.ITEM_CODE + " (Duplicate)",
             ITEM_ID: `${masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
             CREATE_DATE: new Date(),
         });
@@ -208,15 +209,24 @@ export const updateCloneItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const {search, ITEM_ID} = req.query;
+        const {search, ITEM_ID, ITEM_CATEGORY_ID, IGNORE_ID} = req.query;
 
-        const whereCondition = {};
-        // if (unitId) {
-        //     whereCondition.UNIT_ID = unitId;
-        // }
+        const whereCondition = {IS_DELETED: false}
+
         if (ITEM_ID) {
-            whereCondition.ITEM_ID = { [Op.like]: `%${ITEM_ID}%` };
+            whereCondition.ITEM_ID = { [Op.like]: `%${ITEM_ID}%` }
         }
+        if (ITEM_CATEGORY_ID) {
+            whereCondition.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
+        }
+
+        if (IGNORE_ID) {
+            whereCondition.ITEM_CATEGORY_ID = {
+                [Op.not]:IGNORE_ID
+            }
+        }
+
+
         if (search) {
             whereCondition[Op.or] = [
                 { ITEM_CODE: { [Op.like]: `%${search}%` } },
@@ -373,7 +383,7 @@ export const updateItem = async (req, res) => {
         }
 
         await item.update({
-            ITEM_CODE,
+            ITEM_CODE: ITEM_CODE.trim(),
             ITEM_DESCRIPTION,
             ITEM_ACTIVE,
             ITEM_GROUP_ID,
@@ -426,7 +436,10 @@ export const deleteItem = async (req, res) => {
         }
 
 
-        await item.destroy();
+        await item.update({
+            IS_DELETED: true,
+            DELETED_AT: new Date()
+        })
 
         return res.status(200).json({
             success: true,

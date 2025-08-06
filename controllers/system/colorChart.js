@@ -91,7 +91,9 @@ export const createColor = async (req, res) => {
     colorData.COLOR_ID = customId;
     await colorChart.create(colorData);
 
-    return successResponse(res, null, "Color created successfully", 201);
+    return successResponse(res, {
+      COLOR_ID: customId
+    }, "Color created successfully", 201);
   } catch (err) {
     return errorResponse(res, err, "Failed to create color data", 400);
   }
@@ -163,7 +165,9 @@ export const editColor = async (req, res) => {
 
     await colorData.update(dataColors);
 
-    return successResponse(res, null, "Color updated successfully", 200);
+    return successResponse(res, {
+      COLOR_ID
+    }, "Color updated successfully", 200);
   } catch (err) {
     return errorResponse(res, err, "Failed to update color", 400);
   }

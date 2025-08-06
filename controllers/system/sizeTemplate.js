@@ -27,7 +27,7 @@ export const createSizeChartTemplate = async (req, res) => {
 
         await SizeChartTemplateModel.create({
             ID,
-            DESCRIPTION,
+            DESCRIPTION: DESCRIPTION.trim(),
             CUSTOMER_ID,
             ITEM_CATEGORY_ID,
             LIST: uniqueList,
@@ -110,7 +110,7 @@ export const getSizeChartTemplateById = async (req, res) => {
         const {id} = req.params;
 
         const template = await SizeChartTemplateModel.findOne({
-            where: {ID: id, IS_DELETED: false},
+            where: {ID: id},
         });
 
         if (!template) {
@@ -168,7 +168,7 @@ export const updateSizeChartTemplate = async (req, res) => {
         const uniqueList = [...new Set(LIST)];
 
         await template.update({
-            DESCRIPTION,
+            DESCRIPTION: DESCRIPTION.trim(),
             CUSTOMER_ID,
             ITEM_CATEGORY_ID,
             LIST: uniqueList,

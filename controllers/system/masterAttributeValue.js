@@ -1,5 +1,6 @@
 import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.js";
 import MasterAttributeSetting from "../../models/system/masterAttributeSetting.mod.js";
+import {Op, Sequelize} from "sequelize";
 
 /**
  * Get all attribute values (not deleted)
@@ -83,12 +84,43 @@ export const getAttributeValueById = async (req, res) => {
 export const createAttributeValue = async (req, res) => {
     try {
         const { ID, MASTER_ATTRIBUTE_ID, NAME, CODE, IS_ACTIVE, USER_ID, DESCRIPTION } = req.body;
+        if (!NAME || !CODE) {
+            return res.status(400).json({
+                status: false,
+                message: "NAME || CODE are required"
+            })
+        }
+
+        const normalizedNAME = NAME.trim().toLowerCase();
+        const existingEntry = await MasterAttributeValue.findOne({
+            where: {
+                [Op.and]: [
+                    {NAME: {[Op.ne]: null}},
+                    Sequelize.where(
+                        Sequelize.fn("LOWER", Sequelize.fn("TRIM", Sequelize.col("NAME"))),
+                        normalizedNAME
+                    ),
+                    {MASTER_ATTRIBUTE_ID},
+                    {IS_DELETED: false},
+                    ID ? {ID: {[Op.ne]: ID}} : {},
+                ],
+            },
+        });
+
+        if (existingEntry) {
+            return res.status(400).json({
+                success: false,
+                message: "NAME already exists",
+            });
+        }
+
+
         let message = "Attribute Value created successfully"
         if (ID) {
             const [updated] = await MasterAttributeValue.update(
                 {
                     MASTER_ATTRIBUTE_ID,
-                    NAME,
+                    NAME: NAME.trim(),
                     DESCRIPTION,
                     CODE,
                     IS_ACTIVE,
@@ -112,7 +144,7 @@ export const createAttributeValue = async (req, res) => {
              await MasterAttributeValue.create({
                 ID: `IAV${String(count + 1).padStart(7, "0")}`,
                 MASTER_ATTRIBUTE_ID,
-                NAME,
+                NAME: NAME.trim(),
                  DESCRIPTION,
                 CODE,
                 CREATE_ID: USER_ID,
@@ -143,10 +175,17 @@ export const updateAttributeValue = async (req, res) => {
         const { id } = req.params;
         const { MASTER_ATTRIBUTE_ID, NAME, CODE, IS_ACTIVE, USER_ID } = req.body;
 
+        if (!NAME || !CODE) {
+            return res.status(400).json({
+                status: false,
+                message: "NAME || CODE are required"
+            })
+        }
+
         const [updated] = await MasterAttributeValue.update(
             {
                 MASTER_ATTRIBUTE_ID,
-                NAME,
+                NAME: NAME.trim(),
                 CODE,
                 IS_ACTIVE,
                 UPDATE_ID: USER_ID,

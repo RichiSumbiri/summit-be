@@ -25,7 +25,7 @@ export const createDepartmentFx = async (req, res) => {
         const newDepartment = await modelMasterDepartmentFx.create({
             ID_DEPT,
             UNIT_ID,
-            NAME_DEPT,
+            NAME_DEPT: NAME_DEPT.trim(),
             GOL_DEPT,
             ID_MANAGER,
         });
@@ -98,8 +98,14 @@ export const updateDepartmentFx = async (req, res) => {
         const {id} = req.params;
         const {NAME_DEPT, GOL_DEPT, ID_MANAGER, UNIT_ID} = req.body;
 
-        const department = await modelMasterDepartmentFx.findByPk(id);
+        if (!NAME_DEPT) {
+            return res.status(400).json({
+                success: false,
+                message: "NAME_DEPT are required",
+            });
+        }
 
+        const department = await modelMasterDepartmentFx.findByPk(id);
         if (!department) {
             return res.status(404).json({
                 success: false,
@@ -108,7 +114,7 @@ export const updateDepartmentFx = async (req, res) => {
         }
 
         await department.update({
-            NAME_DEPT,
+            NAME_DEPT: NAME_DEPT.trim(),
             GOL_DEPT,
             UNIT_ID,
             ID_MANAGER,

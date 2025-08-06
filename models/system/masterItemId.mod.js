@@ -113,6 +113,10 @@ const MasterItemIdModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        IS_DELETED: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        }
     },
     {
         tableName: "master_item_id",

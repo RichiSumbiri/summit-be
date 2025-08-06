@@ -8,12 +8,24 @@ import sizeChart from "../../models/system/sizeChart.mod.js";
 
 export const getSizeItemCategories = async (req, res) => {
   try {
-    const { SIZE_ID } = req.query;
+    const { SIZE_ID, ITEM_CATEGORY_ID, ITEM_TYPE_ID, ITEM_GROUP_ID } = req.query;
 
     const whereClause = {};
 
     if (SIZE_ID) {
       whereClause.SIZE_ID = SIZE_ID;
+    }
+
+    if (ITEM_CATEGORY_ID) {
+      whereClause.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID;
+    }
+
+    if (ITEM_TYPE_ID) {
+      whereClause.ITEM_TYPE_ID = ITEM_TYPE_ID;
+    }
+
+    if (ITEM_GROUP_ID) {
+      whereClause.ITEM_GROUP_ID = ITEM_GROUP_ID;
     }
 
     const sizesData = await sizeItemCategory.findAll({

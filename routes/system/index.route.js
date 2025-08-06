@@ -7,6 +7,9 @@ import masterAttributeRoute from "./masterAttribute.route.js";
 import masterItemId from "./masterItem.js";
 import serviceAttributeValuesRoute from "./serviceAttributeValues.route.js";
 import serviceAttributesRoute from "./serviceAttributes.route.js";
+import productItemRoute from "./productItem.route.js";
+import productItemComponentRoute from "./productItemComponent.route.js";
+import bomTemplateRoute from "./bomTemplate.route.js";
 
 const router = express.Router();
 
@@ -22,7 +25,9 @@ router.use("/service-attributes", serviceAttributesRoute);
 router.use("/service-attribute-values", serviceAttributeValuesRoute);
 
 
-
+router.use("/bom-template", bomTemplateRoute)
+router.use("/product-item", productItemRoute)
+router.use("/product-item-component", productItemComponentRoute)
 router.use("/attribute", masterAttributeRoute);
 router.use("/master-item", masterItemId);
 router.use("/warehouse-detail", warehouseDetail);

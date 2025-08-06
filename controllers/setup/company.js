@@ -10,7 +10,7 @@ export const createCompany = async (req, res) => {
         }
         const newCompany = await MasterCompanyModel.create({
             ID,
-            NAME,
+            NAME: NAME.trim(),
             CREATED_AT: new Date(),
             UPDATED_AT: new Date(),
         });
@@ -76,8 +76,14 @@ export const updateCompany = async (req, res) => {
         const { id } = req.params;
         const { NAME } = req.body;
 
-        const company = await MasterCompanyModel.findByPk(id);
+        if (!NAME) {
+            return  res.status(500).json({
+                status: false,
+                message: "NAME are required"
+            })
+        }
 
+        const company = await MasterCompanyModel.findByPk(id);
         if (!company) {
             return res.status(404).json({
                 success: false,
@@ -85,7 +91,7 @@ export const updateCompany = async (req, res) => {
             });
         }
         await company.update({
-            NAME,
+            NAME: NAME.trim(),
             UPDATED_AT: new Date(),
         });
 
