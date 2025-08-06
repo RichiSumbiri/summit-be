@@ -1,7 +1,6 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
 import { ModelWarehouseDetail, ModelWarehouseDetailQuality, ModelWarehouseDetailStatus, qryGetMasterWarehouseDetail } from "../../models/setup/WarehouseDetail.mod.js";
-import { ModelMasterItemQuality } from "../../models/setup/ItemQuality.mod.js";
 
 
 
@@ -83,7 +82,7 @@ export const postMasterWarehouseDetail = async(req,res) => {
                 order: [['WHI_ID', 'DESC']],
                 raw: true
             }); 
-            const newIncrement = !getLastWHIDparseInt ? '': (getLastWHID.WHI_ID.slice(-7)) + 1;
+            const newIncrement = !getLastWHID ? '0000001': (getLastWHID.WHI_ID.slice(-7)) + 1;
             const newWHID = 'WHI' + newIncrement.toString().padStart(7, '0');
             CreatedData = await ModelWarehouseDetail.create({
                 WHI_ID: newWHID,

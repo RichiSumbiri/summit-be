@@ -1,15 +1,25 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
 import { ModelMasterUOM, ModelUOMConversion, queryGetUOMConversion } from "../../models/system/uom.mod.js";
+import { redisConn } from "../../config/dbAudit.js";
 
 
 export const getMasterUOMAll = async(req, res) => {
     try {
-        const listUOM = await ModelMasterUOM.findAll({ raw: true });
+        let data;
+        const dataRedis = await redisConn.get('list-uom');
+        if(dataRedis){
+            data = JSON.parse(dataRedis);
+        } else {
+            data = await ModelMasterUOM.findAll({ raw: true });
+            redisConn.set('list-uom', JSON.stringify(data), { EX: 604800 })
+        }
+        
+        // const listUOM = await ModelMasterUOM.findAll({ raw: true });
         return res.status(200).json({
             success: true,
             message: "success get list UOM",
-            data: listUOM
+            data
         });
     } catch(err){
         return res.status(500).json({

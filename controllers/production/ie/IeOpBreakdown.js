@@ -1734,6 +1734,7 @@ export const postImportObDetail = async (req, res, next) => {
             OB_DETAIL_DESCRIPTION_IDN: descId || '',
             OB_DETAIL_REMARK: remarkEn || '',
             OB_DETAIL_REMARK_IDN: remarkId || '',
+            OB_DETAIL_SMV: item.OB_DETAIL_SMV ? parseFloat(item.OB_DETAIL_SMV) : 0, // pastikan OB_DETAIL_SMV adalah angka
             OB_DETAIL_TARGET: Math.round(Number(item.OB_DETAIL_TARGET) || 0)
           };
         });
