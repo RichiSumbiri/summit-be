@@ -30,7 +30,7 @@ export const getSizeItemCategories = async (req, res) => {
 
     const sizesData = await sizeItemCategory.findAll({
       where: whereClause,
-      attributes: ["ITEM_CATEGORY_SIZE_ID", "IS_ACTIVE"],
+      attributes: ["ITEM_CATEGORY_SIZE_ID", "IS_ACTIVE", 'SIZE_ID', 'ITEM_CATEGORY_ID', 'ITEM_TYPE_ID', 'ITEM_GROUP_ID'],
       include: [
         {
           model: sizeChart,
