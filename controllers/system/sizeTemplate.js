@@ -4,6 +4,7 @@ import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
 import {Op} from "sequelize";
+import ProductItemComponentModel from "../../models/system/productItemComponent.mod.js";
 
 
 export const createSizeChartTemplate = async (req, res) => {
@@ -17,13 +18,14 @@ export const createSizeChartTemplate = async (req, res) => {
             });
         }
 
-
-        const count = await SizeChartTemplateModel.count();
-        const ID = `CSC${String(count + 1).padStart(7, "0")}`;
-
+        const getLastID = await SizeChartTemplateModel.findOne({
+            order: [['ID', 'DESC']],
+            raw: true
+        });
+        const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
+        const ID = 'CSC' + newIncrement.toString().padStart(7, '0');
 
         const uniqueList = [...new Set(LIST)];
-
 
         await SizeChartTemplateModel.create({
             ID,

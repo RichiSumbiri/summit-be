@@ -25,13 +25,16 @@ export const createProductItemComponent = async (req, res) => {
             })
         }
 
-        const count = await ProductItemComponentModel.count({
+        const getLastID = await ProductItemComponentModel.findOne({
             where: { PRODUCT_ID },
+            order: [['COMPONENT_ID', 'DESC']],
+            raw: true
         });
-
+        const newIncrement = !getLastID ? '0000001': Number(getLastID.COMPONENT_ID.slice(-7)) + 1;
+        const newID = 'CID' + newIncrement.toString().padStart(7, '0');
 
         await ProductItemComponentModel.create({
-            COMPONENT_ID: `CID${String(count + 1).padStart(7, "0")}`,
+            COMPONENT_ID: newID,
             COMPONENT_NAME,
             PRODUCT_ID,
             IS_ACTIVE,

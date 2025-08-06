@@ -1,6 +1,7 @@
 import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.js";
 import MasterAttributeSetting from "../../models/system/masterAttributeSetting.mod.js";
 import {Op, Sequelize} from "sequelize";
+import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 
 /**
  * Get all attribute values (not deleted)
@@ -18,7 +19,14 @@ export const getAllAttributeValues = async (req, res) => {
                     model: MasterAttributeSetting,
                     as: "attributeSetting",
                     where: { IS_DELETED: false },
-                    required: true
+                    required: true,
+                    include: [
+                        {
+                            model: MasterItemCategories,
+                            as: "ITEM_CATEGORY",
+                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                        }
+                    ]
                 }
             ],
             where: { IS_DELETED: false, ...whereCondition }
@@ -140,9 +148,15 @@ export const createAttributeValue = async (req, res) => {
             }
             message = "Attribute Value updated successfully"
         } else {
-            const count = await  MasterAttributeValue.count()
+            const getLastID = await MasterAttributeValue.findOne({
+                order: [['ID', 'DESC']],
+                raw: true
+            });
+            const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
+            const newID = 'IAV' + newIncrement.toString().padStart(7, '0');
+
              await MasterAttributeValue.create({
-                ID: `IAV${String(count + 1).padStart(7, "0")}`,
+                ID: newID,
                 MASTER_ATTRIBUTE_ID,
                 NAME: NAME.trim(),
                  DESCRIPTION,

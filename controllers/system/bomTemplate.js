@@ -16,8 +16,12 @@ export const createBomTemplate = async (req, res) => {
             });
         }
 
-        const count = await BomTemplateModel.count();
-        const ID = `BLT${String(count + 1).padStart(7, "0")}`;
+        const getLastID = await BomTemplateModel.findOne({
+            order: [['ID', 'DESC']],
+            raw: true
+        });
+        const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
+        const ID = 'BLT' + newIncrement.toString().padStart(7, '0');
 
         await BomTemplateModel.create({
             ID,

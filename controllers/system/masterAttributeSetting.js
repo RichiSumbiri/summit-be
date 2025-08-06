@@ -167,9 +167,16 @@ export const createAttributeSetting = async (req, res) => {
             message = "Attribute Setting updated successfully";
         } else {
 
-            const count = await MasterAttributeSetting.count();
+
+            const getLastID = await MasterAttributeSetting.findOne({
+                order: [['ID', 'DESC']],
+                raw: true
+            });
+            const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
+            const newID = 'IAM' + newIncrement.toString().padStart(7, '0');
+
             await MasterAttributeSetting.create({
-                ID: `IAM${String(count + 1).padStart(7, "0")}`,
+                ID: newID,
                 NAME: NAME.trim(),
                 DATA_TYPE,
                 ITEM_GROUP_ID,

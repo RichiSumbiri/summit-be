@@ -28,17 +28,20 @@ export const createMasterItemDimension = async (req, res) => {
             });
         }
 
-        const count = await MasterItemDimensionModel.count({
+
+        const getLastID = await MasterItemDimensionModel.findOne({
             where: {
                 MASTER_ITEM_ID,
                 [Op.and]: [
                     { COLOR_ID: { [Op.not]: null } },
                     { COLOR_ID: { [Op.ne]: "" } },
                 ],
-            }
-        })
+            },
+            order: [['DIMENSION_ID', 'DESC']],
+            raw: true
+        });
 
-
+        const newID = getLastID ? Number(getLastID.DIMENSION_ID)+1 : 0;
         const existItemDimension = await  MasterItemDimensionModel.findOne({
             where: {COLOR_ID, SIZE_ID, MASTER_ITEM_ID, IS_DELETED: false}
         })
@@ -51,7 +54,7 @@ export const createMasterItemDimension = async (req, res) => {
         }
 
         const newItemDimension = await MasterItemDimensionModel.create({
-            DIMENSION_ID: count,
+            DIMENSION_ID: newID,
             MASTER_ITEM_ID,
             COLOR_ID,
             SIZE_ID,

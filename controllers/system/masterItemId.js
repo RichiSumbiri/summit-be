@@ -74,14 +74,19 @@ export const createItem = async (req, res) => {
             });
         }
 
-        const count = await MasterItemIdModel.count({
+
+        const getLastID = await MasterItemIdModel.findOne({
             where: {
                 ITEM_CATEGORY_ID: masterCategory.ITEM_CATEGORY_ID
-            }
+            },
+            order: [['ITEM_ID', 'DESC']],
+            raw: true
         });
+        const newIncrement = !getLastID ? '0000001': Number(getLastID.ITEM_ID.slice(-7)) + 1;
+        const newID = masterCategory.ITEM_CATEGORY_CODE + newIncrement.toString().padStart(7, '0');
 
         await MasterItemIdModel.create({
-            ITEM_ID: `${masterCategory.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
+            ITEM_ID: newID,
             ITEM_CODE: ITEM_CODE.trim(),
             ITEM_DESCRIPTION,
             ITEM_ACTIVE,
@@ -158,12 +163,20 @@ export const updateCloneItem = async (req, res) => {
             })
         }
 
-        const count = await MasterItemIdModel.count({where: {ITEM_CATEGORY_ID: masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_ID}})
+
+        const getLastID = await MasterItemIdModel.findOne({
+            where: {ITEM_CATEGORY_ID: masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_ID},
+            order: [['ITEM_ID', 'DESC']],
+            raw: true
+        });
+        const newIncrement = !getLastID ? '0000001': (getLastID.ITEM_ID.slice(-7)) + 1;
+        const newID = masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_CODE + newIncrement.toString().padStart(7, '0');
+
         const itemIdCreate = await MasterItemIdModel.create({
             ...masterItem.toJSON(),
             ITEM_DESCRIPTION:masterItem.dataValues.ITEM_DESCRIPTION  + " (Duplicate)",
             ITEM_CODE: masterItem.dataValues.ITEM_CODE + " (Duplicate)",
-            ITEM_ID: `${masterItem?.ITEM_CATEGORY?.ITEM_CATEGORY_CODE}${String(count + 1).padStart(7, "0")}`,
+            ITEM_ID: newID,
             CREATE_DATE: new Date(),
         });
 
@@ -172,7 +185,14 @@ export const updateCloneItem = async (req, res) => {
         })
 
         if (itemDimentionList.length) {
-            const countMasterItemModel = await  MasterItemDimensionModel.count({where: {MASTER_ITEM_ID: itemIdCreate.ITEM_ID}})
+            const getLastID = await MasterItemDimensionModel.findOne({
+            where: {MASTER_ITEM_ID: itemIdCreate.ITEM_ID},
+                order: [['ID', 'DESC']],
+                raw: true
+            });
+            const newIncrement = !getLastID ? '0000001': (getLastID.ID.slice(-7)) + 1;
+            const newID = 'CID' + newIncrement.toString().padStart(7, '0');
+
             await MasterItemDimensionModel.bulkCreate(itemDimentionList.map((item, idx) => ({...item.dataValues,ID: null, DIMENSION_ID: countMasterItemModel+1,  CREATED_AT: new Date(), MASTER_ITEM_ID: itemIdCreate.ITEM_ID, UPDATED_AT: null})))
         }
 

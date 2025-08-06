@@ -62,8 +62,6 @@ export const createSiteDepartment = async (req, res) => {
         const total = await SiteDepartmentModel.count()
 
         const ID =  `DEP${('0' + (total + 1)).slice(-2)}`
-
-
         const newSiteDepartment = await SiteDepartmentModel.create({
             ID,
             UNIT_ID,
