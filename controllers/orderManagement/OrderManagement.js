@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
 import { queryGetListOrderHeader } from "../../models/orderManagement/orderManagement.mod.js";
-import { OrderPoListing } from "../../models/production/order.mod.js";
+import { OrderPoListing, OrderPoListingSize } from "../../models/production/order.mod.js";
 
 
 export const getListOrderHeaderByStatus = async(req,res) => {
@@ -44,6 +44,28 @@ export const getListPODetailByOrderID = async(req,res) => {
             success: false,
             error: err,
             message: "error get order detail by order id"
+        });
+    }
+}
+
+export const getPOListingSizeByPOID = async(req,res) => {
+    try {
+        const { poid } = req.params;
+        const getData = await OrderPoListingSize.findAll({
+            where: {
+                ORDER_PO_ID: poid
+            }
+        });
+         return res.status(200).json({
+            success: true,
+            message: "success get list po listing size by poid",
+            data: getData
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get po listing size by order poid"
         });
     }
 }

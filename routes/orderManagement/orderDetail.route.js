@@ -1,8 +1,8 @@
 import express from "express";
-import { getListPODetailByOrderID } from "../../controllers/orderManagement/OrderManagement.js";
+import { getListPODetailByOrderID, getPOListingSizeByPOID } from "../../controllers/orderManagement/OrderManagement.js";
 const router = express.Router();
 
-router.get("/:orderID", getListPODetailByOrderID);
-
+router.get("/listing-po/:orderID", getListPODetailByOrderID);
+router.get("/listing-size/:poid", getPOListingSizeByPOID);
 
 export default router;

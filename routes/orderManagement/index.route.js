@@ -16,6 +16,6 @@ router.use("/projection-order", projectionOrderRoute);
 
 // ORDER MANAGEMENT 
 router.use("/order-header", orderHeaderRoute);
-router.use("/po-detail", orderPODetailRoute);
+router.use("/order-detail", orderPODetailRoute);
 
 export default router;
