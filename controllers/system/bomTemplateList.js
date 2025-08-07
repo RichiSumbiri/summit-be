@@ -126,7 +126,7 @@ export const getAllBomTemplateLists = async (req, res) => {
 export const cloneBomTemplateList = async (req, res) => {
     try {
         const { id } = req.params;
-        const {USER_ID} = req.query
+        const {USER_ID} = req.body
         if (!id) {
             return res.status(400).json({
                 success: false,

@@ -104,6 +104,7 @@ export const cloneBomTemplate = async (req, res) => {
             BOM_TEMPLATE_ID: clonedTemplateID,
             BOM_TEMPLATE_LINE_ID: data.BOM_TEMPLATE_LINE_ID,
             STATUS: data.STATUS,
+            MASTER_ITEM_ID: data.MASTER_ITEM_ID,
             COSTING_CONSUMER_PER_ITEM: data.COSTING_CONSUMER_PER_ITEM,
             INTERNAL_CUSTOMER_PER_ITEM: data.INTERNAL_CUSTOMER_PER_ITEM,
             IS_SPLIT_COLOR: data.IS_SPLIT_COLOR,
