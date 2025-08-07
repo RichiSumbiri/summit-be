@@ -976,3 +976,28 @@ export const deleteService = async (req, res) => {
         });
     }
 };
+
+
+
+export const getListFGItemID = async(req,res) => {
+    try {
+        const dataGMT = await MasterItemIdModel.findAll({
+            where: {
+                ITEM_ID: {
+                    [Op.like]: 'GMT0%'
+                }
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get list FG Item",
+            data: dataGMT
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            message: `Failed to get list FG Item`,
+            error: err
+        });
+    }
+}
