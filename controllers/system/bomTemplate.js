@@ -22,7 +22,7 @@ export const createBomTemplate = async (req, res) => {
             raw: true
         });
         const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
-        const ID = 'BLT' + newIncrement.toString().padStart(7, '0');
+        const ID = 'BTL' + newIncrement.toString().padStart(7, '0');
 
         await BomTemplateModel.create({
             ID,
@@ -82,7 +82,7 @@ export const cloneBomTemplate = async (req, res) => {
             raw: true,
         });
         const newIncrement = !getLastID ? "0000001" : Number(getLastID.ID.slice(-7)) + 1;
-        const clonedTemplateID = "BLT" + newIncrement.toString().padStart(7, "0");
+        const clonedTemplateID = "BTL" + newIncrement.toString().padStart(7, "0");
 
         const clonedTemplate = await BomTemplateModel.create({
             ID: clonedTemplateID,
