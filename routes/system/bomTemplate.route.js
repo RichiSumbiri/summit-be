@@ -3,7 +3,7 @@ import {
     cloneBomTemplateList,
     createBomTemplateList, deleteBomTemplateList,
     getAllBomTemplateLists,
-    getBomTemplateListById, updateBomTemplateList
+    getBomTemplateListById, updateBomTemplateList, updateBomTemplateListSingle
 } from "../../controllers/system/bomTemplateList.js";
 import {
     cloneBomTemplate,
@@ -18,6 +18,7 @@ const router = express.Router();
 router.post("/list", createBomTemplateList);
 router.get("/list", getAllBomTemplateLists);
 router.get("/list/:id", getBomTemplateListById);
+router.patch("/list-single/:id", updateBomTemplateListSingle);
 router.patch("/list/:id", cloneBomTemplateList);
 router.put("/list/:id", updateBomTemplateList);
 router.delete("/list/:id", deleteBomTemplateList);

@@ -303,6 +303,41 @@ export const updateBomTemplateList = async (req, res) => {
 };
 
 
+export const updateBomTemplateListSingle = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const reqBody = req.body;
+
+        const list = await BomTemplateListModel.findOne({
+            where: {ID: id, IS_DELETED: false},
+        });
+
+        if (!list) {
+            return res.status(404).json({
+                success: false,
+                message: "BOM template list not found",
+            });
+        }
+
+        await list.update({
+            ...reqBody,
+            UPDATED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "BOM template list updated successfully",
+        });
+    } catch (error) {
+        console.error("Error updating BOM template list:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update BOM template list: ${error.message}`,
+        });
+    }
+};
+
+
 export const deleteBomTemplateList = async (req, res) => {
     try {
         const {id} = req.params;
