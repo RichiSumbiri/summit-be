@@ -5,7 +5,7 @@ import {
 
     deleteItem, deleteService, getAllAttributes,
     getAllItems, getAllServices, getAttributeById,
-    getItemById, getServiceById, updateAttribute, updateCloneItem,
+    getItemById, getListFGItemID, getServiceById, updateAttribute, updateCloneItem,
     updateItem, updateService,
 } from "../../controllers/system/masterItemId.js";
 import {
@@ -17,6 +17,7 @@ import {
 const router = express.Router();
 router.post("/id", createItem);
 router.get("/id", getAllItems);
+router.get("/finish-good", getListFGItemID);
 router.get("/id/:itemId", getItemById);
 router.put("/id/:itemId", updateItem);
 router.put("/id-clone", updateCloneItem);
