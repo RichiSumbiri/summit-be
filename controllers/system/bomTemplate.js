@@ -4,6 +4,7 @@ import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "../../models/system/customer.mod.js";
+import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
 
 export const createBomTemplate = async (req, res) => {
     try {
@@ -46,6 +47,88 @@ export const createBomTemplate = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Failed to create BOM template: ${error.message}`,
+        });
+    }
+};
+
+export const cloneBomTemplate = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "ID is required",
+            });
+        }
+
+        const originalTemplate = await BomTemplateModel.findOne({
+            where: { ID: id },
+        });
+
+        if (!originalTemplate) {
+            return res.status(404).json({
+                success: false,
+                message: "Original BOM template not found",
+            });
+        }
+
+        const originalLists = await BomTemplateListModel.findAll({
+            where: { BOM_TEMPLATE_ID: id },
+        });
+
+        const getLastID = await BomTemplateModel.findOne({
+            order: [["ID", "DESC"]],
+            raw: true,
+        });
+        const newIncrement = !getLastID ? "0000001" : Number(getLastID.ID.slice(-7)) + 1;
+        const clonedTemplateID = "BLT" + newIncrement.toString().padStart(7, "0");
+
+        const clonedTemplate = await BomTemplateModel.create({
+            ID: clonedTemplateID,
+            NAME: originalTemplate.NAME,
+            REVISION_ID: originalTemplate.REVISION_ID,
+            MASTER_ITEM_ID: originalTemplate.MASTER_ITEM_ID,
+            CUSTOMER_ID: originalTemplate.CUSTOMER_ID,
+            CUSTOMER_DIVISION_ID: originalTemplate.CUSTOMER_DIVISION_ID,
+            CUSTOMER_SESSION_ID: originalTemplate.CUSTOMER_SESSION_ID,
+            NOTE: originalTemplate.NOTE,
+            IS_ACTIVE: originalTemplate.IS_ACTIVE,
+            CREATED_ID: originalTemplate.CREATED_ID,
+            CREATED_AT: new Date(),
+        });
+
+        const clonedLists = originalLists.map((list) => {
+            const data = list.dataValues
+            return {
+            BOM_TEMPLATE_ID: clonedTemplateID,
+            BOM_TEMPLATE_LINE_ID: data.BOM_TEMPLATE_LINE_ID,
+            STATUS: data.STATUS,
+            COSTING_CONSUMER_PER_ITEM: data.COSTING_CONSUMER_PER_ITEM,
+            INTERNAL_CUSTOMER_PER_ITEM: data.INTERNAL_CUSTOMER_PER_ITEM,
+            IS_SPLIT_COLOR: data.IS_SPLIT_COLOR,
+            IS_SPLIT_SIZE: data.IS_SPLIT_SIZE,
+            VENDOR_ID: data.VENDOR_ID,
+            NOTE: data.NOTE,
+            IS_SPLIT_STATUS: data.IS_SPLIT_STATUS,
+            ITEM_POSITION: data.ITEM_POSITION,
+            CREATED_ID: data.CREATED_ID,
+            CREATED_AT: new Date(),
+        }});
+
+        if (clonedLists.length > 0) {
+            await BomTemplateListModel.bulkCreate(clonedLists);
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: "BOM template and its lists cloned successfully",
+        });
+    } catch (error) {
+        console.error("Error cloning BOM template and its lists:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to clone BOM template and its lists: ${error.message}`,
         });
     }
 };

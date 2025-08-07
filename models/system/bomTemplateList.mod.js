@@ -1,9 +1,25 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import BomTemplateModel from "./bomTemplate.mod.js";
+import MasterItemIdModel from "./masterItemId.mod.js";
+import {ModelVendorDetail} from "./VendorDetail.mod.js";
 
 const BomTemplateListModel = db.define(
     "bom_template_list",
     {
+        ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            primaryKey: true,
+        },
+        BOM_TEMPLATE_ID: {
+            type: DataTypes.STRING(15),
+            allowNull: true,
+        },
+        MASTER_ITEM_ID: {
+            type: DataTypes.STRING(15),
+            allowNull: true,
+        },
         BOM_TEMPLATE_LINE_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -33,6 +49,10 @@ const BomTemplateListModel = db.define(
             allowNull: true,
         },
         NOTE: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        ITEM_POSITION: {
             type: DataTypes.TEXT,
             allowNull: true,
         },
@@ -81,5 +101,16 @@ const BomTemplateListModel = db.define(
         paranoid: true,
     }
 );
+
+BomTemplateListModel.belongsTo(MasterItemIdModel, {
+    foreignKey: "MASTER_ITEM_ID",
+    as: "MASTER_ITEM"
+})
+
+BomTemplateListModel.belongsTo(ModelVendorDetail, {
+    foreignKey: "VENDOR_ID",
+    as: "VENDOR"
+})
+
 
 export default BomTemplateListModel;
