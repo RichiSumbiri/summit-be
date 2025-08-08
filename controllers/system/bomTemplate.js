@@ -32,7 +32,7 @@ export const createBomTemplate = async (req, res) => {
             CUSTOMER_SESSION_ID = null
         }
 
-        await BomTemplateModel.create({
+        const newData = await BomTemplateModel.create({
             ID,
             NAME,
             REVISION_ID,
@@ -46,9 +46,53 @@ export const createBomTemplate = async (req, res) => {
             CREATED_AT: new Date(),
         });
 
+        const template = await BomTemplateModel.findOne({
+            where: { ID: newData.ID, IS_DELETED: false },
+            include: [
+                {
+                    model: MasterItemIdModel,
+                    as: "MASTER_ITEM",
+                    attributes: ['ITEM_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID'],
+                    include: [
+                        {
+                            model: MasterItemGroup,
+                            as: "ITEM_GROUP",
+                            attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                        },
+                        {
+                            model: MasterItemTypes,
+                            as: "ITEM_TYPE",
+                            attributes: ['ITEM_TYPE_ID','ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                        },
+                        {
+                            model: MasterItemCategories,
+                            as: "ITEM_CATEGORY",
+                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                        },
+                    ]
+                },
+                {
+                    model: CustomerDetail,
+                    as: "CUSTOMER",
+                    attributes: ['CTC_ID', 'CTC_CODE', 'CTC_NAME']
+                },
+                {
+                    model: CustomerProductDivision,
+                    as: "CUSTOMER_DIVISION",
+                    attributes: ['CTPROD_DIVISION_ID', 'CTPROD_DIVISION_CODE', 'CTPROD_DIVISION_NAME']
+                },
+                {
+                    model: CustomerProductSeason,
+                    as: "CUSTOMER_SESSION",
+                    attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE', 'CTPROD_SESION_NAME']
+                },
+            ]
+        });
+
         return res.status(201).json({
             success: true,
             message: "BOM template created successfully",
+            data: template
         });
     } catch (error) {
         console.error("Error creating BOM template:", error);
@@ -248,17 +292,17 @@ export const getBomTemplateById = async (req, res) => {
                 {
                     model: CustomerDetail,
                     as: "CUSTOMER",
-                    attributes: ['CTC_ID', 'CTC_CODE']
+                    attributes: ['CTC_ID', 'CTC_CODE', 'CTC_NAME']
                 },
                 {
                     model: CustomerProductDivision,
                     as: "CUSTOMER_DIVISION",
-                    attributes: ['CTPROD_DIVISION_ID', 'CTPROD_DIVISION_CODE']
+                    attributes: ['CTPROD_DIVISION_ID', 'CTPROD_DIVISION_CODE', 'CTPROD_DIVISION_NAME']
                 },
                 {
                     model: CustomerProductSeason,
                     as: "CUSTOMER_SESSION",
-                    attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE']
+                    attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE', 'CTPROD_SESION_NAME']
                 },
             ]
         });
