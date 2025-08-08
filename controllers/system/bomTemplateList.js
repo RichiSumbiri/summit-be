@@ -30,6 +30,19 @@ export const createBomTemplateList = async (req, res) => {
             });
         }
 
+        if (COSTING_CONSUMER_PER_ITEM <0) {
+            return res.status(400).json({
+                success: false,
+                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+            });
+        }
+        if (INTERNAL_CUSTOMER_PER_ITEM <0) {
+            return res.status(400).json({
+                success: false,
+                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+            });
+        }
+
         const lastEntry = await BomTemplateListModel.findOne({
             where: {BOM_TEMPLATE_ID},
             order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
@@ -271,6 +284,19 @@ export const updateBomTemplateList = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "BOM template list not found",
+            });
+        }
+
+        if (COSTING_CONSUMER_PER_ITEM <0) {
+            return res.status(400).json({
+                success: false,
+                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+            });
+        }
+        if (INTERNAL_CUSTOMER_PER_ITEM <0) {
+            return res.status(400).json({
+                success: false,
+                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
             });
         }
 

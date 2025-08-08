@@ -1,5 +1,13 @@
 import express from "express";
-import { getAllVendorDetail, getVendorPurchaseDetailByVDC, getVendorShipperLocationByVDC, postVendorDetail, postVendorPurchaseDetail, postVendorShipperLocation } from "../../controllers/system/VendorDetail.js";
+import {
+    getAllVendorDetail,
+    getVendorPurchaseByFilter,
+    getVendorPurchaseDetailByVDC,
+    getVendorShipperLocationByVDC,
+    postVendorDetail,
+    postVendorPurchaseDetail,
+    postVendorShipperLocation
+} from "../../controllers/system/VendorDetail.js";
 
 const router = express.Router();
 
@@ -14,5 +22,7 @@ router.post("/shipper-location", postVendorShipperLocation);
 // Vendor Purchase Detail
 router.get("/purchase-detail/:vdc", getVendorPurchaseDetailByVDC);
 router.post("/purchase-detail", postVendorPurchaseDetail);
+router.get("/purchase-detail-filter", getVendorPurchaseByFilter);
+
 
 export default router;

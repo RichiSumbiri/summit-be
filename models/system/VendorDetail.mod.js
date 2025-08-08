@@ -254,6 +254,10 @@ export const ModelVendorDetail = db.define('vendor_detail', {
     timestamps: false,
     freezeTableName: true,
   });
+ModelVendorPurchaseDetail.belongsTo(ModelVendorDetail, {
+    foreignKey: "VENDOR_ID",
+    as: "VENDOR_DETAIL"
+})
 
 
 

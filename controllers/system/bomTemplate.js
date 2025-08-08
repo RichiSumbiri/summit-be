@@ -8,7 +8,7 @@ import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
 
 export const createBomTemplate = async (req, res) => {
     try {
-        const { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID, CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID } = req.body;
+        let { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID , CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID } = req.body;
 
         if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID) {
             return res.status(400).json({
@@ -23,6 +23,14 @@ export const createBomTemplate = async (req, res) => {
         });
         const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
         const ID = 'BTL' + newIncrement.toString().padStart(7, '0');
+
+        if (!CUSTOMER_DIVISION_ID) {
+            CUSTOMER_DIVISION_ID = null
+        }
+
+        if (!CUSTOMER_SESSION_ID) {
+            CUSTOMER_SESSION_ID = null
+        }
 
         await BomTemplateModel.create({
             ID,
@@ -162,17 +170,17 @@ export const getAllBomTemplates = async (req, res) => {
                         {
                             model: MasterItemGroup,
                             as: "ITEM_GROUP",
-                            attributes: ['ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                            attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
                         },
                         {
                             model: MasterItemTypes,
                             as: "ITEM_TYPE",
-                            attributes: ['ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                            attributes: ['ITEM_TYPE_ID','ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         },
                         {
                             model: MasterItemCategories,
                             as: "ITEM_CATEGORY",
-                            attributes: ['ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                         },
                     ]
                 },
@@ -223,17 +231,17 @@ export const getBomTemplateById = async (req, res) => {
                         {
                             model: MasterItemGroup,
                             as: "ITEM_GROUP",
-                            attributes: ['ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                            attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
                         },
                         {
                             model: MasterItemTypes,
                             as: "ITEM_TYPE",
-                            attributes: ['ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                            attributes: ['ITEM_TYPE_ID','ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         },
                         {
                             model: MasterItemCategories,
                             as: "ITEM_CATEGORY",
-                            attributes: ['ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                         },
                     ]
                 },

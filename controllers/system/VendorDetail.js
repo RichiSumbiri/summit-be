@@ -265,6 +265,45 @@ export const getVendorPurchaseDetailByVDC = async(req,res) => {
 }
 
 
+export  const getVendorPurchaseByFilter = async  (req, res) => {
+    const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = req.query
+    const  where = {}
+
+    if (ITEM_GROUP_ID) {
+        where.ITEM_GROUP_ID = ITEM_GROUP_ID
+    }
+    if (ITEM_TYPE_ID) {
+        where.ITEM_TYPE_ID = ITEM_TYPE_ID
+    }
+    if (ITEM_CATEGORY_ID) {
+        where.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
+    }
+    try {
+        const resp = await ModelVendorPurchaseDetail.findAll({
+            where,
+            include: [
+                {
+                    model: ModelVendorDetail,
+                    as: "VENDOR_DETAIL",
+                    attributes: ['VENDOR_CONTACT_TITLE', 'VENDOR_COUNTRY_CODE', 'VENDOR_POSTAL_CODE', 'VENDOR_PROVINCE', 'VENDOR_CITY', 'VENDOR_ADDRESS_2', 'VENDOR_ADDRESS_1', 'VENDOR_WEB', 'VENDOR_FAX', 'VENDOR_PHONE', 'VENDOR_COMPANY_NAME', 'VENDOR_ACTIVE', 'VENDOR_NAME', 'VENDOR_CODE', 'VENDOR_ID']
+                }
+            ]
+        })
+        return res.status(200).json({
+            success: true,
+            message: "Success get vendor detail purchase",
+            data: resp
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post vendor shipper location"
+        });
+    }
+}
+
+
 export const postVendorPurchaseDetail = async(req,res) => {
     try {
         const { dataVPD } = req.body;
