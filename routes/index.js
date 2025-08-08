@@ -52,6 +52,7 @@ import siteFxRoute from "./setup/siteFx.route.js";
 import siteDepartmentRoute from "./setup/siteDepartment.route.js";
 import uploadImageRoute from "./auth/uploadImage.route.js";
 import orderManagementRoute from "./orderManagement/index.route.js";
+import finance from "./finance/index.js";
 
 import "../models/associations.js";
 
@@ -107,6 +108,7 @@ router.use("/department-fx", departmentFx)
 router.use("/site-department", siteDepartmentRoute)
 router.use("/upload-file", uploadImageRoute)
 router.use("/order-management", orderManagementRoute)
+router.use("/finance", finance)
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
