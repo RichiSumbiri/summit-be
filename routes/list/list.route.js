@@ -13,11 +13,27 @@ import {
   postListItemStyle,
 } from "../../controllers/list/listReferensi.js";
 import { getMasterLocation } from "../../controllers/list/listLocation.js";
-import { getMasterLocationType, getMasterOperationType, getMasterWarehouseClassAll, postMasterWarehouseClass } from "../../controllers/system/WarehouseClass.js";
+import {
+  getMasterLocationType,
+  getMasterOperationType,
+  getMasterWarehouseClassAll,
+  postMasterWarehouseClass,
+} from "../../controllers/system/WarehouseClass.js";
 
-import { getMasterItemGroup, postMasterItemGroup } from "../../controllers/setup/ItemGroups.js";
-import { getMasterItemType, postMasterItemType, getAllMasterItemType } from "../../controllers/setup/ItemTypes.js";
-import { getMasterItemCategory, postMasterItemCategory, getAllMasterItemCategory } from "../../controllers/setup/ItemCategories.js";
+import {
+  getMasterItemGroup,
+  postMasterItemGroup,
+} from "../../controllers/setup/ItemGroups.js";
+import {
+  getMasterItemType,
+  postMasterItemType,
+  getAllMasterItemType,
+} from "../../controllers/setup/ItemTypes.js";
+import {
+  getMasterItemCategory,
+  postMasterItemCategory,
+  getAllMasterItemCategory,
+} from "../../controllers/setup/ItemCategories.js";
 import { getMasterItemQuality } from "../../controllers/setup/ItemQuality.js";
 import { getMasterItemStatus } from "../../controllers/setup/ItemStatus.js";
 
@@ -25,19 +41,29 @@ import { getMasterServiceGroup } from "../../controllers/setup/ServiceGroups.js"
 import { getMasterServiceType } from "../../controllers/setup/ServiceTypes.js";
 import { getMasterServiceCategory } from "../../controllers/setup/ServiceCategories.js";
 
+import { getMasterEventType } from "../../controllers/setup/EventType.js";
+
+import { getMasterEventGroup } from "../../controllers/setup/EventGroup.js";
+
 import { getMasterProductionProcess } from "../../controllers/setup/ProductionProcess.js";
 
 import { getAllShippingTerms } from "../../controllers/system/shippingTerms.js";
 import { getAllDeliveryMode } from "../../controllers/system/deliveryMode.js";
 import { getAllFOBPoint } from "../../controllers/system/FOBPoint.js";
-import { getListCurrency, getListPayMethode } from "../../controllers/system/masterFinance.js";
-import { getMasterUOMAll, getUOMConversion, postUOMConversion } from "../../controllers/system/uom.js";
+import {
+  getListCurrency,
+  getListPayMethode,
+} from "../../controllers/system/masterFinance.js";
+import {
+  getMasterUOMAll,
+  getUOMConversion,
+  postUOMConversion,
+} from "../../controllers/system/uom.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
 router.post("/country", postListCountry);
 router.delete("/country/:COUNTRY_ID/:BUYER_CODE", deleteCountryList);
-
 
 //item style
 router.post("/style", postListItemStyle);
@@ -64,8 +90,6 @@ router.get("/item-category", getAllMasterItemCategory);
 router.get("/item-category/:id", getMasterItemCategory);
 router.post("/item-category", postMasterItemCategory);
 
-
-
 // service group
 router.get("/service-group", getMasterServiceGroup);
 
@@ -75,7 +99,11 @@ router.get("/service-type", getMasterServiceType);
 // service categoryes
 router.get("/service-category", getMasterServiceCategory);
 
+//event type
+router.get("/event_type", getMasterEventType);
 
+//event group
+router.get("/event_group", getMasterEventGroup);
 
 //production process
 router.get("/production-process", getMasterProductionProcess);
@@ -93,7 +121,7 @@ router.post("/warehouse-class", postMasterWarehouseClass);
 router.get("/operation-type", getMasterOperationType);
 router.get("/location-type", getMasterLocationType);
 
-// list master quality 
+// list master quality
 router.get("/item-quality", getMasterItemQuality);
 router.get("/item-status", getMasterItemStatus);
 
@@ -106,15 +134,12 @@ router.get("/delivery-mode", getAllDeliveryMode);
 // list fob point
 router.get("/fob-point", getAllFOBPoint);
 
-
 //get list country international
 router.get("/country-code/:query", getRefInterCountry);
 router.get("/country-specific/:query", getRefInterCountrySpecific);
 
-
 //get list currency
-router.get("/currency", getListCurrency)
-;
+router.get("/currency", getListCurrency);
 //get payment methode
 router.get("/payment-methode", getListPayMethode);
 
