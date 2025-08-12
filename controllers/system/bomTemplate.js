@@ -17,7 +17,18 @@ import {Op} from "sequelize";
 
 export const createBomTemplate = async (req, res) => {
     try {
-        let { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID , CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID, ORDER_TYPE_ID } = req.body;
+        let {
+            NAME,
+            REVISION_ID,
+            MASTER_ITEM_ID,
+            CUSTOMER_ID,
+            CUSTOMER_DIVISION_ID,
+            CUSTOMER_SESSION_ID,
+            NOTE,
+            IS_ACTIVE,
+            USER_ID,
+            ORDER_TYPE_ID
+        } = req.body;
 
         if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID || !ORDER_TYPE_ID) {
             return res.status(400).json({
@@ -26,11 +37,22 @@ export const createBomTemplate = async (req, res) => {
             });
         }
 
+        const existingTemplate = await BomTemplateModel.findOne({
+            where: { NAME: NAME.trim(), IS_DELETED: false },
+        });
+
+        if (existingTemplate) {
+            return res.status(400).json({
+                success: false,
+                message: `A BOM template with the name "${NAME.trim()}" already exists. Please choose a different name.`,
+            });
+        }
+
         const getLastID = await BomTemplateModel.findOne({
             order: [['ID', 'DESC']],
             raw: true
         });
-        const newIncrement = !getLastID ? '0000001': Number(getLastID.ID.slice(-7)) + 1;
+        const newIncrement = !getLastID ? '0000001' : Number(getLastID.ID.slice(-7)) + 1;
         const ID = 'BTL' + newIncrement.toString().padStart(7, '0');
 
         if (!CUSTOMER_DIVISION_ID) {
@@ -57,7 +79,7 @@ export const createBomTemplate = async (req, res) => {
         });
 
         const template = await BomTemplateModel.findOne({
-            where: { ID: newData.ID, IS_DELETED: false },
+            where: {ID: newData.ID, IS_DELETED: false},
             include: [
                 {
                     model: MasterItemIdModel,
@@ -72,12 +94,12 @@ export const createBomTemplate = async (req, res) => {
                         {
                             model: MasterItemTypes,
                             as: "ITEM_TYPE",
-                            attributes: ['ITEM_TYPE_ID','ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                            attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         },
                         {
                             model: MasterItemCategories,
                             as: "ITEM_CATEGORY",
-                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                         },
                     ]
                 },
@@ -120,7 +142,8 @@ export const createBomTemplate = async (req, res) => {
 
 export const cloneBomTemplate = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
+        const {NAME, USER_ID} = req.body
 
         if (!id) {
             return res.status(400).json({
@@ -129,8 +152,19 @@ export const cloneBomTemplate = async (req, res) => {
             });
         }
 
+        const existingTemplate = await BomTemplateModel.findOne({
+            where: { NAME: NAME.trim(), IS_DELETED: false },
+        });
+
+        if (existingTemplate) {
+            return res.status(400).json({
+                success: false,
+                message: `A BOM template with the name "${NAME.trim()}" already exists. Please choose a different name.`,
+            });
+        }
+
         const originalTemplate = await BomTemplateModel.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!originalTemplate) {
@@ -141,7 +175,7 @@ export const cloneBomTemplate = async (req, res) => {
         }
 
         const originalLists = await BomTemplateListModel.findAll({
-            where: { BOM_TEMPLATE_ID: id },
+            where: {BOM_TEMPLATE_ID: id},
         });
 
         const getLastID = await BomTemplateModel.findOne({
@@ -153,7 +187,7 @@ export const cloneBomTemplate = async (req, res) => {
 
         await BomTemplateModel.create({
             ID: clonedTemplateID,
-            NAME: originalTemplate.NAME,
+            NAME: NAME || originalTemplate.NAME,
             ORDER_TYPE_ID: originalTemplate.ORDER_TYPE_ID,
             REVISION_ID: originalTemplate.REVISION_ID,
             MASTER_ITEM_ID: originalTemplate.MASTER_ITEM_ID,
@@ -169,21 +203,24 @@ export const cloneBomTemplate = async (req, res) => {
         const clonedLists = originalLists.map((list) => {
             const data = list.dataValues
             return {
-            BOM_TEMPLATE_ID: clonedTemplateID,
-            BOM_TEMPLATE_LINE_ID: data.BOM_TEMPLATE_LINE_ID,
-            STATUS: data.STATUS,
-            MASTER_ITEM_ID: data.MASTER_ITEM_ID,
-            COSTING_CONSUMER_PER_ITEM: data.COSTING_CONSUMER_PER_ITEM,
-            INTERNAL_CUSTOMER_PER_ITEM: data.INTERNAL_CUSTOMER_PER_ITEM,
-            IS_SPLIT_COLOR: data.IS_SPLIT_COLOR,
-            IS_SPLIT_SIZE: data.IS_SPLIT_SIZE,
-            VENDOR_ID: data.VENDOR_ID,
-            NOTE: data.NOTE,
-            IS_SPLIT_STATUS: data.IS_SPLIT_STATUS,
-            ITEM_POSITION: data.ITEM_POSITION,
-            CREATED_ID: data.CREATED_ID,
-            CREATED_AT: new Date(),
-        }});
+                BOM_TEMPLATE_ID: clonedTemplateID,
+                BOM_TEMPLATE_LINE_ID: data.BOM_TEMPLATE_LINE_ID,
+                STATUS: data.STATUS,
+                MASTER_ITEM_ID: data.MASTER_ITEM_ID,
+                COSTING_CONSUMER_PER_ITEM: data.COSTING_CONSUMER_PER_ITEM,
+                INTERNAL_CUSTOMER_PER_ITEM: data.INTERNAL_CUSTOMER_PER_ITEM,
+                IS_SPLIT_COLOR: data.IS_SPLIT_COLOR,
+                IS_SPLIT_SIZE: data.IS_SPLIT_SIZE,
+                VENDOR_ID: data.VENDOR_ID,
+                NOTE: data.NOTE,
+                IS_SPLIT_STATUS: data.IS_SPLIT_STATUS,
+                ITEM_POSITION: data.ITEM_POSITION,
+                CREATED_ID: USER_ID || data.CREATED_ID,
+                UPDATED_ID: null,
+                UPDATED_AT: null,
+                CREATED_AT: new Date(),
+            }
+        });
 
         if (clonedLists.length > 0) {
             await BomTemplateListModel.bulkCreate(clonedLists);
@@ -204,7 +241,7 @@ export const cloneBomTemplate = async (req, res) => {
 
 export const getAllBomTemplates = async (req, res) => {
     const {MASTER_ITEM_ID, CUSTOMER_ID, REVISION_ID} = req.query
-    const where= {IS_DELETED: false}
+    const where = {IS_DELETED: false}
 
     if (MASTER_ITEM_ID) {
         where.MASTER_ITEM_ID = MASTER_ITEM_ID
@@ -235,12 +272,12 @@ export const getAllBomTemplates = async (req, res) => {
                         {
                             model: MasterItemTypes,
                             as: "ITEM_TYPE",
-                            attributes: ['ITEM_TYPE_ID','ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                            attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         },
                         {
                             model: MasterItemCategories,
                             as: "ITEM_CATEGORY",
-                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                         },
                     ]
                 },
@@ -283,10 +320,10 @@ export const getAllBomTemplates = async (req, res) => {
 
 export const getBomTemplateById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const template = await BomTemplateModel.findOne({
-            where: { ID: id, IS_DELETED: false },
+            where: {ID: id, IS_DELETED: false},
             include: [
                 {
                     model: MasterItemIdModel,
@@ -301,12 +338,12 @@ export const getBomTemplateById = async (req, res) => {
                         {
                             model: MasterItemTypes,
                             as: "ITEM_TYPE",
-                            attributes: ['ITEM_TYPE_ID','ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                            attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         },
                         {
                             model: MasterItemCategories,
                             as: "ITEM_CATEGORY",
-                            attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                            attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                         },
                     ]
                 },
@@ -356,17 +393,40 @@ export const getBomTemplateById = async (req, res) => {
 
 export const updateBomTemplate = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID, CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID, ORDER_TYPE_ID } = req.body;
+        const {id} = req.params;
+        const {
+            NAME,
+            REVISION_ID,
+            MASTER_ITEM_ID,
+            CUSTOMER_ID,
+            CUSTOMER_DIVISION_ID,
+            CUSTOMER_SESSION_ID,
+            NOTE,
+            IS_ACTIVE,
+            USER_ID,
+            ORDER_TYPE_ID
+        } = req.body;
 
         const template = await BomTemplateModel.findOne({
-            where: { ID: id, IS_DELETED: false },
+            where: {ID: id, IS_DELETED: false},
         });
 
         if (!template) {
             return res.status(404).json({
                 success: false,
                 message: "BOM template not found",
+            });
+        }
+
+
+        const existingTemplate = await BomTemplateModel.findOne({
+            where: { NAME: NAME.trim(), IS_DELETED: false, ID: { [Op.ne]: id } },
+        });
+
+        if (existingTemplate) {
+            return res.status(400).json({
+                success: false,
+                message: `A BOM template with the name "${NAME.trim()}" already exists. Please choose a different name.`,
             });
         }
 
@@ -399,10 +459,10 @@ export const updateBomTemplate = async (req, res) => {
 
 export const deleteBomTemplate = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const template = await BomTemplateModel.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!template) {
@@ -432,7 +492,7 @@ export const deleteBomTemplate = async (req, res) => {
 
 export const createBomTemplateRev = async (req, res) => {
     try {
-        const { SEQUENCE, TITLE, DESCRIPTION, BOM_TEMPLATE_ID } = req.body;
+        const {SEQUENCE, TITLE, DESCRIPTION, BOM_TEMPLATE_ID} = req.body;
 
         if (!SEQUENCE || !TITLE || !BOM_TEMPLATE_ID) {
             return res.status(400).json({
@@ -495,10 +555,10 @@ export const getAllBomTemplateRevs = async (req, res) => {
 
 export const getBomTemplateRevById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const rev = await BomTemplateRevModel.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!rev) {
@@ -524,11 +584,11 @@ export const getBomTemplateRevById = async (req, res) => {
 
 export const updateBomTemplateRev = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { SEQUENCE, TITLE, DESCRIPTION, BOM_TEMPLATE_ID } = req.body;
+        const {id} = req.params;
+        const {SEQUENCE, TITLE, DESCRIPTION, BOM_TEMPLATE_ID} = req.body;
 
         const rev = await BomTemplateRevModel.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!rev) {
@@ -561,10 +621,10 @@ export const updateBomTemplateRev = async (req, res) => {
 
 export const deleteBomTemplateRev = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const rev = await BomTemplateRevModel.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!rev) {
@@ -610,10 +670,10 @@ export const bomTemplateGetAllColors = async (req, res) => {
 
 export const bomTemplateGetColorById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const color = await BomTemplateColor.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!color) {
@@ -639,7 +699,7 @@ export const bomTemplateGetColorById = async (req, res) => {
 
 export const bomTemplateCreateColor = async (req, res) => {
     try {
-        const { COLOR_ID, BOM_TEMPLATE_ID } = req.body;
+        const {COLOR_ID, BOM_TEMPLATE_ID} = req.body;
 
         if (!BOM_TEMPLATE_ID) {
             return res.status(400).json({
@@ -669,11 +729,11 @@ export const bomTemplateCreateColor = async (req, res) => {
 
 export const bomTemplateUpdateColor = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { COLOR_ID, BOM_TEMPLATE_ID } = req.body;
+        const {id} = req.params;
+        const {COLOR_ID, BOM_TEMPLATE_ID} = req.body;
 
         const color = await BomTemplateColor.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
         if (!color) {
             return res.status(404).json({
@@ -704,10 +764,10 @@ export const bomTemplateUpdateColor = async (req, res) => {
 
 export const bomTemplateDeleteColor = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const color = await BomTemplateColor.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
         if (!color) {
             return res.status(404).json({
@@ -756,10 +816,10 @@ export const bomTemplateGetAllSizes = async (req, res) => {
 
 export const bomTemplateGetSizeById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const size = await BomTemplateSize.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!size) {
@@ -785,7 +845,7 @@ export const bomTemplateGetSizeById = async (req, res) => {
 
 export const bomTemplateCreateSize = async (req, res) => {
     try {
-        const { SIZE_ID, BOM_TEMPLATE_ID } = req.body;
+        const {SIZE_ID, BOM_TEMPLATE_ID} = req.body;
 
         if (!BOM_TEMPLATE_ID) {
             return res.status(400).json({
@@ -815,11 +875,11 @@ export const bomTemplateCreateSize = async (req, res) => {
 
 export const bomTemplateUpdateSize = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { SIZE_ID, BOM_TEMPLATE_ID } = req.body;
+        const {id} = req.params;
+        const {SIZE_ID, BOM_TEMPLATE_ID} = req.body;
 
         const size = await BomTemplateSize.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
         if (!size) {
             return res.status(404).json({
@@ -850,10 +910,10 @@ export const bomTemplateUpdateSize = async (req, res) => {
 
 export const bomTemplateDeleteSize = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const size = await BomTemplateSize.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
         if (!size) {
             return res.status(404).json({
@@ -881,7 +941,7 @@ export const bomTemplateDeleteSize = async (req, res) => {
 
 export const getAllFGSizeCharts = async (req, res) => {
     try {
-        const { MASTER_ITEM_ID, BOM_TEMPLATE_ID } = req.query;
+        const {MASTER_ITEM_ID, BOM_TEMPLATE_ID} = req.query;
 
         const isBomTemplateProvided = BOM_TEMPLATE_ID;
 
@@ -928,7 +988,7 @@ export const getAllFGSizeCharts = async (req, res) => {
         }
 
         const responseData = entries.map(entry => {
-            const plainEntry = entry.get({ plain: true });
+            const plainEntry = entry.get({plain: true});
             const sizeId = plainEntry.SIZE?.SIZE_ID;
 
             return {
@@ -954,9 +1014,9 @@ export const getAllFGSizeCharts = async (req, res) => {
 
 export const getAllFGColorCharts = async (req, res) => {
     try {
-        const { MASTER_ITEM_ID, BOM_TEMPLATE_ID } = req.query;
+        const {MASTER_ITEM_ID, BOM_TEMPLATE_ID} = req.query;
 
-        const where = { IS_DELETED: false };
+        const where = {IS_DELETED: false};
         if (MASTER_ITEM_ID) {
             where.MASTER_ITEM_ID = MASTER_ITEM_ID;
         }
@@ -996,7 +1056,7 @@ export const getAllFGColorCharts = async (req, res) => {
         }
 
         const responseData = entries.map(entry => {
-            const plainEntry = entry.get({ plain: true });
+            const plainEntry = entry.get({plain: true});
             const colorId = plainEntry.COLOR?.COLOR_ID;
 
             return {
@@ -1020,7 +1080,7 @@ export const getAllFGColorCharts = async (req, res) => {
 };
 
 export const bulkCreateBomTemplateColor = async (req, res) => {
-    const { body } = req;
+    const {body} = req;
     try {
         const colors = await Promise.all(
             body.map(item => BomTemplateColor.create(item))
@@ -1039,9 +1099,8 @@ export const bulkCreateBomTemplateColor = async (req, res) => {
 };
 
 
-
 export const bulkCreateBomTemplateSize = async (req, res) => {
-    const { body } = req;
+    const {body} = req;
     try {
         const colors = await Promise.all(
             body.map(item => BomTemplateSize.create(item))
@@ -1061,11 +1120,11 @@ export const bulkCreateBomTemplateSize = async (req, res) => {
 
 
 export const bulkDeleteBomTemplateColor = async (req, res) => {
-    const { ids } = req.body;
+    const {ids} = req.body;
     try {
         await BomTemplateColor.update(
-            { DELETED_AT: new Date() },
-            { where: { ID: ids } }
+            {DELETED_AT: new Date()},
+            {where: {ID: ids}}
         );
         return res.status(200).json({
             success: true,
@@ -1080,11 +1139,11 @@ export const bulkDeleteBomTemplateColor = async (req, res) => {
 };
 
 export const bulkDeleteBomTemplateSize = async (req, res) => {
-    const { ids } = req.body;
+    const {ids} = req.body;
     try {
         await BomTemplateSize.update(
-            { DELETED_AT: new Date() },
-            { where: { ID: ids } }
+            {DELETED_AT: new Date()},
+            {where: {ID: ids}}
         );
         return res.status(200).json({
             success: true,
@@ -1099,7 +1158,7 @@ export const bulkDeleteBomTemplateSize = async (req, res) => {
 };
 
 export const bulkToggleBomTemplateColor = async (req, res) => {
-    const { body } = req;
+    const {body} = req;
 
     if (!Array.isArray(body) || body.length === 0) {
         return res.status(400).json({
@@ -1110,7 +1169,7 @@ export const bulkToggleBomTemplateColor = async (req, res) => {
 
     try {
         for (const item of body) {
-            const { COLOR_ID, BOM_TEMPLATE_ID } = item;
+            const {COLOR_ID, BOM_TEMPLATE_ID} = item;
 
             if (!COLOR_ID || !BOM_TEMPLATE_ID) {
                 continue;
@@ -1125,7 +1184,7 @@ export const bulkToggleBomTemplateColor = async (req, res) => {
             });
 
             if (existing) {
-                await existing.update({ DELETED_AT: new Date() });
+                await existing.update({DELETED_AT: new Date()});
             } else {
                 await BomTemplateColor.create({
                     COLOR_ID,
@@ -1148,7 +1207,7 @@ export const bulkToggleBomTemplateColor = async (req, res) => {
 };
 
 export const bulkToggleBomTemplateSize = async (req, res) => {
-    const { body } = req;
+    const {body} = req;
 
     if (!Array.isArray(body) || body.length === 0) {
         return res.status(400).json({
@@ -1160,7 +1219,7 @@ export const bulkToggleBomTemplateSize = async (req, res) => {
     try {
 
         for (const item of body) {
-            const { SIZE_ID, BOM_TEMPLATE_ID } = item;
+            const {SIZE_ID, BOM_TEMPLATE_ID} = item;
 
             if (!SIZE_ID || !BOM_TEMPLATE_ID) {
                 continue;
@@ -1174,17 +1233,13 @@ export const bulkToggleBomTemplateSize = async (req, res) => {
                 },
             });
 
-            console.log("SIZE_ID ", SIZE_ID)
-            console.log("BOM_TEMPLATE_ID ", BOM_TEMPLATE_ID)
-            console.log("existing ", existing)
-
             if (existing) {
-                await existing.update({ DELETED_AT: new Date() });
+                await existing.update({DELETED_AT: new Date()});
             } else {
-                    await BomTemplateSize.create({
-                        SIZE_ID,
-                        BOM_TEMPLATE_ID,
-                    });
+                await BomTemplateSize.create({
+                    SIZE_ID,
+                    BOM_TEMPLATE_ID,
+                });
             }
         }
 

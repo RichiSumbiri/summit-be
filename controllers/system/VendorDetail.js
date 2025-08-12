@@ -370,10 +370,62 @@ export const postVendorPurchaseDetail = async(req,res) => {
 
 export const getAllItemsWithVendors = async (req, res) => {
     try {
+        const { CUSTOMER_ID } = req.query;
+
         const whereItem = {
             IS_DELETED: false,
             ITEM_CATEGORY_ID: { [Op.not]: 6 }
         };
+
+        let vendorDetails = [];
+
+        if (CUSTOMER_ID) {
+            vendorDetails = await ModelVendorPurchaseDetail.findAll({
+                where: { CUSTOMER_ID },
+                include: [
+                    {
+                        model: ModelVendorDetail,
+                        as: "VENDOR_DETAIL",
+                        attributes: [
+                            'VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COMPANY_NAME',
+                            'VENDOR_PHONE', 'VENDOR_FAX', 'VENDOR_WEB', 'VENDOR_ADDRESS_1',
+                            'VENDOR_ADDRESS_2', 'VENDOR_CITY', 'VENDOR_PROVINCE',
+                            'VENDOR_POSTAL_CODE', 'VENDOR_COUNTRY_CODE', 'VENDOR_ACTIVE'
+                        ]
+                    }
+                ],
+            });
+
+            const validCategories = [...new Set(
+                vendorDetails.map(v => `${v.ITEM_GROUP_ID}|${v.ITEM_TYPE_ID}|${v.ITEM_CATEGORY_ID}`)
+            )];
+
+            if (validCategories.length > 0) {
+                whereItem[Op.or] = validCategories.map(combo => {
+                    const [ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID] = combo.split('|');
+                    return {
+                        ITEM_GROUP_ID,
+                        ITEM_TYPE_ID,
+                        ITEM_CATEGORY_ID
+                    };
+                });
+            }
+        } else {
+            vendorDetails = await ModelVendorPurchaseDetail.findAll({
+                include: [
+                    {
+                        model: ModelVendorDetail,
+                        as: "VENDOR_DETAIL",
+                        attributes: [
+                            'VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COMPANY_NAME',
+                            'VENDOR_PHONE', 'VENDOR_FAX', 'VENDOR_WEB', 'VENDOR_ADDRESS_1',
+                            'VENDOR_ADDRESS_2', 'VENDOR_CITY', 'VENDOR_PROVINCE',
+                            'VENDOR_POSTAL_CODE', 'VENDOR_COUNTRY_CODE', 'VENDOR_ACTIVE'
+                        ]
+                    }
+                ]
+            });
+        }
 
         const items = await MasterItemIdModel.findAll({
             where: whereItem,
@@ -392,21 +444,6 @@ export const getAllItemsWithVendors = async (req, res) => {
                     model: MasterItemCategories,
                     as: 'ITEM_CATEGORY',
                     attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
-                }
-            ]
-        });
-
-        const vendorDetails = await ModelVendorPurchaseDetail.findAll({
-            include: [
-                {
-                    model: ModelVendorDetail,
-                    as: "VENDOR_DETAIL",
-                    attributes: [
-                        'VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COMPANY_NAME',
-                        'VENDOR_PHONE', 'VENDOR_FAX', 'VENDOR_WEB', 'VENDOR_ADDRESS_1',
-                        'VENDOR_ADDRESS_2', 'VENDOR_CITY', 'VENDOR_PROVINCE',
-                        'VENDOR_POSTAL_CODE', 'VENDOR_COUNTRY_CODE', 'VENDOR_ACTIVE'
-                    ]
                 }
             ]
         });
