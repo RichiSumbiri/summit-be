@@ -19,6 +19,7 @@ import {
   deleteSizeChartTemplate,
   getAllSizeChartTemplates,
   getSizeChartTemplateById,
+  getSizeTemplateByCustomerID,
   updateSizeChartTemplate,
 } from "../../controllers/system/sizeTemplate.js";
 import {
@@ -51,6 +52,8 @@ router.post("/size-template", createSizeChartTemplate);
 router.get("/size-template/:id", getSizeChartTemplateById);
 router.put("/size-template/:id", updateSizeChartTemplate);
 router.delete("/size-template/:id", deleteSizeChartTemplate);
+router.get("/size-template-customer/:CustomerID", getSizeTemplateByCustomerID);
+
 
 //size item category
 router.get("/size-item-category", getSizeItemCategories);
