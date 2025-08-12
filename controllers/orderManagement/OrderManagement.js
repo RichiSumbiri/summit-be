@@ -31,7 +31,6 @@ export const getListOrderHeaderByStatus = async(req,res) => {
 export const postOrderHeader = async(req,res) => {
     try {
         const { DataHeader } = req.body;
-        console.log(DataHeader);
         if(DataHeader.ORDER_ID){
             await ModelOrderPOHeader.update({
                 ORDER_STATUS: DataHeader.ORDER_STATUS,
@@ -53,6 +52,7 @@ export const postOrderHeader = async(req,res) => {
                 ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
+                SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
                 UPDATE_BY: DataHeader.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
@@ -93,6 +93,7 @@ export const postOrderHeader = async(req,res) => {
                     ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
                     FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
                     NOTE_REMARKS: DataHeader.NOTE_REMARKS,
+                    SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
                     CREATE_BY: DataHeader.CREATE_BY,
                     CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });

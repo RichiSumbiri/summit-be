@@ -84,7 +84,7 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     allowNull: true,
   },
   SIZE_TEMPLATE_ID: {
-    type: DataTypes.STRING(200),
+    type: DataTypes.STRING(10),
     allowNull: true,
   },
   NOTE_REMARKS: {
