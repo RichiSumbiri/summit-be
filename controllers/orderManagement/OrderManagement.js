@@ -52,6 +52,7 @@ export const postOrderHeader = async(req,res) => {
                 CONTRACT_REF_NO: DataHeader.CONTRACT_REF_NO,
                 ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
+                NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 UPDATE_BY: DataHeader.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
@@ -91,6 +92,7 @@ export const postOrderHeader = async(req,res) => {
                     CONTRACT_REF_NO: DataHeader.CONTRACT_REF_NO,
                     ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
                     FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
+                    NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                     CREATE_BY: DataHeader.CREATE_BY,
                     CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
