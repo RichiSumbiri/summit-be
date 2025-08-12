@@ -242,7 +242,7 @@ const chechMasterExist = async (data) => {
 
 export const createFGColorChart = async (req, res) => {
   try {
-    const { MASTER_ITEM_ID, COLOR_ID } = req.body;
+    const { MASTER_ITEM_ID, COLOR_ID, USER_ID } = req.body;
 
     if (!MASTER_ITEM_ID || !COLOR_ID) {
       return res.status(400).json({
@@ -277,6 +277,7 @@ export const createFGColorChart = async (req, res) => {
     const newEntry = await FGColorChartModel.create({
       MASTER_ITEM_ID,
       COLOR_ID,
+      CREATED_ID: USER_ID,
     });
 
     return res.status(201).json({
@@ -308,8 +309,18 @@ export const getAllFGColorCharts = async (req, res) => {
         {
           model: colorChart,
           as: "COLOR",
-          attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+          attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
         },
+        {
+          model: Users,
+          as: "CREATED",
+          attributes: ['USER_NAME']
+        },
+        {
+          model: Users,
+          as: "UPDATED",
+          attributes: ['USER_NAME']
+        }
       ],
     });
 
@@ -336,8 +347,18 @@ export const getFGColorChartById = async (req, res) => {
         {
           model: colorChart,
           as: "COLOR",
-          attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+          attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
         },
+        {
+          model: Users,
+          as: "CREATED",
+          attributes: ['USER_NAME']
+        },
+        {
+          model: Users,
+          as: "UPDATED",
+          attributes: ['USER_NAME']
+        }
       ],
     });
 
@@ -365,7 +386,7 @@ export const getFGColorChartById = async (req, res) => {
 export const updateFGColorChart = async (req, res) => {
   try {
     const { id } = req.params;
-    const { MASTER_ITEM_ID, COLOR_ID } = req.body;
+    const { MASTER_ITEM_ID, COLOR_ID, USER_ID } = req.body;
 
     const entry = await FGColorChartModel.findByPk(id);
     if (!entry) {
@@ -388,6 +409,7 @@ export const updateFGColorChart = async (req, res) => {
     await entry.update({
       MASTER_ITEM_ID,
       COLOR_ID,
+      UPDATED_ID: USER_ID
     });
 
     return res.status(200).json({

@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import ProductItemModel from "./productItem.mod.js";
+import Users from "../setup/users.mod.js";
 
 const ProductItemComponentModel = db.define(
     "product_item_component",
@@ -62,6 +63,16 @@ const ProductItemComponentModel = db.define(
 ProductItemComponentModel.belongsTo(ProductItemModel, {
     foreignKey: "PRODUCT_ID",
     as: "PRODUCT"
+})
+
+ProductItemComponentModel.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+ProductItemComponentModel.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
 })
 
 export default ProductItemComponentModel;

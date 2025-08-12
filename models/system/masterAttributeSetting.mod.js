@@ -3,6 +3,8 @@ import db from "../../config/database.js";
 import { MasterItemGroup } from "../setup/ItemGroups.mod.js";
 import { MasterItemTypes } from "../setup/ItemTypes.mod.js";
 import { MasterItemCategories } from "../setup/ItemCategories.mod.js";
+import Users from "../setup/users.mod.js";
+import {MasterItemIdAttributesModel} from "./masterItemId.mod.js";
 
 const MasterAttributeSetting = db.define(
     "master_attribute_setting",
@@ -106,5 +108,16 @@ MasterAttributeSetting.belongsTo(MasterItemCategories, {
     targetKey: "ITEM_CATEGORY_ID",
     as: "ITEM_CATEGORY",
 });
+
+
+MasterAttributeSetting.belongsTo(Users, {
+    foreignKey: "CREATE_ID",
+    as: "CREATE"
+})
+
+MasterAttributeSetting.belongsTo(Users, {
+    foreignKey: "UPDATE_ID",
+    as: "UPDATE"
+})
 
 export default MasterAttributeSetting;

@@ -5,6 +5,8 @@ import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
+import {where} from "sequelize";
+import Users from "../../models/setup/users.mod.js";
 
 export const createBomTemplateList = async (req, res) => {
     try {
@@ -25,27 +27,23 @@ export const createBomTemplateList = async (req, res) => {
 
         if (!BOM_TEMPLATE_ID || !STATUS) {
             return res.status(400).json({
-                success: false,
-                message: "BOM_TEMPLATE_ID and STATUS are required",
+                success: false, message: "BOM_TEMPLATE_ID and STATUS are required",
             });
         }
 
-        if (COSTING_CONSUMER_PER_ITEM <0) {
+        if (COSTING_CONSUMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false,
-                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
             });
         }
-        if (INTERNAL_CUSTOMER_PER_ITEM <0) {
+        if (INTERNAL_CUSTOMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false,
-                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
             });
         }
 
         const lastEntry = await BomTemplateListModel.findOne({
-            where: {BOM_TEMPLATE_ID},
-            order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
+            where: {BOM_TEMPLATE_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
 
         const BOM_TEMPLATE_LINE_ID = lastEntry ? lastEntry.BOM_TEMPLATE_LINE_ID + 1 : 1;
@@ -68,14 +66,12 @@ export const createBomTemplateList = async (req, res) => {
         });
 
         return res.status(201).json({
-            success: true,
-            message: "BOM template list created successfully",
+            success: true, message: "BOM template list created successfully",
         });
     } catch (error) {
         console.error("Error creating BOM template list:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to create BOM template list: ${error.message}`,
+            success: false, message: `Failed to create BOM template list: ${error.message}`,
         });
     }
 };
@@ -91,83 +87,68 @@ export const getAllBomTemplateLists = async (req, res) => {
 
         const lists = await BomTemplateListModel.findAll({
             where: {
-                ...whereCondition,
-                IS_DELETED: false,
-            },
-            include: [{
+                ...whereCondition, IS_DELETED: false,
+            }, include: [{
                 model: MasterItemIdModel,
                 as: "MASTER_ITEM",
                 attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
-                include: [
-                    {
-                        model: MasterItemGroup,
-                        as: "ITEM_GROUP",
-                        attributes: ['ITEM_GROUP_CODE']
-                    },
-                    {
-                        model: MasterItemTypes,
-                        as: "ITEM_TYPE",
-                        attributes: ['ITEM_TYPE_CODE']
-                    },
-                    {
-                        model: MasterItemCategories,
-                        as: "ITEM_CATEGORY",
-                        attributes: ['ITEM_CATEGORY_CODE']
-                    },
-                ]
+                include: [{
+                    model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                }, {
+                    model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                }, {
+                    model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                },]
             }, {
                 model: ModelVendorDetail,
                 as: "VENDOR",
                 attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
-            }],
+            }, {
+                model: Users, as: "CREATED", attributes: ['USER_NAME']
+            }, {
+                model: Users, as: "UPDATED", attributes: ['USER_NAME']
+            },],
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM template lists retrieved successfully",
-            data: lists,
+            success: true, message: "BOM template lists retrieved successfully", data: lists,
         });
     } catch (error) {
         console.error("Error retrieving BOM template lists:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM template lists: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM template lists: ${error.message}`,
         });
     }
 };
 
 export const cloneBomTemplateList = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
         const {USER_ID} = req.body
         if (!id) {
             return res.status(400).json({
-                success: false,
-                message: "ID is required",
+                success: false, message: "ID is required",
             });
         }
 
         if (!USER_ID) {
             return res.status(400).json({
-                success: false,
-                message: "USER_ID is required",
+                success: false, message: "USER_ID is required",
             });
         }
 
         const originalEntry = await BomTemplateListModel.findOne({
-            where: { ID: id },
+            where: {ID: id},
         });
 
         if (!originalEntry) {
             return res.status(404).json({
-                success: false,
-                message: "Original BOM template list not found",
+                success: false, message: "Original BOM template list not found",
             });
         }
 
         const lastEntry = await BomTemplateListModel.findOne({
-            where: { BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID },
-            order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
+            where: {BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
 
         const BOM_TEMPLATE_LINE_ID = lastEntry ? lastEntry.BOM_TEMPLATE_LINE_ID + 1 : 1;
@@ -192,14 +173,12 @@ export const cloneBomTemplateList = async (req, res) => {
         });
 
         return res.status(201).json({
-            success: true,
-            message: "BOM template list cloned successfully",
+            success: true, message: "BOM template list cloned successfully",
         });
     } catch (error) {
         console.error("Error cloning BOM template list:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to clone BOM template list: ${error.message}`,
+            success: false, message: `Failed to clone BOM template list: ${error.message}`,
         });
     }
 };
@@ -209,52 +188,41 @@ export const getBomTemplateListById = async (req, res) => {
         const {id} = req.params;
 
         const list = await BomTemplateListModel.findOne({
-            where: {ID: id, IS_DELETED: false},
-            include: [{
+            where: {ID: id, IS_DELETED: false}, include: [{
                 model: MasterItemIdModel,
                 as: "MASTER_ITEM",
                 attributes: ['ITEM_ID', 'ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
-                include: [
-                    {
-                        model: MasterItemGroup,
-                        as: "ITEM_GROUP",
-                        attributes: ['ITEM_GROUP_CODE']
-                    },
-                    {
-                        model: MasterItemTypes,
-                        as: "ITEM_TYPE",
-                        attributes: ['ITEM_TYPE_CODE']
-                    },
-                    {
-                        model: MasterItemCategories,
-                        as: "ITEM_CATEGORY",
-                        attributes: ['ITEM_CATEGORY_CODE']
-                    },
-                ]
+                include: [{
+                    model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                }, {
+                    model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                }, {
+                    model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                },]
             }, {
                 model: ModelVendorDetail,
                 as: "VENDOR",
                 attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
-            }],
+            }, {
+                model: Users, as: "CREATED", attributes: ['USER_NAME']
+            }, {
+                model: Users, as: "UPDATED", attributes: ['USER_NAME']
+            },],
         });
 
         if (!list) {
             return res.status(404).json({
-                success: false,
-                message: "BOM template list not found",
+                success: false, message: "BOM template list not found",
             });
         }
 
         return res.status(200).json({
-            success: true,
-            message: "BOM template list retrieved successfully",
-            data: list,
+            success: true, message: "BOM template list retrieved successfully", data: list,
         });
     } catch (error) {
         console.error("Error retrieving BOM template list:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM template list: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM template list: ${error.message}`,
         });
     }
 };
@@ -282,21 +250,18 @@ export const updateBomTemplateList = async (req, res) => {
 
         if (!list) {
             return res.status(404).json({
-                success: false,
-                message: "BOM template list not found",
+                success: false, message: "BOM template list not found",
             });
         }
 
-        if (COSTING_CONSUMER_PER_ITEM <0) {
+        if (COSTING_CONSUMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false,
-                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
             });
         }
-        if (INTERNAL_CUSTOMER_PER_ITEM <0) {
+        if (INTERNAL_CUSTOMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false,
-                message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
             });
         }
 
@@ -316,14 +281,42 @@ export const updateBomTemplateList = async (req, res) => {
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM template list updated successfully",
+            success: true, message: "BOM template list updated successfully",
         });
     } catch (error) {
         console.error("Error updating BOM template list:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to update BOM template list: ${error.message}`,
+            success: false, message: `Failed to update BOM template list: ${error.message}`,
+        });
+    }
+};
+
+export const updateBomTemplateListStatus = async (req, res) => {
+    try {
+        const listData = req.body;
+
+        if (!Array.isArray(listData)) {
+            return res.status(400).json({
+                success: false, message: `Request must be array`,
+            });
+        }
+
+        for (let i = 0; i < listData.length; i++) {
+            const {ID, STATUS, UPDATED_ID} = listData[i]
+            await BomTemplateListModel.update({STATUS, UPDATED_ID}, {
+                where: {
+                    ID: ID
+                }
+            })
+        }
+
+        return res.status(200).json({
+            success: true, message: "BOM template list updated successfully",
+        });
+    } catch (error) {
+        console.error("Error updating BOM template list:", error);
+        return res.status(500).json({
+            success: false, message: `Failed to update BOM template list: ${error.message}`,
         });
     }
 };
@@ -340,25 +333,21 @@ export const updateBomTemplateListSingle = async (req, res) => {
 
         if (!list) {
             return res.status(404).json({
-                success: false,
-                message: "BOM template list not found",
+                success: false, message: "BOM template list not found",
             });
         }
 
         await list.update({
-            ...reqBody,
-            UPDATED_AT: new Date(),
+            ...reqBody, UPDATED_AT: new Date(),
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM template list updated successfully",
+            success: true, message: "BOM template list updated successfully",
         });
     } catch (error) {
         console.error("Error updating BOM template list:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to update BOM template list: ${error.message}`,
+            success: false, message: `Failed to update BOM template list: ${error.message}`,
         });
     }
 };
@@ -374,25 +363,21 @@ export const deleteBomTemplateList = async (req, res) => {
 
         if (!list) {
             return res.status(404).json({
-                success: false,
-                message: "BOM template list not found",
+                success: false, message: "BOM template list not found",
             });
         }
 
         await list.update({
-            IS_DELETED: true,
-            DELETED_AT: new Date(),
+            IS_DELETED: true, DELETED_AT: new Date(),
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM template list deleted successfully",
+            success: true, message: "BOM template list deleted successfully",
         });
     } catch (error) {
         console.error("Error deleting BOM template list:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to delete BOM template list: ${error.message}`,
+            success: false, message: `Failed to delete BOM template list: ${error.message}`,
         });
     }
 };

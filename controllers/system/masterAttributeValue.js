@@ -2,6 +2,7 @@ import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.j
 import MasterAttributeSetting from "../../models/system/masterAttributeSetting.mod.js";
 import {Op, Sequelize} from "sequelize";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import Users from "../../models/setup/users.mod.js";
 
 /**
  * Get all attribute values (not deleted)
@@ -27,6 +28,16 @@ export const getAllAttributeValues = async (req, res) => {
                             attributes: ['ITEM_CATEGORY_ID','ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                         }
                     ]
+                },
+                {
+                    model: Users,
+                    as: "CREATE",
+                    attributes: ['USER_NAME']
+                },
+                {
+                    model: Users,
+                    as: "UPDATE",
+                    attributes: ['USER_NAME']
                 }
             ],
             where: { IS_DELETED: false, ...whereCondition }
@@ -60,6 +71,16 @@ export const getAttributeValueById = async (req, res) => {
                     as: "attributeSetting",
                     where: { IS_DELETED: false },
                     required: true
+                },
+                {
+                    model: Users,
+                    as: "CREATE",
+                    attributes: ['USER_NAME']
+                },
+                {
+                    model: Users,
+                    as: "UPDATE",
+                    attributes: ['USER_NAME']
                 }
             ],
             where: { IS_DELETED: false }

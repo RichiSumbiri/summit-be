@@ -1,7 +1,12 @@
 import moment from "moment";
 import { ModelVendorDetail, ModelVendorPurchaseDetail, ModelVendorShipperLocation, queryGetVendorPurchaseDetailByVDC } from "../../models/system/VendorDetail.mod.js";
 import db from "../../config/database.js";
-import { QueryTypes } from "sequelize";
+import {Op, QueryTypes} from "sequelize";
+import {buildMediaUrl} from "../../util/general.js";
+import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
+import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
+import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 
 
 export const getAllVendorDetail = async(req,res) => {
@@ -239,11 +244,6 @@ export const postVendorShipperLocation = async(req,res) => {
 export const getVendorPurchaseDetailByVDC = async(req,res) => {
     try {
         const { vdc } = req.params;
-        // const dataPurchase = await ModelVendorPurchaseDetail.findAll({
-        //     where: {
-        //         VENDOR_ID: vdc
-        //     }
-        // });
         const dataPurchase = await db.query(queryGetVendorPurchaseDetailByVDC, {
             replacements: {
                 vendorID: vdc
@@ -263,7 +263,6 @@ export const getVendorPurchaseDetailByVDC = async(req,res) => {
         });
     }
 }
-
 
 export  const getVendorPurchaseByFilter = async  (req, res) => {
     const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = req.query
@@ -302,7 +301,6 @@ export  const getVendorPurchaseByFilter = async  (req, res) => {
         });
     }
 }
-
 
 export const postVendorPurchaseDetail = async(req,res) => {
     try {
@@ -369,3 +367,91 @@ export const postVendorPurchaseDetail = async(req,res) => {
         });
     }
 }
+
+export const getAllItemsWithVendors = async (req, res) => {
+    try {
+        const whereItem = {
+            IS_DELETED: false,
+            ITEM_CATEGORY_ID: { [Op.not]: 6 }
+        };
+
+        const items = await MasterItemIdModel.findAll({
+            where: whereItem,
+            include: [
+                {
+                    model: MasterItemGroup,
+                    as: 'ITEM_GROUP',
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                },
+                {
+                    model: MasterItemTypes,
+                    as: 'ITEM_TYPE',
+                    attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                },
+                {
+                    model: MasterItemCategories,
+                    as: 'ITEM_CATEGORY',
+                    attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                }
+            ]
+        });
+
+        const vendorDetails = await ModelVendorPurchaseDetail.findAll({
+            include: [
+                {
+                    model: ModelVendorDetail,
+                    as: "VENDOR_DETAIL",
+                    attributes: [
+                        'VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COMPANY_NAME',
+                        'VENDOR_PHONE', 'VENDOR_FAX', 'VENDOR_WEB', 'VENDOR_ADDRESS_1',
+                        'VENDOR_ADDRESS_2', 'VENDOR_CITY', 'VENDOR_PROVINCE',
+                        'VENDOR_POSTAL_CODE', 'VENDOR_COUNTRY_CODE', 'VENDOR_ACTIVE'
+                    ]
+                }
+            ]
+        });
+
+        const result = [];
+
+        items.forEach(item => {
+            const itemData = item.get({ plain: true });
+
+            const { ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = itemData;
+
+            const matchingVendors = vendorDetails.filter(vendor =>
+                vendor.ITEM_GROUP_ID === ITEM_GROUP_ID &&
+                vendor.ITEM_TYPE_ID === ITEM_TYPE_ID &&
+                vendor.ITEM_CATEGORY_ID === ITEM_CATEGORY_ID
+            );
+
+            if (matchingVendors.length > 0) {
+                matchingVendors.forEach(vendor => {
+                    result.push({
+                        ...itemData,
+                        ITEM_IMAGE: buildMediaUrl(itemData.ITEM_IMAGE),
+                        VENDOR_DETAIL: vendor.VENDOR_DETAIL.get({ plain: true })
+                    });
+                });
+            } else {
+                result.push({
+                    ...itemData,
+                    ITEM_IMAGE: buildMediaUrl(itemData.ITEM_IMAGE),
+                    VENDOR_DETAIL: null
+                });
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Items and vendors retrieved successfully",
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Error retrieving items with vendors:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve data: ${error.message}`,
+        });
+    }
+};

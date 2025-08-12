@@ -1,5 +1,6 @@
 import ProductItemComponentModel from "../../models/system/productItemComponent.mod.js";
 import ProductItemModel from "../../models/system/productItem.mod.js";
+import Users from "../../models/setup/users.mod.js";
 
 export const createProductItemComponent = async (req, res) => {
     try {
@@ -67,11 +68,23 @@ export const getAllProductItemComponents = async (req, res) => {
     try {
         const components = await ProductItemComponentModel.findAll({
             where,
-            include: [{
-                model: ProductItemModel,
-                as: "PRODUCT",
-                attributes: ['PRODUCT_ID', 'PRODUCT_CAT_CODE', 'PRODUCT_DESCRIPTION']
-            }]
+            include: [
+                {
+                    model: ProductItemModel,
+                    as: "PRODUCT",
+                    attributes: ['PRODUCT_ID', 'PRODUCT_CAT_CODE', 'PRODUCT_DESCRIPTION']
+                },
+                {
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ['USER_NAME']
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ['USER_NAME']
+                },
+            ]
         });
         return res.status(200).json({
             success: true,

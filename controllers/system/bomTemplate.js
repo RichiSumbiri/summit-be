@@ -1,19 +1,28 @@
-import BomTemplateModel, {BomTemplateRevModel} from "../../models/system/bomTemplate.mod.js";
+import BomTemplateModel, {
+    BomTemplateColor,
+    BomTemplateRevModel,
+    BomTemplateSize
+} from "../../models/system/bomTemplate.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "../../models/system/customer.mod.js";
 import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
+import {MasterOrderType} from "../../models/setup/orderType.mod.js";
+import sizeChart, {FGSizeChartModel} from "../../models/system/sizeChart.mod.js";
+import Users from "../../models/setup/users.mod.js";
+import colorChart, {FGColorChartModel} from "../../models/system/colorChart.mod.js";
+import {Op} from "sequelize";
 
 export const createBomTemplate = async (req, res) => {
     try {
-        let { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID , CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID } = req.body;
+        let { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID , CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID, ORDER_TYPE_ID } = req.body;
 
-        if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID) {
+        if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID || !ORDER_TYPE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "NAME, MASTER_ITEM_ID, and CUSTOMER_ID are required",
+                message: "NAME, MASTER_ITEM_ID, ORDER_TYPE_ID and CUSTOMER_ID are required",
             });
         }
 
@@ -39,6 +48,7 @@ export const createBomTemplate = async (req, res) => {
             MASTER_ITEM_ID,
             CUSTOMER_ID,
             CUSTOMER_DIVISION_ID,
+            ORDER_TYPE_ID,
             CUSTOMER_SESSION_ID,
             NOTE,
             IS_ACTIVE,
@@ -86,6 +96,11 @@ export const createBomTemplate = async (req, res) => {
                     as: "CUSTOMER_SESSION",
                     attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE', 'CTPROD_SESION_NAME']
                 },
+                {
+                    model: MasterOrderType,
+                    as: "ORDER_TYPE",
+                    attributes: ['TYPE_ID', 'TYPE_CODE', 'TYPE_DESC']
+                }
             ]
         });
 
@@ -136,9 +151,10 @@ export const cloneBomTemplate = async (req, res) => {
         const newIncrement = !getLastID ? "0000001" : Number(getLastID.ID.slice(-7)) + 1;
         const clonedTemplateID = "BTL" + newIncrement.toString().padStart(7, "0");
 
-        const clonedTemplate = await BomTemplateModel.create({
+        await BomTemplateModel.create({
             ID: clonedTemplateID,
             NAME: originalTemplate.NAME,
+            ORDER_TYPE_ID: originalTemplate.ORDER_TYPE_ID,
             REVISION_ID: originalTemplate.REVISION_ID,
             MASTER_ITEM_ID: originalTemplate.MASTER_ITEM_ID,
             CUSTOMER_ID: originalTemplate.CUSTOMER_ID,
@@ -243,6 +259,11 @@ export const getAllBomTemplates = async (req, res) => {
                     as: "CUSTOMER_SESSION",
                     attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE', 'CTPROD_SESION_NAME']
                 },
+                {
+                    model: MasterOrderType,
+                    as: "ORDER_TYPE",
+                    attributes: ['TYPE_ID', 'TYPE_CODE', 'TYPE_DESC']
+                }
             ]
         });
 
@@ -304,6 +325,11 @@ export const getBomTemplateById = async (req, res) => {
                     as: "CUSTOMER_SESSION",
                     attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE', 'CTPROD_SESION_NAME']
                 },
+                {
+                    model: MasterOrderType,
+                    as: "ORDER_TYPE",
+                    attributes: ['TYPE_ID', 'TYPE_CODE', 'TYPE_DESC']
+                }
             ]
         });
 
@@ -331,7 +357,7 @@ export const getBomTemplateById = async (req, res) => {
 export const updateBomTemplate = async (req, res) => {
     try {
         const { id } = req.params;
-        const { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID, CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID } = req.body;
+        const { NAME, REVISION_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID, CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID, ORDER_TYPE_ID } = req.body;
 
         const template = await BomTemplateModel.findOne({
             where: { ID: id, IS_DELETED: false },
@@ -353,6 +379,7 @@ export const updateBomTemplate = async (req, res) => {
             CUSTOMER_SESSION_ID,
             NOTE,
             IS_ACTIVE,
+            ORDER_TYPE_ID,
             UPDATED_ID: USER_ID,
             UPDATED_AT: new Date(),
         });
@@ -557,6 +584,619 @@ export const deleteBomTemplateRev = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Failed to delete BOM template revision: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateGetAllColors = async (req, res) => {
+    try {
+        const colors = await BomTemplateColor.findAll({
+            order: [["ID", "ASC"]],
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "BOM Template Colors retrieved successfully",
+            colors,
+        });
+    } catch (error) {
+        console.error("Error retrieving BOM Template Colors:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve BOM Template Colors: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateGetColorById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const color = await BomTemplateColor.findOne({
+            where: { ID: id },
+        });
+
+        if (!color) {
+            return res.status(404).json({
+                success: false,
+                message: "Color not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Color retrieved successfully",
+            color,
+        });
+    } catch (error) {
+        console.error("Error retrieving BOM Template Color:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve color: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateCreateColor = async (req, res) => {
+    try {
+        const { COLOR_ID, BOM_TEMPLATE_ID } = req.body;
+
+        if (!BOM_TEMPLATE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "BOM_TEMPLATE_ID is required",
+            });
+        }
+
+        const newColor = await BomTemplateColor.create({
+            COLOR_ID,
+            BOM_TEMPLATE_ID,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Color created successfully",
+            newColor,
+        });
+    } catch (error) {
+        console.error("Error creating BOM Template Color:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to create color: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateUpdateColor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { COLOR_ID, BOM_TEMPLATE_ID } = req.body;
+
+        const color = await BomTemplateColor.findOne({
+            where: { ID: id },
+        });
+        if (!color) {
+            return res.status(404).json({
+                success: false,
+                message: "Color not found",
+            });
+        }
+
+        await color.update({
+            COLOR_ID,
+            BOM_TEMPLATE_ID: BOM_TEMPLATE_ID || color.BOM_TEMPLATE_ID,
+            UPDATED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Color updated successfully",
+            color: await color.reload(),
+        });
+    } catch (error) {
+        console.error("Error updating BOM Template Color:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update color: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateDeleteColor = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const color = await BomTemplateColor.findOne({
+            where: { ID: id },
+        });
+        if (!color) {
+            return res.status(404).json({
+                success: false,
+                message: "Color not found",
+            });
+        }
+
+        await color.update({
+            DELETED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Color deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting BOM Template Color:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to delete color: ${error.message}`,
+        });
+    }
+};
+
+
+export const bomTemplateGetAllSizes = async (req, res) => {
+    try {
+        const sizes = await BomTemplateSize.findAll({
+            order: [["ID", "ASC"]],
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "BOM Template Sizes retrieved successfully",
+            sizes,
+        });
+    } catch (error) {
+        console.error("Error retrieving BOM Template Sizes:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve sizes: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateGetSizeById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const size = await BomTemplateSize.findOne({
+            where: { ID: id },
+        });
+
+        if (!size) {
+            return res.status(404).json({
+                success: false,
+                message: "Size not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Size retrieved successfully",
+            size,
+        });
+    } catch (error) {
+        console.error("Error retrieving BOM Template Size:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve size: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateCreateSize = async (req, res) => {
+    try {
+        const { SIZE_ID, BOM_TEMPLATE_ID } = req.body;
+
+        if (!BOM_TEMPLATE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "BOM_TEMPLATE_ID is required",
+            });
+        }
+
+        const newSize = await BomTemplateSize.create({
+            SIZE_ID,
+            BOM_TEMPLATE_ID,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Size created successfully",
+            newSize,
+        });
+    } catch (error) {
+        console.error("Error creating BOM Template Size:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to create size: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateUpdateSize = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { SIZE_ID, BOM_TEMPLATE_ID } = req.body;
+
+        const size = await BomTemplateSize.findOne({
+            where: { ID: id },
+        });
+        if (!size) {
+            return res.status(404).json({
+                success: false,
+                message: "Size not found",
+            });
+        }
+
+        await size.update({
+            SIZE_ID,
+            BOM_TEMPLATE_ID: BOM_TEMPLATE_ID || size.BOM_TEMPLATE_ID,
+            UPDATED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Size updated successfully",
+            size: await size.reload(),
+        });
+    } catch (error) {
+        console.error("Error updating BOM Template Size:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update size: ${error.message}`,
+        });
+    }
+};
+
+export const bomTemplateDeleteSize = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const size = await BomTemplateSize.findOne({
+            where: { ID: id },
+        });
+        if (!size) {
+            return res.status(404).json({
+                success: false,
+                message: "Size not found",
+            });
+        }
+
+        await size.update({
+            DELETED_AT: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Size deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting BOM Template Size:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to delete size: ${error.message}`,
+        });
+    }
+};
+
+export const getAllFGSizeCharts = async (req, res) => {
+    try {
+        const { MASTER_ITEM_ID, BOM_TEMPLATE_ID } = req.query;
+
+        const isBomTemplateProvided = BOM_TEMPLATE_ID;
+
+        const whereFG = {
+            IS_DELETED: false,
+        };
+
+        if (MASTER_ITEM_ID) {
+            whereFG.MASTER_ITEM_ID = MASTER_ITEM_ID;
+        }
+
+        const entries = await FGSizeChartModel.findAll({
+            where: whereFG,
+            include: [
+                {
+                    model: sizeChart,
+                    as: "SIZE",
+                    attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
+                },
+                {
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ["USER_NAME"]
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ["USER_NAME"]
+                }
+            ],
+        });
+
+        let selectedSizeIds = [];
+        if (isBomTemplateProvided) {
+            const selectedRecords = await BomTemplateSize.findAll({
+                where: {
+                    BOM_TEMPLATE_ID: BOM_TEMPLATE_ID,
+                    DELETED_AT: null
+                },
+                attributes: ["SIZE_ID"],
+            });
+
+            selectedSizeIds = selectedRecords.map(record => record.SIZE_ID);
+        }
+
+        const responseData = entries.map(entry => {
+            const plainEntry = entry.get({ plain: true });
+            const sizeId = plainEntry.SIZE?.SIZE_ID;
+
+            return {
+                ...plainEntry,
+                SELECTED: isBomTemplateProvided && sizeId ? selectedSizeIds.includes(sizeId) : false
+            };
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "FG size charts retrieved successfully",
+            data: responseData,
+        });
+    } catch (error) {
+        console.error("Error retrieving FG size charts:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve FG size charts: ${error.message}`,
+        });
+    }
+};
+
+
+export const getAllFGColorCharts = async (req, res) => {
+    try {
+        const { MASTER_ITEM_ID, BOM_TEMPLATE_ID } = req.query;
+
+        const where = { IS_DELETED: false };
+        if (MASTER_ITEM_ID) {
+            where.MASTER_ITEM_ID = MASTER_ITEM_ID;
+        }
+
+        const entries = await FGColorChartModel.findAll({
+            where,
+            include: [
+                {
+                    model: colorChart,
+                    as: "COLOR",
+                    attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
+                },
+                {
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ["USER_NAME"]
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ["USER_NAME"]
+                }
+            ],
+        });
+
+        let selectedColorIds = [];
+        if (BOM_TEMPLATE_ID) {
+            const selectedRecords = await BomTemplateColor.findAll({
+                where: {
+                    BOM_TEMPLATE_ID: BOM_TEMPLATE_ID,
+                    DELETED_AT: null
+                },
+                attributes: ["COLOR_ID"],
+            });
+
+            selectedColorIds = selectedRecords.map(record => record.COLOR_ID);
+        }
+
+        const responseData = entries.map(entry => {
+            const plainEntry = entry.get({ plain: true });
+            const colorId = plainEntry.COLOR?.COLOR_ID;
+
+            return {
+                ...plainEntry,
+                SELECTED: BOM_TEMPLATE_ID && colorId ? selectedColorIds.includes(colorId) : false
+            };
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "FG color charts retrieved successfully",
+            data: responseData,
+        });
+    } catch (error) {
+        console.error("Error retrieving FG color charts:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve FG color charts: ${error.message}`,
+        });
+    }
+};
+
+export const bulkCreateBomTemplateColor = async (req, res) => {
+    const { body } = req;
+    try {
+        const colors = await Promise.all(
+            body.map(item => BomTemplateColor.create(item))
+        );
+        return res.status(201).json({
+            success: true,
+            message: "Colors added successfully",
+            colors
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
+export const bulkCreateBomTemplateSize = async (req, res) => {
+    const { body } = req;
+    try {
+        const colors = await Promise.all(
+            body.map(item => BomTemplateSize.create(item))
+        );
+        return res.status(201).json({
+            success: true,
+            message: "Sizes added successfully",
+            colors
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+export const bulkDeleteBomTemplateColor = async (req, res) => {
+    const { ids } = req.body;
+    try {
+        await BomTemplateColor.update(
+            { DELETED_AT: new Date() },
+            { where: { ID: ids } }
+        );
+        return res.status(200).json({
+            success: true,
+            message: "Colors removed successfully"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+export const bulkDeleteBomTemplateSize = async (req, res) => {
+    const { ids } = req.body;
+    try {
+        await BomTemplateSize.update(
+            { DELETED_AT: new Date() },
+            { where: { ID: ids } }
+        );
+        return res.status(200).json({
+            success: true,
+            message: "Sizes removed successfully"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+export const bulkToggleBomTemplateColor = async (req, res) => {
+    const { body } = req;
+
+    if (!Array.isArray(body) || body.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Request body must be a non-empty array",
+        });
+    }
+
+    try {
+        for (const item of body) {
+            const { COLOR_ID, BOM_TEMPLATE_ID } = item;
+
+            if (!COLOR_ID || !BOM_TEMPLATE_ID) {
+                continue;
+            }
+
+            const existing = await BomTemplateColor.findOne({
+                where: {
+                    COLOR_ID,
+                    BOM_TEMPLATE_ID,
+                    DELETED_AT: null,
+                },
+            });
+
+            if (existing) {
+                await existing.update({ DELETED_AT: new Date() });
+            } else {
+                await BomTemplateColor.create({
+                    COLOR_ID,
+                    BOM_TEMPLATE_ID,
+                });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Bulk toggle completed",
+        });
+    } catch (error) {
+        console.error("Error in bulk toggle color:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const bulkToggleBomTemplateSize = async (req, res) => {
+    const { body } = req;
+
+    if (!Array.isArray(body) || body.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Request body must be a non-empty array",
+        });
+    }
+
+    try {
+
+        for (const item of body) {
+            const { SIZE_ID, BOM_TEMPLATE_ID } = item;
+
+            if (!SIZE_ID || !BOM_TEMPLATE_ID) {
+                continue;
+            }
+
+            const existing = await BomTemplateSize.findOne({
+                where: {
+                    SIZE_ID,
+                    BOM_TEMPLATE_ID,
+                    DELETED_AT: null,
+                },
+            });
+
+            console.log("SIZE_ID ", SIZE_ID)
+            console.log("BOM_TEMPLATE_ID ", BOM_TEMPLATE_ID)
+            console.log("existing ", existing)
+
+            if (existing) {
+                await existing.update({ DELETED_AT: new Date() });
+            } else {
+                    await BomTemplateSize.create({
+                        SIZE_ID,
+                        BOM_TEMPLATE_ID,
+                    });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Bulk toggle completed",
+        });
+    } catch (error) {
+        console.error("Error in bulk toggle size:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message,
         });
     }
 };
