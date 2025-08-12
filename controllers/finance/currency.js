@@ -224,6 +224,44 @@ export const creatExchageRateHeader = async (req, res) => {
 };
 
 
+export const editExchageRateHeader = async (req, res) => {
+  try {
+    const {dataHeader, dataDetail}= req.body;
+    const { CERH_ID, CERH_EFECTIVE_DATE, MOD_ID, IS_ACTIVE ,}  = dataHeader
+
+    // Validasi apakah sudah ada data untuk tanggal efektif tersebut
+    const existing = await CurrencyExcRateHeader.findOne({ where: { CERH_ID } });
+    if (!existing) {
+      return res.status(202).json({ message: 'Effective date Not exists.' });
+    }
+    
+
+      await db.transaction(async (t) => {
+      // Reset all IS_PRIMARY to null
+        const newHeader = await CurrencyExcRateHeader.update({
+          CERH_EFECTIVE_DATE,
+          MOD_ID,
+          IS_ACTIVE
+        }, {
+          where : {
+            CERH_ID: CERH_ID,
+          }
+        });
+
+        const destroyDetail = await CurrencyExcRateDetail.destroy({where : { CERH_ID }})
+        
+        const setIdHeader = dataDetail.map(item => ({...item, CERH_ID : CERH_ID }))
+        await CurrencyExcRateDetail.bulkCreate(setIdHeader)
+    });
+
+    res.status(201).json({message: 'Succces updated Currency Exchange'});
+  } catch (error) {
+    console.error('Error creating header:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
 export const getHeaderExchange = async (req, res) => {
   try {
         const getAllCurdef = await db.query(qryGetCurrencyExchange,
@@ -251,3 +289,32 @@ export const getAllDetail = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+
+//update header currency rate
+export const updateExchageRateHeader = async (req, res) => {
+  try {
+    const {CERH_ID, MOD_ID,}= req.body;
+
+    // Validasi apakah sudah ada data untuk tanggal efektif tersebut
+    const existing = await CurrencyExcRateHeader.findOne({ where: { CERH_ID } });
+    if (!existing) {
+      return res.status(202).json({ message: 'No Found header exchange ID' });
+    }
+    
+
+    const updateHeader = await CurrencyExcRateHeader.update({
+      IS_ACTIVE : !existing.IS_ACTIVE,
+      MOD_ID
+    }, {
+      where : {
+        CERH_ID
+      }
+    });
+
+    res.status(201).json({message: 'Succces update Currency Exchange'});
+  } catch (error) {
+    console.error('Error creating header:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
