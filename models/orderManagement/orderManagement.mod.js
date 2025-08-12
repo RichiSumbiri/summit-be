@@ -144,8 +144,10 @@ SELECT
 	oph.FLAG_MULTISET_ITEMS,
 	oph.SIZE_TEMPLATE_ID,
 	oph.CREATE_BY,
+	xuw.USER_NAME AS CREATE_NAME,
 	oph.CREATE_DATE,
 	oph.UPDATE_BY,
+	xuw2.USER_NAME AS UPDATE_NAME,
 	oph.UPDATE_DATE
 FROM
 	order_po_header oph
@@ -157,5 +159,6 @@ LEFT JOIN customer_product_season cps ON cps.CTPROD_SESION_ID = oph.CUSTOMER_SEA
 LEFT JOIN customer_program_name cpn ON cpn.CTPROG_ID = oph.CUSTOMER_PROGRAM_ID 
 LEFT JOIN customer_buy_plan cbp ON cbp.CTBUYPLAN_ID = oph.CUSTOMER_BUYPLAN_ID 
 LEFT JOIN projection_order po ON po.PRJ_ID = oph.PROJECTION_ORDER_ID 
-WHERE oph.ORDER_STATUS= :orderStatus
-    `;
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oph.CREATE_BY 
+LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oph.UPDATE_BY 
+WHERE oph.ORDER_STATUS= :orderStatus    `;
