@@ -1,8 +1,5 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
-import { MasterItemCategories } from "../setup/ItemCategories.mod.js";
-import { MasterItemTypes } from "../setup/ItemTypes.mod.js";
-import { MasterItemGroup } from "../setup/ItemGroups.mod.js";
 import Users from "../setup/users.mod.js";
 
 const colorChart = db.define(
@@ -108,6 +105,14 @@ export const FGColorChartModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        CREATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        UPDATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
     },
     {
         freezeTableName: true,
@@ -123,3 +128,13 @@ FGColorChartModel.belongsTo(colorChart, {
     foreignKey: "COLOR_ID",
     as: "COLOR",
 });
+
+FGColorChartModel.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+FGColorChartModel.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
+})

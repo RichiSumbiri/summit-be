@@ -2,6 +2,8 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import MasterItemIdModel from "./masterItemId.mod.js";
 import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "./customer.mod.js";
+import {MasterOrderType} from "../setup/orderType.mod.js";
+import Users from "../setup/users.mod.js";
 
 const BomTemplateModel = db.define(
     "bom_template",
@@ -26,6 +28,10 @@ const BomTemplateModel = db.define(
         },
         CUSTOMER_ID: {
             type: DataTypes.STRING(15),
+            allowNull: true,
+        },
+        ORDER_TYPE_ID: {
+            type: DataTypes.INTEGER,
             allowNull: true,
         },
         CUSTOMER_DIVISION_ID: {
@@ -99,6 +105,10 @@ BomTemplateModel.belongsTo(CustomerProductSeason, {
     as: "CUSTOMER_SESSION"
 })
 
+BomTemplateModel.belongsTo(MasterOrderType, {
+    foreignKey: "ORDER_TYPE_ID",
+    as: "ORDER_TYPE"
+})
 export const BomTemplateRevModel = db.define(
     "bom_template_rev",
     {
@@ -141,6 +151,86 @@ export const BomTemplateRevModel = db.define(
         updatedAt: "UPDATED_AT",
         deletedAt: "DELETED_AT",
         paranoid: true,
+    }
+);
+
+export const BomTemplateColor = db.define(
+    "bom_template_color",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+        COLOR_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        BOM_TEMPLATE_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        CREATED_AT: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+        },
+        UPDATED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
+    },
+    {
+        tableName: "bom_template_color",
+        timestamps: false,
+        paranoid: true,
+        createdAt: "CREATED_AT",
+        updatedAt: "UPDATED_AT",
+    }
+);
+
+export const BomTemplateSize = db.define(
+    "bom_template_size",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+        SIZE_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        BOM_TEMPLATE_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        CREATED_AT: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+        },
+        UPDATED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
+    },
+    {
+        tableName: "bom_template_size",
+        timestamps: false,
+        paranoid: true,
+        createdAt: "CREATED_AT",
+        updatedAt: "UPDATED_AT",
     }
 );
 

@@ -183,16 +183,6 @@ export const MasterItemIdAttributesModel = db.define(
     }
 );
 
-MasterItemIdAttributesModel.belongsTo(MasterAttributeSetting, {
-    foreignKey: "MASTER_ATTRIBUTE_ID",
-    as: "MASTER_ATTRIBUTE"
-})
-
-MasterItemIdAttributesModel.belongsTo(MasterAttributeValue, {
-    foreignKey: "MASTER_ATTRIBUTE_VALUE_ID",
-    as: "MASTER_ATTRIBUTE_VALUE"
-})
-
 export const MasterItemIdService = db.define(
     "master_item_id_service",
     {

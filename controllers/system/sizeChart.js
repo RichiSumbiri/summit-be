@@ -1,9 +1,6 @@
 import sizeChart, {
   FGSizeChartModel,
 } from "../../models/system/sizeChart.mod.js";
-import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
-import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
-import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 import { successResponse, errorResponse } from "../helpers/responseHelper.js";
 import { Op, Sequelize } from "sequelize";
 import Users from "../../models/setup/users.mod.js";
@@ -242,7 +239,7 @@ const generateCustomId = async () => {
 
 export const createFGSizeChart = async (req, res) => {
   try {
-    const { MASTER_ITEM_ID, SIZE_ID } = req.body;
+    const { MASTER_ITEM_ID, SIZE_ID, USER_ID } = req.body;
 
     if (!MASTER_ITEM_ID || !SIZE_ID) {
       return res.status(400).json({
@@ -277,6 +274,7 @@ export const createFGSizeChart = async (req, res) => {
     await FGSizeChartModel.create({
       MASTER_ITEM_ID,
       SIZE_ID,
+      CREATED_ID: USER_ID
     });
 
     return res.status(201).json({
@@ -310,8 +308,18 @@ export const getAllFGSizeCharts = async (req, res) => {
         {
           model: sizeChart,
           as: "SIZE",
-          attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+          attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION", "IS_ACTIVE","CREATED_AT", "UPDATED_AT"],
         },
+        {
+          model: Users,
+          as: "CREATED",
+          attributes: ['USER_NAME']
+        },
+        {
+          model: Users,
+          as: "UPDATED",
+          attributes: ['USER_NAME']
+        }
       ],
     });
 
@@ -329,6 +337,8 @@ export const getAllFGSizeCharts = async (req, res) => {
   }
 };
 
+
+
 export const getFGSizeChartById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -338,8 +348,18 @@ export const getFGSizeChartById = async (req, res) => {
         {
           model: sizeChart,
           as: "SIZE",
-          attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+          attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
         },
+        {
+          model: Users,
+          as: "CREATED",
+          attributes: ['USER_NAME']
+        },
+        {
+          model: Users,
+          as: "UPDATED",
+          attributes: ['USER_NAME']
+        }
       ],
     });
 
@@ -367,7 +387,7 @@ export const getFGSizeChartById = async (req, res) => {
 export const updateFGSizeChart = async (req, res) => {
   try {
     const { id } = req.params;
-    const { MASTER_ITEM_ID, SIZE_ID } = req.body;
+    const { MASTER_ITEM_ID, SIZE_ID, USER_ID } = req.body;
 
     const entry = await FGSizeChartModel.findByPk(id);
     if (!entry) {
@@ -390,6 +410,7 @@ export const updateFGSizeChart = async (req, res) => {
     await entry.update({
       MASTER_ITEM_ID,
       SIZE_ID,
+      UPDATED_ID: USER_ID
     });
 
     return res.status(200).json({

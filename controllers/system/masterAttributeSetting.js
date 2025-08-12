@@ -4,6 +4,7 @@ import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {Op, Sequelize} from "sequelize";
+import Users from "../../models/setup/users.mod.js";
 
 export const getAllAttributeSettings = async (req, res) => {
     const {ITEM_CATEGORY_ID, ITEM_TYPE_ID, ITEM_GROUP_ID} = req.query
@@ -35,6 +36,16 @@ export const getAllAttributeSettings = async (req, res) => {
                     as: "ITEM_CATEGORY",
                     attributes: ["ITEM_CATEGORY_ID", "ITEM_CATEGORY_CODE", "ITEM_CATEGORY_DESCRIPTION"],
                 },
+                {
+                    model: Users,
+                    as: "CREATE",
+                    attributes: ['USER_NAME']
+                },
+                {
+                    model: Users,
+                    as: "UPDATE",
+                    attributes: ['USER_NAME']
+                }
             ],
             where: {IS_DELETED: false, ...whereCondition},
         });
@@ -65,6 +76,16 @@ export const getAttributeSettingById = async (req, res) => {
                     where: {IS_DELETED: false},
                     required: false,
                 },
+                {
+                    model: Users,
+                    as: "CREATE",
+                    attributes: ['USER_NAME']
+                },
+                {
+                    model: Users,
+                    as: "UPDATE",
+                    attributes: ['USER_NAME']
+                }
             ],
             where: {IS_DELETED: false},
         });

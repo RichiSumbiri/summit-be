@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    getAllItemsWithVendors,
     getAllVendorDetail,
     getVendorPurchaseByFilter,
     getVendorPurchaseDetailByVDC,
@@ -23,6 +24,6 @@ router.post("/shipper-location", postVendorShipperLocation);
 router.get("/purchase-detail/:vdc", getVendorPurchaseDetailByVDC);
 router.post("/purchase-detail", postVendorPurchaseDetail);
 router.get("/purchase-detail-filter", getVendorPurchaseByFilter);
-
+router.get("/purchase-detail-vendor", getAllItemsWithVendors);
 
 export default router;

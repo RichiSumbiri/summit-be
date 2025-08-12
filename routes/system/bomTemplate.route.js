@@ -3,14 +3,37 @@ import {
     cloneBomTemplateList,
     createBomTemplateList, deleteBomTemplateList,
     getAllBomTemplateLists,
-    getBomTemplateListById, updateBomTemplateList, updateBomTemplateListSingle
+    getBomTemplateListById, updateBomTemplateList, updateBomTemplateListSingle, updateBomTemplateListStatus
 } from "../../controllers/system/bomTemplateList.js";
 import {
+    bomTemplateCreateColor,
+    bomTemplateCreateSize,
+    bomTemplateUpdateSize,
+    bomTemplateDeleteSize,
+    bomTemplateDeleteColor,
+    bomTemplateGetAllColors,
+    bomTemplateGetAllSizes,
+    bomTemplateGetColorById,
+    bomTemplateGetSizeById,
+    bomTemplateUpdateColor,
     cloneBomTemplate,
-    createBomTemplate, createBomTemplateRev, deleteBomTemplate, deleteBomTemplateRev, getAllBomTemplateRevs,
+    createBomTemplate,
+    createBomTemplateRev,
+    deleteBomTemplate,
+    deleteBomTemplateRev,
+    getAllBomTemplateRevs,
     getAllBomTemplates,
-    getBomTemplateById, getBomTemplateRevById,
-    updateBomTemplate, updateBomTemplateRev
+    getBomTemplateById,
+    getBomTemplateRevById,
+    updateBomTemplate,
+    updateBomTemplateRev,
+    getAllFGColorCharts,
+    getAllFGSizeCharts,
+    bulkDeleteBomTemplateColor,
+    bulkCreateBomTemplateSize,
+    bulkDeleteBomTemplateSize,
+    bulkCreateBomTemplateColor,
+    bulkToggleBomTemplateColor, bulkToggleBomTemplateSize
 } from "../../controllers/system/bomTemplate.js";
 
 const router = express.Router();
@@ -21,6 +44,7 @@ router.get("/list/:id", getBomTemplateListById);
 router.patch("/list-single/:id", updateBomTemplateListSingle);
 router.patch("/list/:id", cloneBomTemplateList);
 router.put("/list/:id", updateBomTemplateList);
+router.put("/list-bulk", updateBomTemplateListStatus);
 router.delete("/list/:id", deleteBomTemplateList);
 
 router.post("/master", createBomTemplate);
@@ -37,5 +61,28 @@ router.get("/rev/:id", getBomTemplateRevById);
 router.put("/rev/:id", updateBomTemplateRev);
 router.delete("/rev/:id", deleteBomTemplateRev);
 
+router.get("/colors", bomTemplateGetAllColors);
+router.get("/colors/:id", bomTemplateGetColorById);
+router.post("/colors", bomTemplateCreateColor);
+router.put("/colors/:id", bomTemplateUpdateColor);
+router.delete("/colors/:id", bomTemplateDeleteColor);
+
+router.get("/sizes", bomTemplateGetAllSizes);
+router.get("/sizes/:id", bomTemplateGetSizeById);
+router.post("/sizes", bomTemplateCreateSize);
+router.put("/sizes/:id", bomTemplateUpdateSize);
+router.delete("/sizes/:id", bomTemplateDeleteSize);
+
+router.get("/color", getAllFGColorCharts)
+router.get("/size", getAllFGSizeCharts)
+
+router.post("/color/toggle", bulkToggleBomTemplateColor);
+router.post("/size/toggle", bulkToggleBomTemplateSize);
+
+router.post("/color/bulk", bulkCreateBomTemplateColor);
+router.patch("/color/bulk-delete", bulkDeleteBomTemplateColor);
+
+router.post("/size/bulk", bulkCreateBomTemplateSize);
+router.patch("/size/bulk-delete", bulkDeleteBomTemplateSize);
 
 export default router;

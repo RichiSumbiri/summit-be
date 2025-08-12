@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
-import BomTemplateModel from "./bomTemplate.mod.js";
 import MasterItemIdModel from "./masterItemId.mod.js";
 import {ModelVendorDetail} from "./VendorDetail.mod.js";
+import Users from "../setup/users.mod.js";
 
 const BomTemplateListModel = db.define(
     "bom_template_list",
@@ -111,6 +111,17 @@ BomTemplateListModel.belongsTo(ModelVendorDetail, {
     foreignKey: "VENDOR_ID",
     as: "VENDOR"
 })
+
+BomTemplateListModel.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+BomTemplateListModel.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
+})
+
 
 
 export default BomTemplateListModel;

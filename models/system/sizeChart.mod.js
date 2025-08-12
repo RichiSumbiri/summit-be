@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import Users from "../setup/users.mod.js";
+import {FGColorChartModel} from "./colorChart.mod.js";
 
 const sizeChart = db.define(
   "master_size_chart",
@@ -84,6 +85,14 @@ export const FGSizeChartModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        CREATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        UPDATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
     },
     {
         freezeTableName: true,
@@ -99,3 +108,14 @@ FGSizeChartModel.belongsTo(sizeChart, {
     foreignKey: "SIZE_ID",
     as: "SIZE",
 });
+
+
+FGSizeChartModel.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+FGSizeChartModel.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
+})

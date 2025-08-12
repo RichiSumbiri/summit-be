@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import Users from "../setup/users.mod.js";
+import MasterAttributeSetting from "./masterAttributeSetting.mod.js";
 
 const MasterAttributeValue = db.define(
     "master_attribute_value",
@@ -61,5 +63,16 @@ const MasterAttributeValue = db.define(
         deletedAt: "DELETED_AT",
     }
 );
+
+MasterAttributeValue.belongsTo(Users, {
+    foreignKey: "CREATE_ID",
+    as: "CREATE"
+})
+
+MasterAttributeValue.belongsTo(Users, {
+    foreignKey: "UPDATE_ID",
+    as: "UPDATE"
+})
+
 
 export default MasterAttributeValue;
