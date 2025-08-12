@@ -219,3 +219,42 @@ export const deleteSizeChartTemplate = async (req, res) => {
         });
     }
 };
+
+
+export const getSizeTemplateByCustomerID = async(req,res) => {
+    try {
+        const { CustomerID } = req.params;
+        
+        // get list header template
+        let HeaderTemplate = await SizeChartTemplateModel.findAll({
+            where: {
+                CUSTOMER_ID: CustomerID
+            }, raw: true
+        });
+
+        // get list detail size per template
+        for (const hdr of HeaderTemplate) {
+            hdr.LIST_SIZE = [];
+            for (const size of JSON.parse(hdr.LIST)) {
+                const sizeDetail = await SizeChartMod.findOne({
+                    where: {
+                        SIZE_ID: size
+                    }, raw: true
+                });
+                hdr.LIST_SIZE.push(sizeDetail);
+            }
+        }
+       
+        return res.status(200).json({
+            success: true,
+            message: `Size chart template get for customer ${CustomerID} successfully`,
+            data: HeaderTemplate
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            message: `Failed to get size chart template`,
+            error: err
+        });
+    }
+}

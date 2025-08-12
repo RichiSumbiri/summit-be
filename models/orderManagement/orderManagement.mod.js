@@ -87,6 +87,10 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     type: DataTypes.STRING(200),
     allowNull: true,
   },
+  NOTE_REMARKS: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
   CREATE_BY: {
     type: DataTypes.STRING(200),
     allowNull: true,
@@ -143,7 +147,8 @@ SELECT
 	po.PRJ_DESCRIPTION AS PROJECTION_ORDER_DESCRIPTION,
 	oph.FLAG_MULTISET_ITEMS,
 	oph.SIZE_TEMPLATE_ID,
-	oph.CREATE_BY,
+	oph.NOTE_REMARKS,
+  oph.CREATE_BY,
 	xuw.USER_NAME AS CREATE_NAME,
 	oph.CREATE_DATE,
 	oph.UPDATE_BY,
