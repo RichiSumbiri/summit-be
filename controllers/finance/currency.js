@@ -1,7 +1,10 @@
 
 import { QueryTypes, Op } from "sequelize";
-import { CurrencyDefault, CurrencyExcRateDetail, CurrencyExcRateHeader, qryGetCurrencyExchange, qryGetDetaulCurExch, qryListCurrency, queryGetListValuta } from "../../models/finance/currency.mod.js";
+import { CurrencyDefault, CurrencyExcRateDetail, CurrencyExcRateHeader, kursRef, qryGetCurrencyExchange, qryGetDetaulCurExch, qryListCurrency, qryrefTabelKurs, queryGetListValuta } from "../../models/finance/currency.mod.js";
 import db from "../../config/database.js";
+import moment from "moment";
+import * as cheerio from "cheerio";
+import axios from "axios";
 
 export const getListValuta = async (req, res) => {
   try {
@@ -318,3 +321,202 @@ export const updateExchageRateHeader = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+function parseIDNumber(str) {
+  if (!str) return null;
+  return parseFloat(
+    str.replace(/\./g, "").replace(",", ".")
+  );
+}
+
+
+//kurs Bi, get kurs BI Today 
+// 🔹 Fungsi Scraper BI
+export async function fetchAndSaveKursBI(date) {
+    const url = "https://www.bi.go.id/id/statistik/informasi-kurs/transaksi-bi/Default.aspx";
+    // console.log(`[${new Date().toISOString()}] Mulai fetch data BI...`);
+
+    try {
+      const url = "https://www.bi.go.id/id/statistik/informasi-kurs/transaksi-bi/Default.aspx";
+
+      const response = await axios.get(url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+          "Accept-Language": "id,en;q=0.9",
+          "Accept": "text/html,application/xhtml+xml"
+        },
+        timeout: 20000 // tambahkan timeout lebih panjang
+      });
+      const getBi = response.data;
+//         const getBi = await axios.get(url, { timeout: 10000 });
+//         console.log(getBi);
+        
+        const $ = cheerio.load(getBi);
+        const kurs = [];
+
+        // Cari tabel utama
+        $("table tbody tr").each((_, el) => {
+          const tds = $(el).find("td");
+          if (tds.length >= 4) {
+            kurs.push({
+              code: $(tds[0]).text().trim(),
+              nilai: parseIDNumber($(tds[1]).text().trim()),
+              jual: parseIDNumber($(tds[2]).text().trim()),
+              beli: parseIDNumber($(tds[3]).text().trim()),
+            });
+          }
+        });
+
+        const KURS_DATE = moment().format('YYYY-MM-DD')
+        // console.log(`✅ Dapat ${kurs.length} data kurs`);
+        if(kurs.length > 0){
+
+          const structurBiObj = kurs.map(item => ({
+              KURS_DATE :KURS_DATE,
+              KURS_TYPE :'BI',
+              KURS_CODE : item.code,
+              KURS_VALUE : item.nilai,
+              KURS_SALE : item.jual,
+              KURS_BUY : item.beli,
+              KURS_MID : (item.beli+item.jual)/2,
+          }))
+
+          // await kursRef.bulkCreate(structurBiObj)
+          return structurBiObj
+        }else{
+          return []
+        }
+
+        // console.log("✅ Data kurs BI berhasil disimpan/diupdate.");
+    } catch (err) {      
+      console.error("❌ Filed fetch data BI:", err.message);
+      return []
+      // res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
+export const getAllDetailKurs = async (req, res) => {
+  try {
+    const {stateDate} = req.params    
+    const alldetail =   await db.query(qryrefTabelKurs,
+          {
+            replacements: {    stateDate    }, 
+            type: QueryTypes.SELECT 
+          }
+        ); 
+
+        res.json({data: alldetail})
+  } catch (error) {
+    console.error('Error when get data detail currency exchange reference:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+async function getKursPajak(date) {
+  const url = `https://fiskal.kemenkeu.go.id/informasi-publik/kurs-pajak?date=${date}`;
+
+  try {
+    const { data: html } = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
+
+    const $ = cheerio.load(html);
+    const result = [];
+
+    // Loop setiap baris tabel
+    $("table tbody tr").each((_, el) => {
+      const tds = $(el).find("td");
+      if (tds.length >= 3) {
+        const nama = $(tds[1]).text().trim();
+        const kurs = $(tds[2]).text().trim().replace(/\./g, "").replace(",", ".");
+        result.push({
+          nama,
+          kurs: parseFloat(kurs),
+        });
+      }
+    });
+
+    if(result.length > 0){
+        const KURS_DATE = moment().format('YYYY-MM-DD')
+
+      const changeNameToCOde = result.map(item => {
+        const match = item.nama.match(/\((.*?)\)/); // ambil isi dalam tanda kurung
+        return {
+          // kode: match ? match[1] : null,
+          // kurs: item.kurs,
+              KURS_DATE :KURS_DATE,
+              KURS_TYPE :'PAJAK',
+              KURS_CODE : match[1],
+              KURS_VALUE : match[1] === 'JPY' ?  100 : 1 ,
+              KURS_SALE : item.kurs,
+              KURS_BUY : 0,
+              KURS_MID : item.kurs,
+        };
+      });
+
+
+      return changeNameToCOde
+    }else{
+      return []
+    }
+
+
+  } catch (err) {
+    console.log(err);
+    
+    console.error("Gagal ambil kurs pajak:", err.message);
+    return [];
+  }
+}
+
+// Contoh pakai
+// getKursPajak().then(data => console.log(data));
+
+
+export const getDataExchgExternal = async (req, res) => {
+  try {
+    const {stateDate, type} = req.params
+    let typeKurs = type === 'bi' ? 'BI' : 'PAJAK'
+    const KURS_DATE = type === 'bi' ?  moment().format('YYYY-MM-DD') : stateDate
+    const getDataKurs =  type === 'bi' ? await fetchAndSaveKursBI() : await getKursPajak(KURS_DATE)
+ 
+    if(getDataKurs.length > 0){
+      const checkExist = await kursRef.findOne({
+            where : { 
+              KURS_DATE :KURS_DATE,
+              KURS_TYPE :type,
+            },
+            raw: true
+          })
+  
+          
+      if(checkExist){
+        const deleteKurs = await kursRef.destroy({
+            where : { 
+              KURS_DATE :KURS_DATE,
+              KURS_TYPE :type,
+            },
+          })
+      }
+
+      const createKurs = await kursRef.bulkCreate(getDataKurs)
+
+      return res.status(200).json({message : `Success get data From ${typeKurs}`}) 
+    }else{
+        return res.status(200).json({message : `No data From ${typeKurs}`}) 
+    }
+
+
+
+ 
+  } catch (error) {
+    console.log(error);
+    
+    return res.status(500).json(err.message)
+  }
+}
