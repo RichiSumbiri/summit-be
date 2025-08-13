@@ -221,6 +221,7 @@ export const OrderPoListingSize = db.define(
     PRODUCT_ID: { type: DataTypes.STRING(10), allowNull: true },
     PRODUCT_TYPE: { type: DataTypes.STRING(10), allowNull: true },
     PRODUCT_CATEGORY: { type: DataTypes.STRING(50), allowNull: true },
+    ITEM_COLOR_ID: { type: DataTypes.STRING(50), allowNull: true },
     ITEM_COLOR_CODE: { type: DataTypes.STRING(50), allowNull: true },
     ITEM_COLOR_NAME: { type: DataTypes.STRING(50), allowNull: true },
     SIZE_CODE: { type: DataTypes.STRING(50), allowNull: true },
