@@ -1,4 +1,4 @@
-import MasterEventType from "../../models/system/MasterEventType.mod.js";
+import MasterEventType from "../../models/system/masterEventType.mod.js";
 import { successResponse, errorResponse } from "../helpers/responseHelper.js";
 
 export const getMasterEventType = async (req, res) => {
