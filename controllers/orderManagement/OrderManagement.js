@@ -215,7 +215,7 @@ export const postPOListing = async(req,res) => {
                 NOTE_REMARKS: DataPOID.NOTE_REMARKS,
                 DELIVERY_TERM: DataPOID.SHIPPING_TERMS_CODE,
                 PO_CREATED_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
-                CREATE_BY: DataPOID.CREATE_BY
+                UPDATE_BY: DataPOID.CREATE_BY
             }, {
                 where: {
                     ORDER_PO_ID: DataPOID.ORDER_PO_ID,
@@ -223,12 +223,12 @@ export const postPOListing = async(req,res) => {
                 }
             });
         } else {
-            const getLastPOID = await OrderPoListing.findOne({
-                order: [['ORDER_PO_ID', 'DESC']],
-                raw: true
-            }); 
+            // CREATE NEW ORDER PO ID
+            const getLastPOID = await OrderPoListing.findOne({ order: [['ORDER_PO_ID', 'DESC']], raw: true }); 
             const newIncrement = !getLastPOID ? '0000001' : parseInt(getLastPOID.ORDER_PO_ID.slice(-8)) + 1;
             const newPOID = 'PO' + newIncrement.toString().padStart(8, '0');
+            
+            // CREATE DETAIL ORDER PO ID
             await OrderPoListing.create({
                 MANUFACTURING_COMPANY: DataPOID.MANUFACTURING_COMPANY,
                 MANUFACTURING_SITE: DataPOID.MANUFACTURING_SITE,
@@ -239,6 +239,7 @@ export const postPOListing = async(req,res) => {
                 ORDER_STYLE_DESCRIPTION: DataPOID.ORDER_STYLE_DESCRIPTION,
                 PRODUCT_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
                 PRODUCT_ITEM_CODE: DataPOID.PRODUCT_ITEM_CODE,
+                PRODUCT_ITEM_DESCRIPTION: DataPOID.PRODUCT_ITEM_DESCRIPTION,
                 CUSTOMER_ID: DataPOID.CUSTOMER_ID,
                 CUSTOMER_NAME: DataPOID.CUSTOMER_NAME,
                 CUSTOMER_DIVISION_ID: DataPOID.CUSTOMER_DIVISION_ID,
@@ -284,8 +285,6 @@ export const postPOListing = async(req,res) => {
                 CREATE_BY: DataPOID.CREATE_BY
             });
         }
-
-        
         return res.status(200).json({
             success: true,
             message: "success post po listing"
@@ -296,6 +295,24 @@ export const postPOListing = async(req,res) => {
             success: false,
             error: err,
             message: "error post po listing"
+        });
+    }
+}
+
+
+export const postPOSizeListing = async(req,res) => {
+    try {
+        const { DataPOSize } = req.body;
+        console.log(DataPOSize);
+        return res.status(200).json({
+            success: 200,
+            message: "success post po size"
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post po size"
         });
     }
 }
