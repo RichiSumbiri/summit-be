@@ -109,10 +109,11 @@ export const getAllSizeChartTemplates = async (req, res) => {
 
 export const getSizeChartTemplateById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const template = await SizeChartTemplateModel.findOne({
-            where: {ID: id},
+            where: { ID: id },
+            raw: true
         });
 
         if (!template) {
@@ -122,17 +123,32 @@ export const getSizeChartTemplateById = async (req, res) => {
             });
         }
 
+        // Ensure LIST is an array
+        let listArray = [];
+        if (typeof template.LIST === "string") {
+            try {
+                listArray = JSON.parse(template.LIST);
+            } catch (err) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid LIST format in template",
+                });
+            }
+        } else if (Array.isArray(template.LIST)) {
+            listArray = template.LIST;
+        }
 
         const sizes = await SizeChartMod.findAll({
-            where: {SIZE_ID: {[Op.in]: template.LIST}},
+            where: { SIZE_ID: { [Op.in]: listArray } },
             attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+            raw: true
         });
 
         return res.status(200).json({
             success: true,
             message: "Size chart template retrieved successfully",
             data: {
-                ...template.toJSON(),
+                ...template,
                 LIST: sizes,
             },
         });
@@ -144,6 +160,8 @@ export const getSizeChartTemplateById = async (req, res) => {
         });
     }
 };
+
+
 
 export const updateSizeChartTemplate = async (req, res) => {
     try {
