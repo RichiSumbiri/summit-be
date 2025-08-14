@@ -309,11 +309,19 @@ export const punchAttdLog2 = async (req, res) => {
                   // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
                 };
 
-                const postAbsen = await Attandance.upsert(dataAbsen);
+                const findAtt = await Attandance.findOne({where : { tanggal_in: dataAbsen.scheduleDate,  Nik: dataAbsen.Nik}});
+                
+                let upsert = false
+                if(findAtt){
+                  const update = await Attandance.update(dataAbsen, { where : { tanggal_in: dataAbsen.scheduleDate,  Nik: dataAbsen.Nik} });
+                  if(update) upsert = true
+                }else{
+                  const postAbsen = await Attandance.create(dataAbsen);
+                  if(postAbsen) upsert = true
+                }
 
-                if (postAbsen) {
-                  const updateLog = await LogAttandance.update(
-                    { log_punch: 1 }, // log punch 1 success
+                if (upsert) {
+                  const updateLog = await LogAttandance.update( { log_punch: 1 }, // log punch 1 success
                     {
                       where: {
                         log_id: logs.log_id,
