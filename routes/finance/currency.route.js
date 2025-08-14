@@ -1,5 +1,5 @@
 import express from "express";
-import { creatExchageRateHeader, deleteCurrencies, getAllDetail, getCurrencyDefault, getHeaderExchange, getListValuta, postCurrencyDefault, setPrimaryCurrency, updateActiveCurrency } from "../../controllers/finance/currency.js";
+import { creatExchageRateHeader, deleteCurrencies, editExchageRateHeader, getAllDetail, getAllDetailKurs, getCurrencyDefault, getDataExchgExternal, getHeaderExchange, getListValuta, postCurrencyDefault, setPrimaryCurrency, updateActiveCurrency, updateExchageRateHeader } from "../../controllers/finance/currency.js";
 const router = express.Router();
 
 router.get("/get-list-valuta", getListValuta);
@@ -13,6 +13,12 @@ router.patch("/delete-default-currency", deleteCurrencies); //delete dengan arra
 router.get("/get-header-exc-currency", getHeaderExchange);
 router.get("/get-detail-exc-currency", getAllDetail);
 router.post("/create-exchg-rate", creatExchageRateHeader);
+router.patch("/update-exchg-rate", editExchageRateHeader);
+router.patch("/edit-header-exc-currency", updateExchageRateHeader);
+
+//kurs from Bi and 
+router.get('/get-data-kurs-referensi/:stateDate', getAllDetailKurs)
+router.get('/get-data-kurs-from-bi/:type/:stateDate', getDataExchgExternal) //fecth from bi
 
 
 export default router;

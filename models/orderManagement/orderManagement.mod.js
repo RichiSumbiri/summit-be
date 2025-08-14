@@ -38,6 +38,10 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     type: DataTypes.CHAR(10),
     allowNull: true,
   },
+  CURRENCY_CODE: {
+    type: DataTypes.STRING(3),
+    allowNull: true,
+  },
   PRICE_TYPE_CODE: {
     type: DataTypes.STRING(100),
     allowNull: true,
@@ -91,7 +95,7 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     allowNull: true,
   },
   SIZE_TEMPLATE_ID: {
-    type: DataTypes.STRING(200),
+    type: DataTypes.STRING(10),
     allowNull: true,
   },
   NOTE_REMARKS: {
@@ -120,31 +124,130 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
   freezeTableName: true,
 });
 
-ModelOrderPOHeader.belongsTo(MasterItemIdModel, {
-  foreignKey: "ITEM_ID",
-  as: "ITEM"
-})
-
-ModelOrderPOHeader.belongsTo(CustomerDetail, {
-  foreignKey: "CUSTOMER_ID",
-  as: "CUSTOMER"
-})
-
-ModelOrderPOHeader.belongsTo(CustomerProductDivision, {
-  foreignKey: "CUSTOMER_DIVISION_ID",
-  as: "CUSTOMER_DIVISION"
-})
-
-ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
-  foreignKey: "CUSTOMER_SEASON_ID",
-  as: "CUSTOMER_SEASON"
-})
-
-
-ModelOrderPOHeader.belongsTo(CustomerProgramName, {
-  foreignKey: 'CUSTOMER_PROGRAM_ID',
-  as: 'CUSTOMER_PROGRAM',
-});
+export const ModelOrderPODetail = db.define('order_po_detail', {
+    PO_ID: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      primaryKey: true
+    },
+    ORDER_ID: {
+      type: DataTypes.STRING(10),
+      allowNull: true
+    },
+    PO_REF_CODE: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    ITEM_COLOR_CODE: {
+      type: DataTypes.STRING(200),
+      allowNull: true
+    },
+    COUNTRY: {
+      type: DataTypes.STRING(10),
+      allowNull: true
+    },
+    DELIVERY_LOCATION_ID: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    DELIVERY_LOCATION_CODE: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    PACKING_METHOD: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    DELIVERY_MODE_CODE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    PO_CONFIRMED_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    PO_EXPIRED_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    ORIGINAL_DELIVERY_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    FINAL_DELIVERY_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    PLAN_EXFACTORY_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    PRODUCTION_MONTH: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    SHIPPING_TERMS_CODE: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    UNIT_PRICE: {
+      type: DataTypes.DECIMAL(60, 6),
+      allowNull: true
+    },
+    MO_COST: {
+      type: DataTypes.DECIMAL(60, 6),
+      allowNull: true
+    },
+    REVISED_UNIT_PRICE: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    MANUFACTURING_COMPANY: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    MANUFACTURING_SITE: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    ORDER_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    MO_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    SCRAP_PERCENTAGE: {
+      type: DataTypes.DECIMAL(60, 4),
+      allowNull: true
+    },
+    NOTE_REMARKS: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    CREATE_BY: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    CREATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    UPDATE_BY: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    UPDATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true
+    }
+  }, {
+    tableName: 'order_po_detail',
+    schema: 'db_sumbiri_one',
+    timestamps: false,
+    freezeTableName: true
+  });
 
 export const queryGetListOrderHeader = `
 SELECT
@@ -158,7 +261,8 @@ SELECT
 	oph.ITEM_ID,
 	mii.ITEM_CODE,
 	mii.ITEM_DESCRIPTION,
-	oph.PRICE_TYPE_CODE,
+	oph.CURRENCY_CODE,
+  oph.PRICE_TYPE_CODE,
 	oph.CUSTOMER_ID,
 	cd.CTC_NAME AS CUSTOMER_NAME,
 	oph.CUSTOMER_DIVISION_ID,

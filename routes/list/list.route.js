@@ -59,6 +59,7 @@ import {
   getUOMConversion,
   postUOMConversion,
 } from "../../controllers/system/uom.js";
+import { getAllPackingMethod } from "../../controllers/system/masterPackingMethod.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -140,7 +141,11 @@ router.get("/country-specific/:query", getRefInterCountrySpecific);
 
 //get list currency
 router.get("/currency", getListCurrency);
+
 //get payment methode
 router.get("/payment-methode", getListPayMethode);
+
+// get packing method
+router.get("/packing-method", getAllPackingMethod);
 
 export default router;

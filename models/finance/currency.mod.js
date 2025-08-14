@@ -193,3 +193,32 @@ LEFT JOIN currency_exc_rate_header cerh ON cerh.CERH_ID = cerd.CER_ID
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = cerd.ADD_ID
 LEFT JOIN xref_user_web xuw1 ON xuw1.USER_ID = cerd.MOD_ID
 ORDER BY cerh.CERH_EFECTIVE_DATE DESC`
+
+
+export const kursRef = db.define('kurs_ref', {
+  KURS_REF_ID : {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true
+  },
+    KURS_DATE : {    type : DataTypes.DATEONLY  },
+    KURS_TYPE : {  type : DataTypes.STRING},
+    KURS_CODE : {  type : DataTypes.STRING},
+    KURS_VALUE : {  type : DataTypes.DECIMAL},
+    KURS_SALE : {  type : DataTypes.DECIMAL},
+    KURS_BUY : {  type : DataTypes.DECIMAL},
+    KURS_MID : {  type : DataTypes.DECIMAL},
+},  {
+    tableName: 'kurs_ref',
+    timestamps: false,
+});
+
+
+
+//query kurs referensi tabel
+export const qryrefTabelKurs = `SELECT 
+	kr.*,
+	mv.VALUTA_DESC KURS_DESC
+FROM kurs_ref kr 
+LEFT JOIN master_valuta mv ON mv.VALUTA_CODE  = kr.KURS_CODE
+WHERE  kr.KURS_DATE  = :stateDate`
