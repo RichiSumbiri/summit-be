@@ -85,7 +85,7 @@ export const createItem = async (req, res) => {
         const newIncrement = !getLastID ? '0000001': Number(getLastID.ITEM_ID.slice(-7)) + 1;
         const newID = masterCategory.ITEM_CATEGORY_CODE + newIncrement.toString().padStart(7, '0');
 
-        await MasterItemIdModel.create({
+        const masterItem = await MasterItemIdModel.create({
             ITEM_ID: newID,
             ITEM_CODE: ITEM_CODE.trim(),
             ITEM_DESCRIPTION,
@@ -111,9 +111,31 @@ export const createItem = async (req, res) => {
             IS_DELETED: false
         });
 
+        const resp = await MasterItemIdModel.findOne({
+            where: {ITEM_ID: masterItem.ITEM_ID},
+            include: [
+                {
+                    model: MasterItemGroup,
+                    as: 'ITEM_GROUP',
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                },
+                {
+                    model: MasterItemTypes,
+                    as: 'ITEM_TYPE',
+                    attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                },
+                {
+                    model: MasterItemCategories,
+                    as: 'ITEM_CATEGORY',
+                    attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                }
+            ]
+        });
+
         return res.status(201).json({
             success: true,
             message: "Item created successfully",
+            data: {...resp.dataValues,ITEM_IMAGE: buildMediaUrl(resp.dataValues.ITEM_IMAGE)}
         });
     } catch (error) {
         console.error("Error creating item:", error);
@@ -426,9 +448,32 @@ export const updateItem = async (req, res) => {
             UPDATE_DATE: new Date(),
         });
 
+
+        const resp = await MasterItemIdModel.findOne({
+            where: {ITEM_ID: itemId},
+            include: [
+                {
+                    model: MasterItemGroup,
+                    as: 'ITEM_GROUP',
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_GROUP_CODE', 'ITEM_GROUP_DESCRIPTION']
+                },
+                {
+                    model: MasterItemTypes,
+                    as: 'ITEM_TYPE',
+                    attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
+                },
+                {
+                    model: MasterItemCategories,
+                    as: 'ITEM_CATEGORY',
+                    attributes: ['ITEM_CATEGORY_ID', 'ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
+                }
+            ]
+        });
+
         return res.status(200).json({
             success: true,
-            message: "Item updated successfully"
+            message: "Item updated successfully",
+            data: {...resp.dataValues, ITEM_IMAGE: buildMediaUrl(resp.dataValues.ITEM_IMAGE)}
         });
     } catch (error) {
         console.error("Error updating item:", error);
