@@ -2,34 +2,40 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("event_master_comments", {
-      EVENT_COMMENT_ID: {
-        type: Sequelize.BIGINT,
-        autoIncrement: true,
-        primaryKey: true,
-        allowNull: false,
-      },
-      COMMENT_ID: {
+    await queryInterface.createTable("event_template", {
+      TEMPLATE_ID: {
         type: Sequelize.STRING(25),
         allowNull: false,
+        primaryKey: true,
+        // autoIncrement: true,
       },
-      COMMENT_NAME: {
+      TEMPLATE_NAME: {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-      EVENT_ID: {
-        type: Sequelize.STRING(25),
-        allowNull: false,
-      },
-      OFFSET_DAYS: {
+      ORDER_TYPE_ID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: 0,
       },
-      IS_COMPULSORY: {
-        type: Sequelize.BOOLEAN,
+      CTC_ID: {
+        type: Sequelize.STRING(25),
         allowNull: false,
-        defaultValue: false,
+        references: {
+          model: "customer_detail",
+          key: "CTC_ID",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
+      },
+      CUSTOMER_DIVISION_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "customer_product_division",
+          key: "CTPROD_DIVISION_ID",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
       },
       IS_ACTIVE: {
         type: Sequelize.BOOLEAN,
@@ -64,6 +70,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("event_master_comments");
+    await queryInterface.dropTable("event_template");
   },
 };

@@ -2,6 +2,7 @@ import { Op, QueryTypes } from "sequelize";
 import db from "../../config/database.js";
 import { CustomerBillingAddress, CustomerBuyPlan, CustomerDeliveryLoc, CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName } from "../../models/system/customer.mod.js";
 import { qryRefIntCountry } from "../../models/list/referensiList.mod.js";
+import { getPagination } from "../util/Query.js";
 
 
 export const postCustomer = async (req, res, next) => {
@@ -86,18 +87,37 @@ export const patchCustomer = async (req, res, next) => {
     }
 }
 
-// Function to get all customers
 export const getAllCustomers = async (req, res) => {
     try {
-        const customers = await CustomerDetail.findAll({
-            where: {
-                IS_DELETE: { [Op.or]: [0, null] } // Only fetch customers that are not deleted
-            },
-            order: [['CTC_ID', 'ASC']],
-            raw: true
-        });
+        const { SEARCH_TEXT, page, limit } = req.query;
 
-        if (customers.length === 0) {
+        const whereClause = {
+            IS_DELETE: { [Op.or]: [0, null] },
+        };
+
+        if (SEARCH_TEXT) {
+        whereClause[Op.or] = [
+            { CTC_ID: { [Op.like]: `%${SEARCH_TEXT}%` } },
+            { CTC_CODE: { [Op.like]: `%${SEARCH_TEXT}%` } },
+            { CTC_NAME: { [Op.like]: `%${SEARCH_TEXT}%` } },
+            { CTC_CURRENCY: { [Op.like]: `%${SEARCH_TEXT}%` } },
+        ];
+        }
+
+        const queryOptions = {
+            where: whereClause,
+            order: [['CTC_ID', 'ASC']],
+            raw: true,
+            ...getPagination(page, limit),
+        };
+
+        if (req.query.is_dropdown === 'true') {
+            queryOptions.attributes = ['CTC_ID', 'CTC_CODE', 'CTC_NAME', 'CTC_CURRENCY'];
+        }
+
+        const customers = await CustomerDetail.findAll(queryOptions);
+
+        if (!customers.length) {
             return res.status(404).json({ message: "No customers found" });
         }
 
@@ -106,7 +126,8 @@ export const getAllCustomers = async (req, res) => {
         console.error(error);
         res.status(500).json({ error, message: "Error fetching customers" });
     }
-}
+};
+
 
 //get on e customer by ID
 export const getCustomerById = async (req, res) => {
@@ -433,12 +454,26 @@ export const deleteBillAddressById = async (req, res) => {
 export const getListProdDivision = async (req, res) => {
     try {
         const { custId } = req.params;
+        const { is_dropdown } = req.query;
 
-        const locations = await CustomerProductDivision.findAll({
-            where: { CTC_ID: custId, IS_DELETE: { [Op.or]: [0, null] } }, // Only fetch locations that are not deleted
+        const queryOptions = {
+            where: {
+                CTC_ID: custId,
+                IS_DELETE: { [Op.or]: [0, null] }
+            },
             order: [['CTPROD_DIVISION_ID', 'ASC']],
             raw: true
-        });
+        };
+
+        if (is_dropdown === "true") {
+            queryOptions.attributes = [
+                "CTPROD_DIVISION_ID",
+                "CTPROD_DIVISION_CODE",
+                "CTPROD_DIVISION_NAME"
+            ];
+        }
+
+        const locations = await CustomerProductDivision.findAll(queryOptions);
 
 
 

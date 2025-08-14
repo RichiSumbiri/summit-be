@@ -1,41 +1,24 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import Users from "../setup/users.mod.js";
 
-const eventMasterComment = db.define(
-  "event_master_comments",
+const masterOffsetLink = db.define(
+  "master_offset_link",
   {
-    EVENT_COMMENT_ID: {
-      type: DataTypes.BIGINT,
-      autoIncrement: true,
+    OFFSET_LINK_ID: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
       primaryKey: true,
-      allowNull: false,
+      autoIncrement: true,
     },
-    COMMENT_ID: {
-      type: DataTypes.STRING(25),
-      allowNull: false,
-    },
-    COMMENT_NAME: {
+    OFFSET_LINK_NAME: {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    EVENT_ID: {
-      type: DataTypes.STRING(25),
-      allowNull: false,
-    },
-    OFFSET_DAYS: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-    },
-    IS_COMPULSORY: {
+    IS_SPLIT_EVENT: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-    },
-    IS_ACTIVE: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
     },
     CREATED_BY: {
       type: DataTypes.INTEGER,
@@ -59,4 +42,16 @@ const eventMasterComment = db.define(
   }
 );
 
-export default eventMasterComment;
+export default masterOffsetLink;
+
+// sizeChart.belongsTo(Users, {
+//   foreignKey: "CREATED_BY",
+//   targetKey: "USER_ID",
+//   as: "created_by",
+// });
+
+// sizeChart.belongsTo(Users, {
+//   foreignKey: "UPDATED_BY",
+//   targetKey: "USER_ID",
+//   as: "updated_by",
+// });

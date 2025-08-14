@@ -4,6 +4,7 @@ import MasterEventType from "../system/masterEventType.mod.js";
 import MasterEventGroup from "../system/masterEventGroup.mod.js";
 import { modelMasterDepartmentFx } from "../setup/departmentFx.mod.js";
 import masterProductionProcess from "../system/masterProductionProcess.mod.js";
+import eventMasterComment from "./eventMasterComments.mod.js";
 
 const eventMaster = db.define(
   "event_master",
@@ -110,4 +111,8 @@ eventMaster.belongsTo(masterProductionProcess, {
   foreignKey: "PRODUCTION_PROCESS_ID",
   targetKey: "PRODUCTION_PROCESS_ID",
   as: "production_process",
+});
+eventMaster.hasMany(eventMasterComment, {
+  foreignKey: "EVENT_ID",
+  as: "event_master_comments",
 });

@@ -1,40 +1,24 @@
 "use strict";
 
+const { OFFSET } = require("tedious/lib/packet");
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("event_master_comments", {
-      EVENT_COMMENT_ID: {
-        type: Sequelize.BIGINT,
-        autoIncrement: true,
+    await queryInterface.createTable("master_offset_link", {
+      OFFSET_LINK_ID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
         primaryKey: true,
-        allowNull: false,
+        autoIncrement: true,
       },
-      COMMENT_ID: {
-        type: Sequelize.STRING(25),
-        allowNull: false,
-      },
-      COMMENT_NAME: {
+      OFFSET_LINK_NAME: {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-      EVENT_ID: {
-        type: Sequelize.STRING(25),
-        allowNull: false,
-      },
-      OFFSET_DAYS: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 0,
-      },
-      IS_COMPULSORY: {
+      IS_SPLIT_EVENT: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-      },
-      IS_ACTIVE: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
       },
       CREATED_AT: {
         type: Sequelize.DATE,
@@ -64,6 +48,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("event_master_comments");
+    await queryInterface.dropTable("master_offset_link");
   },
 };

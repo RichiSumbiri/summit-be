@@ -59,6 +59,8 @@ import {
   getUOMConversion,
   postUOMConversion,
 } from "../../controllers/system/uom.js";
+import { getOrderType } from "../../controllers/setup/OrderType.js";
+import { getOffsetLink } from "../../controllers/setup/OffsetLink.js";
 import { getAllPackingMethod } from "../../controllers/system/masterPackingMethod.js";
 
 const router = express.Router();
@@ -108,6 +110,12 @@ router.get("/event_group", getMasterEventGroup);
 
 //production process
 router.get("/production-process", getMasterProductionProcess);
+
+//order type
+router.get("/order-type", getOrderType);
+
+//offset link 
+router.get("/offset-link", getOffsetLink);
 
 // master UOM
 router.get("/uom", getMasterUOMAll);
