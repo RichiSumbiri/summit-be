@@ -1,5 +1,12 @@
 import db from "../../config/database.js";
 import { DataTypes } from "sequelize";
+import MasterItemIdModel from "../system/masterItemId.mod.js";
+import {
+  CustomerDetail,
+  CustomerProductDivision,
+  CustomerProductSeason,
+  CustomerProgramName
+} from "../system/customer.mod.js";
 
 export const ModelOrderPOHeader = db.define('order_po_header', {
   ORDER_ID: {
@@ -113,6 +120,31 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
   freezeTableName: true,
 });
 
+ModelOrderPOHeader.belongsTo(MasterItemIdModel, {
+  foreignKey: "ITEM_ID",
+  as: "ITEM"
+})
+
+ModelOrderPOHeader.belongsTo(CustomerDetail, {
+  foreignKey: "CUSTOMER_ID",
+  as: "CUSTOMER"
+})
+
+ModelOrderPOHeader.belongsTo(CustomerProductDivision, {
+  foreignKey: "CUSTOMER_DIVISION_ID",
+  as: "CUSTOMER_DIVISION"
+})
+
+ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
+  foreignKey: "CUSTOMER_SEASON_ID",
+  as: "CUSTOMER_SEASON"
+})
+
+
+ModelOrderPOHeader.belongsTo(CustomerProgramName, {
+  foreignKey: 'CUSTOMER_PROGRAM_ID',
+  as: 'CUSTOMER_PROGRAM',
+});
 
 export const queryGetListOrderHeader = `
 SELECT
