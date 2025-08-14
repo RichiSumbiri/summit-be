@@ -24,8 +24,6 @@ import {
   getWdmsToSummit,
   postDataLogAttd,
   postSchPunchAttd,
-  punchAttdLog,
-  punchAttdLogAccurate,
   setNoPunch,
 } from "../../controllers/hr/attandance.js";
 import { punchAttdLog2 } from "../../controllers/hr/attandance2.js";
@@ -63,8 +61,6 @@ router.delete("/sch-attd/:id", deltSchPunchAttd);
 router.post("/sch-attd", postSchPunchAttd);
 router.post("/log-attd", postDataLogAttd);
 router.post("/punch-absens", punchAttdLog2); //pakai skema audit
-// router.post("/punch-absens", punchAttdLog); //pakai skema audit
-// router.post("/punch-absens", punchAttdLogAccurate);
 
 router.patch("/log-attd", setNoPunch);
 
