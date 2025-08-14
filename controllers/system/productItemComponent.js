@@ -9,7 +9,7 @@ export const createProductItemComponent = async (req, res) => {
         if (!COMPONENT_NAME || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "COMPONENT_ID, COMPONENT_NAME, and PRODUCT_ID are required",
+                message: "Component Name, and Product are required",
             });
         }
 
@@ -48,7 +48,6 @@ export const createProductItemComponent = async (req, res) => {
             message: "Product item component created successfully",
         });
     } catch (error) {
-        console.error("Error creating product item component:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create product item component: ${error.message}`,
@@ -92,7 +91,6 @@ export const getAllProductItemComponents = async (req, res) => {
             data: components,
         });
     } catch (error) {
-        console.error("Error retrieving product item components:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve product item components: ${error.message}`,
@@ -126,7 +124,6 @@ export const getProductItemComponentById = async (req, res) => {
             data: component,
         });
     } catch (error) {
-        console.error("Error retrieving product item component:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve product item component: ${error.message}`,
@@ -153,7 +150,7 @@ export const updateProductItemComponent = async (req, res) => {
         if (!COMPONENT_NAME || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "COMPONENT_ID, COMPONENT_NAME, and PRODUCT_ID are required",
+                message: "Component Name, and Product are required",
             });
         }
 
@@ -184,7 +181,6 @@ export const updateProductItemComponent = async (req, res) => {
             message: "Product item component updated successfully",
         });
     } catch (error) {
-        console.error("Error updating product item component:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update product item component: ${error.message}`,
@@ -200,7 +196,7 @@ export const deleteProductItemComponent = async (req, res) => {
         if (!id || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "Both COMPONENT_ID and PRODUCT_ID are required",
+                message: "Both Component and Product are required",
             });
         }
 
@@ -225,7 +221,6 @@ export const deleteProductItemComponent = async (req, res) => {
             message: "Product item component deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting product item component:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete product item component: ${error.message}`,

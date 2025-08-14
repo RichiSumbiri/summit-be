@@ -56,7 +56,6 @@ export const getAllAttributeSettings = async (req, res) => {
             data: settings,
         });
     } catch (error) {
-        console.error("Error retrieving attribute settings:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve attribute settings: ${error.message}`,
@@ -103,7 +102,6 @@ export const getAttributeSettingById = async (req, res) => {
             data: setting,
         });
     } catch (error) {
-        console.error("Error retrieving attribute setting:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve attribute setting: ${error.message}`,
@@ -131,7 +129,7 @@ export const createAttributeSetting = async (req, res) => {
         if (!NAME || !DATA_TYPE) {
             return res.status(400).json({
                 success: false,
-                message: "NAME and DATA_TYPE are required",
+                message: "Name and Data Type are required",
             });
         }
 
@@ -157,7 +155,7 @@ export const createAttributeSetting = async (req, res) => {
         if (existingEntry) {
             return res.status(400).json({
                 success: false,
-                message: "NAME already exists",
+                message: "Name already exists",
             });
         }
 
@@ -217,7 +215,6 @@ export const createAttributeSetting = async (req, res) => {
             message,
         });
     } catch (error) {
-        console.error("Error creating attribute setting:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create attribute setting: ${error.message}`,
@@ -283,7 +280,6 @@ export const updateAttributeSetting = async (req, res) => {
             data: updatedSetting,
         });
     } catch (error) {
-        console.error("Error updating attribute setting:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update attribute setting: ${error.message}`,
@@ -318,7 +314,6 @@ export const deleteAttributeSetting = async (req, res) => {
             message: "Attribute Setting deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting attribute setting:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete attribute setting: ${error.message}`,

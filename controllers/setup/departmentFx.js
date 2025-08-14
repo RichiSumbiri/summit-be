@@ -7,7 +7,7 @@ export const createDepartmentFx = async (req, res) => {
         if (!ID_DEPT || !NAME_DEPT) {
             return res.status(400).json({
                 success: false,
-                message: "ID_DEPT and NAME_DEPT are required",
+                message: "ID Department and Name Department are required",
             });
         }
 
@@ -18,7 +18,7 @@ export const createDepartmentFx = async (req, res) => {
         if (existingDepartment) {
             return res.status(400).json({
                 success: false,
-                message: "ID_DEPT already exists",
+                message: "ID Department already exists",
             });
         }
 
@@ -36,7 +36,6 @@ export const createDepartmentFx = async (req, res) => {
             newDepartment,
         });
     } catch (error) {
-        console.error("Error creating department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create department: ${error.message}`,
@@ -56,7 +55,6 @@ export const getAllDepartmentsFx = async (req, res) => {
             data: departments,
         });
     } catch (error) {
-        console.error("Error retrieving departments:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve departments: ${error.message}`,
@@ -85,7 +83,6 @@ export const getDepartmentByFxId = async (req, res) => {
             data: department,
         });
     } catch (error) {
-        console.error("Error retrieving department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve department: ${error.message}`,
@@ -126,7 +123,6 @@ export const updateDepartmentFx = async (req, res) => {
             data: department,
         });
     } catch (error) {
-        console.error("Error updating department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update department: ${error.message}`,
@@ -157,7 +153,6 @@ export const deleteDepartmentFx = async (req, res) => {
             message: "Department deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete department: ${error.message}`,

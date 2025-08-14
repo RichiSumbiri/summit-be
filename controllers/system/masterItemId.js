@@ -43,7 +43,7 @@ export const createItem = async (req, res) => {
         if (!ITEM_CODE || !ITEM_GROUP_ID || !ITEM_TYPE_ID || !ITEM_CATEGORY_ID) {
             return res.status(400).json({
                 success: false,
-                message: "ITEM_CODE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID is required",
+                message: "Item Code, Item Group, Item Type, Item Category is required",
             });
         }
         ITEM_CODE = ITEM_CODE.trim()
@@ -51,14 +51,14 @@ export const createItem = async (req, res) => {
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MIN_UNDER_DELIVERY min 0%",
+                message: "Under Delivery min 0%",
             });
         }
 
         if (MAX_OVER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MAX_OVER_DELIVERY min 0%",
+                message: "Over Delivery min 0%",
             });
         }
 
@@ -138,7 +138,6 @@ export const createItem = async (req, res) => {
             data: {...resp.dataValues,ITEM_IMAGE: buildMediaUrl(resp.dataValues.ITEM_IMAGE)}
         });
     } catch (error) {
-        console.error("Error creating item:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create item: ${error.message}`,
@@ -307,7 +306,6 @@ export const getAllItems = async (req, res) => {
             })),
         });
     } catch (error) {
-        console.error("Error retrieving items:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve items: ${error.message}`,
@@ -354,7 +352,6 @@ export const getItemById = async (req, res) => {
             data: item,
         });
     } catch (error) {
-        console.error("Error retrieving item:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve item: ${error.message}`,
@@ -392,21 +389,21 @@ export const updateItem = async (req, res) => {
         if (!ITEM_CODE || !ITEM_GROUP_ID || !ITEM_TYPE_ID || !ITEM_CATEGORY_ID) {
             return res.status(400).json({
                 success: false,
-                message: "ITEM_CODE, ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID is required",
+                message: "Item Code, Item Group, Item Type, Item Category is required",
             });
         }
 
         if (MIN_UNDER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MIN_UNDER_DELIVERY min 0%",
+                message: "Under Delivery min 0%",
             });
         }
 
         if (MAX_OVER_DELIVERY < 0) {
             return res.status(400).json({
                 success: false,
-                message: "MAX_OVER_DELIVERY min 0%",
+                message: "Over Delivery min 0%",
             });
         }
 
@@ -476,7 +473,6 @@ export const updateItem = async (req, res) => {
             data: {...resp.dataValues, ITEM_IMAGE: buildMediaUrl(resp.dataValues.ITEM_IMAGE)}
         });
     } catch (error) {
-        console.error("Error updating item:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update item: ${error.message}`,
@@ -511,7 +507,6 @@ export const deleteItem = async (req, res) => {
             message: "Item deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting item:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete item: ${error.message}`,
@@ -527,7 +522,7 @@ export const createAttribute = async (req, res) => {
         if (!MASTER_ITEM_ID || !MASTER_ATTRIBUTE_ID || !MASTER_ATTRIBUTE_VALUE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, and MASTER_ATTRIBUTE_VALUE_ID are required",
+                message: "Master Item ID, Master Attribute, and Master Attribute Value are required",
             });
         }
 
@@ -556,7 +551,6 @@ export const createAttribute = async (req, res) => {
             message: "Attribute created successfully",
         });
     } catch (error) {
-        console.error("Error creating attribute:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create attribute: ${error.message}`,
@@ -605,7 +599,6 @@ export const getAllAttributes = async (req, res) => {
             data: attributes,
         });
     } catch (error) {
-        console.error("Error retrieving attributes:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve attributes: ${error.message}`,
@@ -647,7 +640,6 @@ export const getAttributeById = async (req, res) => {
             data: attribute,
         });
     } catch (error) {
-        console.error("Error retrieving attribute:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve attribute: ${error.message}`,
@@ -664,7 +656,7 @@ export const updateAttribute = async (req, res) => {
         if (!MASTER_ITEM_ID || !MASTER_ATTRIBUTE_ID || !MASTER_ATTRIBUTE_VALUE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_ITEM_ID, MASTER_ATTRIBUTE_ID, and MASTER_ATTRIBUTE_VALUE_ID are required",
+                message: "Master Item Id, Master Attribute, and Attribute Value are required",
             });
         }
 
@@ -707,7 +699,6 @@ export const updateAttribute = async (req, res) => {
             message: "Attribute updated successfully",
         });
     } catch (error) {
-        console.error("Error updating attribute:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update attribute: ${error.message}`,
@@ -741,7 +732,6 @@ export const deleteAttribute = async (req, res) => {
             message: "Attribute soft-deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting attribute:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete attribute: ${error.message}`,
@@ -761,7 +751,7 @@ export const createService = async (req, res) => {
         if (!MASTER_ITEM_ID || !MASTER_SERVICE_ID || !MASTER_SERVICE_VALUE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_ITEM_ID, MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID are required",
+                message: "Master Item ID, Master Service, Service Value are required",
             });
         }
 
@@ -795,7 +785,6 @@ export const createService = async (req, res) => {
             data: newService,
         });
     } catch (error) {
-        console.error("Error creating service:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create service: ${error.message}`,
@@ -857,7 +846,6 @@ export const getAllServices = async (req, res) => {
             count: services.length,
         });
     } catch (error) {
-        console.error("Error retrieving services:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve services: ${error.message}`,
@@ -906,7 +894,6 @@ export const getServiceById = async (req, res) => {
             data: service,
         });
     } catch (error) {
-        console.error("Error retrieving service:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve service: ${error.message}`,
@@ -927,7 +914,7 @@ export const updateService = async (req, res) => {
         if (!MASTER_ITEM_ID || !MASTER_SERVICE_ID || !MASTER_SERVICE_VALUE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_ITEM_ID, MASTER_SERVICE_ID, MASTER_SERVICE_VALUE_ID are required",
+                message: "Master Item, Master Service, Service Value are required",
             });
         }
 
@@ -978,7 +965,6 @@ export const updateService = async (req, res) => {
             data: service,
         });
     } catch (error) {
-        console.error("Error updating service:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update service: ${error.message}`,
@@ -1014,7 +1000,6 @@ export const deleteService = async (req, res) => {
             message: "Service soft-deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting service:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete service: ${error.message}`,

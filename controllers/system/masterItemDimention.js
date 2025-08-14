@@ -24,7 +24,7 @@ export const createMasterItemDimension = async (req, res) => {
         if (!MASTER_ITEM_ID) {
             return res.status(400).json({
                 success: false,
-                message: "MASTER_ITEM_ID is required",
+                message: "Master Item is required",
             });
         }
 
@@ -75,7 +75,6 @@ export const createMasterItemDimension = async (req, res) => {
             newItemDimension,
         });
     } catch (error) {
-        console.error("Error creating item dimension:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create item dimension: ${error.message}`,
@@ -118,7 +117,6 @@ export const getAllMasterItemDimensions = async (req, res) => {
             itemDimensions,
         });
     } catch (error) {
-        console.error("Error retrieving item dimensions:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve item dimensions: ${error.message}`,
@@ -148,7 +146,6 @@ export const getMasterItemDimensionById = async (req, res) => {
             itemDimension,
         });
     } catch (error) {
-        console.error("Error retrieving item dimension:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve item dimension: ${error.message}`,
@@ -207,7 +204,6 @@ export const updateMasterItemDimension = async (req, res) => {
             itemDimension,
         });
     } catch (error) {
-        console.error("Error updating item dimension:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update item dimension: ${error.message}`,
@@ -240,7 +236,6 @@ export const deleteMasterItemDimension = async (req, res) => {
             message: "Item dimension deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting item dimension:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete item dimension: ${error.message}`,

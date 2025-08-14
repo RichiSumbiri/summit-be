@@ -10,7 +10,6 @@ export const getAllProductItems = async (req, res) => {
             data: items,
         });
     } catch (error) {
-        console.error("Error retrieving product items:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve product items: ${error.message}`,
@@ -39,7 +38,6 @@ export const getProductItemById = async (req, res) => {
             data: item,
         });
     } catch (error) {
-        console.error("Error retrieving product item:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve product item: ${error.message}`,

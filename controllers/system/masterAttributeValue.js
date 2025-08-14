@@ -49,7 +49,6 @@ export const getAllAttributeValues = async (req, res) => {
             data: values
         });
     } catch (error) {
-        console.error("Error retrieving attribute values:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve attribute values: ${error.message}`
@@ -99,7 +98,6 @@ export const getAttributeValueById = async (req, res) => {
             data: value
         });
     } catch (error) {
-        console.error("Error retrieving attribute value:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve attribute value: ${error.message}`
@@ -116,7 +114,7 @@ export const createAttributeValue = async (req, res) => {
         if (!NAME || !CODE) {
             return res.status(400).json({
                 status: false,
-                message: "NAME || CODE are required"
+                message: "Name and Code are required"
             })
         }
 
@@ -139,7 +137,7 @@ export const createAttributeValue = async (req, res) => {
         if (existingEntry) {
             return res.status(400).json({
                 success: false,
-                message: "NAME already exists",
+                message: "Name already exists",
             });
         }
 
@@ -194,7 +192,6 @@ export const createAttributeValue = async (req, res) => {
             message,
         });
     } catch (error) {
-        console.error("Error creating attribute value:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create attribute value: ${error.message}`
@@ -213,7 +210,7 @@ export const updateAttributeValue = async (req, res) => {
         if (!NAME || !CODE) {
             return res.status(400).json({
                 status: false,
-                message: "NAME || CODE are required"
+                message: "Name and Code are required"
             })
         }
 
@@ -246,7 +243,6 @@ export const updateAttributeValue = async (req, res) => {
             data: updatedValue
         });
     } catch (error) {
-        console.error("Error updating attribute value:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update attribute value: ${error.message}`
@@ -283,7 +279,6 @@ export const deleteAttributeValue = async (req, res) => {
             message: "Attribute Value deleted successfully"
         });
     } catch (error) {
-        console.error("Error deleting attribute value:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete attribute value: ${error.message}`

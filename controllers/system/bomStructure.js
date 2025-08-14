@@ -99,7 +99,6 @@ export const getAllBomStructures = async (req, res) => {
             data: structures,
         });
     } catch (error) {
-        console.error("Error retrieving BOM structures:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM structures: ${error.message}`,
@@ -152,7 +151,6 @@ export const getBomStructureById = async (req, res) => {
             data: structure,
         });
     } catch (error) {
-        console.error("Error retrieving BOM structure:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM structure: ${error.message}`,
@@ -176,7 +174,7 @@ export const createBomStructure = async (req, res) => {
         if (!BOM_TEMPLATE_ID || !ORDER_ID) {
             return res.status(400).json({
                 success: false,
-                message: "ORDER_ID and BOM_TEMPLATE_ID are required",
+                message: "Order and Bom Template are required",
             });
         }
 
@@ -206,7 +204,6 @@ export const createBomStructure = async (req, res) => {
             message: "BOM structure created successfully",
         });
     } catch (error) {
-        console.error("Error creating BOM structure:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create BOM structure: ${error.message}`,
@@ -257,7 +254,6 @@ export const updateBomStructure = async (req, res) => {
             message: "BOM structure updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM structure:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update BOM structure: ${error.message}`,
@@ -289,7 +285,6 @@ export const deleteBomStructure = async (req, res) => {
             message: "BOM structure deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM structure:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete BOM structure: ${error.message}`,
@@ -357,7 +352,6 @@ export const getAllBomStructureList = async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error("Error retrieving BOM structure list:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM structure list: ${error.message}`,
@@ -480,7 +474,6 @@ export const createBomStructureList = async (req, res) => {
             data: newEntry,
         });
     } catch (error) {
-        console.error("Error creating BOM structure list:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create BOM structure list: ${error.message}`,
@@ -515,7 +508,6 @@ export const updateBomStructureList = async (req, res) => {
             message: "BOM structure list updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM structure list:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update BOM structure list: ${error.message}`,
@@ -548,7 +540,6 @@ export const deleteBomStructureList = async (req, res) => {
             message: "BOM structure list deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM structure list:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete BOM structure list: ${error.message}`,

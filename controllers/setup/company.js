@@ -64,7 +64,6 @@ export const getCompanyById = async (req, res) => {
             data: company,
         });
     } catch (error) {
-        console.error("Error retrieving company:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve company: ${error.message}`,
@@ -101,7 +100,6 @@ export const updateCompany = async (req, res) => {
             data: company,
         });
     } catch (error) {
-        console.error("Error updating company:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update company: ${error.message}`,

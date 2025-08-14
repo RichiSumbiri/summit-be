@@ -27,18 +27,18 @@ export const createBomTemplateList = async (req, res) => {
 
         if (!BOM_TEMPLATE_ID || !STATUS) {
             return res.status(400).json({
-                success: false, message: "BOM_TEMPLATE_ID and STATUS are required",
+                success: false, message: "Bom Template and Status are required",
             });
         }
 
         if (COSTING_CONSUMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min Costing Consumer is 0.000000",
             });
         }
         if (INTERNAL_CUSTOMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min Internal Customer is 0.000000",
             });
         }
 
@@ -69,7 +69,6 @@ export const createBomTemplateList = async (req, res) => {
             success: true, message: "BOM template list created successfully",
         });
     } catch (error) {
-        console.error("Error creating BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to create BOM template list: ${error.message}`,
         });
@@ -114,7 +113,6 @@ export const getAllBomTemplateLists = async (req, res) => {
             success: true, message: "BOM template lists retrieved successfully", data: lists,
         });
     } catch (error) {
-        console.error("Error retrieving BOM template lists:", error);
         return res.status(500).json({
             success: false, message: `Failed to retrieve BOM template lists: ${error.message}`,
         });
@@ -133,7 +131,7 @@ export const cloneBomTemplateList = async (req, res) => {
 
         if (!USER_ID) {
             return res.status(400).json({
-                success: false, message: "USER_ID is required",
+                success: false, message: "User is required",
             });
         }
 
@@ -176,7 +174,6 @@ export const cloneBomTemplateList = async (req, res) => {
             success: true, message: "BOM template list cloned successfully",
         });
     } catch (error) {
-        console.error("Error cloning BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to clone BOM template list: ${error.message}`,
         });
@@ -220,7 +217,6 @@ export const getBomTemplateListById = async (req, res) => {
             success: true, message: "BOM template list retrieved successfully", data: list,
         });
     } catch (error) {
-        console.error("Error retrieving BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to retrieve BOM template list: ${error.message}`,
         });
@@ -256,12 +252,12 @@ export const updateBomTemplateList = async (req, res) => {
 
         if (COSTING_CONSUMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min Costing Consumer is 0.000000",
             });
         }
         if (INTERNAL_CUSTOMER_PER_ITEM < 0) {
             return res.status(400).json({
-                success: false, message: "Min COSTING_CONSUMER_PER_ITEM is 0.000000",
+                success: false, message: "Min Internal Consumer is 0.000000",
             });
         }
 
@@ -284,7 +280,6 @@ export const updateBomTemplateList = async (req, res) => {
             success: true, message: "BOM template list updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to update BOM template list: ${error.message}`,
         });
@@ -314,7 +309,6 @@ export const updateBomTemplateListStatus = async (req, res) => {
             success: true, message: "BOM template list updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to update BOM template list: ${error.message}`,
         });
@@ -345,7 +339,6 @@ export const updateBomTemplateListSingle = async (req, res) => {
             success: true, message: "BOM template list updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to update BOM template list: ${error.message}`,
         });
@@ -375,7 +368,6 @@ export const deleteBomTemplateList = async (req, res) => {
             success: true, message: "BOM template list deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM template list:", error);
         return res.status(500).json({
             success: false, message: `Failed to delete BOM template list: ${error.message}`,
         });

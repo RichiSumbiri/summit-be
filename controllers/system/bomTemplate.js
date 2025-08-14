@@ -33,7 +33,7 @@ export const createBomTemplate = async (req, res) => {
         if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID || !ORDER_TYPE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "NAME, MASTER_ITEM_ID, ORDER_TYPE_ID and CUSTOMER_ID are required",
+                message: "Name, Master Item, Order Type and Customer are required",
             });
         }
 
@@ -132,7 +132,6 @@ export const createBomTemplate = async (req, res) => {
             data: template
         });
     } catch (error) {
-        console.error("Error creating BOM template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create BOM template: ${error.message}`,
@@ -148,7 +147,7 @@ export const cloneBomTemplate = async (req, res) => {
         if (!id) {
             return res.status(400).json({
                 success: false,
-                message: "ID is required",
+                message: "Bom Template is required",
             });
         }
 
@@ -231,7 +230,6 @@ export const cloneBomTemplate = async (req, res) => {
             message: "BOM template and its lists cloned successfully",
         });
     } catch (error) {
-        console.error("Error cloning BOM template and its lists:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to clone BOM template and its lists: ${error.message}`,
@@ -310,7 +308,6 @@ export const getAllBomTemplates = async (req, res) => {
             data: templates,
         });
     } catch (error) {
-        console.error("Error retrieving BOM templates:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM templates: ${error.message}`,
@@ -383,7 +380,6 @@ export const getBomTemplateById = async (req, res) => {
             data: template,
         });
     } catch (error) {
-        console.error("Error retrieving BOM template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM template: ${error.message}`,
@@ -449,7 +445,6 @@ export const updateBomTemplate = async (req, res) => {
             message: "BOM template updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update BOM template: ${error.message}`,
@@ -482,7 +477,6 @@ export const deleteBomTemplate = async (req, res) => {
             message: "BOM template deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete BOM template: ${error.message}`,
@@ -497,7 +491,7 @@ export const createBomTemplateRev = async (req, res) => {
         if (!SEQUENCE || !TITLE || !BOM_TEMPLATE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "SEQUENCE, TITLE, BOM_TEMPLATE_ID are required",
+                message: "Sequence, Title, Bom Template are required",
             });
         }
 
@@ -514,7 +508,6 @@ export const createBomTemplateRev = async (req, res) => {
             message: "BOM template revision created successfully",
         });
     } catch (error) {
-        console.error("Error creating BOM template revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create BOM template revision: ${error.message}`,
@@ -545,7 +538,6 @@ export const getAllBomTemplateRevs = async (req, res) => {
             data: revs,
         });
     } catch (error) {
-        console.error("Error retrieving BOM template revisions:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM template revisions: ${error.message}`,
@@ -574,7 +566,6 @@ export const getBomTemplateRevById = async (req, res) => {
             data: rev,
         });
     } catch (error) {
-        console.error("Error retrieving BOM template revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM template revision: ${error.message}`,
@@ -611,7 +602,6 @@ export const updateBomTemplateRev = async (req, res) => {
             message: "BOM template revision updated successfully",
         });
     } catch (error) {
-        console.error("Error updating BOM template revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update BOM template revision: ${error.message}`,
@@ -640,7 +630,6 @@ export const deleteBomTemplateRev = async (req, res) => {
             message: "BOM template revision deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM template revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete BOM template revision: ${error.message}`,
@@ -660,7 +649,6 @@ export const bomTemplateGetAllColors = async (req, res) => {
             colors,
         });
     } catch (error) {
-        console.error("Error retrieving BOM Template Colors:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM Template Colors: ${error.message}`,
@@ -689,7 +677,6 @@ export const bomTemplateGetColorById = async (req, res) => {
             color,
         });
     } catch (error) {
-        console.error("Error retrieving BOM Template Color:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve color: ${error.message}`,
@@ -704,7 +691,7 @@ export const bomTemplateCreateColor = async (req, res) => {
         if (!BOM_TEMPLATE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "BOM_TEMPLATE_ID is required",
+                message: "Bom Template is required",
             });
         }
 
@@ -719,7 +706,6 @@ export const bomTemplateCreateColor = async (req, res) => {
             newColor,
         });
     } catch (error) {
-        console.error("Error creating BOM Template Color:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create color: ${error.message}`,
@@ -754,7 +740,6 @@ export const bomTemplateUpdateColor = async (req, res) => {
             color: await color.reload(),
         });
     } catch (error) {
-        console.error("Error updating BOM Template Color:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update color: ${error.message}`,
@@ -785,7 +770,6 @@ export const bomTemplateDeleteColor = async (req, res) => {
             message: "Color deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM Template Color:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete color: ${error.message}`,
@@ -806,7 +790,6 @@ export const bomTemplateGetAllSizes = async (req, res) => {
             sizes,
         });
     } catch (error) {
-        console.error("Error retrieving BOM Template Sizes:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve sizes: ${error.message}`,
@@ -835,7 +818,6 @@ export const bomTemplateGetSizeById = async (req, res) => {
             size,
         });
     } catch (error) {
-        console.error("Error retrieving BOM Template Size:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve size: ${error.message}`,
@@ -850,7 +832,7 @@ export const bomTemplateCreateSize = async (req, res) => {
         if (!BOM_TEMPLATE_ID) {
             return res.status(400).json({
                 success: false,
-                message: "BOM_TEMPLATE_ID is required",
+                message: "Bom Template is required",
             });
         }
 
@@ -865,7 +847,6 @@ export const bomTemplateCreateSize = async (req, res) => {
             newSize,
         });
     } catch (error) {
-        console.error("Error creating BOM Template Size:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create size: ${error.message}`,
@@ -900,7 +881,6 @@ export const bomTemplateUpdateSize = async (req, res) => {
             size: await size.reload(),
         });
     } catch (error) {
-        console.error("Error updating BOM Template Size:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update size: ${error.message}`,
@@ -931,7 +911,6 @@ export const bomTemplateDeleteSize = async (req, res) => {
             message: "Size deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting BOM Template Size:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete size: ${error.message}`,
@@ -1003,7 +982,6 @@ export const getAllFGSizeCharts = async (req, res) => {
             data: responseData,
         });
     } catch (error) {
-        console.error("Error retrieving FG size charts:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve FG size charts: ${error.message}`,
@@ -1071,7 +1049,6 @@ export const getAllFGColorCharts = async (req, res) => {
             data: responseData,
         });
     } catch (error) {
-        console.error("Error retrieving FG color charts:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve FG color charts: ${error.message}`,
@@ -1198,7 +1175,6 @@ export const bulkToggleBomTemplateColor = async (req, res) => {
             message: "Bulk toggle completed",
         });
     } catch (error) {
-        console.error("Error in bulk toggle color:", error);
         return res.status(500).json({
             success: false,
             message: error.message,
@@ -1248,7 +1224,6 @@ export const bulkToggleBomTemplateSize = async (req, res) => {
             message: "Bulk toggle completed",
         });
     } catch (error) {
-        console.error("Error in bulk toggle size:", error);
         return res.status(500).json({
             success: false,
             message: error.message,

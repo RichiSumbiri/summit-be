@@ -14,7 +14,7 @@ export const createSizeChartTemplate = async (req, res) => {
         if (!DESCRIPTION || !CUSTOMER_ID || !ITEM_CATEGORY_ID || !Array.isArray(LIST)) {
             return res.status(400).json({
                 success: false,
-                message: "DESCRIPTION, CUSTOMER_ID, ITEM_CATEGORY_ID, and LIST (array) are required",
+                message: "Description, Customer, Item Category, and LIST (array) are required",
             });
         }
 
@@ -40,7 +40,6 @@ export const createSizeChartTemplate = async (req, res) => {
             message: "Size chart template created successfully",
         });
     } catch (error) {
-        console.error("Error creating size chart template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create size chart template: ${error.message}`,
@@ -98,7 +97,6 @@ export const getAllSizeChartTemplates = async (req, res) => {
             data: transformedTemplates,
         });
     } catch (error) {
-        console.error("Error retrieving size chart templates:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve size chart templates: ${error.message}`,
@@ -153,7 +151,6 @@ export const getSizeChartTemplateById = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Error retrieving size chart template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve size chart template: ${error.message}`,
@@ -171,7 +168,7 @@ export const updateSizeChartTemplate = async (req, res) => {
         if (!DESCRIPTION || !CUSTOMER_ID || !ITEM_CATEGORY_ID || !Array.isArray(LIST)) {
             return res.status(400).json({
                 success: false,
-                message: "DESCRIPTION, CUSTOMER_ID, ITEM_CATEGORY_ID, and LIST (array) are required",
+                message: "Description, Customer, Item Category, and LIST (array) are required",
             });
         }
 
@@ -199,7 +196,6 @@ export const updateSizeChartTemplate = async (req, res) => {
             message: "Size chart template updated successfully",
         });
     } catch (error) {
-        console.error("Error updating size chart template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update size chart template: ${error.message}`,
@@ -230,7 +226,6 @@ export const deleteSizeChartTemplate = async (req, res) => {
             message: "Size chart template deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting size chart template:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete size chart template: ${error.message}`,

@@ -11,7 +11,7 @@ export const createSiteDepartment = async (req, res) => {
         if (!UNIT_ID || !SITE_ID || !DEPT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "UNIT_ID, SITE_ID, and DEPT_ID are required",
+                message: "Unit, Site, and Department are required",
             });
         }
 
@@ -19,7 +19,7 @@ export const createSiteDepartment = async (req, res) => {
         if (!site) {
             return res.status(404).json({
                 success: false,
-                message: "SITE_ID not found",
+                message: "Site not found",
             });
         }
 
@@ -28,7 +28,7 @@ export const createSiteDepartment = async (req, res) => {
         if (!unit) {
             return res.status(404).json({
                 success: false,
-                message: "UNIT_ID not found",
+                message: "Unit not found",
             });
         }
 
@@ -75,7 +75,6 @@ export const createSiteDepartment = async (req, res) => {
             newSiteDepartment,
         });
     } catch (error) {
-        console.error("Error creating site_department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create site_department: ${error.message}`,
@@ -148,7 +147,6 @@ export const getSiteDepartmentById = async (req, res) => {
             siteDepartment,
         });
     } catch (error) {
-        console.error("Error retrieving site_department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve site_department: ${error.message}`,
@@ -235,7 +233,6 @@ export const updateSiteDepartment = async (req, res) => {
             siteDepartment,
         });
     } catch (error) {
-        console.error("Error updating site_department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update site_department: ${error.message}`,
@@ -257,7 +254,6 @@ export const deleteSiteDepartment = async (req, res) => {
             });
         }
 
-
         await siteDepartment.update({
             IS_DELETED: true,
             DELETED_AT: new Date()
@@ -268,7 +264,6 @@ export const deleteSiteDepartment = async (req, res) => {
             message: "Site Department deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting site_department:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete site_department: ${error.message}`,

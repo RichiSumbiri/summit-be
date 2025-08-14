@@ -26,7 +26,7 @@ export const createSiteFx = async (req, res) => {
         if ( !CODE || !NAME) {
             return res.status(400).json({
                 success: false,
-                message: " CODE, and NAME are required",
+                message: " Code and Name are required",
             });
         }
 
@@ -41,7 +41,7 @@ export const createSiteFx = async (req, res) => {
         if (existCode) {
             return res.status(500).json({
                 success: false,
-                message: `CODE already exist`,
+                message: `Code already exist`,
             });
         }
 
@@ -76,7 +76,6 @@ export const createSiteFx = async (req, res) => {
             newSite,
         });
     } catch (error) {
-        console.error("Error creating site:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create site: ${error.message}`,
@@ -106,7 +105,6 @@ export const getAllSitesFx = async (req, res) => {
             data: sites,
         });
     } catch (error) {
-        console.error("Error retrieving sites:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve sites: ${error.message}`,
@@ -133,7 +131,6 @@ export const getSiteFxById = async (req, res) => {
             data: site,
         });
     } catch (error) {
-        console.error("Error retrieving site:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve site: ${error.message}`,
