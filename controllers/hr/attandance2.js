@@ -309,8 +309,8 @@ export const punchAttdLog2 = async (req, res) => {
                   // ket_in: ket_in ? ket_in : checkLate ? "LATE" : null, //harus cek lembur
                 };
 
-                const findAtt = await Attandance.findOne({where : { tanggal_in: dataAbsen.scheduleDate,  Nik: dataAbsen.Nik}});
-                
+                const findAtt = await Attandance.findOne({where : { tanggal_in: dataAbsen.tanggal_in,  Nik: dataAbsen.Nik}});
+
                 let upsert = false
                 if(findAtt){
                   const update = await Attandance.update(dataAbsen, { where : { tanggal_in: dataAbsen.scheduleDate,  Nik: dataAbsen.Nik} });
