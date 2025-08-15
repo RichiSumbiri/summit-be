@@ -3,7 +3,7 @@ import { QueryTypes, Op } from "sequelize";
 import { CurrencyDefault, CurrencyExcRateDetail, CurrencyExcRateHeader, kursRef, qryGetCurrencyExchange, qryGetDetaulCurExch, qryListCurrency, qryrefTabelKurs, queryGetListValuta } from "../../models/finance/currency.mod.js";
 import db from "../../config/database.js";
 import moment from "moment";
-import * as cheerio from "cheerio";
+// import * as cheerio from "cheerio";
 import axios from "axios";
 
 export const getListValuta = async (req, res) => {
