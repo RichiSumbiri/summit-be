@@ -19,6 +19,8 @@ router.patch("/edit-header-exc-currency", updateExchageRateHeader);
 //kurs from Bi and 
 router.get('/get-data-kurs-referensi/:stateDate', getAllDetailKurs)
 router.get('/get-data-kurs-from-bi/:type/:stateDate', getDataExchgExternal) //fecth from bi
+router.get('/get-data-kurs-from-bi', getAllDetailKurs)
+
 
 
 export default router;

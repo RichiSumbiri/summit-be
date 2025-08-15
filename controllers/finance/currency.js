@@ -3,7 +3,7 @@ import { QueryTypes, Op } from "sequelize";
 import { CurrencyDefault, CurrencyExcRateDetail, CurrencyExcRateHeader, kursRef, qryGetCurrencyExchange, qryGetDetaulCurExch, qryListCurrency, qryrefTabelKurs, queryGetListValuta } from "../../models/finance/currency.mod.js";
 import db from "../../config/database.js";
 import moment from "moment";
-// import * as cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import axios from "axios";
 
 export const getListValuta = async (req, res) => {
@@ -520,3 +520,41 @@ export const getDataExchgExternal = async (req, res) => {
     return res.status(500).json(err.message)
   }
 }
+
+
+export const saveExchRateFromBi = async (req, res) => {
+  try {
+    const {date, currencyDefault, userId}= req.body;
+    // const dateReq = moment(date, 'YYYY-MM-DD')
+  
+    // const {dataHeader, dataDetail}= req.body;
+    const { CERH_EFECTIVE_DATE, ADD_ID, MOD_ID, IS_ACTIVE ,}  = dataHeader
+
+    // Validasi apakah sudah ada data untuk tanggal efektif tersebut
+    const existing = await CurrencyExcRateHeader.findOne({ where: { CERH_EFECTIVE_DATE } });
+    if (existing) {
+      return res.status(202).json({ message: 'Effective date already exists.' });
+    }
+    
+
+      await db.transaction(async (t) => {
+      // Reset all IS_PRIMARY to null
+        const newHeader = await CurrencyExcRateHeader.create({
+          CERH_EFECTIVE_DATE,
+          ADD_ID,
+          MOD_ID,
+          IS_ACTIVE
+        });
+
+        const plainDataHead = newHeader.get({plain : true})
+        
+        const setIdHeader = dataDetail.map(item => ({...item, CERH_ID : plainDataHead.CERH_ID }))
+        await CurrencyExcRateDetail.bulkCreate(setIdHeader)
+    });
+
+    res.status(201).json({message: 'Succces save Currency Exchange'});
+  } catch (error) {
+    console.error('Error creating header:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
