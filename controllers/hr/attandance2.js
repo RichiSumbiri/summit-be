@@ -367,7 +367,7 @@ export const punchAttdLog2 = async (req, res) => {
           if (findSch && !findSch.scan_out && findSch.id) {
             
             const dataAbsen = correctionScanOut(logTime, logtimeAccurate, findSch, lisJkDetail);
-            const objKoreksiOt = {...dataAbsen, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : (objKoreksiOt.ot || null) } // untuk fix ot awal/scan in
+            const objKoreksiOt = {...dataAbsen, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : (dataAbsen.ot || null) } // untuk fix ot awal/scan in
 
             const postAbsen = await Attandance.update(objKoreksiOt, {
               where: {
