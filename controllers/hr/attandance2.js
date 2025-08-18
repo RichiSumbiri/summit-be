@@ -369,7 +369,7 @@ export const punchAttdLog2 = async (req, res) => {
             const dataAbsen = correctionScanOut(logTime, logtimeAccurate, findSch, lisJkDetail);
             const objKoreksiOt = {...dataAbsen, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : (objKoreksiOt.ot || null) } // untuk fix ot awal/scan in
 
-            const postAbsen = await Attandance.update(dataAbsen, {
+            const postAbsen = await Attandance.update(objKoreksiOt, {
               where: {
                 id : findSch.id
                 // tanggal_out: findSch.scanOutDate,
