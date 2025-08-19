@@ -2,10 +2,7 @@ import BomStructureModel, {BomStructureListModel} from "../../models/system/bomS
 import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../models/orderManagement/orderManagement.mod.js";
 import {
-    CustomerDetail,
-    CustomerProductDivision,
-    CustomerProductSeason,
-    CustomerProgramName
+    CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName
 } from "../../models/system/customer.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
@@ -13,6 +10,8 @@ import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
+import {Op} from "sequelize";
 
 export const getAllBomStructures = async (req, res) => {
     try {
@@ -25,77 +24,52 @@ export const getAllBomStructures = async (req, res) => {
         if (COMPANY_ID) where.COMPANY_ID = COMPANY_ID;
 
         const structures = await BomStructureModel.findAll({
-            where,
-            include: [
-                {
-                    model: BomTemplateModel,
-                    as: "BOM_TEMPLATE",
-                    attributes: ["ID", "NAME", "LAST_REV_ID"],
-                    required: false,
-                    include: [
-                        {
-                            model: MasterItemIdModel,
-                            as: "MASTER_ITEM",
-                            attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
-                        },
-                        {
-                            model: CustomerDetail,
-                            as: "CUSTOMER",
-                            attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
-                            required: false
-                        },
-                        {
-                            model: CustomerProductDivision,
-                            as: "CUSTOMER_DIVISION",
-                            attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
-                            required: false
-                        },
-                        {
-                            model: CustomerProductSeason,
-                            as: "CUSTOMER_SESSION",
-                            attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
-                            required: false
-                        },
-                        // {
-                        //     model: CustomerProgramName,
-                        //     as: "CUSTOMER_PROGRAM",
-                        //     attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
-                        //     required: false
-                        // }
-                    ]
-                },
-                {
-                    model: ModelOrderPOHeader,
-                    as: "ORDER",
-                    attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
-                    required: false,
-                    duplicating: false,
-
-                },
-                {
-                    model: Users,
-                    as: "CREATED",
-                    attributes: ['USER_NAME'],
+            where, include: [{
+                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], required: false,
+            }, {
+                model: ModelOrderPOHeader,
+                as: "ORDER",
+                attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
+                required: false,
+                duplicating: false,
+                include: [{
+                    model: MasterItemIdModel,
+                    as: "ITEM",
+                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
+                }, {
+                    model: CustomerDetail,
+                    as: "CUSTOMER",
+                    attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
                     required: false
-                },
-                {
-                    model: Users,
-                    as: "UPDATED",
-                    attributes: ['USER_NAME'],
+                }, {
+                    model: CustomerProductDivision,
+                    as: "CUSTOMER_DIVISION",
+                    attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
                     required: false
-                },
-            ]
+                }, {
+                    model: CustomerProductSeason,
+                    as: "CUSTOMER_SEASON",
+                    attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
+                    required: false
+                }, {
+                    model: CustomerProgramName,
+                    as: "CUSTOMER_PROGRAM",
+                    attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
+                    required: false
+                }]
+            }, {
+                model: Users, as: "CREATED", attributes: ['USER_NAME'], required: false
+            }, {
+                model: Users, as: "UPDATED", attributes: ['USER_NAME'], required: false
+            },]
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structures retrieved successfully",
-            data: structures,
+            success: true, message: "BOM structures retrieved successfully", data: structures,
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM structures: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM structures: ${error.message}`,
         });
     }
 };
@@ -105,86 +79,57 @@ export const getBomStructureById = async (req, res) => {
         const {id} = req.params;
 
         const structure = await BomStructureModel.findOne({
-            where: {ID: id, IS_DELETED: false},
-            include: [
-                {
-                    model: BomTemplateModel,
-                    as: "BOM_TEMPLATE",
-                    include: [
-                        {
-                            model: CustomerDetail,
-                            as: "CUSTOMER"
-                        },
-                        {
-                            model: CustomerProductDivision,
-                            as: "CUSTOMER_DIVISION"
-                        },
-                        {
-                            model: CustomerProductSeason,
-                            as: "CUSTOMER_SESSION"
-                        },
-                    ]
-                },
-                {
-                    model: ModelOrderPOHeader,
-                    as: "ORDER"
-                }
-            ]
+            where: {ID: id, IS_DELETED: false}, include: [{
+                model: BomTemplateModel, as: "BOM_TEMPLATE", include: [{
+                    model: CustomerDetail, as: "CUSTOMER"
+                }, {
+                    model: CustomerProductDivision, as: "CUSTOMER_DIVISION"
+                }, {
+                    model: CustomerProductSeason, as: "CUSTOMER_SESSION"
+                },]
+            }, {
+                model: ModelOrderPOHeader, as: "ORDER"
+            }]
         });
 
         if (!structure) {
             return res.status(404).json({
-                success: false,
-                message: "BOM structure not found",
+                success: false, message: "BOM structure not found",
             });
         }
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure retrieved successfully",
-            data: structure,
+            success: true, message: "BOM structure retrieved successfully", data: structure,
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM structure: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM structure: ${error.message}`,
         });
     }
 };
 export const createBomStructure = async (req, res) => {
     try {
         const {
-            NO_REVISION,
-            NOTE,
-            IS_ACTIVE,
-            ACTIVE_STATUS,
-            STATUS_STRUCTURE,
-            BOM_TEMPLATE_ID,
-            ORDER_ID,
-            COMPANY_ID,
-            CREATED_ID
+            NO_REVISION, NOTE, IS_ACTIVE, STATUS_STRUCTURE, BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, CREATED_ID,
         } = req.body;
 
         if (!BOM_TEMPLATE_ID || !ORDER_ID) {
             return res.status(400).json({
-                success: false,
-                message: "Order and Bom Template are required",
+                success: false, message: "Order and Bom Template are required",
             });
         }
 
         const getLastID = await BomStructureModel.findOne({
-            order: [['ID', 'DESC']],
-            raw: true
+            order: [['ID', 'DESC']], raw: true
         });
         const newIncrement = !getLastID ? '0000001' : Number(getLastID.ID.slice(-7)) + 1;
         const ID = 'BOM' + newIncrement.toString().padStart(7, '0');
 
-        await BomStructureModel.create({
+        const newStructure = await BomStructureModel.create({
             ID,
             NO_REVISION: NO_REVISION || 0,
             NOTE,
             IS_ACTIVE,
-            ACTIVE_STATUS,
             STATUS_STRUCTURE,
             BOM_TEMPLATE_ID,
             ORDER_ID,
@@ -193,14 +138,87 @@ export const createBomStructure = async (req, res) => {
             CREATED_AT: new Date(),
         });
 
+        const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
+
+        if (!bomTemplate) {
+            return res.status(400).json({
+                status: false, message: "Bom template not found"
+            })
+        }
+
+        const bomTemplateList = await BomTemplateListModel.findAll({
+            where: {
+                REV_ID: bomTemplate.dataValues.LAST_REV_ID,
+                BOM_TEMPLATE_ID,
+                STATUS: {[Op.in]: ["Open", "Confirmed"]},
+                IS_DELETED: false
+            }
+        })
+
+        if (bomTemplateList.length) {
+            BomStructureListModel.bulkCreate(bomTemplateList.map((item, idx) => {
+                const data = item.dataValues
+                return {
+                    ...data,
+                    ID: null,
+                    BOM_LINE_ID: idx + 1,
+                    REV_ID: bomTemplate.dataValues.LAST_REV_ID,
+                    BOM_STRUCTURE_ID: newStructure.dataValues.ID,
+                    CREATED_ID,
+                    CREATED_AT: new Date(),
+                    UPDATED_ID: null,
+                    UPDATED_AT: null
+                }
+            }))
+        }
+
+        const bomStructure = await BomStructureModel.findOne({
+            where: {ID: newStructure.dataValues.ID}, include: [{
+                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], required: false,
+            }, {
+                model: ModelOrderPOHeader,
+                as: "ORDER",
+                attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
+                required: false,
+                duplicating: false,
+                include: [{
+                    model: MasterItemIdModel,
+                    as: "ITEM",
+                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
+                }, {
+                    model: CustomerDetail,
+                    as: "CUSTOMER",
+                    attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
+                    required: false
+                }, {
+                    model: CustomerProductDivision,
+                    as: "CUSTOMER_DIVISION",
+                    attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
+                    required: false
+                }, {
+                    model: CustomerProductSeason,
+                    as: "CUSTOMER_SEASON",
+                    attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
+                    required: false
+                }, {
+                    model: CustomerProgramName,
+                    as: "CUSTOMER_PROGRAM",
+                    attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
+                    required: false
+                }]
+            }, {
+                model: Users, as: "CREATED", attributes: ['USER_NAME'], required: false
+            }, {
+                model: Users, as: "UPDATED", attributes: ['USER_NAME'], required: false
+            },]
+        })
+
         return res.status(201).json({
-            success: true,
-            message: "BOM structure created successfully",
+            success: true, message: "BOM structure created successfully", data: bomStructure
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to create BOM structure: ${error.message}`,
+            success: false, message: `Failed to create BOM structure: ${error.message}`,
         });
     }
 };
@@ -208,15 +226,7 @@ export const updateBomStructure = async (req, res) => {
     try {
         const {id} = req.params;
         const {
-            NO_REVISION,
-            NOTE,
-            IS_ACTIVE,
-            ACTIVE_STATUS,
-            STATUS_STRUCTURE,
-            BOM_TEMPLATE_ID,
-            ORDER_ID,
-            COMPANY_ID,
-            UPDATED_ID
+            NO_REVISION, NOTE, IS_ACTIVE, STATUS_STRUCTURE, BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, UPDATED_ID
         } = req.body;
 
         const structure = await BomStructureModel.findOne({
@@ -225,8 +235,7 @@ export const updateBomStructure = async (req, res) => {
 
         if (!structure) {
             return res.status(404).json({
-                success: false,
-                message: "BOM structure not found",
+                success: false, message: "BOM structure not found",
             });
         }
 
@@ -234,7 +243,6 @@ export const updateBomStructure = async (req, res) => {
             NO_REVISION,
             NOTE,
             IS_ACTIVE,
-            ACTIVE_STATUS,
             STATUS_STRUCTURE,
             BOM_TEMPLATE_ID,
             ORDER_ID,
@@ -244,13 +252,11 @@ export const updateBomStructure = async (req, res) => {
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure updated successfully",
+            success: true, message: "BOM structure updated successfully",
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to update BOM structure: ${error.message}`,
+            success: false, message: `Failed to update BOM structure: ${error.message}`,
         });
     }
 };
@@ -264,91 +270,70 @@ export const deleteBomStructure = async (req, res) => {
 
         if (!structure) {
             return res.status(404).json({
-                success: false,
-                message: "BOM structure not found",
+                success: false, message: "BOM structure not found",
             });
         }
 
         await structure.update({
-            IS_DELETED: true,
-            DELETED_AT: new Date(),
+            IS_DELETED: true, DELETED_AT: new Date(),
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure deleted successfully",
+            success: true, message: "BOM structure deleted successfully",
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to delete BOM structure: ${error.message}`,
+            success: false, message: `Failed to delete BOM structure: ${error.message}`,
         });
     }
 };
 
 export const getAllBomStructureList = async (req, res) => {
     try {
-        const {BOM_STRUCTURE_ID, MASTER_ITEM_ID, IS_DELETED, STATUS} = req.query;
+        const {BOM_STRUCTURE_ID, MASTER_ITEM_ID, STATUS} = req.query;
 
-        const where = {};
+        const where = {IS_DELETED: false};
         if (BOM_STRUCTURE_ID) where.BOM_STRUCTURE_ID = BOM_STRUCTURE_ID;
         if (MASTER_ITEM_ID) where.MASTER_ITEM_ID = MASTER_ITEM_ID;
         if (STATUS) where.STATUS = STATUS;
-        if (IS_DELETED !== undefined) where.IS_DELETED = Number(IS_DELETED);
 
         const data = await BomStructureListModel.findAll({
-            where,
-            include: [
-                {
-                    model: BomStructureModel,
-                    as: "BOM_STRUCTURE",
-                    attributes: ["ID", "NO_REVISION", "NOTE", "STATUS_STRUCTURE"],
-                    required: false,
-                    include: [
-                        {
-                            model: BomTemplateModel,
-                            as: "BOM_TEMPLATE",
-                            attributes: ["ID", "NAME", "LAST_REV_ID"],
-                            include: [
-                                {
-                                    model: MasterItemIdModel,
-                                    as: "MASTER_ITEM",
-                                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    model: MasterItemIdModel,
-                    as: "MASTER_ITEM",
-                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
-                },
-                {
-                    model: Users,
-                    as: "CREATED",
-                    attributes: ["USER_NAME"],
-                    required: false
-                },
-                {
-                    model: Users,
-                    as: "UPDATED",
-                    attributes: ["USER_NAME"],
-                    required: false
-                }
-            ],
-            order: [['ID', 'ASC']]
+            where, include: [{
+                model: BomStructureModel,
+                as: "BOM_STRUCTURE",
+                attributes: ["ID", "NO_REVISION", "NOTE", "STATUS_STRUCTURE"],
+                required: false,
+                include: [{
+                    model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"],
+                }]
+            }, {
+                model: MasterItemIdModel,
+                as: "MASTER_ITEM",
+                attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"],
+                include: [{
+                    model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                }, {
+                    model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                }, {
+                    model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                },]
+            }, {
+                model: ModelVendorDetail,
+                as: "VENDOR",
+                attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+            }, {
+                model: Users, as: "CREATED", attributes: ["USER_NAME"], required: false
+            }, {
+                model: Users, as: "UPDATED", attributes: ["USER_NAME"], required: false
+            }], order: [['ID', 'ASC']]
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure list retrieved successfully",
-            data,
+            success: true, message: "BOM structure list retrieved successfully", data,
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM structure list: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM structure list: ${error.message}`,
         });
     }
 };
@@ -358,55 +343,49 @@ export const getBomStructureListById = async (req, res) => {
         const {id} = req.params;
 
         const data = await BomStructureListModel.findOne({
-            where: {ID: id, IS_DELETED: false},
-            include: [
-                {
-                    model: MasterItemIdModel,
-                    as: "MASTER_ITEM",
-                    attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
-                    include: [{
-                        model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
-                    }, {
-                        model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
-                    }, {
-                        model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
-                    },]
-                },
-                {
-                    model: ModelVendorDetail,
-                    as: "VENDOR",
-                    attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
-                },
-                {
-                    model: Users,
-                    as: "CREATED",
-                    attributes: ['USER_NAME']
-                },
-                {
-                    model: Users,
-                    as: "UPDATED",
-                    attributes: ['USER_NAME']
-                }
-            ]
+            where: {ID: id, IS_DELETED: false}, include: [{
+                model: BomStructureModel,
+                as: "BOM_STRUCTURE",
+                attributes: ["ID", "NO_REVISION", "NOTE", "STATUS_STRUCTURE"],
+                required: false,
+                include: [{
+                    model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"],
+                }]
+            }, {
+                model: MasterItemIdModel,
+                as: "MASTER_ITEM",
+                attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"],
+                include: [{
+                    model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                }, {
+                    model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                }, {
+                    model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                },]
+            }, {
+                model: ModelVendorDetail,
+                as: "VENDOR",
+                attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+            }, {
+                model: Users, as: "CREATED", attributes: ["USER_NAME"], required: false
+            }, {
+                model: Users, as: "UPDATED", attributes: ["USER_NAME"], required: false
+            }]
         });
 
         if (!data) {
             return res.status(404).json({
-                success: false,
-                message: "BOM structure list not found",
+                success: false, message: "BOM structure list not found",
             });
         }
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure list retrieved successfully",
-            data,
+            success: true, message: "BOM structure list retrieved successfully", data,
         });
     } catch (error) {
         console.error("Error retrieving BOM structure list by ID:", error);
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM structure list: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM structure list: ${error.message}`,
         });
     }
 };
@@ -434,13 +413,9 @@ export const createBomStructureList = async (req, res) => {
 
         if (!BOM_STRUCTURE_ID || !MASTER_ITEM_ID) {
             return res.status(400).json({
-                success: false,
-                message: "BOM_STRUCTURE_ID and MASTER_ITEM_ID are required",
+                success: false, message: "BOM_STRUCTURE_ID and MASTER_ITEM_ID are required",
             });
         }
-
-        // Optional: generate ID custom jika diperlukan
-        // Tapi karena auto_increment, bisa biarkan DB handle
 
         const newEntry = await BomStructureListModel.create({
             BOM_STRUCTURE_ID,
@@ -463,14 +438,86 @@ export const createBomStructureList = async (req, res) => {
         });
 
         return res.status(201).json({
-            success: true,
-            message: "BOM structure list created successfully",
-            data: newEntry,
+            success: true, message: "BOM structure list created successfully", data: newEntry,
         });
     } catch (error) {
         return res.status(500).json({
+            success: false, message: `Failed to create BOM structure list: ${error.message}`,
+        });
+    }
+};
+
+export const createBomStructureListBulk = async (req, res) => {
+    try {
+        const payload = req.body;
+
+        if (!Array.isArray(payload) || payload.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Payload must be a non-empty array",
+            });
+        }
+
+
+        const data = await Promise.all(payload.map(async (item, idx) => {
+            const lastStructure = await BomStructureListModel.findOne({
+                where: {BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID},
+                order: [['BOM_LINE_ID', 'DESC']],
+            });
+            const nextId = lastStructure ? lastStructure.BOM_LINE_ID + 1 : 1;
+            return {
+                BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID,
+                STATUS: item.STATUS || "Open",
+                MASTER_ITEM_ID: item.MASTER_ITEM_ID,
+                BOM_LINE_ID: nextId + idx,
+                STANDARD_CONSUMPTION_PER_ITEM: item.STANDARD_CONSUMPTION_PER_ITEM ?? 0,
+                INTERNAL_CONSUMPTION_PER_ITEM: item.INTERNAL_CONSUMPTION_PER_ITEM ?? 0,
+                BOOKING_CONSUMPTION_PER_ITEM: item.BOOKING_CONSUMPTION_PER_ITEM ?? 0,
+                PRODUCTION_CONSUMPTION_PER_ITEM: item.PRODUCTION_CONSUMPTION_PER_ITEM ?? 0,
+                EXTRA_BOOKS: item.EXTRA_BOOKS ?? 0,
+                IS_SPLIT_COLOR: item.IS_SPLIT_COLOR ? 1 : 0,
+                IS_SPLIT_SIZE: item.IS_SPLIT_SIZE ? 1 : 0,
+                IS_SPLIT_NO_PO: item.IS_SPLIT_NO_PO ? 1 : 0,
+                VENDOR_ID: item.VENDOR_ID || null,
+                ITEM_POSITION: item.ITEM_POSITION || null,
+                NOTE: item.NOTE || null,
+                IS_SPLIT_STATUS: item.IS_SPLIT_STATUS ? 1 : 0,
+                IS_ACTIVE: item.IS_ACTIVE ? 1 : 0,
+                CREATED_ID: item.CREATED_ID,
+                CREATED_AT: new Date(),
+            }
+        }));
+
+        for (const item of data) {
+            if (!item.BOM_STRUCTURE_ID || !item.MASTER_ITEM_ID || !item.CREATED_ID) {
+                return res.status(400).json({
+                    success: false,
+                    message: "BOM_STRUCTURE_ID, MASTER_ITEM_ID, and CREATED_ID are required for all items",
+                });
+            }
+        }
+
+        const result = await BomStructureListModel.bulkCreate(data, {
+            validate: true,
+            returning: true,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: `Created ${result.length} item(s) successfully`,
+            data: result,
+        });
+    } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+            return res.status(400).json({
+                success: false,
+                message: "Validation error",
+                errors: error.errors.map(e => e.message),
+            });
+        }
+        return res.status(500).json({
             success: false,
-            message: `Failed to create BOM structure list: ${error.message}`,
+            message: "Failed to create BOM list",
         });
     }
 };
@@ -486,25 +533,20 @@ export const updateBomStructureList = async (req, res) => {
 
         if (!data) {
             return res.status(404).json({
-                success: false,
-                message: "BOM structure list not found",
+                success: false, message: "BOM structure list not found",
             });
         }
 
         await data.update({
-            ...body,
-            UPDATED_ID: req.body.UPDATED_ID || null,
-            UPDATED_AT: new Date(),
+            ...body, UPDATED_ID: req.body.UPDATED_ID || null, UPDATED_AT: new Date(),
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure list updated successfully",
+            success: true, message: "BOM structure list updated successfully",
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to update BOM structure list: ${error.message}`,
+            success: false, message: `Failed to update BOM structure list: ${error.message}`,
         });
     }
 };
@@ -519,24 +561,20 @@ export const deleteBomStructureList = async (req, res) => {
 
         if (!data) {
             return res.status(404).json({
-                success: false,
-                message: "BOM structure list not found",
+                success: false, message: "BOM structure list not found",
             });
         }
 
         await data.update({
-            IS_DELETED: true,
-            DELETED_AT: new Date(),
+            IS_DELETED: true, DELETED_AT: new Date(),
         });
 
         return res.status(200).json({
-            success: true,
-            message: "BOM structure list deleted successfully",
+            success: true, message: "BOM structure list deleted successfully",
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to delete BOM structure list: ${error.message}`,
+            success: false, message: `Failed to delete BOM structure list: ${error.message}`,
         });
     }
 };

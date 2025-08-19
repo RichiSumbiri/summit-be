@@ -1,9 +1,16 @@
 import express from "express";
 import {
-    createBomStructure, createBomStructureList, deleteBomStructure, deleteBomStructureList, getAllBomStructureList,
+    createBomStructure,
+    createBomStructureList,
+    createBomStructureListBulk,
+    deleteBomStructure,
+    deleteBomStructureList,
+    getAllBomStructureList,
     getAllBomStructures,
-    getBomStructureById, getBomStructureListById,
-    updateBomStructure, updateBomStructureList
+    getBomStructureById,
+    getBomStructureListById,
+    updateBomStructure,
+    updateBomStructureList
 } from "../../controllers/system/bomStructure.js";
 
 const router = express.Router();
@@ -17,6 +24,7 @@ router.delete("/master/:id", deleteBomStructure);
 router.get("/list", getAllBomStructureList);
 router.get("/list/:id", getBomStructureListById);
 router.post("/list", createBomStructureList);
+router.post("/list/bulk", createBomStructureListBulk);
 router.put("/list/:id", updateBomStructureList);
 router.delete("/list/:id", deleteBomStructureList);
 
