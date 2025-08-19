@@ -3,7 +3,8 @@ import db from "../../config/database.js";
 import {
     ModelOrderPOHeader,
     ModelSupplyChainPlanning,
-    queryGetListOrderHeader
+    queryGetListOrderHeader,
+    querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
 import moment from "moment";
@@ -541,6 +542,33 @@ export const postSupplyChainPlanning = async(req,res) => {
             success: false,
             error: err,
             message: "error post supply chain planning"
+        });
+    }
+}
+
+export const postMasterOrderPlanning = async(req,res) => {
+    try {
+        const { DataMOP } = req.body;
+        await ModelOrderPOHeader.update({
+            PLAN_CUT_DATE: DataMOP.PLAN_CUT_DATE,
+            PLAN_SEW_DATE: DataMOP.PLAN_SEW_DATE,
+            PLAN_FIN_DATE: DataMOP.PLAN_FIN_DATE,
+            PLAN_PP_MEETING: DataMOP.PLAN_PP_MEETING
+        }, {
+            where: {
+                ORDER_ID: DataMOP.ORDER_ID
+            }
+        })
+        console.log(DataMOP);
+        return res.status(200).json({
+            success: 200,
+            message: "success post master order planning"
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post master order planning"
         });
     }
 }

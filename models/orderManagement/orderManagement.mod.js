@@ -102,6 +102,22 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     type: DataTypes.STRING(255),
     allowNull: true,
   },
+  PLAN_CUT_DATE: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  PLAN_SEW_DATE: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  PLAN_FIN_DATE: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  PLAN_PP_MEETING: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   CREATE_BY: {
     type: DataTypes.STRING(200),
     allowNull: true,
@@ -118,6 +134,7 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  
 }, {
   tableName: 'order_po_header',
   timestamps: false,
@@ -309,6 +326,9 @@ SELECT
 	oph.FLAG_MULTISET_ITEMS,
 	oph.SIZE_TEMPLATE_ID,
 	oph.NOTE_REMARKS,
+  oph.PLAN_CUT_DATE,
+  oph.PLAN_SEW_DATE,
+  oph.PLAN_FIN_DATE,
   oph.CREATE_BY,
 	xuw.USER_NAME AS CREATE_NAME,
 	oph.CREATE_DATE,
