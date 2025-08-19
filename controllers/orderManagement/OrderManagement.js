@@ -1,8 +1,8 @@
 import {QueryTypes} from "sequelize";
 import db from "../../config/database.js";
 import {
-    ModelOrderPODetail,
     ModelOrderPOHeader,
+    ModelSupplyChainPlanning,
     queryGetListOrderHeader
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -30,7 +30,6 @@ export const getListOrderHeaderByStatus = async (req, res) => {
             data: getList
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
