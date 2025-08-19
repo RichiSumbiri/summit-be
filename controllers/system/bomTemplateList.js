@@ -18,6 +18,7 @@ export const createBomTemplateList = async (req, res) => {
             IS_SPLIT_COLOR,
             IS_SPLIT_SIZE,
             VENDOR_ID,
+            REV_ID,
             NOTE,
             MASTER_ITEM_ID,
             IS_SPLIT_STATUS,
@@ -43,7 +44,7 @@ export const createBomTemplateList = async (req, res) => {
         }
 
         const lastEntry = await BomTemplateListModel.findOne({
-            where: {BOM_TEMPLATE_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
+            where: {BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
 
         const BOM_TEMPLATE_LINE_ID = lastEntry ? lastEntry.BOM_TEMPLATE_LINE_ID + 1 : 1;
@@ -58,6 +59,7 @@ export const createBomTemplateList = async (req, res) => {
             IS_SPLIT_SIZE,
             IS_SPLIT_STATUS,
             ITEM_POSITION,
+            REV_ID,
             VENDOR_ID,
             NOTE,
             CREATED_ID,
@@ -77,9 +79,11 @@ export const createBomTemplateList = async (req, res) => {
 
 export const getAllBomTemplateLists = async (req, res) => {
     try {
-        const {BOM_TEMPLATE_ID} = req.query;
+        const {BOM_TEMPLATE_ID, REV_ID} = req.query;
 
-        const whereCondition = {};
+        const whereCondition = {
+            REV_ID: REV_ID || 0
+        };
         if (BOM_TEMPLATE_ID) {
             whereCondition.BOM_TEMPLATE_ID = BOM_TEMPLATE_ID;
         }
@@ -122,7 +126,7 @@ export const getAllBomTemplateLists = async (req, res) => {
 export const cloneBomTemplateList = async (req, res) => {
     try {
         const {id} = req.params;
-        const {USER_ID} = req.body
+        const {USER_ID, REV_ID} = req.body
         if (!id) {
             return res.status(400).json({
                 success: false, message: "ID is required",
@@ -146,7 +150,7 @@ export const cloneBomTemplateList = async (req, res) => {
         }
 
         const lastEntry = await BomTemplateListModel.findOne({
-            where: {BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
+            where: {BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
 
         const BOM_TEMPLATE_LINE_ID = lastEntry ? lastEntry.BOM_TEMPLATE_LINE_ID + 1 : 1;
@@ -155,6 +159,7 @@ export const cloneBomTemplateList = async (req, res) => {
             BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID,
             BOM_TEMPLATE_LINE_ID,
             STATUS: originalEntry.STATUS,
+            REV_ID: REV_ID,
             COSTING_CONSUMER_PER_ITEM: originalEntry.COSTING_CONSUMER_PER_ITEM,
             INTERNAL_CUSTOMER_PER_ITEM: originalEntry.INTERNAL_CUSTOMER_PER_ITEM,
             IS_SPLIT_COLOR: originalEntry.IS_SPLIT_COLOR,
@@ -183,9 +188,12 @@ export const cloneBomTemplateList = async (req, res) => {
 export const getBomTemplateListById = async (req, res) => {
     try {
         const {id} = req.params;
+        const {REV_ID} = req.query
+
+        const where = {ID: id, IS_DELETED: false, REV_ID: REV_ID || 0}
 
         const list = await BomTemplateListModel.findOne({
-            where: {ID: id, IS_DELETED: false}, include: [{
+            where: where, include: [{
                 model: MasterItemIdModel,
                 as: "MASTER_ITEM",
                 attributes: ['ITEM_ID', 'ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
@@ -233,6 +241,7 @@ export const updateBomTemplateList = async (req, res) => {
             IS_SPLIT_COLOR,
             IS_SPLIT_SIZE,
             VENDOR_ID,
+            REV_ID,
             IS_SPLIT_STATUS,
             ITEM_POSITION,
             MASTER_ITEM_ID,
@@ -270,6 +279,7 @@ export const updateBomTemplateList = async (req, res) => {
             MASTER_ITEM_ID,
             IS_SPLIT_STATUS,
             ITEM_POSITION,
+            REV_ID,
             VENDOR_ID,
             NOTE,
             UPDATED_ID,
@@ -297,8 +307,8 @@ export const updateBomTemplateListStatus = async (req, res) => {
         }
 
         for (let i = 0; i < listData.length; i++) {
-            const {ID, STATUS, UPDATED_ID} = listData[i]
-            await BomTemplateListModel.update({STATUS, UPDATED_ID}, {
+            const {ID, STATUS, REV_ID, UPDATED_ID} = listData[i]
+            await BomTemplateListModel.update({STATUS, UPDATED_ID, REV_ID}, {
                 where: {
                     ID: ID
                 }

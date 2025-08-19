@@ -33,7 +33,7 @@ import {
     bulkCreateBomTemplateSize,
     bulkDeleteBomTemplateSize,
     bulkCreateBomTemplateColor,
-    bulkToggleBomTemplateColor, bulkToggleBomTemplateSize
+    bulkToggleBomTemplateColor, bulkToggleBomTemplateSize, saveNewRevision, getNoteByRevision
 } from "../../controllers/system/bomTemplate.js";
 
 const router = express.Router();
@@ -52,6 +52,7 @@ router.get("/master", getAllBomTemplates);
 router.get("/master/:id", getBomTemplateById);
 router.put("/master/:id", updateBomTemplate);
 router.patch("/master/:id", cloneBomTemplate);
+router.patch("/master-new/:id", saveNewRevision);
 router.delete("/master/:id", deleteBomTemplate);
 
 
@@ -75,6 +76,7 @@ router.delete("/sizes/:id", bomTemplateDeleteSize);
 
 router.get("/color", getAllFGColorCharts)
 router.get("/size", getAllFGSizeCharts)
+router.get("/notes", getNoteByRevision)
 
 router.post("/color/toggle", bulkToggleBomTemplateColor);
 router.post("/size/toggle", bulkToggleBomTemplateSize);

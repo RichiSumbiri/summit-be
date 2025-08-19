@@ -3,6 +3,7 @@ import db from "../../config/database.js";
 import MasterItemIdModel from "./masterItemId.mod.js";
 import {ModelVendorDetail} from "./VendorDetail.mod.js";
 import Users from "../setup/users.mod.js";
+import BomTemplateModel, {BomTemplateRevModel} from "./bomTemplate.mod.js";
 
 const BomTemplateListModel = db.define(
     "bom_template_list",
@@ -18,6 +19,10 @@ const BomTemplateListModel = db.define(
         },
         MASTER_ITEM_ID: {
             type: DataTypes.STRING(15),
+            allowNull: true,
+        },
+        REV_ID: {
+            type: DataTypes.INTEGER,
             allowNull: true,
         },
         BOM_TEMPLATE_LINE_ID: {
@@ -101,6 +106,11 @@ const BomTemplateListModel = db.define(
         paranoid: true,
     }
 );
+
+BomTemplateModel.belongsTo(BomTemplateRevModel, {
+    foreignKey: "REV_ID",
+    as: "REV"
+})
 
 BomTemplateListModel.belongsTo(MasterItemIdModel, {
     foreignKey: "MASTER_ITEM_ID",
