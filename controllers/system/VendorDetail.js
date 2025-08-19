@@ -265,18 +265,25 @@ export const getVendorPurchaseDetailByVDC = async(req,res) => {
 }
 
 export  const getVendorPurchaseByFilter = async  (req, res) => {
-    const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID } = req.query
+    const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, CUSTOMER_ID } = req.query
     const  where = {}
 
     if (ITEM_GROUP_ID) {
         where.ITEM_GROUP_ID = ITEM_GROUP_ID
     }
+    
     if (ITEM_TYPE_ID) {
         where.ITEM_TYPE_ID = ITEM_TYPE_ID
     }
+    
     if (ITEM_CATEGORY_ID) {
         where.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
     }
+    
+    if(CUSTOMER_ID){
+        where.CUSTOMER_ID = CUSTOMER_ID
+    }
+
     try {
         const resp = await ModelVendorPurchaseDetail.findAll({
             where,
