@@ -1,7 +1,11 @@
-import { QueryTypes } from "sequelize";
+import {QueryTypes} from "sequelize";
 import db from "../../config/database.js";
-import { ModelOrderPODetail, ModelOrderPOHeader, queryGetListOrderHeader } from "../../models/orderManagement/orderManagement.mod.js";
-import { OrderPoListing, OrderPoListingSize } from "../../models/production/order.mod.js";
+import {
+    ModelOrderPODetail,
+    ModelOrderPOHeader,
+    queryGetListOrderHeader
+} from "../../models/orderManagement/orderManagement.mod.js";
+import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
 import moment from "moment";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {
@@ -78,31 +82,31 @@ export const postOrderHeader = async (req, res) => {
             const newIncrement = !latestOrder ? '0000001' : parseInt(latestOrder.ORDER_ID.slice(-7)) + 1;
             const newOrderID = DataHeader.ORDER_TYPE_CODE + newIncrement.toString().padStart(7, '0');
             await ModelOrderPOHeader.create({
-                    ORDER_ID: newOrderID,
-                    ORDER_TYPE_CODE: DataHeader.ORDER_TYPE_CODE,
-                    ORDER_STATUS: DataHeader.ORDER_STATUS,
-                    ORDER_UOM: DataHeader.UOM_CODE,
-                    ORDER_QTY: DataHeader.ORDER_UOM,
-                    CURRENCY_CODE: DataHeader.CURRENCY_CODE,
-                    ORDER_PLACEMENT_COMPANY: DataHeader.ORDER_PLACEMENT_COMPANY,
-                    ITEM_ID: DataHeader.ITEM_ID,
-                    ORDER_STYLE_DESCRIPTION: DataHeader.ORDER_STYLE_DESCRIPTION,
-                    PRICE_TYPE_CODE: DataHeader.PRICE_TYPE_CODE,
-                    CUSTOMER_ID: DataHeader.CUSTOMER_ID,
-                    CUSTOMER_DIVISION_ID: DataHeader.CUSTOMER_DIVISION_ID,
-                    CUSTOMER_SEASON_ID: DataHeader.CUSTOMER_SEASON_ID,
-                    CUSTOMER_PROGRAM_ID: DataHeader.CUSTOMER_PROGRAM_ID,
-                    CUSTOMER_BUYPLAN_ID: DataHeader.CUSTOMER_BUYPLAN_ID,
-                    ORDER_CONFIRMED_DATE: DataHeader.ORDER_CONFIRMED_DATE,
-                    CONTRACT_CONFIRMED_DATE: DataHeader.CONTRACT_CONFIRMED_DATE,
-                    CONTRACT_EXPIRED_DATE: DataHeader.CONTRACT_EXPIRED_DATE,
-                    CONTRACT_REF_NO: DataHeader.CONTRACT_REF_NO,
-                    ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
-                    FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
-                    NOTE_REMARKS: DataHeader.NOTE_REMARKS,
-                    SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
-                    CREATE_BY: DataHeader.CREATE_BY,
-                    CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                ORDER_ID: newOrderID,
+                ORDER_TYPE_CODE: DataHeader.ORDER_TYPE_CODE,
+                ORDER_STATUS: DataHeader.ORDER_STATUS,
+                ORDER_UOM: DataHeader.UOM_CODE,
+                ORDER_QTY: DataHeader.ORDER_UOM,
+                CURRENCY_CODE: DataHeader.CURRENCY_CODE,
+                ORDER_PLACEMENT_COMPANY: DataHeader.ORDER_PLACEMENT_COMPANY,
+                ITEM_ID: DataHeader.ITEM_ID,
+                ORDER_STYLE_DESCRIPTION: DataHeader.ORDER_STYLE_DESCRIPTION,
+                PRICE_TYPE_CODE: DataHeader.PRICE_TYPE_CODE,
+                CUSTOMER_ID: DataHeader.CUSTOMER_ID,
+                CUSTOMER_DIVISION_ID: DataHeader.CUSTOMER_DIVISION_ID,
+                CUSTOMER_SEASON_ID: DataHeader.CUSTOMER_SEASON_ID,
+                CUSTOMER_PROGRAM_ID: DataHeader.CUSTOMER_PROGRAM_ID,
+                CUSTOMER_BUYPLAN_ID: DataHeader.CUSTOMER_BUYPLAN_ID,
+                ORDER_CONFIRMED_DATE: DataHeader.ORDER_CONFIRMED_DATE,
+                CONTRACT_CONFIRMED_DATE: DataHeader.CONTRACT_CONFIRMED_DATE,
+                CONTRACT_EXPIRED_DATE: DataHeader.CONTRACT_EXPIRED_DATE,
+                CONTRACT_REF_NO: DataHeader.CONTRACT_REF_NO,
+                ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
+                FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
+                NOTE_REMARKS: DataHeader.NOTE_REMARKS,
+                SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
+                CREATE_BY: DataHeader.CREATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
         }
         return res.status(200).json({
@@ -166,16 +170,18 @@ export const getPOListingSizeByPOID = async (req, res) => {
 export const getAllPODetailHeader = async (req, res) => {
     try {
         const listDetail = await ModelOrderPOHeader.findAll({
-            include: [{
-                model: MasterItemIdModel,
-                as: "ITEM",
-                attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]
-            }, {
-                model: CustomerDetail,
-                as: "CUSTOMER",
-                attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
-                required: false
-            },
+            include: [
+                {
+                    model: MasterItemIdModel,
+                    as: "ITEM",
+                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]
+                },
+                {
+                    model: CustomerDetail,
+                    as: "CUSTOMER",
+                    attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
+                    required: false
+                },
                 {
                     model: CustomerProductDivision,
                     as: "CUSTOMER_DIVISION",
@@ -193,7 +199,8 @@ export const getAllPODetailHeader = async (req, res) => {
                     as: "CUSTOMER_PROGRAM",
                     attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
                     required: false
-                }]
+                }
+            ]
         });
         return res.status(200).json({
             success: true,
@@ -210,10 +217,10 @@ export const getAllPODetailHeader = async (req, res) => {
 }
 
 
-export const postPOListing = async(req,res) => {
+export const postPOListing = async (req, res) => {
     try {
-        const { DataPOID } = req.body;
-        if(DataPOID.ORDER_PO_ID){
+        const {DataPOID} = req.body;
+        if (DataPOID.ORDER_PO_ID) {
             await OrderPoListing.update({
                 MANUFACTURING_COMPANY: DataPOID.MANUFACTURING_COMPANY,
                 MANUFACTURING_SITE: DataPOID.MANUFACTURING_SITE,
@@ -275,7 +282,7 @@ export const postPOListing = async(req,res) => {
             });
         } else {
             // CREATE NEW ORDER PO ID
-            const getLastPOID = await OrderPoListing.findOne({ order: [['ORDER_PO_ID', 'DESC']], raw: true });
+            const getLastPOID = await OrderPoListing.findOne({order: [['ORDER_PO_ID', 'DESC']], raw: true});
             const newIncrement = !getLastPOID ? '0000001' : parseInt(getLastPOID.ORDER_PO_ID.slice(-8)) + 1;
             const newPOID = 'PO' + newIncrement.toString().padStart(8, '0');
 
@@ -340,7 +347,7 @@ export const postPOListing = async(req,res) => {
             success: true,
             message: "success post po listing"
         });
-    } catch(err){
+    } catch (err) {
         console.log(err);
         return res.status(500).json({
             success: false,
@@ -351,103 +358,103 @@ export const postPOListing = async(req,res) => {
 }
 
 
-export const postPOSizeListing = async(req,res) => {
+export const postPOSizeListing = async (req, res) => {
     try {
-        const { DataPOSize } = req.body;
+        const {DataPOSize} = req.body;
         console.log(DataPOSize);
-        for(const data of DataPOSize){
-                if(data.ID_POL_SIZE){
-                    await OrderPoListingSize.update({
-                        MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
-                        ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
-                        CUSTOMER_NAME: data.CUSTOMER_NAME,
-                        CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
-                        CUSTOMER_SEASON: data.CUSTOMER_SEASON,
-                        CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
-                        CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
-                        ORDER_NO: data.ORDER_NO,
-                        ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
-                        ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
-                        PO_STATUS: data.PO_STATUS,
-                        MO_AVAILABILITY: data.MO_AVAILABILITY,
-                        MO_NO: data.MO_NO,
-                        MO_RELEASED_DATE: data.MO_RELEASED_DATE,
-                        PO_REF_CODE: data.PO_REF_CODE,
-                        PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
-                        PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
-                        PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
-                        ITEM_COLOR_ID: data.ITEM_COLOR_ID,
-                        ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
-                        ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
-                        SIZE_CODE: data.SIZE_CODE,
-                        ORDER_QTY: data.ORDER_QTY,
-                        MO_QTY: data.MO_QTY,
-                        SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
-                        ORDER_UOM: data.ORDER_UOM,
-                        SHIPPED_QTY: data.SHIPPED_QTY,
-                        DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
-                        DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
-                        COUNTRY: data.COUNTRY,
-                        FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
-                        PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
-                        PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                        MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
-                        SIZE_ID: data.SIZE_ID,
-                        SIZE_DESCRIPTION: data.SIZE_DESCRIPTION
-                    }, {
-                        where: {
-                            ORDER_PO_ID: data.ORDER_PO_ID,
-                            ID_POL_SIZE: data.ID_POL_SIZE,
-                        }
-                    });
-                } else {
-                    await OrderPoListingSize.create({
-                        MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
-                        ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
-                        CUSTOMER_NAME: data.CUSTOMER_NAME,
-                        CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
-                        CUSTOMER_SEASON: data.CUSTOMER_SEASON,
-                        CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
-                        CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
-                        ORDER_NO: data.ORDER_NO,
-                        ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
-                        ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
-                        PO_STATUS: data.PO_STATUS,
-                        MO_AVAILABILITY: data.MO_AVAILABILITY,
-                        MO_NO: data.MO_NO,
-                        MO_RELEASED_DATE: data.MO_RELEASED_DATE,
-                        PO_REF_CODE: data.PO_REF_CODE,
-                        PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
-                        PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
-                        PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
-                        ITEM_COLOR_ID: data.ITEM_COLOR_ID,
-                        ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
-                        ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
-                        SIZE_CODE: data.SIZE_CODE,
-                        ORDER_QTY: data.ORDER_QTY,
-                        MO_QTY: data.MO_QTY,
-                        SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
-                        ORDER_UOM: data.ORDER_UOM,
-                        SHIPPED_QTY: data.SHIPPED_QTY,
-                        DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
-                        DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
-                        COUNTRY: data.COUNTRY,
-                        FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
-                        PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
-                        PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                        MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
-                        SIZE_ID: data.SIZE_ID,
-                        SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
+        for (const data of DataPOSize) {
+            if (data.ID_POL_SIZE) {
+                await OrderPoListingSize.update({
+                    MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
+                    ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
+                    CUSTOMER_NAME: data.CUSTOMER_NAME,
+                    CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
+                    CUSTOMER_SEASON: data.CUSTOMER_SEASON,
+                    CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
+                    CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
+                    ORDER_NO: data.ORDER_NO,
+                    ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
+                    ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
+                    PO_STATUS: data.PO_STATUS,
+                    MO_AVAILABILITY: data.MO_AVAILABILITY,
+                    MO_NO: data.MO_NO,
+                    MO_RELEASED_DATE: data.MO_RELEASED_DATE,
+                    PO_REF_CODE: data.PO_REF_CODE,
+                    PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
+                    PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
+                    PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
+                    ITEM_COLOR_ID: data.ITEM_COLOR_ID,
+                    ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
+                    ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
+                    SIZE_CODE: data.SIZE_CODE,
+                    ORDER_QTY: data.ORDER_QTY,
+                    MO_QTY: data.MO_QTY,
+                    SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
+                    ORDER_UOM: data.ORDER_UOM,
+                    SHIPPED_QTY: data.SHIPPED_QTY,
+                    DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
+                    DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
+                    COUNTRY: data.COUNTRY,
+                    FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
+                    PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
+                    PRODUCTION_MONTH: data.PRODUCTION_MONTH,
+                    MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                    SIZE_ID: data.SIZE_ID,
+                    SIZE_DESCRIPTION: data.SIZE_DESCRIPTION
+                }, {
+                    where: {
                         ORDER_PO_ID: data.ORDER_PO_ID,
-                    });
-                }
+                        ID_POL_SIZE: data.ID_POL_SIZE,
+                    }
+                });
+            } else {
+                await OrderPoListingSize.create({
+                    MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
+                    ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
+                    CUSTOMER_NAME: data.CUSTOMER_NAME,
+                    CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
+                    CUSTOMER_SEASON: data.CUSTOMER_SEASON,
+                    CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
+                    CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
+                    ORDER_NO: data.ORDER_NO,
+                    ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
+                    ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
+                    PO_STATUS: data.PO_STATUS,
+                    MO_AVAILABILITY: data.MO_AVAILABILITY,
+                    MO_NO: data.MO_NO,
+                    MO_RELEASED_DATE: data.MO_RELEASED_DATE,
+                    PO_REF_CODE: data.PO_REF_CODE,
+                    PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
+                    PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
+                    PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
+                    ITEM_COLOR_ID: data.ITEM_COLOR_ID,
+                    ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
+                    ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
+                    SIZE_CODE: data.SIZE_CODE,
+                    ORDER_QTY: data.ORDER_QTY,
+                    MO_QTY: data.MO_QTY,
+                    SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
+                    ORDER_UOM: data.ORDER_UOM,
+                    SHIPPED_QTY: data.SHIPPED_QTY,
+                    DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
+                    DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
+                    COUNTRY: data.COUNTRY,
+                    FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
+                    PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
+                    PRODUCTION_MONTH: data.PRODUCTION_MONTH,
+                    MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                    SIZE_ID: data.SIZE_ID,
+                    SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
+                    ORDER_PO_ID: data.ORDER_PO_ID,
+                });
+            }
         }
-        
+
         return res.status(200).json({
             success: 200,
             message: "success post po size"
         });
-    } catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err,

@@ -28,10 +28,6 @@ const BomStructureModel = db.define(
             type: DataTypes.BOOLEAN,
             allowNull: true,
         },
-        ACTIVE_STATUS: {
-            type: DataTypes.STRING(100),
-            allowNull: true,
-        },
         STATUS_STRUCTURE: {
             type: DataTypes.STRING(100),
             allowNull: true,
