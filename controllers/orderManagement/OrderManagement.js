@@ -462,3 +462,86 @@ export const postPOSizeListing = async (req, res) => {
         });
     }
 }
+
+export const getSupplyChainPlanningByOrderID = async(req,res)=> {
+    try {
+        const { ORDER_ID } = req.query;
+        const getData = await db.query(querySupplyChainPlanningByOrderID, {
+            replacements: {
+                orderID: ORDER_ID
+            }, type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: 200,
+            message: "success get data supply chain planning",
+            data: getData
+        });
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get supply chain planning by order id"
+        });
+    }
+}
+
+export const postSupplyChainPlanning = async(req,res) => {
+    try {
+        const { DataSupplyChainPlanning } = req.body;
+        if(DataSupplyChainPlanning.ID_SCP){
+            await ModelSupplyChainPlanning.update({
+                ORDER_ID: DataSupplyChainPlanning.ORDER_ID,
+                ITEM_GROUP_ID: DataSupplyChainPlanning.ITEM_GROUP_ID,
+                ITEM_TYPE_ID: DataSupplyChainPlanning.ITEM_TYPE_ID,
+                ITEM_CATEGORY_ID: DataSupplyChainPlanning.ITEM_CATEGORY_ID,
+                ITEM_ID: DataSupplyChainPlanning.ITEM_ID,
+                ITEM_CODE: DataSupplyChainPlanning.ITEM_CODE,
+                VENDOR_ID: DataSupplyChainPlanning.VENDOR_ID,
+                ORDER_LEAD_TIME: DataSupplyChainPlanning.ORDER_LEAD_TIME,
+                DELIVERY_LEAD_TIME: DataSupplyChainPlanning.DELIVERY_LEAD_TIME,
+                DELIVERY_MODE_CODE: DataSupplyChainPlanning.DELIVERY_MODE_CODE,
+                GREIGE_LEAD_TIME: DataSupplyChainPlanning.GREIGE_LEAD_TIME,
+                PRODUCTION_LEAD_TIME: DataSupplyChainPlanning.PRODUCTION_LEAD_TIME,
+                INSPECTION_LEAD_TIME: DataSupplyChainPlanning.INSPECTION_LEAD_TIME,
+                OTHER_LEAD_TIME: DataSupplyChainPlanning.OTHER_LEAD_TIME,
+                UPDATE_BY: DataSupplyChainPlanning.CREATE_BY,
+                UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    ID_SCP: DataSupplyChainPlanning.ID_SCP
+                }
+            });
+        } else {
+            await ModelSupplyChainPlanning.create({
+                ORDER_ID: DataSupplyChainPlanning.ORDER_ID,
+                ITEM_GROUP_ID: DataSupplyChainPlanning.ITEM_GROUP_ID,
+                ITEM_TYPE_ID: DataSupplyChainPlanning.ITEM_TYPE_ID,
+                ITEM_CATEGORY_ID: DataSupplyChainPlanning.ITEM_CATEGORY_ID,
+                ITEM_ID: DataSupplyChainPlanning.ITEM_ID,
+                ITEM_CODE: DataSupplyChainPlanning.ITEM_CODE,
+                VENDOR_ID: DataSupplyChainPlanning.VENDOR_ID,
+                ORDER_LEAD_TIME: DataSupplyChainPlanning.ORDER_LEAD_TIME,
+                DELIVERY_LEAD_TIME: DataSupplyChainPlanning.DELIVERY_LEAD_TIME,
+                DELIVERY_MODE_CODE: DataSupplyChainPlanning.DELIVERY_MODE_CODE,
+                GREIGE_LEAD_TIME: DataSupplyChainPlanning.GREIGE_LEAD_TIME,
+                PRODUCTION_LEAD_TIME: DataSupplyChainPlanning.PRODUCTION_LEAD_TIME,
+                INSPECTION_LEAD_TIME: DataSupplyChainPlanning.INSPECTION_LEAD_TIME,
+                OTHER_LEAD_TIME: DataSupplyChainPlanning.OTHER_LEAD_TIME,
+                CREATE_BY: DataSupplyChainPlanning.CREATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+        }
+        return res.status(200).json({
+            success: 200,
+            message: "success post supply chain planning"
+        });
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post supply chain planning"
+        });
+    }
+}
