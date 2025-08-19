@@ -303,3 +303,144 @@ LEFT JOIN projection_order po ON po.PRJ_ID = oph.PROJECTION_ORDER_ID
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oph.CREATE_BY 
 LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oph.UPDATE_BY 
 WHERE oph.ORDER_STATUS= :orderStatus    `;
+
+
+export const ModelSupplyChainPlanning = db.define(
+    "order_supply_chain_planning",
+    {
+      ID_SCP: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false,
+      },
+      ORDER_ID: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+      },
+      ITEM_GROUP_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      ITEM_TYPE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      ITEM_CATEGORY_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      ITEM_ID: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+      },
+      VENDOR_ID: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+      },
+      LEAD_TIME_TYPE: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      ORDER_LEAD_TIME: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      DELIVERY_LEAD_TIME: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      DELIVERY_MODE_CODE: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+      },
+      GREIGE_LEAD_TIME: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      PRODUCTION_LEAD_TIME: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      INSPECTION_LEAD_TIME: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      OTHER_LEAD_TIME: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      NOTE_REMARKS: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      CREATE_BY: {
+        type: DataTypes.STRING(200),
+        allowNull: true,
+      },
+      CREATE_DATE: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      UPDATE_BY: {
+        type: DataTypes.STRING(200),
+        allowNull: true,
+      },
+      UPDATE_DATE: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+    },
+    {
+      tableName: "order_supply_chain_planning",
+      timestamps: false, // disable default Sequelize timestamps
+      freezeTableName: true,
+    }
+  );
+
+  export const querySupplyChainPlanningByOrderID = `
+SELECT
+	scp.ID_SCP,
+	scp.ORDER_ID,
+	oph.CUSTOMER_ID,
+	scp.ITEM_GROUP_ID,
+	mig.ITEM_GROUP_CODE,
+	mig.ITEM_GROUP_DESCRIPTION,
+	scp.ITEM_TYPE_ID,
+	mit.ITEM_TYPE_CODE,
+	mit.ITEM_TYPE_DESCRIPTION,
+	scp.ITEM_CATEGORY_ID,
+	mic.ITEM_CATEGORY_CODE,
+	mic.ITEM_CATEGORY_DESCRIPTION,
+	CONCAT(mig.ITEM_GROUP_CODE, '|',mit.ITEM_TYPE_CODE,'|',scp.ITEM_CATEGORY_ID) AS CONCAT_ITEM_CATEGORY_DESCRIPTION,
+	scp.ITEM_ID,
+	mii.ITEM_CODE,
+	mii.ITEM_DESCRIPTION,
+	scp.VENDOR_ID,
+	vd.VENDOR_CODE,
+	vd.VENDOR_NAME,
+	scp.LEAD_TIME_TYPE,
+	scp.ORDER_LEAD_TIME,
+	scp.DELIVERY_LEAD_TIME,
+	scp.DELIVERY_MODE_CODE,
+	scp.GREIGE_LEAD_TIME,
+	scp.PRODUCTION_LEAD_TIME,
+	scp.INSPECTION_LEAD_TIME,
+	(scp.ORDER_LEAD_TIME + scp.DELIVERY_LEAD_TIME + scp.GREIGE_LEAD_TIME + scp.PRODUCTION_LEAD_TIME + scp.INSPECTION_LEAD_TIME) AS TOTAL_LEAD_TIME,
+	scp.OTHER_LEAD_TIME,
+	DATE_ADD(oph.ORDER_CONFIRMED_DATE , INTERVAL (scp.ORDER_LEAD_TIME + scp.DELIVERY_LEAD_TIME + scp.GREIGE_LEAD_TIME + scp.PRODUCTION_LEAD_TIME + scp.INSPECTION_LEAD_TIME) DAY) AS ESTIMATED_MATERIAL_DATE,
+	scp.NOTE_REMARKS,
+	scp.CREATE_BY,
+	scp.CREATE_DATE,
+	scp.UPDATE_BY,
+	scp.UPDATE_DATE
+FROM
+	order_supply_chain_planning scp
+LEFT JOIN master_item_group mig ON mig.ITEM_GROUP_ID = scp.ITEM_GROUP_ID 
+LEFT JOIN master_item_type mit ON mit.ITEM_TYPE_ID = scp.ITEM_TYPE_ID 
+LEFT JOIN master_item_category mic ON mic.ITEM_CATEGORY_ID = scp.ITEM_CATEGORY_ID 
+LEFT JOIN master_item_id mii ON mii.ITEM_ID = scp.ITEM_ID 
+LEFT JOIN vendor_detail vd ON vd.VENDOR_ID = scp.VENDOR_ID 
+LEFT JOIN order_po_header oph ON oph.ORDER_ID = scp.ORDER_ID 
+WHERE scp.ORDER_ID = :orderID
+  `;
