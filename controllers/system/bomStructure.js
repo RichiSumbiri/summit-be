@@ -30,26 +30,12 @@ export const getAllBomStructures = async (req, res) => {
                 {
                     model: BomTemplateModel,
                     as: "BOM_TEMPLATE",
-                    attributes: ["ID", "NAME", "REVISION_ID", "NOTE"],
+                    attributes: ["ID", "NAME", "LAST_REV_ID"],
                     required: false,
                     include: [
                         {
                             model: MasterItemIdModel,
                             as: "MASTER_ITEM",
-                            attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
-                        }
-                    ]
-                },
-                {
-                    model: ModelOrderPOHeader,
-                    as: "ORDER",
-                    attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
-                    required: false,
-                    duplicating: false,
-                    include: [
-                        {
-                            model: MasterItemIdModel,
-                            as: "ITEM",
                             attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
                         },
                         {
@@ -66,17 +52,25 @@ export const getAllBomStructures = async (req, res) => {
                         },
                         {
                             model: CustomerProductSeason,
-                            as: "CUSTOMER_SEASON",
+                            as: "CUSTOMER_SESSION",
                             attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
                             required: false
                         },
-                        {
-                            model: CustomerProgramName,
-                            as: "CUSTOMER_PROGRAM",
-                            attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
-                            required: false
-                        }
+                        // {
+                        //     model: CustomerProgramName,
+                        //     as: "CUSTOMER_PROGRAM",
+                        //     attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
+                        //     required: false
+                        // }
                     ]
+                },
+                {
+                    model: ModelOrderPOHeader,
+                    as: "ORDER",
+                    attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
+                    required: false,
+                    duplicating: false,
+
                 },
                 {
                     model: Users,
@@ -314,7 +308,7 @@ export const getAllBomStructureList = async (req, res) => {
                         {
                             model: BomTemplateModel,
                             as: "BOM_TEMPLATE",
-                            attributes: ["ID", "NAME", "REVISION_ID", "NOTE"],
+                            attributes: ["ID", "NAME", "LAST_REV_ID"],
                             include: [
                                 {
                                     model: MasterItemIdModel,

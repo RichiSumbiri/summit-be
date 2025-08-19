@@ -17,10 +17,9 @@ const BomTemplateModel = db.define(
             type: DataTypes.STRING(255),
             allowNull: true,
         },
-        REVISION_ID: {
+        LAST_REV_ID: {
             type: DataTypes.INTEGER,
             defaultValue: 0,
-            allowNull: true,
         },
         MASTER_ITEM_ID: {
             type: DataTypes.STRING(15),
@@ -40,10 +39,6 @@ const BomTemplateModel = db.define(
         },
         CUSTOMER_SESSION_ID: {
             type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        NOTE: {
-            type: DataTypes.TEXT,
             allowNull: true,
         },
         CREATED_AT: {
@@ -84,7 +79,6 @@ const BomTemplateModel = db.define(
     }
 );
 
-
 BomTemplateModel.belongsTo(MasterItemIdModel, {
     foreignKey: "MASTER_ITEM_ID",
     as: "MASTER_ITEM"
@@ -109,6 +103,33 @@ BomTemplateModel.belongsTo(MasterOrderType, {
     foreignKey: "ORDER_TYPE_ID",
     as: "ORDER_TYPE"
 })
+
+export const BomTemplateNote = db.define(
+    "bom_template_notes", {
+        ID: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false,
+        },
+        BOM_TEMPLATE_ID: {
+            type: DataTypes.STRING(15),
+            allowNull: false,
+        },
+        REV_ID: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
+        NOTE: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+    }, {
+        freezeTableName: true,
+        timestamps: false,
+    }
+)
+
 export const BomTemplateRevModel = db.define(
     "bom_template_rev",
     {
@@ -124,6 +145,10 @@ export const BomTemplateRevModel = db.define(
         },
         DESCRIPTION: {
             type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        SEQUENCE: {
+            type: DataTypes.INTEGER,
             allowNull: true,
         },
         BOM_TEMPLATE_ID: {
@@ -154,6 +179,11 @@ export const BomTemplateRevModel = db.define(
     }
 );
 
+BomTemplateModel.belongsTo(BomTemplateRevModel, {
+    foreignKey: "LAST_REV_ID",
+    as: "LAST_REV"
+})
+
 export const BomTemplateColor = db.define(
     "bom_template_color",
     {
@@ -173,6 +203,10 @@ export const BomTemplateColor = db.define(
         CREATED_AT: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
+        },
+        REV_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
         },
         UPDATED_AT: {
             type: DataTypes.DATE,
@@ -214,6 +248,10 @@ export const BomTemplateSize = db.define(
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
         },
+        REV_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
         UPDATED_AT: {
             type: DataTypes.DATE,
             allowNull: true,
@@ -233,5 +271,15 @@ export const BomTemplateSize = db.define(
         updatedAt: "UPDATED_AT",
     }
 );
+
+BomTemplateColor.belongsTo(BomTemplateRevModel, {
+    foreignKey: "REV_ID",
+    as: "REV"
+})
+
+BomTemplateSize.belongsTo(BomTemplateRevModel, {
+    foreignKey: "REV_ID",
+    as: "REV"
+})
 
 export default BomTemplateModel;
