@@ -3,7 +3,7 @@ import { QueryTypes, Op } from "sequelize";
 import { CurrencyDefault, CurrencyExcRateDetail, CurrencyExcRateHeader, kursRef, qryGetCurrencyExchange, qryGetDetaulCurExch, qryListCurrency, qryrefTabelKurs, queryGetListValuta } from "../../models/finance/currency.mod.js";
 import db from "../../config/database.js";
 import moment from "moment";
-// import * as cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import axios from "axios";
 
 export const getListValuta = async (req, res) => {
@@ -522,38 +522,112 @@ export const getDataExchgExternal = async (req, res) => {
 }
 
 
-export const saveExchRateFromBi = async (req, res) => {
-  try {
-    const {date, currencyDefault, userId}= req.body;
-    // const dateReq = moment(date, 'YYYY-MM-DD')
-  
-    // const {dataHeader, dataDetail}= req.body;
-    const { CERH_EFECTIVE_DATE, ADD_ID, MOD_ID, IS_ACTIVE ,}  = dataHeader
 
-    // Validasi apakah sudah ada data untuk tanggal efektif tersebut
-    const existing = await CurrencyExcRateHeader.findOne({ where: { CERH_EFECTIVE_DATE } });
-    if (existing) {
-      return res.status(202).json({ message: 'Effective date already exists.' });
+
+
+// exchange rate 
+export const creatExchageRateFromBi = async (req, res) => {
+  try {
+    const {date, primaryCurrency, userId }= req.body;
+ 
+    //check apakah sudah ada data dari BI 
+    const checkDataBi = await kursRef.findAll({
+          where : { 
+            KURS_DATE : date,
+            KURS_TYPE : 'BI',
+          },
+          raw: true
+        })
+  
+    if(checkDataBi.length === 0) {
+      //jika tidak ada maka reject
+      return res.status(202).json({message : 'No Data Form BI, Pls Get Data First'})
+    }
+
+    //ambil list data default currency nya dulu
+    const getAllCurdef = await db.query(qryListCurrency,
+      { type: QueryTypes.SELECT }
+    );
+
+    if(getAllCurdef.length === 0) {
+      //jika tidak ada maka reject
+      return res.status(202).json({message : 'No Data Form Currency Default'})
+    }
+
+    const getRowKursPrimary = checkDataBi.find(item => item.KURS_CODE === primaryCurrency)
+    const getDataPrimary = getAllCurdef.find(item => item.CURRENCY_CODE === primaryCurrency)
+   
+    if(!getRowKursPrimary) {
+      //jika tidak ada maka reject
+      return res.status(202).json({message : 'No Data BI Kurs From BI'})
     }
     
 
-      await db.transaction(async (t) => {
-      // Reset all IS_PRIMARY to null
-        const newHeader = await CurrencyExcRateHeader.create({
-          CERH_EFECTIVE_DATE,
-          ADD_ID,
-          MOD_ID,
-          IS_ACTIVE
-        });
+    //Rate IDR ke Primary
+    const calRatePrimary = parseInt(getRowKursPrimary.KURS_VALUE)/((parseFloat(getRowKursPrimary.KURS_SALE) + parseFloat(getRowKursPrimary.KURS_BUY))/2)
 
-        const plainDataHead = newHeader.get({plain : true})
-        
-        const setIdHeader = dataDetail.map(item => ({...item, CERH_ID : plainDataHead.CERH_ID }))
-        await CurrencyExcRateDetail.bulkCreate(setIdHeader)
-    });
+    const currencyCodeWoPrimary = getAllCurdef.filter(item => item.CURRENCY_CODE !== primaryCurrency && item.CURRENCY_CODE !== 'IDR')
+   
+   
+    const dataCurrency = currencyCodeWoPrimary.map(item => {
+      const findRate = checkDataBi.find(biRate => biRate.KURS_CODE === item.CURRENCY_CODE)
+        if(!findRate) {
+          return {...item, CER_RATE : 0}
+        }else{
+          const calRate =  parseInt(findRate.KURS_VALUE)/((parseFloat(findRate.KURS_SALE) + parseFloat(findRate.KURS_BUY))/2)
+          const rateBoDefault = calRatePrimary/calRate
+    
+          return {...item, CER_RATE : rateBoDefault}
+        }
+    })
 
-    res.status(201).json({message: 'Succces save Currency Exchange'});
+    const struIdr = {
+       CER_FROM_CODE: "IDR",
+        CER_TO_CODE: primaryCurrency,
+        CER_FROM_DESC: 'Indonesia Rupiah',
+        CER_TO_DESC: getDataPrimary.CURRENCY_DESC,
+        CER_RATE: parseFloat(calRatePrimary).toFixed(13),
+        IS_ACTIVE: 1,
+        ADD_ID: userId,
+    }
+
+    let listDetailRate = dataCurrency.map(item => ({
+      CER_FROM_CODE: item.CURRENCY_CODE,
+      CER_TO_CODE: primaryCurrency,
+      CER_FROM_DESC: item.CURRENCY_DESC,
+      CER_TO_DESC:getDataPrimary.CURRENCY_DESC,
+      CER_RATE: parseFloat(item.CER_RATE).toFixed(13), // hasilnya string,
+      IS_ACTIVE: 1,
+      ADD_ID: userId,
+    }))
+    
+    const alldetail = [...listDetailRate, struIdr]
+    
+
+    
+
+    // jika ada data maka cek sudah ada exchg header atau blm jika ada maka destroy 
+    let existing = await CurrencyExcRateHeader.findOne({ where: { CERH_EFECTIVE_DATE : date } , raw: true});
+    if (existing) {
+          await CurrencyExcRateHeader.update({ MOD_ID : userId}, { where: { CERH_EFECTIVE_DATE: date }});
+    }else{
+         const createNewHeader = await CurrencyExcRateHeader.create({CERH_EFECTIVE_DATE : date,  ADD_ID : userId});
+         existing = createNewHeader.get({plain: true})
+    }
+
+    const checkDetail = CurrencyExcRateDetail.findOne({where : {CERH_ID : existing.CERH_ID}})
+
+    if(checkDetail){
+          await CurrencyExcRateDetail.destroy({where : {CERH_ID : existing.CERH_ID}})
+    }
+
+    const dataWithHeadId = alldetail.map(item => ({...item, CERH_ID : existing.CERH_ID }))
+    await CurrencyExcRateDetail.bulkCreate(dataWithHeadId)
+
+    res.status(200).json({message: 'Succces save Currency Exchange'});
   } catch (error) {
+    console.log(error);
+    
     console.error('Error creating header:', error);
     res.status(500).json({ message: 'Internal server error' });
   }

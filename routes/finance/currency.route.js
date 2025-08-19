@@ -1,5 +1,5 @@
 import express from "express";
-import { creatExchageRateHeader, deleteCurrencies, editExchageRateHeader, getAllDetail, getAllDetailKurs, getCurrencyDefault, getDataExchgExternal, getHeaderExchange, getListValuta, postCurrencyDefault, setPrimaryCurrency, updateActiveCurrency, updateExchageRateHeader } from "../../controllers/finance/currency.js";
+import { creatExchageRateFromBi, creatExchageRateHeader, deleteCurrencies, editExchageRateHeader, getAllDetail, getAllDetailKurs, getCurrencyDefault, getDataExchgExternal, getHeaderExchange, getListValuta, postCurrencyDefault, setPrimaryCurrency, updateActiveCurrency, updateExchageRateHeader } from "../../controllers/finance/currency.js";
 const router = express.Router();
 
 router.get("/get-list-valuta", getListValuta);
@@ -21,6 +21,7 @@ router.get('/get-data-kurs-referensi/:stateDate', getAllDetailKurs)
 router.get('/get-data-kurs-from-bi/:type/:stateDate', getDataExchgExternal) //fecth from bi
 router.get('/get-data-kurs-from-bi', getAllDetailKurs)
 
+router.post("/create-data-exchange-from-bi", creatExchageRateFromBi);
 
 
 export default router;
