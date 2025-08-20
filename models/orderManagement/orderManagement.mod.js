@@ -522,3 +522,19 @@ export const ModelOrderPOListingLogStatus = db.define("order_po_listing_log_stat
   tableName: "order_po_listing_log_status",
   timestamps: false, // since CREATE_DATE is manually managed
 });
+
+export const queryGetListPOIDStatus = `
+SELECT
+	opls.LOG_ID,
+	opls.ORDER_ID,
+	opls.ORDER_PO_ID,
+	opls.PO_STATUS,
+	opls.CREATE_BY,
+  xuw.USER_NAME AS CREATE_NAME,
+	opls.CREATE_DATE
+FROM
+	order_po_listing_log_status opls
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = opls.CREATE_BY 
+WHERE opls.ORDER_ID = :orderID AND opls.ORDER_PO_ID = :orderPOID
+ORDER BY opls.CREATE_DATE ASC
+`;

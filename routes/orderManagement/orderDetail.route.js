@@ -2,6 +2,7 @@ import express from "express";
 import {
     getAllPODetailHeader,
     getListPODetailByOrderID,
+    getLogOrderPOIDStatus,
     getPOListingSizeByPOID, postPOListing, postPOSizeListing,
     postUpdateOrderPOIDStatus
 } from "../../controllers/orderManagement/OrderManagement.js";
@@ -14,6 +15,7 @@ router.get("/detail-header", getAllPODetailHeader);
 router.post("/po-detail", postPOListing);
 router.post("/po-size", postPOSizeListing);
 
+router.get("/po-detail-status", getLogOrderPOIDStatus);
 router.post("/po-detail-status", postUpdateOrderPOIDStatus);
 
 export default router;

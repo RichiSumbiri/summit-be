@@ -5,6 +5,7 @@ import {
     ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
     queryGetListOrderHeader,
+    queryGetListPOIDStatus,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -579,6 +580,39 @@ export const postMasterOrderPlanning = async(req,res) => {
             success: false,
             error: err,
             message: "error post master order planning"
+        });
+    }
+}
+
+export const getLogOrderPOIDStatus = async (req, res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID } = req.query;
+        if (!ORDER_ID || !ORDER_PO_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required parameters"
+            });
+        }
+        
+        const logs = await db.query(queryGetListPOIDStatus, {
+            replacements: {
+                orderID: ORDER_ID,
+                orderPOID: ORDER_PO_ID
+            }, type: QueryTypes.SELECT
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "success get log order po id status",
+            data: logs
+        });
+    }
+    catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get log order po id status"
         });
     }
 }
