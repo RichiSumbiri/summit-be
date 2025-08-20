@@ -2,6 +2,7 @@ import {QueryTypes} from "sequelize";
 import db from "../../config/database.js";
 import {
     ModelOrderPOHeader,
+    ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
     queryGetListOrderHeader,
     querySupplyChainPlanningByOrderID
@@ -342,6 +343,15 @@ export const postPOListing = async (req, res) => {
                 PO_CREATED_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
                 CREATE_BY: DataPOID.CREATE_BY
             });
+
+            // add to log order status change
+            await ModelOrderPOListingLogStatus.create({
+                ORDER_ID: DataPOID.ORDER_ID,
+                ORDER_PO_ID: newPOID,
+                PO_STATUS: 'Open',
+                CREATE_BY: DataPOID.CREATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
         }
         return res.status(200).json({
             success: true,
@@ -569,6 +579,52 @@ export const postMasterOrderPlanning = async(req,res) => {
             success: false,
             error: err,
             message: "error post master order planning"
+        });
+    }
+}
+
+export const postUpdateOrderPOIDStatus = async (req, res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID, PO_STATUS, CREATE_BY } = req.query;
+        console.log(req.query);
+        if(!ORDER_ID || !ORDER_PO_ID || !PO_STATUS || !CREATE_BY) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required parameters"
+            });
+        }
+        
+        // Update the order status for the specified ORDER_ID and ORDER_PO_ID
+        await OrderPoListing.update({
+            PO_STATUS: PO_STATUS,
+            UPDATE_BY: CREATE_BY,
+            UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                ORDER_NO: ORDER_ID,
+                ORDER_PO_ID: ORDER_PO_ID
+            }
+        });
+
+        // add to log order status change
+        await ModelOrderPOListingLogStatus.create({
+            ORDER_ID: ORDER_ID,
+            ORDER_PO_ID: ORDER_PO_ID,
+            PO_STATUS: PO_STATUS,
+            CREATE_BY: CREATE_BY,
+            CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "success update order po id status"
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error update order po id status"
         });
     }
 }

@@ -491,3 +491,34 @@ LEFT JOIN vendor_detail vd ON vd.VENDOR_ID = scp.VENDOR_ID
 LEFT JOIN order_po_header oph ON oph.ORDER_ID = scp.ORDER_ID 
 WHERE scp.ORDER_ID = :orderID
   `;
+
+export const ModelOrderPOListingLogStatus = db.define("order_po_listing_log_status", {
+  LOG_ID: {
+    type: DataTypes.INTEGER(200),
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  ORDER_ID: {
+    type: DataTypes.CHAR(10),
+    allowNull: true,
+  },
+  ORDER_PO_ID: {
+    type: DataTypes.CHAR(10),
+    allowNull: true,
+  },
+  PO_STATUS: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  CREATE_BY: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  CREATE_DATE: {
+    type: DataTypes.DATE, // since it's DATE type, not DATETIME
+    allowNull: true,
+  },
+}, {
+  tableName: "order_po_listing_log_status",
+  timestamps: false, // since CREATE_DATE is manually managed
+});
