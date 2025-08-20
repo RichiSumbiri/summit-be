@@ -7,12 +7,14 @@ import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import MasterAttributeSetting from "../../models/system/masterAttributeSetting.mod.js";
 import MasterAttributeValue from "../../models/system/masterAttributeValue.mod.js";
-import {Op} from "sequelize";
+import {Op, QueryTypes} from "sequelize";
 import ServiceAttributesMod from "../../models/system/serviceAttributes.mod.js";
 import ServiceAttributeValuesMod from "../../models/system/serviceAttributeValues.mod.js";
 import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
 import {buildMediaUrl} from "../../util/general.js";
 import MasterServiceCategories from "../../models/setup/ServiceCategories.mod.js";
+import db from "../../config/database.js";
+import { queryMasterProductIDGMT } from "../../models/system/masterProductIDGMT.mod.js";
 
 export const createItem = async (req, res) => {
     try {
@@ -1027,6 +1029,24 @@ export const getListFGItemID = async(req,res) => {
         return res.status(500).json({
             success: false,
             message: `Failed to get list FG Item`,
+            error: err
+        });
+    }
+}
+
+export const getListFGItemIDByProductID = async(req,res) => {
+    try {
+        const dataGMT = await db.query(queryMasterProductIDGMT, { type: QueryTypes.SELECT });
+        return res.status(200).json({
+            success: true,
+            message: "success get list FG Item by Product ID",
+            data: dataGMT
+        });
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: `Failed to get list FG Item by Product ID`,
             error: err
         });
     }
