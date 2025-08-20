@@ -10,13 +10,15 @@ import {
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
 import moment from "moment";
-import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
+import MasterItemIdModel, { MasterItemIdAttributesModel } from "../../models/system/masterItemId.mod.js";
 import {
     CustomerDetail,
     CustomerProductDivision,
     CustomerProductSeason,
     CustomerProgramName
 } from "../../models/system/customer.mod.js";
+import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";
+import ProductItemModel from "../../models/system/productItem.mod.js";
 
 
 export const getListOrderHeaderByStatus = async (req, res) => {
@@ -44,7 +46,30 @@ export const getListOrderHeaderByStatus = async (req, res) => {
 export const postOrderHeader = async (req, res) => {
     try {
         const {DataHeader} = req.body;
+
+        // GET ITEM ID ATTRIBUTE 
+        const itemAttributeData = await db.query(queryGetItemMasterAttribute, {
+            replacements: {
+                itemID: DataHeader.ITEM_ID
+            }, type: QueryTypes.SELECT
+        });
+
+        // GET MASTER ATTRIBUTE PRODUCT ITEM TYPE
+        const itemAttributeType = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM TYPE');
+
+        // GET MASTER ATTRIBUTE PRODUCT ITEM CATEGORY
+        const itemAttributeCategory = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM CATEGORIES');
+
+        // GET PRODUCT ITEM ID
+        const ProductItemData = await ProductItemModel.findOne({
+            where: {
+                PRODUCT_TYPE_ATTB: itemAttributeType.length > 0 ? itemAttributeType[0].MASTER_ATTRIBUTE_VALUE_ID : null,
+                PRODUCT_CAT_ATTB: itemAttributeCategory.length > 0 ? itemAttributeCategory[0].MASTER_ATTRIBUTE_VALUE_ID : null
+            }, raw: true
+        });
+
         if (DataHeader.ORDER_ID) {
+            // UPDATE ORDER HEADER
             await ModelOrderPOHeader.update({
                 ORDER_STATUS: DataHeader.ORDER_STATUS,
                 UOM_CODE: DataHeader.UOM_CODE,
@@ -63,9 +88,10 @@ export const postOrderHeader = async (req, res) => {
                 CONTRACT_EXPIRED_DATE: DataHeader.CONTRACT_EXPIRED_DATE,
                 CONTRACT_REF_NO: DataHeader.CONTRACT_REF_NO,
                 ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
-                FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
+                FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
+                PRODUCT_ID: ProductItemData ? ProductItemData.PRODUCT_ID : null,
                 UPDATE_BY: DataHeader.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
@@ -74,6 +100,7 @@ export const postOrderHeader = async (req, res) => {
                 }
             });
         } else {
+            // CREATE NEW ORDER ID
             const latestOrder = await ModelOrderPOHeader.findOne({
                 where: {
                     ORDER_TYPE_CODE: DataHeader.ORDER_TYPE_CODE
@@ -83,6 +110,8 @@ export const postOrderHeader = async (req, res) => {
             });
             const newIncrement = !latestOrder ? '0000001' : parseInt(latestOrder.ORDER_ID.slice(-7)) + 1;
             const newOrderID = DataHeader.ORDER_TYPE_CODE + newIncrement.toString().padStart(7, '0');
+            
+            // CREATE NEW ORDER HEADER
             await ModelOrderPOHeader.create({
                 ORDER_ID: newOrderID,
                 ORDER_TYPE_CODE: DataHeader.ORDER_TYPE_CODE,
@@ -104,9 +133,10 @@ export const postOrderHeader = async (req, res) => {
                 CONTRACT_EXPIRED_DATE: DataHeader.CONTRACT_EXPIRED_DATE,
                 CONTRACT_REF_NO: DataHeader.CONTRACT_REF_NO,
                 ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
-                FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS,
+                FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
+                PRODUCT_ID: ProductItemData ? ProductItemData.PRODUCT_ID : null,
                 CREATE_BY: DataHeader.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
