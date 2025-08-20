@@ -47,26 +47,26 @@ export const postOrderHeader = async (req, res) => {
     try {
         const {DataHeader} = req.body;
 
-        // GET ITEM ID ATTRIBUTE 
-        const itemAttributeData = await db.query(queryGetItemMasterAttribute, {
-            replacements: {
-                itemID: DataHeader.ITEM_ID
-            }, type: QueryTypes.SELECT
-        });
+        // // GET ITEM ID ATTRIBUTE 
+        // const itemAttributeData = await db.query(queryGetItemMasterAttribute, {
+        //     replacements: {
+        //         itemID: DataHeader.ITEM_ID
+        //     }, type: QueryTypes.SELECT
+        // });
 
-        // GET MASTER ATTRIBUTE PRODUCT ITEM TYPE
-        const itemAttributeType = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM TYPE');
+        // // GET MASTER ATTRIBUTE PRODUCT ITEM TYPE
+        // const itemAttributeType = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM TYPE');
 
-        // GET MASTER ATTRIBUTE PRODUCT ITEM CATEGORY
-        const itemAttributeCategory = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM CATEGORIES');
+        // // GET MASTER ATTRIBUTE PRODUCT ITEM CATEGORY
+        // const itemAttributeCategory = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM CATEGORIES');
 
-        // GET PRODUCT ITEM ID
-        const ProductItemData = await ProductItemModel.findOne({
-            where: {
-                PRODUCT_TYPE_ATTB: itemAttributeType.length > 0 ? itemAttributeType[0].MASTER_ATTRIBUTE_VALUE_ID : null,
-                PRODUCT_CAT_ATTB: itemAttributeCategory.length > 0 ? itemAttributeCategory[0].MASTER_ATTRIBUTE_VALUE_ID : null
-            }, raw: true
-        });
+        // // GET PRODUCT ITEM ID
+        // const ProductItemData = await ProductItemModel.findOne({
+        //     where: {
+        //         PRODUCT_TYPE_ATTB: itemAttributeType.length > 0 ? itemAttributeType[0].MASTER_ATTRIBUTE_VALUE_ID : null,
+        //         PRODUCT_CAT_ATTB: itemAttributeCategory.length > 0 ? itemAttributeCategory[0].MASTER_ATTRIBUTE_VALUE_ID : null
+        //     }, raw: true
+        // });
 
         if (DataHeader.ORDER_ID) {
             // UPDATE ORDER HEADER
@@ -91,7 +91,7 @@ export const postOrderHeader = async (req, res) => {
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
-                PRODUCT_ID: ProductItemData ? ProductItemData.PRODUCT_ID : null,
+                PRODUCT_ID: DataHeader.PRODUCT_ID,
                 UPDATE_BY: DataHeader.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
@@ -136,7 +136,7 @@ export const postOrderHeader = async (req, res) => {
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
-                PRODUCT_ID: ProductItemData ? ProductItemData.PRODUCT_ID : null,
+                PRODUCT_ID: DataHeader.PRODUCT_ID,
                 CREATE_BY: DataHeader.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
