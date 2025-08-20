@@ -389,7 +389,6 @@ export const postPOListing = async (req, res) => {
             message: "success post po listing"
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -402,7 +401,6 @@ export const postPOListing = async (req, res) => {
 export const postPOSizeListing = async (req, res) => {
     try {
         const {DataPOSize} = req.body;
-        console.log(DataPOSize);
         for (const data of DataPOSize) {
             if (data.ID_POL_SIZE) {
                 await OrderPoListingSize.update({
@@ -518,7 +516,6 @@ export const getSupplyChainPlanningByOrderID = async(req,res)=> {
             data: getData
         });
     } catch(err){
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -578,7 +575,6 @@ export const postSupplyChainPlanning = async(req,res) => {
             message: "success post supply chain planning"
         });
     } catch(err){
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -600,7 +596,6 @@ export const postMasterOrderPlanning = async(req,res) => {
                 ORDER_ID: DataMOP.ORDER_ID
             }
         })
-        console.log(DataMOP);
         return res.status(200).json({
             success: 200,
             message: "success post master order planning"
@@ -650,7 +645,6 @@ export const getLogOrderPOIDStatus = async (req, res) => {
 export const postUpdateOrderPOIDStatus = async (req, res) => {
     try {
         const { ORDER_ID, ORDER_PO_ID, PO_STATUS, CREATE_BY } = req.query;
-        console.log(req.query);
         if(!ORDER_ID || !ORDER_PO_ID || !PO_STATUS || !CREATE_BY) {
             return res.status(400).json({
                 success: false,
