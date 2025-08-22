@@ -158,13 +158,6 @@ export const createCustomPendingDimensionDetail = async (req, res) => {
             return res.status(404).json({ success: false, message: "BOM template list not found" });
         }
 
-        if (list.REV_ID !== REV_ID) {
-            return res.status(400).json({
-                success: false,
-                message: `REV_ID mismatch. Expected ${list.REV_ID}, got ${REV_ID}`,
-            });
-        }
-
         const BOM_TEMPLATE_ID = list.BOM_TEMPLATE_ID;
 
         const [sizes, colors] = await Promise.all([
@@ -196,6 +189,12 @@ export const createCustomPendingDimensionDetail = async (req, res) => {
                 message: `Invalid COLOR_ID(s): ${invalidColors.join(", ")}`,
             });
         }
+
+        await BomTemplatePendingDimension.destroy({where: {
+                BOM_TEMPLATE_LIST_ID: BOM_TEMPLATE_LIST_ID,
+                BOM_TEMPLATE_COLOR_ID: null,
+                BOM_TEMPLATE_SIZE_ID: null
+            }})
 
         const existingCombos = new Set();
 

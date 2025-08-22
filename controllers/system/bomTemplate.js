@@ -290,8 +290,7 @@ export const saveNewRevision = async (req, res) => {
         const {USER_ID} = req.query
         if (!id) {
             return res.status(400).json({
-                success: false,
-                message: "Bom Template is required",
+                success: false, message: "Bom Template is required",
             });
         }
 
@@ -301,8 +300,7 @@ export const saveNewRevision = async (req, res) => {
 
         if (!originalTemplate) {
             return res.status(404).json({
-                success: false,
-                message: "Original BOM template not found",
+                success: false, message: "Original BOM template not found",
             });
         }
 
@@ -316,8 +314,7 @@ export const saveNewRevision = async (req, res) => {
 
             const olderRev = await BomTemplateRevModel.findOne({
                 where: {
-                    BOM_TEMPLATE_ID: tempId,
-                    SEQUENCE: currentRev.SEQUENCE - 1
+                    BOM_TEMPLATE_ID: tempId, SEQUENCE: currentRev.SEQUENCE - 1
                 }
             });
 
@@ -348,13 +345,6 @@ export const saveNewRevision = async (req, res) => {
             }
         })
 
-        const newRev = await BomTemplateRevModel.create({
-            TITLE: `Revision ${originalTemplate.NAME}`,
-            DESCRIPTION: `Revision ${originalTemplate.NAME} ke ${countRev + 1}`,
-            BOM_TEMPLATE_ID: id,
-            SEQUENCE: countRev + 1
-        })
-
         const originalLists = await BomTemplateListModel.findAll({
             where: {
                 BOM_TEMPLATE_ID: id,
@@ -372,46 +362,64 @@ export const saveNewRevision = async (req, res) => {
             where: {BOM_TEMPLATE_ID: id, REV_ID: originalTemplate.LAST_REV_ID, DELETED_AT: null}
         })
 
-        if (originalColor.length) {
-            await BomTemplateColor.bulkCreate(originalColor.map((item) => ({
-                ...item.dataValues,
-                ID: null,
-                REV_ID: newRev.dataValues.ID,
-                CREATED_AT: new Date(),
-                UPDATED_AT: null,
-                DELETED_AT: null
-            })))
-        }
-        if (originalSize.length) {
-            await BomTemplateSize.bulkCreate(originalSize.map((item) => ({
-                ...item.dataValues,
-                ID: null,
-                REV_ID: newRev.dataValues.ID,
-                CREATED_AT: new Date(),
-                UPDATED_AT: null,
-                DELETED_AT: null
-            })))
+        if (!originalColor.length) {
+            return res.status(404).json({
+                success: false, message: "FG Item Color cannot empty",
+            });
         }
 
-        if (originalLists.length) {
-            await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
-                ...item.dataValues,
-                ID: null,
-                STATUS: "Open",
-                IS_SPLIT_STATUS: false,
-                BOM_TEMPLATE_LINE_ID: idx + 1,
-                CREATED_ID: USER_ID,
-                CREATED_AT: new Date(),
-                UPDATED_ID: null,
-                UPDATED_AT: null,
-                REV_ID: newRev.ID,
-            })));
+        if (!originalSize.length) {
+            return res.status(404).json({
+                success: false, message: "FG Item Size cannot empty",
+            });
         }
+        if (!originalLists.length) {
+            return res.status(404).json({
+                success: false, message: "Bom Template List cannot empty",
+            });
+        }
+
+        const newRev = await BomTemplateRevModel.create({
+            TITLE: `Revision ${originalTemplate.NAME}`,
+            DESCRIPTION: `Revision ${originalTemplate.NAME} ke ${countRev + 1}`,
+            BOM_TEMPLATE_ID: id,
+            SEQUENCE: countRev + 1
+        })
+        await BomTemplateColor.bulkCreate(originalColor.map((item) => ({
+            ...item.dataValues,
+            ID: null,
+            REV_ID: newRev.dataValues.ID,
+            CREATED_AT: new Date(),
+            UPDATED_AT: null,
+            DELETED_AT: null
+        })))
+
+        await BomTemplateSize.bulkCreate(originalSize.map((item) => ({
+            ...item.dataValues,
+            ID: null,
+            REV_ID: newRev.dataValues.ID,
+            CREATED_AT: new Date(),
+            UPDATED_AT: null,
+            DELETED_AT: null
+        })))
+
+
+        await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
+            ...item.dataValues,
+            ID: null,
+            STATUS: "Open",
+            IS_SPLIT_STATUS: false,
+            BOM_TEMPLATE_LINE_ID: idx + 1,
+            CREATED_ID: USER_ID,
+            CREATED_AT: new Date(),
+            UPDATED_ID: null,
+            UPDATED_AT: null,
+            REV_ID: newRev.ID,
+        })));
+
 
         await BomTemplateNote.create({
-            BOM_TEMPLATE_ID: id,
-            REV_ID: newRev.ID,
-            NOTE: ""
+            BOM_TEMPLATE_ID: id, REV_ID: newRev.ID, NOTE: ""
         })
 
         await BomTemplateModel.update({
@@ -423,13 +431,11 @@ export const saveNewRevision = async (req, res) => {
         })
 
         return res.status(201).json({
-            success: true,
-            message: "BOM template and its lists cloned successfully",
+            success: true, message: "BOM template and its lists cloned successfully",
         });
     } catch (error) {
         return res.status(500).json({
-            success: false,
-            message: `Failed to retrieve BOM templates: ${error.message}`,
+            success: false, message: `Failed to retrieve BOM templates: ${error.message}`,
         });
     }
 }
