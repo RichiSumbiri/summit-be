@@ -35,6 +35,17 @@ import {
     bulkCreateBomTemplateColor,
     bulkToggleBomTemplateColor, bulkToggleBomTemplateSize, saveNewRevision, getNoteByRevision
 } from "../../controllers/system/bomTemplate.js";
+import {
+    createBomTemplateListDetail, createBomTemplateListDetailBulk, deleteBomTemplateListDetail,
+    getAllBomTemplateListDetails,
+    getBomTemplateListDetailById, revertListDetailBulk, updateBomTemplateListDetail
+} from "../../controllers/system/bomTemplateListDetail.js";
+import {
+    createCustomPendingDimensionDetail,
+    createPendingDimension, createPendingDimensionDetail, deletePendingDimension,
+    getAllPendingDimensions,
+    getPendingDimensionById, updatePendingDimension
+} from "../../controllers/system/bomTemplatePandingDimension.js";
 
 const router = express.Router();
 
@@ -46,6 +57,14 @@ router.patch("/list/:id", cloneBomTemplateList);
 router.put("/list/:id", updateBomTemplateList);
 router.put("/list-bulk", updateBomTemplateListStatus);
 router.delete("/list/:id", deleteBomTemplateList);
+
+router.get("/list-details", getAllBomTemplateListDetails);
+router.get("/list-details/:id", getBomTemplateListDetailById);
+router.post("/list-details", createBomTemplateListDetail);
+router.post("/list-details/bulk", createBomTemplateListDetailBulk);
+router.post("/list-details/revert", revertListDetailBulk);
+router.put("/list-details/:id", updateBomTemplateListDetail);
+router.delete("/list-details/:id", deleteBomTemplateListDetail);
 
 router.post("/master", createBomTemplate);
 router.get("/master", getAllBomTemplates);
@@ -86,5 +105,14 @@ router.patch("/color/bulk-delete", bulkDeleteBomTemplateColor);
 
 router.post("/size/bulk", bulkCreateBomTemplateSize);
 router.patch("/size/bulk-delete", bulkDeleteBomTemplateSize);
+
+router.get("/pending-dimensions", getAllPendingDimensions);
+router.get("/pending-dimensions/:id", getPendingDimensionById);
+router.post("/pending-dimensions/custom", createCustomPendingDimensionDetail);
+router.post("/pending-dimensions/detail", createPendingDimensionDetail);
+router.post("/pending-dimensions", createPendingDimension);
+router.put("/pending-dimensions/:id", updatePendingDimension);
+router.delete("/pending-dimensions/:id", deletePendingDimension);
+
 
 export default router;

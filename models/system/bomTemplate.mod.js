@@ -4,6 +4,8 @@ import MasterItemIdModel from "./masterItemId.mod.js";
 import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "./customer.mod.js";
 import {MasterOrderType} from "../setup/orderType.mod.js";
 import Users from "../setup/users.mod.js";
+import ColorChartMod from "./colorChart.mod.js";
+import SizeChartMod from "./sizeChart.mod.js";
 
 const BomTemplateModel = db.define(
     "bom_template",
@@ -272,9 +274,14 @@ export const BomTemplateSize = db.define(
     }
 );
 
-BomTemplateColor.belongsTo(BomTemplateRevModel, {
-    foreignKey: "REV_ID",
-    as: "REV"
+BomTemplateColor.belongsTo(ColorChartMod, {
+    foreignKey: "COLOR_ID",
+    as: "COLOR"
+})
+
+BomTemplateSize.belongsTo(SizeChartMod, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE"
 })
 
 BomTemplateSize.belongsTo(BomTemplateRevModel, {

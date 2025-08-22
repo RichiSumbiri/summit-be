@@ -112,6 +112,12 @@ BomTemplateModel.belongsTo(BomTemplateRevModel, {
     as: "REV"
 })
 
+
+BomTemplateListModel.belongsTo(BomTemplateModel, {
+    foreignKey: "BOM_TEMPLATE_ID",
+    as: "BOM_TEMPLATE"
+})
+
 BomTemplateListModel.belongsTo(MasterItemIdModel, {
     foreignKey: "MASTER_ITEM_ID",
     as: "MASTER_ITEM"

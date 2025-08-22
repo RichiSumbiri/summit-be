@@ -14,6 +14,8 @@ import sizeChart, {FGSizeChartModel} from "../../models/system/sizeChart.mod.js"
 import Users from "../../models/setup/users.mod.js";
 import colorChart, {FGColorChartModel} from "../../models/system/colorChart.mod.js";
 import {Op, where} from "sequelize";
+import ColorChartMod from "../../models/system/colorChart.mod.js";
+import SizeChartMod from "../../models/system/sizeChart.mod.js";
 
 export const createBomTemplate = async (req, res) => {
     try {
@@ -257,6 +259,8 @@ export const cloneBomTemplate = async (req, res) => {
                 BOM_TEMPLATE_ID: clonedTemplateID,
                 BOM_TEMPLATE_LINE_ID: idx+1,
                 REV_ID: 0,
+                STATUS: "Open",
+                IS_SPLIT_STATUS: false,
                 CREATED_ID: USER_ID,
                 UPDATED_ID: null,
                 UPDATED_AT: null,
@@ -286,6 +290,8 @@ export const saveNewRevision = async (req, res) => {
             });
         }
 
+
+
         const originalTemplate = await BomTemplateModel.findOne({
             where: {ID: id},
         });
@@ -294,6 +300,22 @@ export const saveNewRevision = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Original BOM template not found",
+            });
+        }
+
+        const validationAlready = await BomTemplateListModel.findOne({
+            where: {
+                BOM_TEMPLATE_ID: id,
+                REV_ID: originalTemplate.LAST_REV_ID,
+                STATUS: {
+                    [Op.in]: ["confirmed"]
+                }
+            }
+        })
+        if (!validationAlready) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot create a new revision because the BOM template has not been approved yet."
             });
         }
 
@@ -347,6 +369,8 @@ export const saveNewRevision = async (req, res) => {
             await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
                 ...item.dataValues,
                 ID: null,
+                STATUS: "Open",
+                IS_SPLIT_STATUS: false,
                 BOM_TEMPLATE_LINE_ID: idx + 1,
                 CREATED_ID: USER_ID,
                 CREATED_AT: new Date(),
@@ -657,7 +681,7 @@ export const deleteBomTemplate = async (req, res) => {
         }
 
         await template.update({
-            IS_DELETED: true,
+            STATUS: true,
             DELETED_AT: new Date(),
         });
 
@@ -829,7 +853,8 @@ export const deleteBomTemplateRev = async (req, res) => {
 export const bomTemplateGetAllColors = async (req, res) => {
     const {REV_ID, BOM_TEMPLATE_ID} = req.query
     const where = {
-        REV_ID: REV_ID || 0
+        REV_ID: REV_ID || 0,
+        DELETED_AT: null,
     }
     if (BOM_TEMPLATE_ID) {
         where.BOM_TEMPLATE_ID = BOM_TEMPLATE_ID
@@ -837,13 +862,18 @@ export const bomTemplateGetAllColors = async (req, res) => {
     try {
         const colors = await BomTemplateColor.findAll({
             where,
+            include: [{
+                model: ColorChartMod,
+                as: "COLOR",
+                attributes: ['COLOR_ID', 'COLOR_CODE', 'COLOR_DESCRIPTION', 'IS_ACTIVE']
+            }],
             order: [["ID", "ASC"]],
         });
 
         return res.status(200).json({
             success: true,
             message: "BOM Template Colors retrieved successfully",
-            colors,
+            data: colors,
         });
     } catch (error) {
         return res.status(500).json({
@@ -858,6 +888,11 @@ export const bomTemplateGetColorById = async (req, res) => {
         const {id} = req.params;
 
         const color = await BomTemplateColor.findOne({
+            include: [{
+                model: ColorChartMod,
+                as: "COLOR",
+                attributes: ['COLOR_ID', 'COLOR_CODE', 'COLOR_DESCRIPTION', 'IS_ACTIVE']
+            }],
             where: {ID: id},
         });
 
@@ -871,7 +906,7 @@ export const bomTemplateGetColorById = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Color retrieved successfully",
-            color,
+            data: color,
         });
     } catch (error) {
         return res.status(500).json({
@@ -978,23 +1013,28 @@ export const bomTemplateDeleteColor = async (req, res) => {
 export const bomTemplateGetAllSizes = async (req, res) => {
     const {REV_ID, BOM_TEMPLATE_ID} = req.query
     const where = {
-        REV_ID: REV_ID || 0
+        REV_ID: REV_ID || 0,
+        DELETED_AT: null,
     }
 
     if (BOM_TEMPLATE_ID) {
         where.BOM_TEMPLATE_ID = BOM_TEMPLATE_ID
     }
-    console.log("where ", where)
     try {
         const sizes = await BomTemplateSize.findAll({
             where,
+            include: [{
+                model: SizeChartMod,
+                as: "SIZE",
+                attributes: ['SIZE_ID', 'SIZE_CODE', 'SIZE_DESCRIPTION', 'IS_ACTIVE']
+            }],
             order: [["ID", "ASC"]],
         });
 
         return res.status(200).json({
             success: true,
             message: "BOM Template Sizes retrieved successfully",
-            sizes,
+            data: sizes,
         });
     } catch (error) {
         return res.status(500).json({
@@ -1010,6 +1050,11 @@ export const bomTemplateGetSizeById = async (req, res) => {
 
         const size = await BomTemplateSize.findOne({
             where: {ID: id},
+            include: [{
+                model: SizeChartMod,
+                as: "SIZE",
+                attributes: ['SIZE_ID', 'SIZE_CODE', 'SIZE_DESCRIPTION', 'IS_ACTIVE']
+            }],
         });
 
         if (!size) {
@@ -1022,7 +1067,7 @@ export const bomTemplateGetSizeById = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Size retrieved successfully",
-            size,
+            data: size,
         });
     } catch (error) {
         return res.status(500).json({
@@ -1353,6 +1398,25 @@ export const bulkToggleBomTemplateColor = async (req, res) => {
         });
     }
 
+    const bomTemplateId = body[0]?.BOM_TEMPLATE_ID
+    const revId = body[0]?.REV_ID
+
+    const validationAlready = await BomTemplateListModel.findOne({
+        where: {
+            BOM_TEMPLATE_ID: bomTemplateId,
+            REV_ID: revId,
+            STATUS: {
+                [Op.in]: ["confirmed"]
+            }
+        }
+    })
+    if (validationAlready) {
+        return res.status(400).json({
+            success: false,
+            message: "Color cannot be manipulated because the BOM template is already confirmed."
+        });
+    }
+
     try {
         for (const item of body) {
             const {COLOR_ID, REV_ID, BOM_TEMPLATE_ID} = item;
@@ -1400,6 +1464,25 @@ export const bulkToggleBomTemplateSize = async (req, res) => {
         return res.status(400).json({
             success: false,
             message: "Request body must be a non-empty array",
+        });
+    }
+
+    const bomTemplateId = body[0]?.BOM_TEMPLATE_ID
+    const revId = body[0]?.REV_ID
+
+    const validationAlready = await BomTemplateListModel.findOne({
+        where: {
+            BOM_TEMPLATE_ID: bomTemplateId,
+            REV_ID: revId,
+            STATUS: {
+                [Op.in]: ["confirmed"]
+            }
+        }
+    })
+    if (validationAlready) {
+        return res.status(400).json({
+            success: false,
+            message: "Color cannot be manipulated because the BOM template is already confirmed."
         });
     }
 

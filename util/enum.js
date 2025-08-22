@@ -1,0 +1,1 @@
+export const MIN_ALLOWED_VALUE = 0.000001;

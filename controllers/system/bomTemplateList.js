@@ -158,13 +158,13 @@ export const cloneBomTemplateList = async (req, res) => {
         await BomTemplateListModel.create({
             BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID,
             BOM_TEMPLATE_LINE_ID,
-            STATUS: originalEntry.STATUS,
+            STATUS: "Open",
             REV_ID: REV_ID,
             COSTING_CONSUMER_PER_ITEM: originalEntry.COSTING_CONSUMER_PER_ITEM,
             INTERNAL_CUSTOMER_PER_ITEM: originalEntry.INTERNAL_CUSTOMER_PER_ITEM,
             IS_SPLIT_COLOR: originalEntry.IS_SPLIT_COLOR,
             IS_SPLIT_SIZE: originalEntry.IS_SPLIT_SIZE,
-            IS_SPLIT_STATUS: originalEntry.IS_SPLIT_STATUS,
+            IS_SPLIT_STATUS: false,
             ITEM_POSITION: originalEntry.ITEM_POSITION,
             VENDOR_ID: originalEntry.VENDOR_ID,
             NOTE: originalEntry.NOTE,
@@ -308,7 +308,12 @@ export const updateBomTemplateListStatus = async (req, res) => {
 
         for (let i = 0; i < listData.length; i++) {
             const {ID, STATUS, REV_ID, UPDATED_ID} = listData[i]
-            await BomTemplateListModel.update({STATUS, UPDATED_ID, REV_ID}, {
+            const request = {STATUS, UPDATED_ID, REV_ID}
+
+            if (STATUS !== "Open") {
+                request.IS_SPLIT_STATUS = true
+            }
+            await BomTemplateListModel.update(request, {
                 where: {
                     ID: ID
                 }
@@ -329,6 +334,7 @@ export const updateBomTemplateListStatus = async (req, res) => {
 export const updateBomTemplateListSingle = async (req, res) => {
     try {
         const {id} = req.params;
+        const {USER_ID} = req.query
         const reqBody = req.body;
 
         const list = await BomTemplateListModel.findOne({
@@ -341,9 +347,19 @@ export const updateBomTemplateListSingle = async (req, res) => {
             });
         }
 
-        await list.update({
-            ...reqBody, UPDATED_AT: new Date(),
+        const resp = await list.update({
+            ...reqBody, UPDATED_AT: new Date(), UPDATED_ID: USER_ID
         });
+
+        if (resp.dataValues.STATUS !== "Open") {
+            await BomTemplateListModel.update({
+                IS_SPLIT_STATUS: true, UPDATED_AT: new Date(),
+            }, {
+                where: {
+                    ID: resp.dataValues.ID
+                }
+            });
+        }
 
         return res.status(200).json({
             success: true, message: "BOM template list updated successfully",
@@ -364,14 +380,21 @@ export const deleteBomTemplateList = async (req, res) => {
             where: {ID: id},
         });
 
+
         if (!list) {
             return res.status(404).json({
                 success: false, message: "BOM template list not found",
             });
         }
 
+        if (list.STATUS.toLowerCase() === "confirmed") {
+            return res.status(404).json({
+                success: false, message: "BOM template can't be remove because status is 'confirm'",
+            });
+        }
+
         await list.update({
-            IS_DELETED: true, DELETED_AT: new Date(),
+            STATUS: "Deleted"
         });
 
         return res.status(200).json({
