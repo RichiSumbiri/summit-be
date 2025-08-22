@@ -218,7 +218,6 @@ export const BomTemplateColor = db.define(
         DELETED_AT: {
             type: DataTypes.DATE,
             allowNull: true,
-            defaultValue: null,
         },
     },
     {
@@ -262,7 +261,6 @@ export const BomTemplateSize = db.define(
         DELETED_AT: {
             type: DataTypes.DATE,
             allowNull: true,
-            defaultValue: null,
         },
     },
     {

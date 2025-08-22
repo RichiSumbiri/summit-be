@@ -143,128 +143,123 @@ export const getPendingDimensionById = async (req, res) => {
 };
 
 export const createCustomPendingDimensionDetail = async (req, res) => {
-    const {BOM_TEMPLATE_LIST_ID, SIZE_IDS, COLOR_IDS, REV_ID} = req.body;
+    const { BOM_TEMPLATE_LIST_ID, SIZE_IDS = [], COLOR_IDS = [], REV_ID } = req.body;
 
     if (!BOM_TEMPLATE_LIST_ID) {
         return res.status(400).json({
             success: false,
-            message: "BOM_TEMPLATE_LIST_ID is required in request body",
+            message: "BOM_TEMPLATE_LIST_ID is required",
         });
     }
 
     try {
-        const bomTemplateList = await BomTemplateListModel.findByPk(BOM_TEMPLATE_LIST_ID);
-        if (!bomTemplateList) {
-            return res.status(404).json({
-                success: false,
-                message: "BOM template list not found",
-            });
+        const list = await BomTemplateListModel.findByPk(BOM_TEMPLATE_LIST_ID);
+        if (!list) {
+            return res.status(404).json({ success: false, message: "BOM template list not found" });
         }
 
-        const BOM_TEMPLATE_ID = bomTemplateList.BOM_TEMPLATE_ID;
-        if (bomTemplateList.REV_ID !== REV_ID) {
+        if (list.REV_ID !== REV_ID) {
             return res.status(400).json({
                 success: false,
-                message: `REV_ID mismatch. Expected ${bomTemplateList.REV_ID}, got ${REV_ID}`,
+                message: `REV_ID mismatch. Expected ${list.REV_ID}, got ${REV_ID}`,
             });
         }
 
-        await BomTemplatePendingDimension.destroy({
-            where: {BOM_TEMPLATE_LIST_ID},
-        });
+        const BOM_TEMPLATE_ID = list.BOM_TEMPLATE_ID;
 
-        let validSizeIds = [];
-        let validColorIds = [];
-        const sizeIdMap = new Map();
-        const colorIdMap = new Map();
+        const [sizes, colors] = await Promise.all([
+            BomTemplateSize.findAll({
+                where: { BOM_TEMPLATE_ID, REV_ID, DELETED_AT: null },
+                include: [{ model: SizeChartMod, as: "SIZE", attributes: ["SIZE_ID"] }]
+            }),
+            BomTemplateColor.findAll({
+                where: { BOM_TEMPLATE_ID, REV_ID, DELETED_AT: null },
+                include: [{ model: ColorChartMod, as: "COLOR", attributes: ["COLOR_ID"] }]
+            })
+        ]);
 
+        const validSizeIds = new Set(sizes.map(s => s.SIZE.SIZE_ID));
+        const validColorIds = new Set(colors.map(c => c.COLOR.COLOR_ID));
 
-        const allBomTemplateSizes = await BomTemplateSize.findAll({
-            where: {BOM_TEMPLATE_ID, REV_ID},
-            include: [
-                {
-                    model: SizeChartMod,
-                    as: "SIZE",
-                    attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
-                },
-            ],
-        });
+        const invalidSizes = SIZE_IDS.filter(id => !validSizeIds.has(id));
+        const invalidColors = COLOR_IDS.filter(id => !validColorIds.has(id));
 
-        const allBomTemplateColors = await BomTemplateColor.findAll({
-            where: {BOM_TEMPLATE_ID, REV_ID},
-            include: [
-                {
-                    model: ColorChartMod,
-                    as: "COLOR",
-                    attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
-                },
-            ],
-        });
-
-        const allSizeIds = allBomTemplateSizes.map(s => s.SIZE.SIZE_ID);
-        const allColorIds = allBomTemplateColors.map(c => c.COLOR.COLOR_ID);
-
-        allBomTemplateSizes.forEach(s => {
-            sizeIdMap.set(s.SIZE.SIZE_ID, s.ID);
-        });
-
-        allBomTemplateColors.forEach(c => {
-            colorIdMap.set(c.COLOR.COLOR_ID, c.ID);
-        });
-
-        if (Array.isArray(SIZE_IDS) && SIZE_IDS.length > 0) {
-            const invalidSizes = SIZE_IDS.filter(id => !allSizeIds.includes(id));
-            if (invalidSizes.length > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Invalid SIZE_ID(s): ${invalidSizes.join(", ")}`,
-                });
-            }
-            validSizeIds = SIZE_IDS;
+        if (invalidSizes.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid SIZE_ID(s): ${invalidSizes.join(", ")}`,
+            });
+        }
+        if (invalidColors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid COLOR_ID(s): ${invalidColors.join(", ")}`,
+            });
         }
 
-        if (Array.isArray(COLOR_IDS) && COLOR_IDS.length > 0) {
-            const invalidColors = COLOR_IDS.filter(id => !allColorIds.includes(id));
-            if (invalidColors.length > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Invalid COLOR_ID(s): ${invalidColors.join(", ")}`,
-                });
-            }
-            validColorIds = COLOR_IDS;
-        }
+        const existingCombos = new Set();
 
-        const sizeKeys = validSizeIds.length > 0 ? validSizeIds : [null];
-        const colorKeys = validColorIds.length > 0 ? validColorIds : [null];
+        const listDetails = await BomTemplateListDetail.findAll({
+            where: { BOM_TEMPLATE_LIST_ID, IS_DELETED: false },
+            attributes: ['SIZE_ID', 'COLOR_ID'],
+            raw: true
+        });
+        listDetails.forEach(d => existingCombos.add(`${d.SIZE_ID}:${d.COLOR_ID}`));
 
-        const combinations = [];
+        const pendingDetails = await BomTemplatePendingDimension.findAll({
+            where: { BOM_TEMPLATE_LIST_ID },
+            include: [
+                { model: BomTemplateSize, as: "SIZE", attributes: ["SIZE_ID"] },
+                { model: BomTemplateColor, as: "COLOR", attributes: ["COLOR_ID"] }
+            ],
+            raw: true
+        });
+        pendingDetails.forEach(p => {
+            const sizeId = p['SIZE.SIZE_ID'] ?? null;
+            const colorId = p['COLOR.COLOR_ID'] ?? null;
+            existingCombos.add(`${sizeId}:${colorId}`);
+        });
+
+        const sizeMap = Object.fromEntries(sizes.map(s => [s.SIZE.SIZE_ID, s.ID]));
+        const colorMap = Object.fromEntries(colors.map(c => [c.COLOR.COLOR_ID, c.ID]));
+
+        const sizeKeys = SIZE_IDS.length > 0 ? SIZE_IDS : [null];
+        const colorKeys = COLOR_IDS.length > 0 ? COLOR_IDS : [null];
+
+        const newPending = [];
         for (const sizeId of sizeKeys) {
             for (const colorId of colorKeys) {
-                combinations.push({
-                    BOM_TEMPLATE_LIST_ID,
-                    BOM_TEMPLATE_SIZE_ID: sizeId ? sizeIdMap.get(sizeId) || null : null,
-                    BOM_TEMPLATE_COLOR_ID: colorId ? colorIdMap.get(colorId) || null : null,
-                });
+                const key = `${sizeId}:${colorId}`;
+                if (!existingCombos.has(key)) {
+                    newPending.push({
+                        BOM_TEMPLATE_LIST_ID,
+                        BOM_TEMPLATE_SIZE_ID: sizeId ? sizeMap[sizeId] : null,
+                        BOM_TEMPLATE_COLOR_ID: colorId ? colorMap[colorId] : null
+                    });
+                }
             }
         }
 
-        await BomTemplatePendingDimension.bulkCreate(combinations);
+        if (newPending.length > 0) {
+            await BomTemplatePendingDimension.bulkCreate(newPending);
+        }
 
         return res.status(201).json({
             success: true,
-            message: "Pending dimension details created successfully",
+            message: `Pending details created: ${newPending.length} new item(s)`
         });
+
     } catch (error) {
-        console.error("Error in createCustomPendingDimensionDetail:", error);
+        console.error("Error creating pending dimension:", error);
         return res.status(500).json({
             success: false,
-            message: `Failed to create pending dimension details: ${error.message}`,
+            message: `Failed to create pending details: ${error.message}`
         });
     }
 };
 
 export const createPendingDimensionDetail = async (req, res) => {
-    const { BOM_TEMPLATE_LIST_ID } = req.body;
+    const { BOM_TEMPLATE_LIST_ID, REV_ID } = req.body;
 
     if (!BOM_TEMPLATE_LIST_ID) {
         return res.status(400).json({
@@ -302,7 +297,7 @@ export const createPendingDimensionDetail = async (req, res) => {
         });
 
         const sizes = await BomTemplateSize.findAll({
-            where: { BOM_TEMPLATE_ID },
+            where: { BOM_TEMPLATE_ID, REV_ID, DELETED_AT: null },
             include: [{
                 model: SizeChartMod,
                 as: "SIZE",
@@ -311,7 +306,7 @@ export const createPendingDimensionDetail = async (req, res) => {
         });
 
         const colors = await BomTemplateColor.findAll({
-            where: { BOM_TEMPLATE_ID },
+            where: { BOM_TEMPLATE_ID, REV_ID, DELETED_AT: null },
             include: [{
                 model: ColorChartMod,
                 as: "COLOR",

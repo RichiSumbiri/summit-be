@@ -188,8 +188,8 @@ export const createBomTemplateListDetailBulk = async (req, res) => {
                 BOM_TEMPLATE_LIST_ID: BOM_TEMPLATE_LIST_ID,
                 ITEM_SPLIT_ID: count + (idx+1),
                 ITEM_DIMENSION_ID: ITEM_DIMENSION_ID,
-                SIZE_ID: item.SIZE.SIZE_ID,
-                COLOR_ID: item.COLOR.COLOR_ID
+                SIZE_ID: item.SIZE?.SIZE_ID,
+                COLOR_ID: item.COLOR?.COLOR_ID
             })
         })
 
@@ -250,24 +250,18 @@ export const revertListDetailBulk = async (req, res) => {
                     SIZE_ID: dt.SIZE_ID
                 }
             })
-            if (!templateSize) {
-                throw new Error("Template size not found")
-            }
 
             const templateColor = await BomTemplateColor.findOne({ where: {
                     BOM_TEMPLATE_ID: templateListId.dataValues.BOM_TEMPLATE_ID,
                     COLOR_ID: dt.COLOR_ID
             }})
-            if (!templateColor) {
-                throw new Error("Template color not found")
-            }
 
-            return {...dt.dataValues, SIZE_TEMP: templateSize.dataValues, COLOR_TEMP: templateColor.dataValues}
+            return {...dt.dataValues, SIZE_TEMP: templateSize ? templateSize.dataValues : null, COLOR_TEMP: templateColor ? templateColor.dataValues : null}
         }))
         await  BomTemplatePendingDimension.bulkCreate(listDetail.map((item) => ({
             BOM_TEMPLATE_LIST_ID: BOM_TEMPLATE_LIST_ID,
-            BOM_TEMPLATE_SIZE_ID: item.SIZE_TEMP.ID,
-            BOM_TEMPLATE_COLOR_ID:item.COLOR_TEMP.ID,
+            BOM_TEMPLATE_SIZE_ID: item?.SIZE_TEMP?.ID,
+            BOM_TEMPLATE_COLOR_ID:item?.COLOR_TEMP?.ID,
             CREATED_AT: new Date()
         })))
 

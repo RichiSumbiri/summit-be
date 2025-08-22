@@ -192,7 +192,12 @@ export const cloneBomTemplate = async (req, res) => {
         }
 
         const originalLists = await BomTemplateListModel.findAll({
-            where: {BOM_TEMPLATE_ID: id, REV_ID: LAST_REV_ID ?? 0, IS_DELETED: false, STATUS: {[Op.in]: ["Open", "Confirmed"]}},
+            where: {
+                BOM_TEMPLATE_ID: id,
+                REV_ID: LAST_REV_ID ?? 0,
+                IS_DELETED: false,
+                STATUS: {[Op.in]: ["Open", "Confirmed"]}
+            },
         })
 
         const originalColor = await BomTemplateColor.findAll({
@@ -257,7 +262,7 @@ export const cloneBomTemplate = async (req, res) => {
                 ...item.dataValues,
                 ID: null,
                 BOM_TEMPLATE_ID: clonedTemplateID,
-                BOM_TEMPLATE_LINE_ID: idx+1,
+                BOM_TEMPLATE_LINE_ID: idx + 1,
                 REV_ID: 0,
                 STATUS: "Open",
                 IS_SPLIT_STATUS: false,
@@ -290,8 +295,6 @@ export const saveNewRevision = async (req, res) => {
             });
         }
 
-
-
         const originalTemplate = await BomTemplateModel.findOne({
             where: {ID: id},
         });
@@ -303,20 +306,40 @@ export const saveNewRevision = async (req, res) => {
             });
         }
 
-        const validationAlready = await BomTemplateListModel.findOne({
-            where: {
-                BOM_TEMPLATE_ID: id,
-                REV_ID: originalTemplate.LAST_REV_ID,
-                STATUS: {
-                    [Op.in]: ["confirmed"]
-                }
-            }
-        })
-        if (!validationAlready) {
-            return res.status(400).json({
-                success: false,
-                message: "Cannot create a new revision because the BOM template has not been approved yet."
+        if (originalTemplate.LAST_REV_ID) {
+            const tempId = originalTemplate.ID
+            const LAST_REV_ID = originalTemplate.LAST_REV_ID
+
+            const currentRev = await BomTemplateRevModel.findOne({
+                where: {BOM_TEMPLATE_ID: tempId, ID: LAST_REV_ID}
             });
+
+            const olderRev = await BomTemplateRevModel.findOne({
+                where: {
+                    BOM_TEMPLATE_ID: tempId,
+                    SEQUENCE: currentRev.SEQUENCE - 1
+                }
+            });
+
+            const newColorCount = await BomTemplateColor.count({
+                where: {REV_ID: currentRev?.ID ?? 0, BOM_TEMPLATE_ID: tempId, DELETED_AT: null}
+            });
+            const oldColorCount = await BomTemplateColor.count({
+                where: {REV_ID: olderRev?.ID ?? 0, BOM_TEMPLATE_ID: tempId, DELETED_AT: null}
+            });
+            const newSizeCount = await BomTemplateSize.count({
+                where: {REV_ID: currentRev?.ID ?? 0, BOM_TEMPLATE_ID: tempId, DELETED_AT: null}
+            });
+            const oldSizeCount = await BomTemplateSize.count({
+                where: {REV_ID: olderRev?.ID ?? 0, BOM_TEMPLATE_ID: tempId, DELETED_AT: null}
+            });
+
+            if (newColorCount === oldColorCount && newSizeCount === oldSizeCount) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Cannot create revision because there are no changes in size or color compared to the previous revision."
+                });
+            }
         }
 
         const countRev = await BomTemplateRevModel.count({
@@ -333,7 +356,12 @@ export const saveNewRevision = async (req, res) => {
         })
 
         const originalLists = await BomTemplateListModel.findAll({
-            where: {BOM_TEMPLATE_ID: id, REV_ID: originalTemplate.LAST_REV_ID, IS_DELETED: false, STATUS: {[Op.in]: ["Open", "Confirmed"]}},
+            where: {
+                BOM_TEMPLATE_ID: id,
+                REV_ID: originalTemplate.LAST_REV_ID,
+                IS_DELETED: false,
+                STATUS: {[Op.in]: ["Open", "Confirmed"]}
+            },
         });
 
         const originalColor = await BomTemplateColor.findAll({
@@ -399,14 +427,12 @@ export const saveNewRevision = async (req, res) => {
             message: "BOM template and its lists cloned successfully",
         });
     } catch (error) {
-        console.log(error)
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve BOM templates: ${error.message}`,
         });
     }
 }
-
 
 
 export const getAllBomTemplates = async (req, res) => {
@@ -637,20 +663,14 @@ export const updateBomTemplate = async (req, res) => {
             UPDATED_AT: new Date(),
         });
 
-        const [data] = await BomTemplateNote.update({NOTE}, {
-            where: {
-                BOM_TEMPLATE_ID: id,
-                REV_ID: LAST_REV_ID,
-            }
-        })
-        if (!data) {
-            await BomTemplateNote.create({
-                BOM_TEMPLATE_ID: id,
-                REV_ID: LAST_REV_ID,
-                NOTE
-            })
-        }
+        const [note, created] = await BomTemplateNote.findOrCreate({
+            where: { BOM_TEMPLATE_ID: id, REV_ID: LAST_REV_ID },
+            defaults: { NOTE }
+        });
 
+        if (!created) {
+            await note.update({ NOTE });
+        }
 
 
         return res.status(200).json({
