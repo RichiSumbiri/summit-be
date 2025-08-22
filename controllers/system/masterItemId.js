@@ -1,3 +1,4 @@
+import { redisConn } from "../../config/dbAudit.js";
 import MasterItemIdModel, {
     MasterItemIdAttributesModel,
     MasterItemIdService
@@ -1036,14 +1037,23 @@ export const getListFGItemID = async(req,res) => {
 
 export const getListFGItemIDByProductID = async(req,res) => {
     try {
-        const dataGMT = await db.query(queryMasterProductIDGMT, { type: QueryTypes.SELECT });
-        return res.status(200).json({
+        let dataGMT;
+        const dataRedis = await redisConn.get('list-finish-good-product');
+        if(dataRedis){
+            dataGMT = JSON.parse(dataRedis);
+        } else {
+            dataGMT = await db.query(queryMasterProductIDGMT, { type: QueryTypes.SELECT });
+            redisConn.set('list-finish-good-product', JSON.stringify(dataGMT), { EX: 604800 })
+        }
+        if(dataGMT){
+            return res.status(200).json({
             success: true,
             message: "success get list FG Item by Product ID",
             data: dataGMT
         });
+        }
+        
     } catch(err){
-        console.error(err);
         return res.status(500).json({
             success: false,
             message: `Failed to get list FG Item by Product ID`,
