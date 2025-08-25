@@ -9,6 +9,7 @@ const ProductItemComponentModel = db.define(
         ID: {
             type: DataTypes.INTEGER,
             primaryKey: true,
+            autoIncrement: true,
             allowNull: false,
         },
         COMPONENT_ID: {
