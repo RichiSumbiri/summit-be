@@ -1,6 +1,7 @@
 import db from "../../config/database.js";
 import { DataTypes } from "sequelize";
 import MasterItemIdModel from "../system/masterItemId.mod.js";
+import ProductItemModel from "../system/productItem.mod.js";
 import {
   CustomerDetail,
   CustomerProductDivision,
@@ -164,6 +165,11 @@ ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
 ModelOrderPOHeader.belongsTo(CustomerProgramName, {
     foreignKey: "CUSTOMER_PROGRAM_ID",
     as: "CUSTOMER_PROGRAM"
+})
+
+ModelOrderPOHeader.belongsTo(ProductItemModel, {
+    foreignKey: "PRODUCT_ID",
+    as: "PRODUCT"
 })
 
 export const ModelOrderPODetail = db.define('order_po_detail', {
@@ -349,6 +355,22 @@ LEFT JOIN projection_order po ON po.PRJ_ID = oph.PROJECTION_ORDER_ID
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oph.CREATE_BY 
 LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oph.UPDATE_BY 
 WHERE oph.ORDER_STATUS= :orderStatus    `;
+
+ModelOrderPOHeader.belongsTo(CustomerDetail, {
+  foreignKey: "CUSTOMER_ID",
+  targetKey: "CTC_ID",
+  as: "customer_detail",
+});
+ModelOrderPOHeader.belongsTo(CustomerProductDivision, {
+  foreignKey: "CUSTOMER_DIVISION_ID",
+  targetKey: "CTPROD_DIVISION_ID",
+  as: "customer_product_division",
+});
+ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
+  foreignKey: "CUSTOMER_SEASON_ID",
+  targetKey: "CTPROD_SESION_ID",
+  as: "customer_product_season",
+});
 
 
 export const ModelSupplyChainPlanning = db.define(

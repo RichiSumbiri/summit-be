@@ -23,15 +23,13 @@ import eventMasterComment from "../../../models/tna/eventMasterComments.mod.js";
 
 export const getEventTemplate = async (req, res) => {
   try {
-    const { SEARCH_TEXT, page, limit } = req.query;
-    const where = {};
-    // if (SEARCH_TEXT) {
-    // where[Op.or] = [
-    //   { SIZE_CODE: { [Op.like]: `%${SEARCH_TEXT}%` } },
-    //   { SIZE_DESCRIPTION: { [Op.like]: `%${SEARCH_TEXT}%` } },
-    //   { EVENT_ID: { [Op.like]: `%${SEARCH_TEXT}%` } },
-    // ];
-    // }
+    const { CUSTOMER_ID, page, limit } = req.query;
+    let where = {};
+
+    if (CUSTOMER_ID) {
+      where.CTC_ID = CUSTOMER_ID;
+    }
+
     const eventTemplateData = await eventTemplate.findAll({
       where,
       attributes: [
