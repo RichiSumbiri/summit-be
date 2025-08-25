@@ -310,7 +310,7 @@ SELECT
 	mii.ITEM_CODE,
 	mii.ITEM_DESCRIPTION,
 	oph.CURRENCY_CODE,
-  oph.PRICE_TYPE_CODE,
+  	oph.PRICE_TYPE_CODE,
 	oph.CUSTOMER_ID,
 	cd.CTC_NAME AS CUSTOMER_NAME,
 	oph.CUSTOMER_DIVISION_ID,
@@ -332,11 +332,14 @@ SELECT
 	oph.FLAG_MULTISET_ITEMS,
 	oph.SIZE_TEMPLATE_ID,
 	oph.NOTE_REMARKS,
-  oph.PLAN_CUT_DATE,
-  oph.PLAN_SEW_DATE,
-  oph.PLAN_FIN_DATE,
-  oph.PLAN_PP_MEETING,
-  oph.CREATE_BY,
+	oph.PRODUCT_ID,
+	vfgp.PRODUCT_ITEM_TYPE AS PRODUCT_TYPE,
+	vfgp.PRODUCT_ITEM_CATEGORIES AS PRODUCT_CATEGORIES,
+  	oph.PLAN_CUT_DATE,
+  	oph.PLAN_SEW_DATE,
+  	oph.PLAN_FIN_DATE,
+  	oph.PLAN_PP_MEETING,
+  	oph.CREATE_BY,
 	xuw.USER_NAME AS CREATE_NAME,
 	oph.CREATE_DATE,
 	oph.UPDATE_BY,
@@ -352,9 +355,10 @@ LEFT JOIN customer_product_season cps ON cps.CTPROD_SESION_ID = oph.CUSTOMER_SEA
 LEFT JOIN customer_program_name cpn ON cpn.CTPROG_ID = oph.CUSTOMER_PROGRAM_ID 
 LEFT JOIN customer_buy_plan cbp ON cbp.CTBUYPLAN_ID = oph.CUSTOMER_BUYPLAN_ID 
 LEFT JOIN projection_order po ON po.PRJ_ID = oph.PROJECTION_ORDER_ID 
+LEFT JOIN view_finish_good_product vfgp ON vfgp.ITEM_ID  = oph.ITEM_ID 
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oph.CREATE_BY 
 LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oph.UPDATE_BY 
-WHERE oph.ORDER_STATUS= :orderStatus    `;
+WHERE oph.ORDER_STATUS= :orderStatus`;
 
 ModelOrderPOHeader.belongsTo(CustomerDetail, {
   foreignKey: "CUSTOMER_ID",
