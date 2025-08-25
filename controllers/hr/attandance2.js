@@ -131,6 +131,8 @@ function correctionScanIn(logTime, findSch, arrJkDetail) {
 }
 
 function correctionScanOut(logTime, checkTime, findSch, arrJkDetail) {
+  
+  
   let scan_out = null;
   let ot = null;
   const arrKetentuan = arrJkDetail?.filter(
@@ -171,6 +173,7 @@ function correctionScanOut(logTime, checkTime, findSch, arrJkDetail) {
     return { scan_out: scan_out, ket_out, ot };
   } else {
     //jika tidak ada lembur maka check apakah log sesudah jam audit jika iya maka get randome time
+
     if (chkLogLebihJamAudit && !findSch.jam) {
       const rdmScanInTime = getRandomTimeIn5Minute(
         findSch.jk_out
@@ -363,8 +366,8 @@ export const punchAttdLog2 = async (req, res) => {
             }) : filterSch[0]
             
   
-          //jika ada schedule maka check apakah sudah scan in dengan cara cek id nya
-          if (findSch && !findSch.scan_out && findSch.id) {
+          //jika ada schedule maka check apakah sudah scan in dengan cara cek id nya, juga harus ada jadwal jam outnya
+          if (findSch && !findSch.scan_out && findSch.id && findSch.jk_out) {
             
             const dataAbsen = correctionScanOut(logTime, logtimeAccurate, findSch, lisJkDetail);
             const objKoreksiOt = {...dataAbsen, ot : ['PH', 'HL'].includes(findSch.calendar) && findSch.jam ? findSch.jam : (dataAbsen.ot || null) } // untuk fix ot awal/scan in
