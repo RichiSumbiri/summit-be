@@ -17,8 +17,8 @@ import {
     CustomerProductSeason,
     CustomerProgramName
 } from "../../models/system/customer.mod.js";
-import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";
-import ProductItemModel from "../../models/system/productItem.mod.js";
+// import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";
+// import ProductItemModel from "../../models/system/productItem.mod.js";
 
 
 export const getListOrderHeaderByStatus = async (req, res) => {
@@ -41,6 +41,48 @@ export const getListOrderHeaderByStatus = async (req, res) => {
             message: "error get order header by status"
         });
     }
+}
+
+export const changeOrderHeaderStatus = async (req, res) => {
+    try {
+        const { ORDER_ID, OLD_STATUS, NEW_STATUS, UPDATE_BY } = req.body;
+        if (!ORDER_ID || !OLD_STATUS || !NEW_STATUS || !UPDATE_BY) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required parameters"
+            });
+        }
+        // Update the order status for the specified ORDER_ID
+        const [updatedRows] = await ModelOrderPOHeader.update({
+            ORDER_STATUS: NEW_STATUS,
+            UPDATE_BY: UPDATE_BY,
+            UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                ORDER_ID: ORDER_ID,
+                ORDER_STATUS: OLD_STATUS
+            }
+        });
+        if (updatedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found or status mismatch"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "success change order header status"
+        });
+
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error change order header status"
+        });
+    }
+
 }
 
 export const postOrderHeader = async (req, res) => {
