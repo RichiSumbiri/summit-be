@@ -3,11 +3,13 @@ import { DataTypes } from "sequelize";
 import MasterItemIdModel from "../system/masterItemId.mod.js";
 import ProductItemModel from "../system/productItem.mod.js";
 import {
+  CustomerBuyPlan,
   CustomerDetail,
   CustomerProductDivision,
   CustomerProductSeason,
   CustomerProgramName
 } from "../system/customer.mod.js";
+import { orderitemSMV } from "./orderitemSMV.mod.js";
 
 export const ModelOrderPOHeader = db.define('order_po_header', {
   ORDER_ID: {
@@ -170,6 +172,11 @@ ModelOrderPOHeader.belongsTo(CustomerProgramName, {
 ModelOrderPOHeader.belongsTo(ProductItemModel, {
     foreignKey: "PRODUCT_ID",
     as: "PRODUCT"
+})
+
+ModelOrderPOHeader.belongsTo(CustomerBuyPlan, {
+    foreignKey: "CUSTOMER_BUYPLAN_ID",
+    as: "CUSTOMER_BUYPLAN"
 })
 
 export const ModelOrderPODetail = db.define('order_po_detail', {
