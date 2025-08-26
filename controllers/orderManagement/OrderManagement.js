@@ -4,6 +4,7 @@ import {
     ModelOrderPOHeader,
     ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
+    OrderMOListing,
     queryGetAllPOIDByOrderID,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
@@ -731,6 +732,96 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             success: false,
             error: err,
             message: "error update order po id status"
+        });
+    }
+}
+
+
+export const getListMOIDByOrderID = async (req, res) => {
+    try { 
+        const { orderID} = req.params;
+        const listDetail = await OrderMOListing.findAll({
+            where: {
+                ORDER_NO: orderID
+            }, raw: true
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get list mo detail by order id",
+            data: listDetail
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get mo detail by order id"
+        });
+    }
+}
+
+export const postMOListing = async (req, res) => {
+    try {
+        const {DataMOID} = req.body;
+        console.log(DataMOID);
+        if (DataMOID.ORDER_MO_ID) {
+            await OrderMOListing.update({
+                MO_CODE: DataMOID.MO_CODE,
+                MO_DESCRIPTION: DataMOID.MO_DESCRIPTION,
+                UPDATE_BY: DataMOID.CREATE_BY,
+                UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    ORDER_MO_ID: DataMOID.ORDER_MO_ID,
+                    ORDER_ID: DataMOID.ORDER_ID
+                }   
+            });
+        } else {
+            // CREATE NEW ORDER PO ID
+            const getLastMOID = await OrderMOListing.findOne({order: [['MO_ID', 'DESC']], raw: true});
+            const newIncrement = !getLastMOID ? '0000001' : parseInt(getLastMOID.MO_ID.slice(-8)) + 1;
+            const newMOID = 'MO' + newIncrement.toString().padStart(8, '0');
+
+            // CREATE DETAIL ORDER PO ID
+            await OrderMOListing.create({
+                MO_ID: newMOID,
+                MO_CODE: DataMOID.MO_CODE,
+                MO_DESCRIPTION: DataMOID.MO_DESCRIPTION,
+                ORDER_ID: DataMOID.ORDER_ID,
+                CREATE_BY: DataMOID.CREATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+
+            // CHECK IS LIST_POID IS ARRAY OR OBJECT
+            const listPOID = Array.isArray(DataMOID.LIST_POID) ? DataMOID.LIST_POID : [DataMOID.LIST_POID];
+
+            // UPDATE POID MO NO
+            for (const poid of listPOID) {
+                await OrderPoListing.update({
+                    PO_STATUS: 'Released to Production',
+                    MO_AVAILABILITY: 'Yes',
+                    MO_NO: newMOID,
+                    MO_RELEASED_DATE: moment().format('YYYY-MM-DD'),
+                    UPDATE_BY: DataMOID.CREATE_BY,
+                    UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                }, {
+                    where: {
+                        ORDER_NO: DataMOID.ORDER_ID,
+                        ORDER_PO_ID: poid.ORDER_PO_ID
+                    }   
+                });
+            }
+          
+        }
+        return res.status(200).json({
+            success: true,
+            message: "success post mo listing"
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post mo listing"
         });
     }
 }

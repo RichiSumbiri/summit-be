@@ -653,3 +653,56 @@ LEFT JOIN order_po_header oph ON oph.ORDER_ID = opl.ORDER_NO
 LEFT JOIN product_item pi2 ON pi2.PRODUCT_ID = oph.PRODUCT_ID
 WHERE opl.ORDER_NO = :orderID
 `;
+
+
+export const OrderMOListing = db.define("order_mo_listing", {
+    MO_ID: {
+      type: DataTypes.CHAR(10),
+      allowNull: false,
+      primaryKey: true,
+    },
+    MO_CODE: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      unique: true,
+    },
+    MO_DESCRIPTION: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    MO_STATUS: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      unique: true,
+    },
+    ORDER_ID: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    CREATE_BY: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    CREATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    UPDATE_BY: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    UPDATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  }, {
+    tableName: "order_mo_listing",
+    timestamps: false, // no createdAt/updatedAt fields
+    indexes: [
+      {
+        name: "MO_CODE",
+        unique: true,
+        fields: ["MO_CODE"],
+      },
+    ],
+  });

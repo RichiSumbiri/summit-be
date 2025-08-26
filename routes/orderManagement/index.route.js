@@ -3,8 +3,10 @@ import itemSMVDetailRoute from "./itemSMVDetail.route.js";
 import projectionOrderRoute from "./projectionOrder.route.js";
 import orderHeaderRoute from "./orderHeader.route.js";
 import orderPODetailRoute from "./orderDetail.route.js";
+import orderMORoute from "./orderMO.route.js";
 import supplyChainPlannningRoute from "./supplyChainPlanning.route.js";
 import masterOrderPlanningRoute from "./masterOrderPlanning.js";
+
 
 const router = express.Router();
 
@@ -19,6 +21,7 @@ router.use("/projection-order", projectionOrderRoute);
 // ORDER MANAGEMENT 
 router.use("/order-header", orderHeaderRoute);
 router.use("/order-detail", orderPODetailRoute);
+router.use("/order-mo", orderMORoute);
 router.use("/supply-chain-planning", supplyChainPlannningRoute);
 router.use("/master-order-planning", masterOrderPlanningRoute);
 
