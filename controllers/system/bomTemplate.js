@@ -19,18 +19,7 @@ import SizeChartMod from "../../models/system/sizeChart.mod.js";
 
 export const createBomTemplate = async (req, res) => {
     try {
-        let {
-            NAME,
-            LAST_REV_ID,
-            MASTER_ITEM_ID,
-            CUSTOMER_ID,
-            CUSTOMER_DIVISION_ID,
-            CUSTOMER_SESSION_ID,
-            NOTE,
-            IS_ACTIVE,
-            USER_ID,
-            ORDER_TYPE_ID
-        } = req.body;
+        let { NAME, LAST_REV_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID, CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID, ORDER_TYPE_ID } = req.body;
 
         if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID || !ORDER_TYPE_ID) {
             return res.status(400).json({
@@ -40,13 +29,13 @@ export const createBomTemplate = async (req, res) => {
         }
 
         const existingTemplate = await BomTemplateModel.findOne({
-            where: {NAME: NAME.trim(), IS_DELETED: false},
+            where: {MASTER_ITEM_ID, ORDER_TYPE_ID, IS_DELETED: false},
         });
 
         if (existingTemplate) {
             return res.status(400).json({
                 success: false,
-                message: `A BOM template with the name "${NAME.trim()}" already exists. Please choose a different name.`,
+                message: `A BOM template already exists for this master item and order type. Only one template is allowed per item and order type`,
             });
         }
 
@@ -83,7 +72,8 @@ export const createBomTemplate = async (req, res) => {
         await BomTemplateNote.create({
             BOM_TEMPLATE_ID: newData.ID,
             REV_ID: LAST_REV_ID,
-            NOTE
+            NOTE,
+            IS_APPROVE: false,
         })
 
 
@@ -134,20 +124,18 @@ export const createBomTemplate = async (req, res) => {
                 }
             ]
         });
-        let note = ""
+
         const bomNotes = await BomTemplateNote.findOne({
             where: {
                 BOM_TEMPLATE_ID: template.ID,
                 REV_ID: template.LAST_REV_ID
             }
         })
-        if (bomNotes) {
-            note = bomNotes.NOTE
-        }
+
         return res.status(201).json({
             success: true,
             message: "BOM template created successfully",
-            data: {...template.dataValues, NOTE: note}
+            data: {...template.dataValues, NOTE: bomNotes?.NOTE ?? "", IS_APPROVE: bomNotes?.IS_APPROVE ?? false  }
         });
     } catch (error) {
         return res.status(500).json({
@@ -160,34 +148,41 @@ export const createBomTemplate = async (req, res) => {
 export const cloneBomTemplate = async (req, res) => {
     try {
         const {id} = req.params;
-        const {NAME, USER_ID, LAST_REV_ID} = req.body
+        const {NAME, USER_ID, LAST_REV_ID, ORDER_TYPE_ID} = req.body
 
         if (!id) {
             return res.status(400).json({
                 success: false,
-                message: "Bom Template is required",
+                message: "BOM Template ID is required to update the record.",
             });
         }
 
-        const existingTemplate = await BomTemplateModel.findOne({
-            where: {NAME: NAME.trim(), IS_DELETED: false},
-        });
-
-        if (existingTemplate) {
+        if (!ORDER_TYPE_ID || !NAME) {
             return res.status(400).json({
                 success: false,
-                message: `A BOM template with the name "${NAME.trim()}" already exists. Please choose a different name.`,
+                message: "NAME and ORDER_TYPE_ID are required fields.",
             });
         }
 
         const originalTemplate = await BomTemplateModel.findOne({
-            where: {ID: id},
+            where: {ID: id, IS_DELETED: false},
         });
 
         if (!originalTemplate) {
             return res.status(404).json({
                 success: false,
                 message: "Original BOM template not found",
+            });
+        }
+
+        const existingTemplate = await BomTemplateModel.findOne({
+            where: {MASTER_ITEM_ID: originalTemplate.MASTER_ITEM_ID, ORDER_TYPE_ID,  IS_DELETED: false},
+        });
+
+        if (existingTemplate) {
+            return res.status(400).json({
+                success: false,
+                message: `A BOM template already exists for this master item and order type. Only one template is allowed per item and order type`,
             });
         }
 
@@ -218,6 +213,7 @@ export const cloneBomTemplate = async (req, res) => {
             ...originalTemplate.dataValues,
             ID: clonedTemplateID,
             NAME: NAME,
+            ORDER_TYPE_ID,
             LAST_REV_ID: 0,
             CREATED_ID: USER_ID,
             CREATED_AT: new Date(),
@@ -253,7 +249,8 @@ export const cloneBomTemplate = async (req, res) => {
             await BomTemplateNote.create({
                 BOM_TEMPLATE_ID: clonedTemplateID,
                 REV_ID: 0,
-                NOTE: masterNote.NOTE
+                NOTE: masterNote.NOTE,
+                IS_APPROVE: false,
             })
         }
 
@@ -287,7 +284,7 @@ export const cloneBomTemplate = async (req, res) => {
 export const saveNewRevision = async (req, res) => {
     try {
         const {id} = req.params
-        const {USER_ID} = req.query
+        const {USER_ID, NOTE} = req.body
         if (!id) {
             return res.status(400).json({
                 success: false, message: "Bom Template is required",
@@ -417,13 +414,13 @@ export const saveNewRevision = async (req, res) => {
             REV_ID: newRev.ID,
         })));
 
-
         await BomTemplateNote.create({
-            BOM_TEMPLATE_ID: id, REV_ID: newRev.ID, NOTE: ""
+            BOM_TEMPLATE_ID: id, REV_ID: newRev.ID, NOTE: NOTE, IS_APPROVE: false,
         })
 
         await BomTemplateModel.update({
-            LAST_REV_ID: newRev.dataValues.ID
+            LAST_REV_ID: newRev.dataValues.ID,
+            NOTE
         }, {
             where: {
                 ID: id
@@ -514,7 +511,6 @@ export const getAllBomTemplates = async (req, res) => {
 
         const templateData = await Promise.all(
             templates.map(async (item) => {
-                let note = "";
                 const bomNotes = await BomTemplateNote.findOne({
                     where: {
                         BOM_TEMPLATE_ID: item.ID,
@@ -522,13 +518,11 @@ export const getAllBomTemplates = async (req, res) => {
                     },
                 });
 
-                if (bomNotes) {
-                    note = bomNotes.NOTE;
-                }
 
                 return {
                     ...item.toJSON(),
-                    NOTE: note,
+                    NOTE: bomNotes?.NOTE ?? "",
+                    IS_APPROVE: bomNotes?.IS_APPROVE ?? false
                 };
             })
         );
@@ -647,13 +641,13 @@ export const updateBomTemplate = async (req, res) => {
 
 
         const existingTemplate = await BomTemplateModel.findOne({
-            where: {NAME: NAME.trim(), IS_DELETED: false, ID: {[Op.ne]: id}},
+            where: {MASTER_ITEM_ID, ORDER_TYPE_ID, IS_DELETED: false, ID: {[Op.ne]: id}},
         });
 
         if (existingTemplate) {
             return res.status(400).json({
                 success: false,
-                message: `A BOM template with the name "${NAME.trim()}" already exists. Please choose a different name.`,
+                message: `A BOM template already exists for this master item and order type. Only one template is allowed per item and order type`,
             });
         }
 
@@ -707,7 +701,8 @@ export const deleteBomTemplate = async (req, res) => {
         }
 
         await template.update({
-            STATUS: true,
+            STATUS: false,
+            IS_DELETED: true,
             DELETED_AT: new Date(),
         });
 
@@ -1555,28 +1550,63 @@ export const bulkToggleBomTemplateSize = async (req, res) => {
 
 export const getNoteByRevision = async (req, res) => {
     const {BOM_TEMPLATE_ID, REV_ID} = req.query
-    const where = {}
+    const where = {REV_ID: REV_ID}
 
     if (BOM_TEMPLATE_ID) {
         where.BOM_TEMPLATE_ID = BOM_TEMPLATE_ID
     }
 
-    if (REV_ID) {
-        where.REV_ID = REV_ID
-    }
 
     const note = await BomTemplateNote.findOne({where})
 
     try {
         return res.status(200).json({
             success: true,
-            message: "Bulk toggle completed",
-            data: note
+            message: "Note updated successfully.",
+            data: note,
         });
     } catch (error) {
+        console.error("Error updating note:", error);
         return res.status(500).json({
             success: false,
-            message: error.message,
+            message: "Failed to update note: " + error.message,
         });
     }
-}
+};
+
+export const updateNoteByBomTemplateIdAndRevId = async (req, res) => {
+    try {
+        const { BOM_TEMPLATE_ID, REV_ID } = req.params;
+        const { NOTE, IS_APPROVE, USER_ID } = req.body;
+
+        if (!BOM_TEMPLATE_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "BOM_TEMPLATE_ID and REV_ID are required in URL parameters.",
+            });
+        }
+
+        const dataNote = await BomTemplateNote.findOne({ where: { BOM_TEMPLATE_ID, REV_ID } });
+        if (!dataNote) {
+            return res.status(404).json({
+                success: false,
+                message: "Note not found for the given BOM template and revision.",
+            });
+        }
+
+        await dataNote.update({
+            NOTE, IS_APPROVE, UPDATED_ID: USER_ID, UPDATED_AT: new Date()
+        }, {where: dataNote.ID});
+
+        return res.status(200).json({
+            success: true,
+            message: "Note updated successfully.",
+        });
+    } catch (error) {
+        console.error("Error updating note:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update note: " + error.message,
+        });
+    }
+};

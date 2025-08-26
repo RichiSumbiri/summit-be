@@ -309,7 +309,6 @@ export const updateBomTemplateListStatus = async (req, res) => {
         for (let i = 0; i < listData.length; i++) {
             const {ID, STATUS, REV_ID, UPDATED_ID} = listData[i]
             const request = {STATUS, UPDATED_ID, REV_ID}
-
             if (STATUS !== "Open") {
                 request.IS_SPLIT_STATUS = true
             }
