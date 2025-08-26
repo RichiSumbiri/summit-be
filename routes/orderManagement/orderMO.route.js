@@ -1,10 +1,11 @@
 import express from "express";
-import { getListMOIDByOrderID, postMOListing } from "../../controllers/orderManagement/OrderManagement.js";
+import { changeMOListingStatus, getListMOIDByOrderID, postMOListing } from "../../controllers/orderManagement/OrderManagement.js";
 
 const router = express.Router();
 
 
 router.get("/:orderID", getListMOIDByOrderID);
 router.post("/", postMOListing);
+router.put("/", changeMOListingStatus);
 
 export default router;

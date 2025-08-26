@@ -761,10 +761,39 @@ export const getListMOIDByOrderID = async (req, res) => {
     }
 }
 
+export const changeMOListingStatus = async(req,res) => {
+    try {
+        const {DataMOID} = req.body;
+        
+        // Update Status MO
+        await OrderMOListing.update({
+            MO_STATUS: DataMOID.NEW_MO_STATUS
+        }, {
+            where: {
+                MO_ID: DataMOID.MO_ID,
+                ORDER_ID: DataMOID.ORDER_ID
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success change mo status",
+        });
+
+        // Update POID Status if MO Status set to be Cancel
+        
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error delete mo detail"
+        });
+    }
+}
+
 export const postMOListing = async (req, res) => {
     try {
         const {DataMOID} = req.body;
-        console.log(DataMOID);
         if (DataMOID.ORDER_MO_ID) {
             await OrderMOListing.update({
                 MO_CODE: DataMOID.MO_CODE,
