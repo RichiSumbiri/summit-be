@@ -8,6 +8,7 @@ import {
     queryGetAllPOIDByOrderID,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
+    queryGetMOListingByOrderID,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -740,11 +741,12 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
 export const getListMOIDByOrderID = async (req, res) => {
     try { 
         const { orderID} = req.params;
-        const listDetail = await OrderMOListing.findAll({
-            where: {
-                ORDER_NO: orderID
-            }, raw: true
+        const listDetail = await db.query(queryGetMOListingByOrderID, {
+            replacements: {
+                orderID: orderID
+            }, type: QueryTypes.SELECT
         });
+        
         return res.status(200).json({
             success: true,
             message: "success get list mo detail by order id",

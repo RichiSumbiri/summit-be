@@ -654,6 +654,37 @@ LEFT JOIN product_item pi2 ON pi2.PRODUCT_ID = oph.PRODUCT_ID
 WHERE opl.ORDER_NO = :orderID
 `;
 
+export const queryGetMOListingByOrderID = `
+SELECT
+	oml.MO_ID,
+	oml.MO_CODE,
+	oml.MO_DESCRIPTION,
+	oml.MO_STATUS,
+	oml.ORDER_ID,
+	opl.ITEM_COLOR_ID,
+	mcc.COLOR_CODE AS ITEM_COLOR_CODE,
+	mcc.COLOR_DESCRIPTION as ITEM_COLOR_NAME,
+	oph.ORDER_UOM,
+	SUM(opl.ORDER_QTY) AS ORDER_QTY,
+	SUM(opl.MO_QTY) AS MO_QTY,
+	opl.PRODUCTION_MONTH,
+	opl.FINAL_DELIVERY_DATE,
+	opl.PLAN_EXFACTORY_DATE,
+	oml.CREATE_BY,
+	xuw.USER_INISIAL AS CREATE_NAME,
+	oml.CREATE_DATE,
+	oml.UPDATE_BY,
+	xuw2.USER_INISIAL AS UPDATE_NAME,
+	oml.UPDATE_DATE
+FROM
+	order_mo_listing oml
+LEFT JOIN order_po_listing opl ON opl.MO_NO = oml.MO_ID 
+LEFT JOIN order_po_header oph ON oph.ORDER_ID = oml.ORDER_ID 
+LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = opl.ITEM_COLOR_ID 
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oml.CREATE_BY 
+LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oml.UPDATE_BY
+WHERE oml.ORDER_ID = :orderID
+`;
 
 export const OrderMOListing = db.define("order_mo_listing", {
     MO_ID: {
