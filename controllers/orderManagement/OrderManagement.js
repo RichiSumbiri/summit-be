@@ -4,6 +4,7 @@ import {
     ModelOrderPOHeader,
     ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
+    queryGetAllPOIDByOrderID,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
     querySupplyChainPlanningByOrderID
@@ -200,10 +201,15 @@ export const postOrderHeader = async (req, res) => {
 export const getListPODetailByOrderID = async (req, res) => {
     try {
         const {orderID} = req.params;
-        const listDetail = await OrderPoListing.findAll({
-            where: {
-                ORDER_NO: orderID
-            }, raw: true
+        // const listDetail = await OrderPoListing.findAll({
+        //     where: {
+        //         ORDER_NO: orderID
+        //     }, raw: true
+        // });
+        const listDetail = await db.query(queryGetAllPOIDByOrderID, {
+            replacements: {
+                orderID: orderID
+            }, type: QueryTypes.SELECT
         });
         return res.status(200).json({
             success: true,
@@ -327,7 +333,7 @@ export const postPOListing = async (req, res) => {
                 PACKING_METHOD: DataPOID.PACKING_METHOD,
                 DELIVERY_MODE_CODE: DataPOID.DELIVERY_MODE_CODE,
                 PO_CONFIRMED_DATE: DataPOID.PO_CONFIRMED_DATE,
-                PO_EXPIRED_DATE: DataPOID.PO_EXPIRED_DATE,
+                PO_EXPIRY_DATE: DataPOID.PO_EXPIRY_DATE,
                 ORIGINAL_DELIVERY_DATE: DataPOID.ORIGINAL_DELIVERY_DATE,
                 FINAL_DELIVERY_DATE: DataPOID.FINAL_DELIVERY_DATE,
                 PLAN_EXFACTORY_DATE: DataPOID,
@@ -391,13 +397,13 @@ export const postPOListing = async (req, res) => {
                 DELIVERY_LOCATION_ID: DataPOID.DELIVERY_LOCATION_ID,
                 DELIVERY_LOCATION_CODE: DataPOID.DELIVERY_LOCATION_CODE,
                 DELIVERY_LOCATION_NAME: DataPOID.DELIVERY_LOCATION_NAME,
-                PACKING_METHOD: DataPOID.PACKING_METHOD,
-                DELIVERY_MODE_CODE: DataPOID.DELIVERY_MODE_CODE,
-                PO_CONFIRMED_DATE: DataPOID.PO_CONFIRMED_DATE,
-                PO_EXPIRED_DATE: DataPOID.PO_EXPIRED_DATE,
-                ORIGINAL_DELIVERY_DATE: DataPOID.ORIGINAL_DELIVERY_DATE,
-                FINAL_DELIVERY_DATE: DataPOID.FINAL_DELIVERY_DATE,
-                PLAN_EXFACTORY_DATE: DataPOID,
+                PACKING_METHOD: DataPOID.PACKING_METHOD ? DataPOID.PACKING_METHOD : null,
+                DELIVERY_MODE_CODE: DataPOID.DELIVERY_MODE_CODE ? DataPOID.DELIVERY_MODE_CODE : null,
+                PO_CONFIRMED_DATE: DataPOID.PO_CONFIRMED_DATE ? DataPOID.PO_CONFIRMED_DATE : null,
+                PO_EXPIRED_DATE: DataPOID.PO_EXPIRED_DATE ? DataPOID.PO_EXPIRED_DATE : null,
+                ORIGINAL_DELIVERY_DATE: DataPOID.ORIGINAL_DELIVERY_DATE ? DataPOID.ORIGINAL_DELIVERY_DATE : null,
+                FINAL_DELIVERY_DATE: DataPOID.FINAL_DELIVERY_DATE ? DataPOID.FINAL_DELIVERY_DATE : DataPOID.ORIGINAL_DELIVERY_DATE,
+                PLAN_EXFACTORY_DATE: DataPOID.PLAN_EXFACTORY_DATE ? DataPOID.PLAN_EXFACTORY_DATE : null,
                 PRODUCTION_MONTH: moment(DataPOID.PRODUCTION_MONTH, "YYYY-MM").format("MMMM/YYYY"),
                 SHIPPING_TERMS_CODE: DataPOID.SHIPPING_TERMS_CODE,
                 PRICE_TYPE: DataPOID.PRICE_TYPE,
