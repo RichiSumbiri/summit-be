@@ -1,10 +1,8 @@
 import SizeChartTemplateModel from "../../models/system/sizeTemplate.mod.js";
 import {CustomerDetail} from "../../models/system/customer.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
-import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
 import {Op} from "sequelize";
-import ProductItemComponentModel from "../../models/system/productItemComponent.mod.js";
 
 
 export const createSizeChartTemplate = async (req, res) => {

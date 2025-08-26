@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import ProductItemModel from "./productItem.mod.js";
 import Users from "../setup/users.mod.js";
+import MasterItemComponent from "./masterItemComponent.mod.js";
 
 const ProductItemComponentModel = db.define(
     "product_item_component",
@@ -12,12 +13,8 @@ const ProductItemComponentModel = db.define(
             autoIncrement: true,
             allowNull: false,
         },
-        COMPONENT_ID: {
-            type: DataTypes.STRING(10),
-            allowNull: true,
-        },
-        COMPONENT_NAME: {
-            type: DataTypes.STRING(255),
+        MASTER_ITEM_COMPONENT_ID: {
+            type: DataTypes.STRING(12),
             allowNull: true,
         },
         PRODUCT_ID: {
@@ -64,6 +61,11 @@ const ProductItemComponentModel = db.define(
 ProductItemComponentModel.belongsTo(ProductItemModel, {
     foreignKey: "PRODUCT_ID",
     as: "PRODUCT"
+})
+
+ProductItemComponentModel.belongsTo(MasterItemComponent, {
+    foreignKey: "MASTER_ITEM_COMPONENT_ID",
+    as: "MASTER_ITEM_COMPONENT"
 })
 
 ProductItemComponentModel.belongsTo(Users, {

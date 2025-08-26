@@ -1,42 +1,51 @@
 import ProductItemComponentModel from "../../models/system/productItemComponent.mod.js";
 import ProductItemModel from "../../models/system/productItem.mod.js";
 import Users from "../../models/setup/users.mod.js";
+import MasterItemComponent from "../../models/system/masterItemComponent.mod.js";
+import {Op} from "sequelize";
 
 export const createProductItemComponent = async (req, res) => {
     try {
-        const { COMPONENT_NAME, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
+        const { MASTER_ITEM_COMPONENT_ID, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
 
-        if (!COMPONENT_NAME || !PRODUCT_ID) {
+        if (!MASTER_ITEM_COMPONENT_ID || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "Component Name, and Product are required",
+                message: "Master Item Component and Product are required",
             });
         }
-
-        const valid = await ProductItemModel.findOne({
+        const productItem = await ProductItemModel.findOne({
             where: {
                 PRODUCT_ID
             }
         })
-
-        if (!valid) {
+        if (!productItem) {
             return res.status(400).json({
                 status: false,
                 message: "Product Item not found",
             })
         }
 
-        const getLastID = await ProductItemComponentModel.findOne({
-            where: { PRODUCT_ID },
-            order: [['COMPONENT_ID', 'DESC']],
-            raw: true
-        });
-        const newIncrement = !getLastID ? '0000001': Number(getLastID.COMPONENT_ID.slice(-7)) + 1;
-        const newID = 'CID' + newIncrement.toString().padStart(7, '0');
+        const masterItemComponent = await MasterItemComponent.findOne({
+            where: {
+                ID: MASTER_ITEM_COMPONENT_ID
+            }
+        })
+        if (!masterItemComponent) {
+            return res.status(400).json({
+                status: false,
+                message: "Master Item Component not found",
+            })
+        }
+
+        const alreadyData = await  ProductItemComponentModel.findOne({ where: {
+                MASTER_ITEM_COMPONENT_ID, PRODUCT_ID
+            }})
+
+        if (alreadyData) return res.status(400).json({status: false, message: "Product Item & Master Item Component already exists"})
 
         await ProductItemComponentModel.create({
-            COMPONENT_ID: newID,
-            COMPONENT_NAME,
+            MASTER_ITEM_COMPONENT_ID,
             PRODUCT_ID,
             IS_ACTIVE,
             CREATED_ID: USER_ID,
@@ -56,12 +65,14 @@ export const createProductItemComponent = async (req, res) => {
 };
 
 export const getAllProductItemComponents = async (req, res) => {
-    const { PRODUCT_ID } = req.query
-
+    const { PRODUCT_ID, MASTER_ITEM_COMPONENT_ID } = req.query
 
     const where = { IS_DELETED: false }
     if (PRODUCT_ID) {
         where.PRODUCT_ID = PRODUCT_ID
+    }
+    if (MASTER_ITEM_COMPONENT_ID) {
+        where.MASTER_ITEM_COMPONENT_ID = MASTER_ITEM_COMPONENT_ID
     }
 
     try {
@@ -72,6 +83,11 @@ export const getAllProductItemComponents = async (req, res) => {
                     model: ProductItemModel,
                     as: "PRODUCT",
                     attributes: ['PRODUCT_ID', 'PRODUCT_CAT_CODE', 'PRODUCT_DESCRIPTION']
+                },
+                {
+                    model: MasterItemComponent,
+                    as: "MASTER_ITEM_COMPONENT",
+                    attributes: ['ID', 'NAME']
                 },
                 {
                     model: Users,
@@ -108,6 +124,10 @@ export const getProductItemComponentById = async (req, res) => {
                 model: ProductItemModel,
                 as: "PRODUCT",
                 attributes: ['PRODUCT_ID', 'PRODUCT_CAT_CODE', 'PRODUCT_DESCRIPTION']
+            }, {
+                model: MasterItemComponent,
+                as: "MASTER_ITEM_COMPONENT",
+                attributes: ['ID', 'NAME']
             }]
         });
 
@@ -134,10 +154,10 @@ export const getProductItemComponentById = async (req, res) => {
 export const updateProductItemComponent = async (req, res) => {
     try {
         const { id } = req.params;
-        const { COMPONENT_NAME, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
+        const { MASTER_ITEM_COMPONENT_ID, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
 
         const component = await ProductItemComponentModel.findOne({
-            where: { COMPONENT_ID: id, PRODUCT_ID, IS_DELETED: false },
+            where: { ID: id},
         });
 
         if (!component) {
@@ -147,29 +167,45 @@ export const updateProductItemComponent = async (req, res) => {
             });
         }
 
-        if (!COMPONENT_NAME || !PRODUCT_ID) {
+        if (!MASTER_ITEM_COMPONENT_ID || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "Component Name, and Product are required",
+                message: "Master Item Component and Product are required",
             });
         }
 
-
-        const valid = await ProductItemModel.findOne({
+        const productItem = await ProductItemModel.findOne({
             where: {
                 PRODUCT_ID
             }
         })
-
-        if (!valid) {
+        if (!productItem) {
             return res.status(400).json({
                 status: false,
                 message: "Product Item not found",
             })
         }
 
+        const masterItemComponent = await MasterItemComponent.findOne({
+            where: {
+                ID: MASTER_ITEM_COMPONENT_ID
+            }
+        })
+        if (!masterItemComponent) {
+            return res.status(400).json({
+                status: false,
+                message: "Master Item Component not found",
+            })
+        }
+
+        const alreadyData = await  ProductItemComponentModel.findOne({ where: {
+                MASTER_ITEM_COMPONENT_ID, PRODUCT_ID, ID: {[Op.ne]: id}
+            }})
+
+        if (alreadyData) return res.status(400).json({status: false, message: "Product Item & Master Item Component already exists"})
+
         await component.update({
-            COMPONENT_NAME,
+            MASTER_ITEM_COMPONENT_ID,
             PRODUCT_ID,
             IS_ACTIVE,
             UPDATED_ID: USER_ID,
@@ -191,17 +227,16 @@ export const updateProductItemComponent = async (req, res) => {
 export const deleteProductItemComponent = async (req, res) => {
     try {
         const { id } = req.params;
-        const { PRODUCT_ID } = req.query;
 
-        if (!id || !PRODUCT_ID) {
+        if (!id) {
             return res.status(400).json({
                 success: false,
-                message: "Both Component and Product are required",
+                message: "ID cant be empty",
             });
         }
 
         const component = await ProductItemComponentModel.findOne({
-            where: { COMPONENT_ID: id, PRODUCT_ID },
+            where: { ID: id },
         });
 
         if (!component) {

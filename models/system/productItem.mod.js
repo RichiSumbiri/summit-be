@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
-import MasterAttributeSetting from "./masterAttributeSetting.mod.js";
 
 const ProductItemModel = db.define(
     "product_item",
@@ -65,7 +64,7 @@ const ProductItemModel = db.define(
     },
     {
         freezeTableName: true,
-        timestamps: false, // Disable Sequelize's default timestamps
+        timestamps: false,
     }
 );
 

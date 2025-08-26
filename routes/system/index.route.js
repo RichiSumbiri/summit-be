@@ -5,6 +5,7 @@ import vendorDetail from "./vendordetail.route.js";
 import customer from "./customer.route.js";
 import masterAttributeRoute from "./masterAttribute.route.js";
 import masterItemId from "./masterItem.js";
+import masterItemComponentRoute from "./masterItemComponent.route.js";
 import serviceAttributeValuesRoute from "./serviceAttributeValues.route.js";
 import serviceAttributesRoute from "./serviceAttributes.route.js";
 import productItemRoute from "./productItem.route.js";
@@ -32,6 +33,7 @@ router.use("/product-item", productItemRoute)
 router.use("/product-item-component", productItemComponentRoute)
 router.use("/attribute", masterAttributeRoute);
 router.use("/master-item", masterItemId);
+router.use("/master-item-component", masterItemComponentRoute)
 router.use("/warehouse-detail", warehouseDetail);
 router.use("/vendor-detail", vendorDetail);
 router.use("/customer", customer);

@@ -126,6 +126,10 @@ export const BomTemplateNote = db.define(
             type: DataTypes.TEXT,
             allowNull: true,
         },
+        IS_APPROVE: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        }
     }, {
         freezeTableName: true,
         timestamps: false,

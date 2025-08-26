@@ -33,7 +33,11 @@ import {
     bulkCreateBomTemplateSize,
     bulkDeleteBomTemplateSize,
     bulkCreateBomTemplateColor,
-    bulkToggleBomTemplateColor, bulkToggleBomTemplateSize, saveNewRevision, getNoteByRevision
+    bulkToggleBomTemplateColor,
+    bulkToggleBomTemplateSize,
+    saveNewRevision,
+    getNoteByRevision,
+    updateNoteByBomTemplateIdAndRevId
 } from "../../controllers/system/bomTemplate.js";
 import {
     createBomTemplateListDetail, createBomTemplateListDetailBulk, deleteBomTemplateListDetail,
@@ -74,6 +78,7 @@ router.patch("/master/:id", cloneBomTemplate);
 router.patch("/master-new/:id", saveNewRevision);
 router.delete("/master/:id", deleteBomTemplate);
 
+router.put("/master-approve/:BOM_TEMPLATE_ID/:REV_ID", updateNoteByBomTemplateIdAndRevId);
 
 router.post("/rev", createBomTemplateRev);
 router.get("/rev", getAllBomTemplateRevs);
