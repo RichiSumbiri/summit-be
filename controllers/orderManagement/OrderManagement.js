@@ -880,3 +880,27 @@ export const postMOListing = async (req, res) => {
         });
     }
 }
+
+
+export const getListPOIDByMOID = async(req,res) => {
+    try {
+        const { ORDER_ID, MO_ID } = req.query;
+        const data = await OrderPoListing.findAll({
+            where: {
+                ORDER_NO: ORDER_ID,
+                MO_NO: MO_ID
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            message: `Success get POID listing by Order ${ORDER_ID} and MO ${MO_ID}`,
+            data: data
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get poid listing by po"
+        });
+    }
+}

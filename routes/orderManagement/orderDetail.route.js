@@ -2,6 +2,7 @@ import express from "express";
 import {
     getAllPODetailHeader,
     getListPODetailByOrderID,
+    getListPOIDByMOID,
     getLogOrderPOIDStatus,
     getPOListingSizeByPOID, postPOListing, postPOSizeListing,
     postUpdateOrderPOIDStatus
@@ -18,5 +19,6 @@ router.post("/po-size", postPOSizeListing);
 router.get("/po-detail-status", getLogOrderPOIDStatus);
 router.post("/po-detail-status", postUpdateOrderPOIDStatus);
 
+router.get("/listing-mo", getListPOIDByMOID);
 
 export default router;
