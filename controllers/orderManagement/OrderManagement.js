@@ -242,8 +242,20 @@ export const getPOListingSizeByPOID = async (req, res) => {
 }
 
 export const getAllPODetailHeader = async (req, res) => {
+    const {ORDER_TYPE_CODE, ORDER_STATUS} = req.query
+
+    const where = {}
+    if (ORDER_TYPE_CODE) {
+        where.ORDER_TYPE_CODE = ORDER_TYPE_CODE
+    }
+    if (ORDER_STATUS) {
+        where.ORDER_STATUS = ORDER_STATUS
+    }
+
+
     try {
         const listDetail = await ModelOrderPOHeader.findAll({
+            where,
             include: [
                 {
                     model: MasterItemIdModel,
