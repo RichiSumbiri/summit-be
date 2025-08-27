@@ -1,5 +1,5 @@
 import BomStructureModel, {BomStructureListModel} from "../../models/system/bomStructure.mod.js";
-import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import BomTemplateModel, {BomTemplateNote} from "../../models/system/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../models/orderManagement/orderManagement.mod.js";
 import {
     CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName
@@ -119,6 +119,23 @@ export const createBomStructure = async (req, res) => {
             });
         }
 
+        const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
+
+        if (!bomTemplate) {
+            return res.status(400).json({ status: false, message: "Bom template not found" })
+        }
+
+        const bomNotes = await BomTemplateNote.findOne({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+            },
+        });
+
+        if (!bomNotes.IS_APPROVE) {
+            return res.status(400).json({ status: false, message: "BOM template must be approved before it can be used in a BOM structure" })
+        }
+
         const getLastID = await BomStructureModel.findOne({
             order: [['ID', 'DESC']], raw: true
         });
@@ -138,13 +155,6 @@ export const createBomStructure = async (req, res) => {
             CREATED_AT: new Date(),
         });
 
-        const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
-
-        if (!bomTemplate) {
-            return res.status(400).json({
-                status: false, message: "Bom template not found"
-            })
-        }
 
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {

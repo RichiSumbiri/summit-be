@@ -439,7 +439,7 @@ export const saveNewRevision = async (req, res) => {
 
 
 export const getAllBomTemplates = async (req, res) => {
-    const {MASTER_ITEM_ID, CUSTOMER_ID, LAST_REV_ID} = req.query
+    const {MASTER_ITEM_ID, CUSTOMER_ID, LAST_REV_ID, ORDER_TYPE_CODE} = req.query
     const where = {IS_DELETED: false}
 
     if (MASTER_ITEM_ID) {
@@ -452,6 +452,16 @@ export const getAllBomTemplates = async (req, res) => {
 
     if (LAST_REV_ID) {
         where.LAST_REV_ID = LAST_REV_ID
+    }
+
+    if (ORDER_TYPE_CODE) {
+        const orderType = await MasterOrderType.findOne({ where: {
+                TYPE_CODE: ORDER_TYPE_CODE
+        }})
+        if (!orderType) {
+            return res.status(400).json({status: false, message: "Order Type Code Not Found"})
+        }
+        where.ORDER_TYPE_ID = orderType.TYPE_ID
     }
 
     try {
