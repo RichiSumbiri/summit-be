@@ -258,8 +258,16 @@ export const OrderPoListingSize = db.define(
       type: DataTypes.STRING(15),
       allowNull: true,
     },
+    CREATE_BY: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
     CREATE_DATE: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    UPDATE_BY: {
+      type: DataTypes.STRING(100),
       allowNull: true,
     },
     UPDATE_DATE: {

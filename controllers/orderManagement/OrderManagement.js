@@ -462,9 +462,10 @@ export const postPOListing = async (req, res) => {
 
 export const postPOSizeListing = async (req, res) => {
     try {
-        const {DataPOSize} = req.body;
+        const { DataPOSize } = req.body;
         for (const data of DataPOSize) {
-            if (data.ID_POL_SIZE) {
+            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }})
+            if (CheckData) {
                 await OrderPoListingSize.update({
                     MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
                     ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
@@ -487,51 +488,9 @@ export const postPOSizeListing = async (req, res) => {
                     ITEM_COLOR_ID: data.ITEM_COLOR_ID,
                     ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
                     ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
-                    SIZE_CODE: data.SIZE_CODE,
-                    ORDER_QTY: data.ORDER_QTY,
-                    MO_QTY: data.MO_QTY,
-                    SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
-                    ORDER_UOM: data.ORDER_UOM,
-                    SHIPPED_QTY: data.SHIPPED_QTY,
-                    DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
-                    DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
-                    COUNTRY: data.COUNTRY,
-                    FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
-                    PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
-                    PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                    MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
-                    SIZE_ID: data.SIZE_ID,
-                    SIZE_DESCRIPTION: data.SIZE_DESCRIPTION
-                }, {
-                    where: {
-                        ORDER_PO_ID: data.ORDER_PO_ID,
-                        ID_POL_SIZE: data.ID_POL_SIZE,
-                    }
-                });
-            } else {
-                await OrderPoListingSize.create({
-                    MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
-                    ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
-                    CUSTOMER_NAME: data.CUSTOMER_NAME,
-                    CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
-                    CUSTOMER_SEASON: data.CUSTOMER_SEASON,
-                    CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
-                    CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
-                    ORDER_NO: data.ORDER_NO,
-                    ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
-                    ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
-                    PO_STATUS: data.PO_STATUS,
-                    MO_AVAILABILITY: data.MO_AVAILABILITY,
-                    MO_NO: data.MO_NO,
-                    MO_RELEASED_DATE: data.MO_RELEASED_DATE,
-                    PO_REF_CODE: data.PO_REF_CODE,
-                    PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
-                    PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
-                    PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
-                    ITEM_COLOR_ID: data.ITEM_COLOR_ID,
-                    ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
-                    ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
-                    SIZE_CODE: data.SIZE_CODE,
+                    PRODUCT_ID: data.PRODUCT_ID,
+                    PRODUCT_TYPE: data.PRODUCT_TYPE,
+                    PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
                     ORDER_QTY: data.ORDER_QTY,
                     MO_QTY: data.MO_QTY,
                     SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
@@ -546,8 +505,60 @@ export const postPOSizeListing = async (req, res) => {
                     MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
                     SIZE_ID: data.SIZE_ID,
                     SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
-                    ORDER_PO_ID: data.ORDER_PO_ID,
+                    UPDATE_BY: data.UPDATE_BY
+                }, {
+                    where: {
+                        ORDER_PO_ID: data.ORDER_PO_ID,
+                        SIZE_CODE: data.SIZE_CODE,
+                    }
                 });
+            } else {
+                if(data.SIZE_CODE && data.ORDER_QTY){
+                    await OrderPoListingSize.create({
+                        MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
+                        ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
+                        CUSTOMER_NAME: data.CUSTOMER_NAME,
+                        CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
+                        CUSTOMER_SEASON: data.CUSTOMER_SEASON,
+                        CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
+                        CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
+                        ORDER_NO: data.ORDER_NO,
+                        ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
+                        ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
+                        PO_STATUS: data.PO_STATUS,
+                        MO_AVAILABILITY: data.MO_AVAILABILITY,
+                        MO_NO: data.MO_NO,
+                        MO_RELEASED_DATE: data.MO_RELEASED_DATE,
+                        PO_REF_CODE: data.PO_REF_CODE,
+                        PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
+                        PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
+                        PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
+                        ITEM_COLOR_ID: data.ITEM_COLOR_ID,
+                        ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
+                        ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
+                        PRODUCT_ID: data.PRODUCT_ID,
+                        PRODUCT_TYPE: data.PRODUCT_TYPE,
+                        PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
+                        ORDER_QTY: data.ORDER_QTY,
+                        MO_QTY: data.MO_QTY,
+                        SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
+                        ORDER_UOM: data.ORDER_UOM,
+                        SHIPPED_QTY: data.SHIPPED_QTY,
+                        DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
+                        DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
+                        COUNTRY: data.COUNTRY,
+                        FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
+                        PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
+                        PRODUCTION_MONTH: data.PRODUCTION_MONTH,
+                        MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                        SIZE_ID: data.SIZE_ID,
+                        SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
+                        ORDER_PO_ID: data.ORDER_PO_ID,
+                        SIZE_CODE: data.SIZE_CODE,
+                        CREATE_BY: data.CREATE_BY
+                    });
+                }
+                
             }
         }
 
