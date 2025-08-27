@@ -780,7 +780,7 @@ export const changeMOListingStatus = async(req,res) => {
         });
 
         // Update POID Status if MO Status set to be Cancel
-        
+
     } catch(err){
         console.error(err);
         return res.status(500).json({
@@ -840,6 +840,16 @@ export const postMOListing = async (req, res) => {
                         ORDER_PO_ID: poid.ORDER_PO_ID
                     }   
                 });
+
+                // add to log order status change
+                await ModelOrderPOListingLogStatus.create({
+                    ORDER_ID: DataMOID.ORDER_ID,
+                    ORDER_PO_ID: poid.ORDER_PO_ID,
+                    PO_STATUS: 'Released to Production',
+                    CREATE_BY: CREATE_BY,
+                    CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                });
+
             }
           
         }
