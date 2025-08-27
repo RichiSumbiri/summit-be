@@ -786,6 +786,20 @@ export const changeMOListingStatus = async(req,res) => {
                 ORDER_ID: DataMOID.ORDER_ID
             }
         });
+
+        // Update POID Status if Status is Released to Production
+        if(DataMOID.NEW_MO_STATUS==='Released to Production'){
+            await OrderPoListing.update({
+                PO_STATUS: 'Released to Production',
+                MO_RELEASED_DATE: moment().format('YYYY-MM-DD')
+            }, {
+                where: {
+                    MO_ID: DataMOID.MO_ID,
+                    ORDER_ID: DataMOID.ORDER_ID
+                }
+            });
+        }
+
         return res.status(200).json({
             success: true,
             message: "success change mo status",
@@ -840,7 +854,6 @@ export const postMOListing = async (req, res) => {
             // UPDATE POID MO NO
             for (const poid of listPOID) {
                 await OrderPoListing.update({
-                    PO_STATUS: 'Released to Production',
                     MO_AVAILABILITY: 'Yes',
                     MO_NO: newMOID,
                     MO_RELEASED_DATE: moment().format('YYYY-MM-DD'),
@@ -852,18 +865,7 @@ export const postMOListing = async (req, res) => {
                         ORDER_PO_ID: poid.ORDER_PO_ID
                     }   
                 });
-
-                // add to log order status change
-                await ModelOrderPOListingLogStatus.create({
-                    ORDER_ID: DataMOID.ORDER_ID,
-                    ORDER_PO_ID: poid.ORDER_PO_ID,
-                    PO_STATUS: 'Released to Production',
-                    CREATE_BY: CREATE_BY,
-                    CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
-                });
-
             }
-          
         }
         return res.status(200).json({
             success: true,
