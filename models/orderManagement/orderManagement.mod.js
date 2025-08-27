@@ -3,11 +3,13 @@ import { DataTypes } from "sequelize";
 import MasterItemIdModel from "../system/masterItemId.mod.js";
 import ProductItemModel from "../system/productItem.mod.js";
 import {
+  CustomerBuyPlan,
   CustomerDetail,
   CustomerProductDivision,
   CustomerProductSeason,
   CustomerProgramName
 } from "../system/customer.mod.js";
+import { orderitemSMV } from "./orderitemSMV.mod.js";
 
 export const ModelOrderPOHeader = db.define('order_po_header', {
   ORDER_ID: {
@@ -170,6 +172,11 @@ ModelOrderPOHeader.belongsTo(CustomerProgramName, {
 ModelOrderPOHeader.belongsTo(ProductItemModel, {
     foreignKey: "PRODUCT_ID",
     as: "PRODUCT"
+})
+
+ModelOrderPOHeader.belongsTo(CustomerBuyPlan, {
+    foreignKey: "CUSTOMER_BUYPLAN_ID",
+    as: "CUSTOMER_BUYPLAN"
 })
 
 export const ModelOrderPODetail = db.define('order_po_detail', {
@@ -567,3 +574,173 @@ LEFT JOIN xref_user_web xuw ON xuw.USER_ID = opls.CREATE_BY
 WHERE opls.ORDER_ID = :orderID AND opls.ORDER_PO_ID = :orderPOID
 ORDER BY opls.CREATE_DATE ASC
 `;
+
+
+
+export const queryGetAllPOIDByOrderID = `
+SELECT
+    opl.ID_PO,
+    opl.MANUFACTURING_COMPANY,
+    opl.ORDER_PLACEMENT_COMPANY,
+    opl.CUSTOMER_ID,
+    opl.CUSTOMER_NAME,
+    opl.CUSTOMER_DIVISION_ID,
+    opl.CUSTOMER_DIVISION,
+    opl.CUSTOMER_SEASON_ID,
+    opl.CUSTOMER_SEASON,
+    opl.CUSTOMER_PROGRAM_ID,
+    opl.CUSTOMER_PROGRAM,
+    opl.CUSTOMER_BUYPLAN_ID,
+    opl.CUSTOMER_BUY_PLAN,
+    opl.PROJECTION_ORDER_ID,
+    opl.PROJECTION_ORDER_CODE,
+    opl.ORDER_TYPE_CODE,
+    opl.ORDER_NO,
+    opl.ORDER_REFERENCE_PO_NO,
+    opl.ORDER_STYLE_DESCRIPTION,
+    opl.ORDER_PO_ID,
+    opl.PO_STATUS,
+    opl.MO_AVAILABILITY,
+    opl.MO_NO,
+    opl.MO_RELEASED_DATE,
+    opl.PO_REF_CODE,
+    opl.PRODUCT_ITEM_ID,
+    opl.PRODUCT_ITEM_CODE,
+    opl.PRODUCT_ITEM_DESCRIPTION,
+    oph.PRODUCT_ID,
+    pi2.PRODUCT_TYPE_CODE AS PRODUCT_TYPE, 
+    pi2.PRODUCT_CAT_CODE AS PRODUCT_CATEGORY, 
+    opl.ITEM_COLOR_ID,
+    opl.ITEM_COLOR_CODE,
+    opl.ITEM_COLOR_NAME,
+    opl.ORDER_QTY,
+    opl.MO_QTY,
+    opl.SHIPMENT_PO_QTY,
+    opl.ORDER_UOM,
+    opl.PLAN_MO_QTY_PERCENTAGE,
+    opl.SHIPMENT_PO_QTY_VARIANCE,
+    opl.PLAN_SHIPMENT_PO_PERCENTAGE,
+    opl.SHIPPED_QTY,
+    opl.ORDER_TO_SHIPPED_PERCENTAGE,
+    opl.DELIVERY_TERM,
+    opl.PRICE_TYPE,
+    opl.UNIT_PRICE,
+    opl.MO_COST,
+    opl.TOTAL_ORDER_COST,
+    opl.TOTAL_MO_COST,
+    opl.CURRENCY_CODE,
+    opl.DELIVERY_LOCATION_ID,
+    opl.DELIVERY_LOCATION_NAME,
+    opl.COUNTRY,
+    opl.PACKING_METHOD,
+    opl.DELIVERY_MODE_CODE,
+    opl.PO_CREATED_DATE,
+    opl.PO_CONFIRMED_DATE,
+    opl.TARGET_PCD,
+    opl.ORIGINAL_DELIVERY_DATE,
+    opl.FINAL_DELIVERY_DATE,
+    opl.PLAN_EXFACTORY_DATE,
+    opl.NEW_TARGET_PCD,
+    opl.NEW_FINAL_DELIVERY_DATE,
+    opl.NEW_PLAN_EXFACTORY_DATE,
+    opl.PO_EXPIRY_DATE,
+    DATE_FORMAT(STR_TO_DATE(opl.PRODUCTION_MONTH, '%M/%Y'), '%Y-%m') AS PRODUCTION_MONTH,
+    opl.MANUFACTURING_SITE,
+    opl.NEW_MANUFACTURING_SITE,
+    opl.ORDER_CONFIRMED_DATE,
+    opl.CONTRACT_CONFIRMED_DATE,
+    opl.CONTRACT_EXPIRED_DATE,
+    opl.CREATE_DATE,
+    opl.CREATE_BY,
+    opl.UPDATE_DATE,
+    opl.UPDATE_BY
+FROM
+    order_po_listing opl
+LEFT JOIN order_po_header oph ON oph.ORDER_ID = opl.ORDER_NO 
+LEFT JOIN product_item pi2 ON pi2.PRODUCT_ID = oph.PRODUCT_ID
+WHERE opl.ORDER_NO = :orderID
+`;
+
+export const queryGetMOListingByOrderID = `
+SELECT
+	oml.MO_ID,
+	oml.MO_CODE,
+	oml.MO_DESCRIPTION,
+	oml.MO_STATUS,
+	oml.ORDER_ID,
+	opl.ITEM_COLOR_ID,
+	mcc.COLOR_CODE AS ITEM_COLOR_CODE,
+	mcc.COLOR_DESCRIPTION as ITEM_COLOR_NAME,
+	oph.ORDER_UOM,
+	SUM(opl.ORDER_QTY) AS ORDER_QTY,
+	SUM(opl.MO_QTY) AS MO_QTY,
+	opl.PRODUCTION_MONTH,
+	opl.FINAL_DELIVERY_DATE,
+	opl.PLAN_EXFACTORY_DATE,
+	oml.CREATE_BY,
+	xuw.USER_INISIAL AS CREATE_NAME,
+	oml.CREATE_DATE,
+	oml.UPDATE_BY,
+	xuw2.USER_INISIAL AS UPDATE_NAME,
+	oml.UPDATE_DATE
+FROM
+	order_mo_listing oml
+LEFT JOIN order_po_listing opl ON opl.MO_NO = oml.MO_ID 
+LEFT JOIN order_po_header oph ON oph.ORDER_ID = oml.ORDER_ID 
+LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = opl.ITEM_COLOR_ID 
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oml.CREATE_BY 
+LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oml.UPDATE_BY
+WHERE oml.ORDER_ID = :orderID
+`;
+
+export const OrderMOListing = db.define("order_mo_listing", {
+    MO_ID: {
+      type: DataTypes.CHAR(10),
+      allowNull: false,
+      primaryKey: true,
+    },
+    MO_CODE: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      unique: true,
+    },
+    MO_DESCRIPTION: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    MO_STATUS: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      unique: true,
+    },
+    ORDER_ID: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    CREATE_BY: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    CREATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    UPDATE_BY: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    UPDATE_DATE: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  }, {
+    tableName: "order_mo_listing",
+    timestamps: false, // no createdAt/updatedAt fields
+    indexes: [
+      {
+        name: "MO_CODE",
+        unique: true,
+        fields: ["MO_CODE"],
+      },
+    ],
+  });

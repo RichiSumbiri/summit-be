@@ -4,8 +4,11 @@ import {
     ModelOrderPOHeader,
     ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
+    OrderMOListing,
+    queryGetAllPOIDByOrderID,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
+    queryGetMOListingByOrderID,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -200,10 +203,15 @@ export const postOrderHeader = async (req, res) => {
 export const getListPODetailByOrderID = async (req, res) => {
     try {
         const {orderID} = req.params;
-        const listDetail = await OrderPoListing.findAll({
-            where: {
-                ORDER_NO: orderID
-            }, raw: true
+        // const listDetail = await OrderPoListing.findAll({
+        //     where: {
+        //         ORDER_NO: orderID
+        //     }, raw: true
+        // });
+        const listDetail = await db.query(queryGetAllPOIDByOrderID, {
+            replacements: {
+                orderID: orderID
+            }, type: QueryTypes.SELECT
         });
         return res.status(200).json({
             success: true,
@@ -339,7 +347,7 @@ export const postPOListing = async (req, res) => {
                 PACKING_METHOD: DataPOID.PACKING_METHOD,
                 DELIVERY_MODE_CODE: DataPOID.DELIVERY_MODE_CODE,
                 PO_CONFIRMED_DATE: DataPOID.PO_CONFIRMED_DATE,
-                PO_EXPIRED_DATE: DataPOID.PO_EXPIRED_DATE,
+                PO_EXPIRY_DATE: DataPOID.PO_EXPIRY_DATE,
                 ORIGINAL_DELIVERY_DATE: DataPOID.ORIGINAL_DELIVERY_DATE,
                 FINAL_DELIVERY_DATE: DataPOID.FINAL_DELIVERY_DATE,
                 PLAN_EXFACTORY_DATE: DataPOID,
@@ -403,13 +411,13 @@ export const postPOListing = async (req, res) => {
                 DELIVERY_LOCATION_ID: DataPOID.DELIVERY_LOCATION_ID,
                 DELIVERY_LOCATION_CODE: DataPOID.DELIVERY_LOCATION_CODE,
                 DELIVERY_LOCATION_NAME: DataPOID.DELIVERY_LOCATION_NAME,
-                PACKING_METHOD: DataPOID.PACKING_METHOD,
-                DELIVERY_MODE_CODE: DataPOID.DELIVERY_MODE_CODE,
-                PO_CONFIRMED_DATE: DataPOID.PO_CONFIRMED_DATE,
-                PO_EXPIRED_DATE: DataPOID.PO_EXPIRED_DATE,
-                ORIGINAL_DELIVERY_DATE: DataPOID.ORIGINAL_DELIVERY_DATE,
-                FINAL_DELIVERY_DATE: DataPOID.FINAL_DELIVERY_DATE,
-                PLAN_EXFACTORY_DATE: DataPOID,
+                PACKING_METHOD: DataPOID.PACKING_METHOD ? DataPOID.PACKING_METHOD : null,
+                DELIVERY_MODE_CODE: DataPOID.DELIVERY_MODE_CODE ? DataPOID.DELIVERY_MODE_CODE : null,
+                PO_CONFIRMED_DATE: DataPOID.PO_CONFIRMED_DATE ? DataPOID.PO_CONFIRMED_DATE : null,
+                PO_EXPIRED_DATE: DataPOID.PO_EXPIRED_DATE ? DataPOID.PO_EXPIRED_DATE : null,
+                ORIGINAL_DELIVERY_DATE: DataPOID.ORIGINAL_DELIVERY_DATE ? DataPOID.ORIGINAL_DELIVERY_DATE : null,
+                FINAL_DELIVERY_DATE: DataPOID.FINAL_DELIVERY_DATE ? DataPOID.FINAL_DELIVERY_DATE : DataPOID.ORIGINAL_DELIVERY_DATE,
+                PLAN_EXFACTORY_DATE: DataPOID.PLAN_EXFACTORY_DATE ? DataPOID.PLAN_EXFACTORY_DATE : null,
                 PRODUCTION_MONTH: moment(DataPOID.PRODUCTION_MONTH, "YYYY-MM").format("MMMM/YYYY"),
                 SHIPPING_TERMS_CODE: DataPOID.SHIPPING_TERMS_CODE,
                 PRICE_TYPE: DataPOID.PRICE_TYPE,
@@ -737,6 +745,126 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             success: false,
             error: err,
             message: "error update order po id status"
+        });
+    }
+}
+
+
+export const getListMOIDByOrderID = async (req, res) => {
+    try { 
+        const { orderID} = req.params;
+        const listDetail = await db.query(queryGetMOListingByOrderID, {
+            replacements: {
+                orderID: orderID
+            }, type: QueryTypes.SELECT
+        });
+        
+        return res.status(200).json({
+            success: true,
+            message: "success get list mo detail by order id",
+            data: listDetail
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get mo detail by order id"
+        });
+    }
+}
+
+export const changeMOListingStatus = async(req,res) => {
+    try {
+        const {DataMOID} = req.body;
+        
+        // Update Status MO
+        await OrderMOListing.update({
+            MO_STATUS: DataMOID.NEW_MO_STATUS
+        }, {
+            where: {
+                MO_ID: DataMOID.MO_ID,
+                ORDER_ID: DataMOID.ORDER_ID
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success change mo status",
+        });
+
+        // Update POID Status if MO Status set to be Cancel
+        
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error delete mo detail"
+        });
+    }
+}
+
+export const postMOListing = async (req, res) => {
+    try {
+        const {DataMOID} = req.body;
+        if (DataMOID.ORDER_MO_ID) {
+            await OrderMOListing.update({
+                MO_CODE: DataMOID.MO_CODE,
+                MO_DESCRIPTION: DataMOID.MO_DESCRIPTION,
+                UPDATE_BY: DataMOID.CREATE_BY,
+                UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    ORDER_MO_ID: DataMOID.ORDER_MO_ID,
+                    ORDER_ID: DataMOID.ORDER_ID
+                }   
+            });
+        } else {
+            // CREATE NEW ORDER PO ID
+            const getLastMOID = await OrderMOListing.findOne({order: [['MO_ID', 'DESC']], raw: true});
+            const newIncrement = !getLastMOID ? '0000001' : parseInt(getLastMOID.MO_ID.slice(-8)) + 1;
+            const newMOID = 'MO' + newIncrement.toString().padStart(8, '0');
+
+            // CREATE DETAIL ORDER PO ID
+            await OrderMOListing.create({
+                MO_ID: newMOID,
+                MO_CODE: DataMOID.MO_CODE,
+                MO_DESCRIPTION: DataMOID.MO_DESCRIPTION,
+                ORDER_ID: DataMOID.ORDER_ID,
+                CREATE_BY: DataMOID.CREATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+
+            // CHECK IS LIST_POID IS ARRAY OR OBJECT
+            const listPOID = Array.isArray(DataMOID.LIST_POID) ? DataMOID.LIST_POID : [DataMOID.LIST_POID];
+
+            // UPDATE POID MO NO
+            for (const poid of listPOID) {
+                await OrderPoListing.update({
+                    PO_STATUS: 'Released to Production',
+                    MO_AVAILABILITY: 'Yes',
+                    MO_NO: newMOID,
+                    MO_RELEASED_DATE: moment().format('YYYY-MM-DD'),
+                    UPDATE_BY: DataMOID.CREATE_BY,
+                    UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                }, {
+                    where: {
+                        ORDER_NO: DataMOID.ORDER_ID,
+                        ORDER_PO_ID: poid.ORDER_PO_ID
+                    }   
+                });
+            }
+          
+        }
+        return res.status(200).json({
+            success: true,
+            message: "success post mo listing"
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post mo listing"
         });
     }
 }
