@@ -434,7 +434,8 @@ export const postPOListing = async (req, res) => {
                 CURRENCY_CODE: DataPOID.CURRENCY_CODE,
                 DELIVERY_TERM: DataPOID.SHIPPING_TERMS_CODE,
                 PO_CREATED_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
-                CREATE_BY: DataPOID.CREATE_BY
+                CREATE_BY: DataPOID.CREATE_BY,
+                SUMMIT_FLAG: 1
             });
 
             // add to log order status change
@@ -502,7 +503,7 @@ export const postPOSizeListing = async (req, res) => {
                     FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
                     PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
                     PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                    MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                    MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                     SIZE_ID: data.SIZE_ID,
                     SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
                     UPDATE_BY: data.UPDATE_BY
@@ -550,12 +551,13 @@ export const postPOSizeListing = async (req, res) => {
                         FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
                         PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
                         PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                        MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                        MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                         SIZE_ID: data.SIZE_ID,
                         SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
                         ORDER_PO_ID: data.ORDER_PO_ID,
                         SIZE_CODE: data.SIZE_CODE,
-                        CREATE_BY: data.CREATE_BY
+                        CREATE_BY: data.CREATE_BY,
+                        SUMMIT_FLAG: 1
                     });
                 }
                 
