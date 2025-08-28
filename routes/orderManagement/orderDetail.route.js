@@ -4,6 +4,7 @@ import {
     getListPODetailByOrderID,
     getListPOIDByMOID,
     getLogOrderPOIDStatus,
+    getOrderInventoryDetail,
     getPOListingSizeByPOID, postPOListing, postPOSizeListing,
     postUpdateOrderPOIDStatus
 } from "../../controllers/orderManagement/OrderManagement.js";
@@ -20,5 +21,7 @@ router.get("/po-detail-status", getLogOrderPOIDStatus);
 router.post("/po-detail-status", postUpdateOrderPOIDStatus);
 
 router.get("/listing-mo", getListPOIDByMOID);
+router.get("/listing-inventory", getOrderInventoryDetail);
+
 
 export default router;

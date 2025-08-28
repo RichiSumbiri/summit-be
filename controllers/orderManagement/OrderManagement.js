@@ -9,6 +9,7 @@ import {
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
     queryGetMOListingByOrderID,
+    queryGetOrderInventoryDetail,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -434,7 +435,8 @@ export const postPOListing = async (req, res) => {
                 CURRENCY_CODE: DataPOID.CURRENCY_CODE,
                 DELIVERY_TERM: DataPOID.SHIPPING_TERMS_CODE,
                 PO_CREATED_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
-                CREATE_BY: DataPOID.CREATE_BY
+                CREATE_BY: DataPOID.CREATE_BY,
+                SUMMIT_FLAG: 1
             });
 
             // add to log order status change
@@ -464,7 +466,7 @@ export const postPOSizeListing = async (req, res) => {
     try {
         const { DataPOSize } = req.body;
         for (const data of DataPOSize) {
-            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }})
+            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true})
             if (CheckData) {
                 await OrderPoListingSize.update({
                     MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
@@ -491,8 +493,8 @@ export const postPOSizeListing = async (req, res) => {
                     PRODUCT_ID: data.PRODUCT_ID,
                     PRODUCT_TYPE: data.PRODUCT_TYPE,
                     PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
-                    ORDER_QTY: data.ORDER_QTY,
-                    MO_QTY: data.MO_QTY,
+                    ORDER_QTY: data.ORDER_QTY==='' ? null:data.ORDER_QTY,
+                    MO_QTY: data.MO_QTY==='' ? null:data.MO_QTY,
                     SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
                     ORDER_UOM: data.ORDER_UOM,
                     SHIPPED_QTY: data.SHIPPED_QTY,
@@ -502,7 +504,7 @@ export const postPOSizeListing = async (req, res) => {
                     FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
                     PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
                     PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                    MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                    MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                     SIZE_ID: data.SIZE_ID,
                     SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
                     UPDATE_BY: data.UPDATE_BY
@@ -511,7 +513,7 @@ export const postPOSizeListing = async (req, res) => {
                         ORDER_PO_ID: data.ORDER_PO_ID,
                         SIZE_CODE: data.SIZE_CODE,
                     }
-                });
+                });    
             } else {
                 if(data.SIZE_CODE && data.ORDER_QTY){
                     await OrderPoListingSize.create({
@@ -550,12 +552,13 @@ export const postPOSizeListing = async (req, res) => {
                         FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
                         PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
                         PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                        MANUFACTURING_SITE: data.MANUFACTURING_COMPANY,
+                        MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                         SIZE_ID: data.SIZE_ID,
                         SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
                         ORDER_PO_ID: data.ORDER_PO_ID,
                         SIZE_CODE: data.SIZE_CODE,
-                        CREATE_BY: data.CREATE_BY
+                        CREATE_BY: data.CREATE_BY,
+                        SUMMIT_FLAG: 1
                     });
                 }
                 
@@ -912,6 +915,30 @@ export const getListPOIDByMOID = async(req,res) => {
             success: false,
             error: err,
             message: "error get poid listing by po"
+        });
+    }
+}
+
+
+export const getOrderInventoryDetail = async(req,res) => {
+    try {
+        const { ORDER_ID } = req.query;
+        const getData = await db.query(queryGetOrderInventoryDetail, {
+            replacements: {
+                OrderID: ORDER_ID
+            }, type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: `Success get inventory listing by Order ${ORDER_ID}`,
+            data: getData
+        });
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order inventory detail"
         });
     }
 }
