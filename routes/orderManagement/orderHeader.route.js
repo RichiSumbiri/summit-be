@@ -1,8 +1,9 @@
 import express from "express";
-import { changeOrderHeaderStatus, getListOrderHeaderByStatus, postOrderHeader } from "../../controllers/orderManagement/OrderManagement.js";
+import { changeOrderHeaderStatus, getListOrderHeaderByStatus, getOrderHeaderLogStatus, postOrderHeader } from "../../controllers/orderManagement/OrderManagement.js";
 const router = express.Router();
 
 router.get("/:status", getListOrderHeaderByStatus);
+router.get("/get-status",getOrderHeaderLogStatus);
 router.post("/change-status", changeOrderHeaderStatus);
 router.post("/", postOrderHeader);
 

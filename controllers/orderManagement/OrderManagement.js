@@ -2,12 +2,14 @@ import {QueryTypes} from "sequelize";
 import db from "../../config/database.js";
 import {
     ModelOrderPOHeader,
+    ModelOrderPOHeaderLogStatus,
     ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
     OrderMOListing,
     queryGetAllPOIDByOrderID,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
+    queryGetLogStatusOrderHeaderByOrderID,
     queryGetMOListingByOrderID,
     queryGetOrderInventoryDetail,
     querySupplyChainPlanningByOrderID
@@ -56,6 +58,7 @@ export const changeOrderHeaderStatus = async (req, res) => {
                 message: "Missing required parameters"
             });
         }
+
         // Update the order status for the specified ORDER_ID
         const [updatedRows] = await ModelOrderPOHeader.update({
             ORDER_STATUS: NEW_STATUS,
@@ -73,6 +76,16 @@ export const changeOrderHeaderStatus = async (req, res) => {
                 message: "Order not found or status mismatch"
             });
         }
+
+        // Add log log Order Header
+        await ModelOrderPOHeaderLogStatus.create({
+            ORDER_ID: ORDER_ID,
+            ORDER_STATUS: NEW_STATUS,
+            CREATE_BY: UPDATE_BY,
+            CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+        })
+
+            
         return res.status(200).json({
             success: true,
             message: "success change order header status"
@@ -200,6 +213,30 @@ export const postOrderHeader = async (req, res) => {
         });
     }
 }
+
+export const getOrderHeaderLogStatus = async(req,res) => {
+    try {
+        const { ORDER_ID } = req.query;
+        const getLog = await db.query(queryGetLogStatusOrderHeaderByOrderID, {
+            replacements: {
+                ORDER_ID
+            },
+            type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get order header log status",
+            data: getLog
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order header log status"
+        });
+    }
+}
+
 
 export const getListPODetailByOrderID = async (req, res) => {
     try {

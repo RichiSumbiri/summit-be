@@ -545,6 +545,38 @@ LEFT JOIN order_po_header oph ON oph.ORDER_ID = scp.ORDER_ID
 WHERE scp.ORDER_ID = :orderID
   `;
 
+export const ModelOrderPOHeaderLogStatus = db.define(
+    "order_po_header_log_status",
+    {
+      LOG_ID: {
+        type: DataTypes.INTEGER, // int(200) still = INTEGER
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      ORDER_ID: {
+        type: DataTypes.CHAR(10),
+        allowNull: true,
+      },
+      ORDER_STATUS: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      CREATE_BY: {
+        type: DataTypes.STRING(200),
+        allowNull: true,
+      },
+      CREATE_DATE: {
+        type: DataTypes.DATE, // datetime → DATE
+        allowNull: true,
+      },
+    },
+    {
+      tableName: "order_po_header_log_status",
+      timestamps: false,
+    }
+  );
+
 export const ModelOrderPOListingLogStatus = db.define("order_po_listing_log_status", {
   LOG_ID: {
     type: DataTypes.INTEGER(200),
@@ -787,3 +819,18 @@ LEFT JOIN order_po_listing pl ON pl.ORDER_NO = opl.ORDER_NO AND pl.ORDER_PO_ID =
 LEFT JOIN order_po_header oph ON oph.ORDER_ID = pl.ORDER_NO 
 WHERE pl.SUMMIT_FLAG ='1' AND opl.ORDER_NO = :OrderID
   `;
+
+
+  export const queryGetLogStatusOrderHeaderByOrderID = `
+  SELECT
+	LOG_ID,
+	opls.ORDER_ID,
+	opls.ORDER_STATUS,
+	opls.CREATE_BY,
+	xuw.USER_NAME AS CREATE_NAME,
+	opls.CREATE_DATE
+FROM
+	order_po_header_log_status opls
+LEFT JOIN xref_user_web xuw ON xuw.USER_ID = opls.CREATE_BY 
+WHERE opls.ORDER_ID = :orderID
+  `
