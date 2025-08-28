@@ -9,6 +9,7 @@ import {
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
     queryGetMOListingByOrderID,
+    queryGetOrderInventoryDetail,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -914,6 +915,30 @@ export const getListPOIDByMOID = async(req,res) => {
             success: false,
             error: err,
             message: "error get poid listing by po"
+        });
+    }
+}
+
+
+export const getOrderInventoryDetail = async(req,res) => {
+    try {
+        const { ORDER_ID } = req.query;
+        const getData = await db.query(queryGetOrderInventoryDetail, {
+            replacements: {
+                OrderID: ORDER_ID
+            }, type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: `Success get inventory listing by Order ${ORDER_ID}`,
+            data: getData
+        });
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order inventory detail"
         });
     }
 }

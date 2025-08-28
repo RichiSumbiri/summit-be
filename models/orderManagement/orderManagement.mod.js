@@ -750,3 +750,29 @@ export const OrderMOListing = db.define("order_mo_listing", {
       },
     ],
   });
+
+
+  export const queryGetOrderInventoryDetail = `
+  SELECT
+   pl.ORDER_PO_ID,
+   pl.PO_STATUS,
+   pl.MO_NO,
+   pl.COUNTRY,
+   pl.FINAL_DELIVERY_DATE,
+   pl.PRODUCT_ITEM_ID,
+   pl.ITEM_COLOR_CODE,
+   pl.ITEM_COLOR_NAME,
+   pl.FINAL_DELIVERY_DATE,
+   opl.SIZE_CODE,
+   opl.ORDER_UOM,
+   opl.ORDER_QTY,
+   opl.MO_QTY,
+   opl.SHIPMENT_PO_QTY,
+   opl.SHIPPED_QTY,
+   0 AS ONHAND_QTY
+FROM
+    order_po_listing_size opl
+LEFT JOIN order_po_listing pl ON pl.ORDER_NO = opl.ORDER_NO AND pl.ORDER_PO_ID = opl.ORDER_PO_ID 
+LEFT JOIN order_po_header oph ON oph.ORDER_ID = pl.ORDER_NO 
+WHERE pl.SUMMIT_FLAG ='1' AND opl.ORDER_NO = :OrderID
+  `;
