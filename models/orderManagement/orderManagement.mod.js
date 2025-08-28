@@ -351,6 +351,8 @@ SELECT
   	oph.PLAN_SEW_DATE,
   	oph.PLAN_FIN_DATE,
   	oph.PLAN_PP_MEETING,
+  	TblOrderQty.TOTAL_ORDER_QTY AS ORDER_QTY,
+  	TblOrderQty.TOTAL_MO_QTY AS MO_QTY,
   	oph.CREATE_BY,
 	xuw.USER_NAME AS CREATE_NAME,
 	oph.CREATE_DATE,
@@ -372,7 +374,16 @@ LEFT JOIN size_chart_template sct ON sct.ID = oph.SIZE_TEMPLATE_ID
 LEFT JOIN xref_user_web xuw ON xuw.USER_ID = oph.CREATE_BY 
 LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = oph.UPDATE_BY 
 LEFT JOIN master_item_category mic ON mic.ITEM_CATEGORY_ID = mii.ITEM_CATEGORY_ID 
-LEFT JOIN master_item_type mit ON mit.ITEM_TYPE_ID = mic.ITEM_TYPE_ID 
+LEFT JOIN master_item_type mit ON mit.ITEM_TYPE_ID = mic.ITEM_TYPE_ID
+LEFT JOIN (
+	SELECT 
+		ORDER_NO,
+		SUM(ORDER_QTY) AS TOTAL_ORDER_QTY,
+		SUM(MO_QTY) AS TOTAL_MO_QTY
+	FROM order_po_listing
+	WHERE PO_STATUS IN('Open','Confirmed','Released to Production')
+	GROUP BY ORDER_NO
+) AS TblOrderQty ON TblOrderQty.ORDER_NO = oph.ORDER_ID 
 WHERE oph.ORDER_STATUS= :orderStatus
 `;
 
