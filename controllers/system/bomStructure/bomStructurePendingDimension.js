@@ -84,7 +84,11 @@ export const createPendingDimension = async (req, res) => {
             });
         }
 
-        const bomStructureList = await BomStructureListModel.ifnd(BOM_STRUCTURE_LIST_ID)
+        const bomStructureList = await BomStructureListModel.findOne({
+            where: {
+                BOM_STRUCTURE_LIST_ID
+            }}
+        )
 
         if (!bomStructureList) {
             return res.status(400).json({

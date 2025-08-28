@@ -61,6 +61,10 @@ const BomStructureModel = db.define(
             type: DataTypes.INTEGER,
             defaultValue: 0,
         },
+        IS_NOT_ALLOW_REVISION: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
+        },
         IS_ACTIVE: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
