@@ -4,6 +4,7 @@ import {
     getListPODetailByOrderID,
     getListPOIDByMOID,
     getLogOrderPOIDStatus,
+    getOrderHeaderLogStatus,
     getOrderInventoryDetail,
     getPOListingSizeByPOID, postPOListing, postPOSizeListing,
     postUpdateOrderPOIDStatus
@@ -17,6 +18,7 @@ router.get("/detail-header", getAllPODetailHeader);
 router.post("/po-detail", postPOListing);
 router.post("/po-size", postPOSizeListing);
 
+router.get("/po-header-status", getOrderHeaderLogStatus);
 router.get("/po-detail-status", getLogOrderPOIDStatus);
 router.post("/po-detail-status", postUpdateOrderPOIDStatus);
 
