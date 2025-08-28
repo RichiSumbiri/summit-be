@@ -388,6 +388,65 @@ export const BomStructureListDetailModel = db.define("bom_structure_list_detail"
     timestamps: false
 })
 
+export const BomStructureSizeModel = db.define("bom_structure_size", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    BOM_STRUCTURE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+    },
+    SIZE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    REV_ID: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: true,
+    }
+}, {
+    tableName: 'bom_structure_size',
+    timestamps: false,
+});
+BomStructureSizeModel.belongsTo(SizeChartMod, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE"
+})
+
+
+export const BomStructureColorModel = db.define("bom_structure_color", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    BOM_STRUCTURE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+    },
+    COLOR_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    REV_ID: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: true,
+    }
+}, {
+    tableName: 'bom_structure_color',
+    timestamps: false,
+});
+
+
+BomStructureColorModel.belongsTo(ColorChartMod, {
+    foreignKey: "COLOR_ID",
+    as: "COLOR"
+})
+
 
 BomStructureModel.belongsTo(BomStructureRevModel, {
     foreignKey: "LAST_REV_ID",

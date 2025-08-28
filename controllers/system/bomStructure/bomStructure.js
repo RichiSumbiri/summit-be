@@ -1,8 +1,13 @@
 import BomStructureModel, {
+    BomStructureColorModel,
     BomStructureListModel,
-    BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel
+    BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel, BomStructureSizeModel
 } from "../../../models/system/bomStructure.mod.js";
-import BomTemplateModel, {BomTemplateNote} from "../../../models/system/bomTemplate.mod.js";
+import BomTemplateModel, {
+    BomTemplateColor,
+    BomTemplateNote,
+    BomTemplateSize
+} from "../../../models/system/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../../models/orderManagement/orderManagement.mod.js";
 import {
     CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName
@@ -10,12 +15,11 @@ import {
 import Users from "../../../models/setup/users.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
-import {Op} from "sequelize";
-import BomTemplateListDetail from "../../../models/system/bomTemplateListDetail.mod.js";
+import {DataTypes, Op} from "sequelize";
 
 export const getAllBomStructures = async (req, res) => {
     try {
-        const {BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, LAST_REV_ID= 0} = req.query;
+        const {BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, LAST_REV_ID = 0} = req.query;
 
         const where = {IS_DELETED: false, LAST_REV_ID};
 
@@ -70,7 +74,12 @@ export const getAllBomStructures = async (req, res) => {
         });
 
         const validResponse = await Promise.all(structures.map(async (item) => {
-            const noteBomStructure = await BomStructureNoteModel.findOne({where: {REV_ID: LAST_REV_ID, BOM_STRUCTURE_ID: item.ID}})
+            const noteBomStructure = await BomStructureNoteModel.findOne({
+                where: {
+                    REV_ID: LAST_REV_ID,
+                    BOM_STRUCTURE_ID: item.ID
+                }
+            })
             return {
                 ...item.toJSON(),
                 NOTE: noteBomStructure?.NOTE ?? ""
@@ -115,7 +124,9 @@ export const getBomStructureById = async (req, res) => {
         const noteBomStructure = await BomStructureNoteModel.findOne({where: {REV_ID: structure.LAST_REV_ID}})
 
         return res.status(200).json({
-            success: true, message: "BOM structure retrieved successfully", data: {...structure, NOTE: noteBomStructure?.NOTE ?? ""},
+            success: true,
+            message: "BOM structure retrieved successfully",
+            data: {...structure, NOTE: noteBomStructure?.NOTE ?? ""},
         });
     } catch (error) {
         return res.status(500).json({
@@ -137,7 +148,7 @@ export const createBomStructure = async (req, res) => {
 
         const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
         if (!bomTemplate) {
-            return res.status(400).json({ status: false, message: "Bom template not found" })
+            return res.status(400).json({status: false, message: "Bom template not found"})
         }
 
         const bomNotes = await BomTemplateNote.findOne({
@@ -146,9 +157,29 @@ export const createBomStructure = async (req, res) => {
                 REV_ID: bomTemplate.LAST_REV_ID,
             },
         });
+
         if (!bomNotes.IS_APPROVE) {
-            return res.status(400).json({ status: false, message: "BOM template must be approved before it can be used in a BOM structure" })
+            return res.status(400).json({
+                status: false,
+                message: "BOM template must be approved before it can be used in a BOM structure"
+            })
         }
+
+        const bomTemplateColorList = await BomTemplateColor.findAll({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+                DELETED_AT: null
+            }
+        })
+
+        const bomTemplateSizeList = await BomTemplateSize.findAll({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+                DELETED_AT: null
+            }
+        })
 
         const getLastID = await BomStructureModel.findOne({
             order: [['ID', 'DESC']], raw: true
@@ -174,16 +205,21 @@ export const createBomStructure = async (req, res) => {
             BOM_STRUCTURE_ID: ID
         })
 
-        const bomTemplateListDetail = await  BomTemplateListDetail.findAll({
-            where: { DELETED_AT: null },
-            include: [{
-                model: BomTemplateListModel,
-                as: 'ITEM_LIST',
-                attributes: [],
-                where: { BOM_TEMPLATE_ID },
-                required: true
-            }],
-        })
+        if (bomTemplateColorList.length) {
+            await BomStructureColorModel.bulkCreate(bomTemplateColorList.map(item => ({
+                BOM_STRUCTURE_ID: ID,
+                COLOR_ID: item.COLOR_ID,
+                REV_ID: 0
+            })))
+        }
+
+        if (bomTemplateSizeList.length) {
+            await BomStructureSizeModel.bulkCreate(bomTemplateSizeList.map(item => ({
+                BOM_STRUCTURE_ID: ID,
+                SIZE_ID: item.SIZE_ID,
+                REV_ID: 0
+            })))
+        }
 
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {
@@ -195,15 +231,17 @@ export const createBomStructure = async (req, res) => {
             order: [['ID', 'ASC']]
         })
 
+
         if (bomTemplateList.length) {
-            await BomStructureListModel.bulkCreate(bomTemplateList.map((item, idx) => {
+            await BomStructureListModel.bulkCreate(await  Promise.all(bomTemplateList.map(async (item, idx) => {
                 const data = item.dataValues
+                const masterItemId = await MasterItemIdModel.findByPk(item.MASTER_ITEM_ID)
                 return {
                     ...data,
                     ID: null,
                     COMPANY_ID,
                     STATUS: "Open",
-                    CONSUMPTION_UOM: data.CONSUMPTION_UOM,
+                    CONSUMPTION_UOM: masterItemId.ITEM_UOM_BASE,
                     BOM_LINE_ID: idx + 1,
                     REV_ID: bomTemplate.dataValues.LAST_REV_ID,
                     BOM_STRUCTURE_ID: ID,
@@ -213,7 +251,7 @@ export const createBomStructure = async (req, res) => {
                     UPDATED_ID: null,
                     UPDATED_AT: null
                 }
-            }))
+            })))
         }
 
         const bomStructure = await BomStructureModel.findOne({

@@ -31,6 +31,13 @@ import {
     getAllBomStructureRevs,
     getBomStructureRevById, updateBomStructureRev
 } from "../../controllers/system/bomStructure/bomStructureRev.js";
+import {
+    createBomStructureColor,
+    createBomStructureSize, deleteBomStructureSize, getAllBomStructureColors,
+    getAllBomStructureSizes, getBomStructureColorById,
+    getBomStructureSizeById, updateBomStructureColor, updateBomStructureSize,
+    deleteBomStructureColor
+} from "../../controllers/system/bomStructure/bomStructureColorAndSize.js";
 
 const router = express.Router();
 
@@ -71,5 +78,17 @@ router.post("/pending-dimensions", createPendingDimension);
 router.put("/pending-dimensions/:id", updatePendingDimension);
 router.delete("/pending-dimensions/:id", deletePendingDimension);
 
+router.get("/size", getAllBomStructureSizes);
+router.get("/size/:id", getBomStructureSizeById);
+router.post("/size", createBomStructureSize);
+router.put("/size/:id", updateBomStructureSize);
+router.delete("/size/:id", deleteBomStructureSize);
+
+
+router.get("/color", getAllBomStructureColors);
+router.get("/color/:id", getBomStructureColorById);
+router.post("/color", createBomStructureColor);
+router.put("/color/:id", updateBomStructureColor);
+router.delete("/color/:id", deleteBomStructureColor);
 
 export default router;
