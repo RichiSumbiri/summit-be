@@ -217,9 +217,15 @@ export const postOrderHeader = async (req, res) => {
 export const getOrderHeaderLogStatus = async(req,res) => {
     try {
         const { ORDER_ID } = req.query;
+        if(!ORDER_ID){
+            return res.status(400).json({
+                success: false,
+                message: "failed get order header log status",
+            });    
+        }
         const getLog = await db.query(queryGetLogStatusOrderHeaderByOrderID, {
             replacements: {
-                ORDER_ID
+                orderID: ORDER_ID
             },
             type: QueryTypes.SELECT
         });

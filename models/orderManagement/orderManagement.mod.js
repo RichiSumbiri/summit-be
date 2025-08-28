@@ -823,14 +823,14 @@ WHERE pl.SUMMIT_FLAG ='1' AND opl.ORDER_NO = :OrderID
 
   export const queryGetLogStatusOrderHeaderByOrderID = `
   SELECT
-	LOG_ID,
-	opls.ORDER_ID,
-	opls.ORDER_STATUS,
-	opls.CREATE_BY,
-	xuw.USER_NAME AS CREATE_NAME,
-	opls.CREATE_DATE
-FROM
-	order_po_header_log_status opls
-LEFT JOIN xref_user_web xuw ON xuw.USER_ID = opls.CREATE_BY 
-WHERE opls.ORDER_ID = :orderID
+    LOG_ID,
+    opls.ORDER_ID,
+    opls.ORDER_STATUS,
+    opls.CREATE_BY,
+    xuw.USER_NAME AS CREATE_NAME,
+    opls.CREATE_DATE
+  FROM
+    order_po_header_log_status opls
+  LEFT JOIN xref_user_web xuw ON xuw.USER_ID = opls.CREATE_BY 
+  WHERE opls.ORDER_ID = :orderID
   `

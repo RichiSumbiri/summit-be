@@ -3,7 +3,6 @@ import { changeOrderHeaderStatus, getListOrderHeaderByStatus, getOrderHeaderLogS
 const router = express.Router();
 
 router.get("/:status", getListOrderHeaderByStatus);
-router.get("/get-status",getOrderHeaderLogStatus);
 router.post("/change-status", changeOrderHeaderStatus);
 router.post("/", postOrderHeader);
 
