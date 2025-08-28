@@ -102,6 +102,20 @@ export const editItemSMV = async (req, res) => {
       });
 
       if (!itemSMV) {
+        await productItemSmvDetail.create({
+          FG_ITEM_ID,
+          PRODUCTION_PROCESS_ID: data.PRODUCTION_PROCESS_ID,
+          DEFAULT_SMV: data.DEFAULT_SMV,
+          COSTING_SMV: data.COSTING_SMV,
+          PLAN_SMV: data.PLAN_SMV,
+          ACTUAL_SMV: data.ACTUAL_SMV,
+          UPDATED_BY: UPDATED_BY,
+          CREATED_BY: UPDATED_BY,
+        });
+        continue;
+      }
+
+      if (!itemSMV) {
         return errorResponse(
           res,
           null,
