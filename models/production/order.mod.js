@@ -55,7 +55,7 @@ export const OrderPoListing = db.define(
     ORDER_NO: { type: DataTypes.STRING(10), allowNull: true },
     ORDER_REFERENCE_PO_NO: { type: DataTypes.STRING(50), allowNull: true },
     ORDER_STYLE_DESCRIPTION: { type: DataTypes.STRING(255), allowNull: true },
-    ORDER_PO_ID: { type: DataTypes.STRING(10), allowNull: true },
+    ORDER_PO_ID: { type: DataTypes.STRING(10), allowNull: true, primaryKey: true },
     PO_STATUS: { type: DataTypes.STRING(100), allowNull: true },
     MO_AVAILABILITY: { type: DataTypes.BOOLEAN, allowNull: true },
     MO_NO: { type: DataTypes.STRING(10), allowNull: true },

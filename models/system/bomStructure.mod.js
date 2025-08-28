@@ -1,12 +1,53 @@
 import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
 import BomTemplateModel from "./bomTemplate.mod.js";
-import {OrderDetailHeader} from "../production/order.mod.js";
 import {ModelOrderPOHeader} from "../orderManagement/orderManagement.mod.js";
 import Users from "../setup/users.mod.js";
 import MasterItemIdModel from "./masterItemId.mod.js";
 import {ModelVendorDetail} from "./VendorDetail.mod.js";
+import MasterCompanyModel from "../setup/company.mod.js";
+import SizeChartMod from "./sizeChart.mod.js";
+import ColorChartMod from "./colorChart.mod.js";
+import {OrderPoListing} from "../production/order.mod.js";
 import BomTemplateListModel from "./bomTemplateList.mod.js";
+
+export const BomStructureRevModel = db.define("bom_structure_rev", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    TITLE: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    DESCRIPTION: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    BOM_STRUCTURE_ID: {
+        type: DataTypes.STRING(15),
+        allowNull: true
+    },
+    SEQUENCE: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    CREATED_AT: {
+        type: DataTypes.DATE,
+    },
+    UPDATED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    DELETED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true
+    }
+}, {
+    tableName: 'bom_structure_rev',
+    timestamps: false,
+})
 
 const BomStructureModel = db.define(
     "bom_structure",
@@ -16,13 +57,9 @@ const BomStructureModel = db.define(
             primaryKey: true,
             allowNull: false,
         },
-        NO_REVISION: {
+        LAST_REV_ID: {
             type: DataTypes.INTEGER,
             defaultValue: 0,
-        },
-        NOTE: {
-            type: DataTypes.TEXT,
-            allowNull: true,
         },
         IS_ACTIVE: {
             type: DataTypes.BOOLEAN,
@@ -75,25 +112,6 @@ const BomStructureModel = db.define(
     }
 )
 
-BomStructureModel.belongsTo(BomTemplateModel, {
-    foreignKey: "BOM_TEMPLATE_ID",
-    as: "BOM_TEMPLATE"
-})
-
-BomStructureModel.belongsTo(ModelOrderPOHeader, {
-    foreignKey: "ORDER_ID",
-    as: "ORDER"
-})
-
-BomStructureModel.belongsTo(Users, {
-    foreignKey: "CREATED_ID",
-    as: "CREATED"
-})
-
-BomStructureModel.belongsTo(Users, {
-    foreignKey: "UPDATED_ID",
-    as: "UPDATED"
-})
 
 export const BomStructureListModel = db.define(
     'bom_structure_list',
@@ -102,6 +120,14 @@ export const BomStructureListModel = db.define(
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
+        },
+        COMPANY_ID: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        REV_ID: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
         },
         BOM_LINE_ID: {
             type: DataTypes.INTEGER,
@@ -207,12 +233,182 @@ export const BomStructureListModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        CONSUMPTION_UOM: {
+            type: DataTypes.STRING(20),
+            allowNull: true
+        }
     },
     {
         tableName: 'bom_structure_list',
         timestamps: false,
     }
 );
+
+export const BomStructureNoteModel = db.define("bom_structure_notes", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    REV_ID: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    NOTE: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    BOM_STRUCTURE_ID: {
+        type: DataTypes.STRING(15),
+        allowNull: false
+    }
+}, {
+    tableName: "bom_structure_notes",
+    timestamps: false
+})
+
+
+export const BomStructurePendingDimension = db.define("bom_structure_pending_dimension", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    BOM_STRUCTURE_LIST_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    SIZE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    COLOR_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    CREATED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(33),
+        allowNull: true,
+    },
+    EXTRA_BOOKING: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    MATERIAL_ITEM_REQUIREMENT_QTY: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0
+    },
+    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0
+    },
+    BOOKING_APPROVAL_STATUS: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    EXTRA_APPROVAL_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    }
+}, {
+    tableName: "bom_structure_pending_dimension",
+    timestamps: false
+})
+export const BomStructureListDetailModel = db.define("bom_structure_list_detail", {
+    ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    BOM_STRUCTURE_LIST_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ITEM_SPLIT_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ITEM_DIMENSION_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    SIZE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    COLOR_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    IS_DELETED: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    DELETED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+    },
+    EXTRA_BOOKING: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    MATERIAL_ITEM_REQUIREMENT_QTY: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    BOOKING_APPROVAL_STATUS: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+    },
+    EXTRA_APPROVAL_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+}, {
+    tableName: "bom_structure_list_detail",
+    timestamps: false
+})
+
+
+BomStructureModel.belongsTo(BomStructureRevModel, {
+    foreignKey: "LAST_REV_ID",
+    as: "REV"
+})
+
+BomStructureModel.belongsTo(BomTemplateModel, {
+    foreignKey: "BOM_TEMPLATE_ID",
+    as: "BOM_TEMPLATE"
+})
+
+BomStructureModel.belongsTo(ModelOrderPOHeader, {
+    foreignKey: "ORDER_ID",
+    as: "ORDER"
+})
+
+BomStructureModel.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+BomStructureModel.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
+})
 
 BomStructureListModel.belongsTo(BomStructureModel, {
     foreignKey: "BOM_STRUCTURE_ID",
@@ -229,6 +425,11 @@ BomStructureListModel.belongsTo(ModelVendorDetail, {
     as: "VENDOR"
 })
 
+BomStructureListModel.belongsTo(MasterCompanyModel, {
+    foreignKey: "COMPANY_ID",
+    as: "COMPANY"
+})
+
 BomStructureListModel.belongsTo(Users, {
     foreignKey: "CREATED_ID",
     as: "CREATED"
@@ -239,5 +440,49 @@ BomStructureListModel.belongsTo(Users, {
     as: "UPDATED"
 })
 
+BomStructureNoteModel.belongsTo(BomStructureModel, {
+    foreignKey: "BOM_STRUCTURE_ID",
+    as: "BOM_STRUCTURE"
+})
+
+BomStructurePendingDimension.belongsTo(BomStructureListModel, {
+    foreignKey: "BOM_STRUCTURE_LIST_ID",
+    as: "BOM_STRUCTURE_LIST"
+})
+
+BomStructurePendingDimension.belongsTo(SizeChartMod, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE"
+})
+
+BomStructurePendingDimension.belongsTo(ColorChartMod, {
+    foreignKey: "COLOR_ID",
+    as: "COLOR"
+})
+
+BomStructurePendingDimension.belongsTo(OrderPoListing, {
+    foreignKey: "ORDER_PO_ID",
+    as: "ORDER_PO"
+})
+
+BomStructureListDetailModel.belongsTo(BomTemplateListModel, {
+    foreignKey: "ITEM_DIMENSION_ID",
+    as: "ITEM_DIMENSION"
+})
+
+BomStructureListDetailModel.belongsTo(ColorChartMod, {
+    foreignKey: "COLOR_ID",
+    as: "COLOR"
+})
+
+BomStructureListDetailModel.belongsTo(SizeChartMod, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE"
+})
+
+BomStructureListDetailModel.belongsTo(OrderPoListing, {
+    foreignKey: "ORDER_PO_ID",
+    as: "ORDER_PO"
+})
 
 export default BomStructureModel;
