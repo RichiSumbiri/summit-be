@@ -43,6 +43,8 @@ export const createBomTemplateList = async (req, res) => {
                 success: false, message: "Min Internal Customer is 0.000000",
             });
         }
+        const masterItemid = await MasterItemIdModel.findByPk(MASTER_ITEM_ID)
+        if (!masterItemid) return res.status(400).json({status: false, message: "Master item id not found"})
 
         const lastEntry = await BomTemplateListModel.findOne({
             where: {BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
@@ -63,6 +65,7 @@ export const createBomTemplateList = async (req, res) => {
             REV_ID,
             VENDOR_ID,
             NOTE,
+            CONSUMPTION_UOM: masterItemid?.ITEM_UOM_BASE,
             CREATED_ID,
             MASTER_ITEM_ID,
             CREATED_AT: new Date(),
@@ -150,6 +153,9 @@ export const cloneBomTemplateList = async (req, res) => {
             });
         }
 
+        const bomTemplate = await BomTemplateModel.findByPk(originalEntry.BOM_TEMPLATE_ID)
+        const masterItemid = await MasterItemIdModel.findByPk(bomTemplate.MASTER_ITEM_ID)
+
         const lastEntry = await BomTemplateListModel.findOne({
             where: {BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
@@ -166,6 +172,7 @@ export const cloneBomTemplateList = async (req, res) => {
             IS_SPLIT_COLOR: originalEntry.IS_SPLIT_COLOR,
             IS_SPLIT_SIZE: originalEntry.IS_SPLIT_SIZE,
             IS_SPLIT_STATUS: false,
+            CONSUMPTION_UOM: masterItemid?.ITEM_UOM_BASE,
             ITEM_POSITION: originalEntry.ITEM_POSITION,
             VENDOR_ID: originalEntry.VENDOR_ID,
             NOTE: originalEntry.NOTE,

@@ -98,6 +98,10 @@ const BomTemplateListModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        CONSUMPTION_UOM: {
+            type: DataTypes.STRING(255),
+            allowNull: true
+        }
     },
     {
         freezeTableName: true,

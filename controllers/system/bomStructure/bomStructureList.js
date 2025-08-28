@@ -147,6 +147,12 @@ export const createBomStructureList = async (req, res) => {
             });
         }
 
+        const masterItemId = await MasterItemIdModel.findByPk(MASTER_ITEM_ID)
+        if (!masterItemId) return res.status(404).json({
+            status:false,
+            message: "Master item id not found"
+        })
+
         const lastStructure = await BomStructureListModel.findOne({
             where: {BOM_STRUCTURE_ID: BOM_STRUCTURE_ID},
             order: [['BOM_LINE_ID', 'DESC']],
@@ -164,6 +170,7 @@ export const createBomStructureList = async (req, res) => {
             BOOKING_CONSUMPTION_PER_ITEM: BOOKING_CONSUMPTION_PER_ITEM || 0,
             PRODUCTION_CONSUMPTION_PER_ITEM: PRODUCTION_CONSUMPTION_PER_ITEM || 0,
             EXTRA_BOOKS: EXTRA_BOOKS || 0,
+            CONSUMPTION_UOM: masterItemId?.ITEM_UOM_BASE,
             IS_SPLIT_COLOR: IS_SPLIT_COLOR ? 1 : 0,
             IS_SPLIT_SIZE: IS_SPLIT_SIZE ? 1 : 0,
             IS_SPLIT_NO_PO: IS_SPLIT_NO_PO ? 1 : 0,
@@ -203,11 +210,13 @@ export const createBomStructureListBulk = async (req, res) => {
                 where: {BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID},
                 order: [['BOM_LINE_ID', 'DESC']],
             });
+            const masterItemId = await MasterItemIdModel.findByPk(item.MASTER_ITEM_ID)
             const nextId = lastStructure ? lastStructure.BOM_LINE_ID + 1 : 1;
             return {
                 BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID,
                 STATUS: item.STATUS || "Open",
                 MASTER_ITEM_ID: item.MASTER_ITEM_ID,
+                CONSUMPTION_UOM: masterItemId.CONSUMPTION_UOM,
                 BOM_LINE_ID: nextId + idx,
                 COMPANY_ID: item.COMPANY_ID,
                 STANDARD_CONSUMPTION_PER_ITEM: item.STANDARD_CONSUMPTION_PER_ITEM ?? 0,

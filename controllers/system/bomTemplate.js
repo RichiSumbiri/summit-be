@@ -255,6 +255,10 @@ export const cloneBomTemplate = async (req, res) => {
         }
 
         if (originalLists.length) {
+            const masterItemId = await  MasterItemIdModel.findOne({
+                ID: originalTemplate.MASTER_ITEM_ID
+            })
+
             await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
                 ...item.dataValues,
                 ID: null,
@@ -267,6 +271,7 @@ export const cloneBomTemplate = async (req, res) => {
                 UPDATED_ID: null,
                 UPDATED_AT: null,
                 CREATED_AT: new Date(),
+                CONSUMPTION_UOM: masterItemId?.ITEM_UOM_BASE || "",
             })));
         }
         return res.status(201).json({
@@ -400,6 +405,10 @@ export const saveNewRevision = async (req, res) => {
             DELETED_AT: null
         })))
 
+        const masterItemId = await  MasterItemIdModel.findOne({
+            ID: originalTemplate.MASTER_ITEM_ID
+        })
+
 
         await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
             ...item.dataValues,
@@ -412,6 +421,7 @@ export const saveNewRevision = async (req, res) => {
             UPDATED_ID: null,
             UPDATED_AT: null,
             REV_ID: newRev.ID,
+            CONSUMPTION_UOM: masterItemId?.ITEM_UOM_BASE || ""
         })));
 
         await BomTemplateNote.create({

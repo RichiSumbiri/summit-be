@@ -55,9 +55,11 @@ import {
   getListPayMethode,
 } from "../../controllers/system/masterFinance.js";
 import {
-  getMasterUOMAll,
+  createUomCategory, deleteUomCategory,
+  getAllUomCategories, getAllUomCategoryByItemid,
+  getMasterUOMAll, getUomCategoryById,
   getUOMConversion,
-  postUOMConversion,
+  postUOMConversion, updateUomCategory,
 } from "../../controllers/system/uom.js";
 import { getOrderType } from "../../controllers/setup/OrderType.js";
 import { getOffsetLink } from "../../controllers/setup/OffsetLink.js";
@@ -155,5 +157,16 @@ router.get("/payment-methode", getListPayMethode);
 
 // get packing method
 router.get("/packing-method", getAllPackingMethod);
+
+
+// uom category
+
+
+router.get("/uom-category-item/:masterItemid", getAllUomCategoryByItemid);
+router.get("/uom-category", getAllUomCategories);
+router.get("/uom-category/:id", getUomCategoryById);
+router.post("/uom-category", createUomCategory);
+router.put("/uom-category/:id", updateUomCategory);
+router.delete("/uom-category/:id", deleteUomCategory);
 
 export default router;

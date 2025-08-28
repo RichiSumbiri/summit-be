@@ -55,6 +55,29 @@ export const ModelMasterUOM = db.define('master_uom', {
   });
 
 
+export const UomCategories = db.define("uom_categories", {
+  ID: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  ITEM_CATEGORY_ID: {
+    type: DataTypes.STRING(20),
+    allowNull: false
+  },
+  ITEM_CATEGORY_CODE: {
+    type: DataTypes.STRING(100),
+    allowNull: false
+  },
+  UOM: {
+    type: DataTypes.STRING(5)
+  }
+}, {
+  freezeTableName: true,
+  timestamps: false
+})
+
+
   export const queryGetUOMConversion = `
   SELECT
 	uc.ID_CONVERSION,

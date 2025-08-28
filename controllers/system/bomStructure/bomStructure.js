@@ -203,7 +203,7 @@ export const createBomStructure = async (req, res) => {
                     ID: null,
                     COMPANY_ID,
                     STATUS: "Open",
-                    CONSUMPTION_UOM: "",
+                    CONSUMPTION_UOM: data.CONSUMPTION_UOM,
                     BOM_LINE_ID: idx + 1,
                     REV_ID: bomTemplate.dataValues.LAST_REV_ID,
                     BOM_STRUCTURE_ID: ID,
