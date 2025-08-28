@@ -465,7 +465,7 @@ export const postPOSizeListing = async (req, res) => {
     try {
         const { DataPOSize } = req.body;
         for (const data of DataPOSize) {
-            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }})
+            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true})
             if (CheckData) {
                 await OrderPoListingSize.update({
                     MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
@@ -492,8 +492,8 @@ export const postPOSizeListing = async (req, res) => {
                     PRODUCT_ID: data.PRODUCT_ID,
                     PRODUCT_TYPE: data.PRODUCT_TYPE,
                     PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
-                    ORDER_QTY: data.ORDER_QTY,
-                    MO_QTY: data.MO_QTY,
+                    ORDER_QTY: data.ORDER_QTY==='' ? null:data.ORDER_QTY,
+                    MO_QTY: data.MO_QTY==='' ? null:data.MO_QTY,
                     SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
                     ORDER_UOM: data.ORDER_UOM,
                     SHIPPED_QTY: data.SHIPPED_QTY,
@@ -512,7 +512,7 @@ export const postPOSizeListing = async (req, res) => {
                         ORDER_PO_ID: data.ORDER_PO_ID,
                         SIZE_CODE: data.SIZE_CODE,
                     }
-                });
+                });    
             } else {
                 if(data.SIZE_CODE && data.ORDER_QTY){
                     await OrderPoListingSize.create({
