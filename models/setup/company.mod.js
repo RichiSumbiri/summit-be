@@ -25,6 +25,13 @@ const MasterCompanyModel = db.define(
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
         },
+        IS_ACTIVE: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        DELETED_AT: {
+            type: DataTypes.DATE,
+        },
     },
     {
         tableName: "master_company",

@@ -1,7 +1,7 @@
 import MasterCompanyModel from "../../models/setup/company.mod.js";
 export const createCompany = async (req, res) => {
     try {
-        const { ID, NAME } = req.body;
+        const { ID, NAME, IS_ACTIVE } = req.body;
         if (!NAME || !ID) {
             return res.status(400).json({
                 success: false,
@@ -11,8 +11,10 @@ export const createCompany = async (req, res) => {
         const newCompany = await MasterCompanyModel.create({
             ID,
             NAME: NAME.trim(),
+            IS_ACTIVE,
             CREATED_AT: new Date(),
             UPDATED_AT: new Date(),
+            DELETED_AT: null
         });
         return res.status(201).json({
             success: true,
@@ -29,9 +31,14 @@ export const createCompany = async (req, res) => {
 };
 
 export const getAllCompanies = async (req, res) => {
-    try {
-        const companies = await MasterCompanyModel.findAll();
+    const {IS_ACTIVE = ""} = req.query
+    const where = {DELETED_AT: null}
+    if (IS_ACTIVE !== "") {
+        where.IS_ACTIVE = IS_ACTIVE === 'true';
+    }
 
+    try {
+        const companies = await MasterCompanyModel.findAll({where});
         return res.status(200).json({
             success: true,
             message: "Companies retrieved successfully",
@@ -70,10 +77,11 @@ export const getCompanyById = async (req, res) => {
         });
     }
 };
+
 export const updateCompany = async (req, res) => {
     try {
         const { id } = req.params;
-        const { NAME } = req.body;
+        const { NAME, IS_ACTIVE } = req.body;
 
         if (!NAME) {
             return  res.status(500).json({
@@ -91,6 +99,7 @@ export const updateCompany = async (req, res) => {
         }
         await company.update({
             NAME: NAME.trim(),
+            IS_ACTIVE,
             UPDATED_AT: new Date(),
         });
 
@@ -118,7 +127,9 @@ export const deleteCompany = async (req, res) => {
                 message: "Company not found",
             });
         }
-        await company.destroy();
+        await company.update({
+            DELETED_AT: new Date()
+        });
 
         return res.status(200).json({
             success: true,

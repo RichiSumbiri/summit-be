@@ -7,6 +7,7 @@ import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
 import {where} from "sequelize";
 import Users from "../../models/setup/users.mod.js";
+import BomTemplateListDetail from "../../models/system/bomTemplateListDetail.mod.js";
 
 export const createBomTemplateList = async (req, res) => {
     try {
@@ -42,6 +43,8 @@ export const createBomTemplateList = async (req, res) => {
                 success: false, message: "Min Internal Customer is 0.000000",
             });
         }
+        const masterItemid = await MasterItemIdModel.findByPk(MASTER_ITEM_ID)
+        if (!masterItemid) return res.status(400).json({status: false, message: "Master item id not found"})
 
         const lastEntry = await BomTemplateListModel.findOne({
             where: {BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
@@ -62,6 +65,7 @@ export const createBomTemplateList = async (req, res) => {
             REV_ID,
             VENDOR_ID,
             NOTE,
+            CONSUMPTION_UOM: masterItemid?.ITEM_UOM_BASE,
             CREATED_ID,
             MASTER_ITEM_ID,
             CREATED_AT: new Date(),
@@ -149,6 +153,9 @@ export const cloneBomTemplateList = async (req, res) => {
             });
         }
 
+        const bomTemplate = await BomTemplateModel.findByPk(originalEntry.BOM_TEMPLATE_ID)
+        const masterItemid = await MasterItemIdModel.findByPk(bomTemplate.MASTER_ITEM_ID)
+
         const lastEntry = await BomTemplateListModel.findOne({
             where: {BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
@@ -165,6 +172,7 @@ export const cloneBomTemplateList = async (req, res) => {
             IS_SPLIT_COLOR: originalEntry.IS_SPLIT_COLOR,
             IS_SPLIT_SIZE: originalEntry.IS_SPLIT_SIZE,
             IS_SPLIT_STATUS: false,
+            CONSUMPTION_UOM: masterItemid?.ITEM_UOM_BASE,
             ITEM_POSITION: originalEntry.ITEM_POSITION,
             VENDOR_ID: originalEntry.VENDOR_ID,
             NOTE: originalEntry.NOTE,
@@ -270,6 +278,20 @@ export const updateBomTemplateList = async (req, res) => {
             });
         }
 
+        if (IS_SPLIT_COLOR !== list.IS_SPLIT_COLOR || IS_SPLIT_SIZE !== list.IS_SPLIT_SIZE) {
+            const alreadyListDetail = await BomTemplateListDetail.findOne({
+                where: {
+                    BOM_TEMPLATE_LIST_ID: id, DELETED_AT: null
+                }
+            })
+
+            if (alreadyListDetail) {
+                return res.status(400).json({
+                    success: false, message: "Cannot change because split detail already exist",
+                })
+            }
+        }
+
         await list.update({
             STATUS,
             COSTING_CONSUMER_PER_ITEM,
@@ -308,10 +330,21 @@ export const updateBomTemplateListStatus = async (req, res) => {
 
         for (let i = 0; i < listData.length; i++) {
             const {ID, STATUS, REV_ID, UPDATED_ID} = listData[i]
-            const request = {STATUS, UPDATED_ID, REV_ID}
-            if (STATUS !== "Open") {
-                request.IS_SPLIT_STATUS = true
+            const request = {STATUS, UPDATED_ID, REV_ID, UPDATED_AT: new Date()}
+            const listDetail = await BomTemplateListDetail.findOne({
+                where: {
+                    BOM_TEMPLATE_LIST_ID: ID, DELETED_AT: null
+                }
+            })
+            if (listDetail) request.IS_SPLIT_STATUS = true
+            if (STATUS === "Confirmed") {
+                if (!listDetail) {
+                    return res.status(500).json({status: false, message: "Cannot change to confirm because split detail not found "})
+                }
+                request.APPROVE_BY = UPDATED_ID
+                request.APPROVE_DATE = new Date()
             }
+
             await BomTemplateListModel.update(request, {
                 where: {
                     ID: ID
@@ -346,19 +379,9 @@ export const updateBomTemplateListSingle = async (req, res) => {
             });
         }
 
-        const resp = await list.update({
+        await list.update({
             ...reqBody, UPDATED_AT: new Date(), UPDATED_ID: USER_ID
         });
-
-        if (resp.dataValues.STATUS !== "Open") {
-            await BomTemplateListModel.update({
-                IS_SPLIT_STATUS: true, UPDATED_AT: new Date(),
-            }, {
-                where: {
-                    ID: resp.dataValues.ID
-                }
-            });
-        }
 
         return res.status(200).json({
             success: true, message: "BOM template list updated successfully",
