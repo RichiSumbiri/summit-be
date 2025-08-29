@@ -150,6 +150,7 @@ export const postOrderHeader = async (req, res) => {
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
+                SIZE_TEMPLATE_LIST: JSON.stringify(DataHeader.SIZE_TEMPLATE_LIST),
                 PRODUCT_ID: DataHeader.PRODUCT_ID,
                 UPDATE_BY: DataHeader.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -195,6 +196,7 @@ export const postOrderHeader = async (req, res) => {
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
                 SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
+                SIZE_TEMPLATE_LIST: JSON.stringify(DataHeader.SIZE_TEMPLATE_LIST),
                 PRODUCT_ID: DataHeader.PRODUCT_ID,
                 CREATE_BY: DataHeader.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -398,9 +400,8 @@ export const postPOListing = async (req, res) => {
                 PRODUCTION_MONTH: moment(DataPOID.PRODUCTION_MONTH, "YYYY-MM").format("MMMM/YYYY"),
                 SHIPPING_TERMS_CODE: DataPOID.SHIPPING_TERMS_CODE,
                 PRICE_TYPE: DataPOID.PRICE_TYPE,
-                UNIT_PRICE: DataPOID.UNIT_PRICE,
+                UNIT_PRICE_FINAL: DataPOID.UNIT_PRICE,
                 MO_COST: DataPOID.MO_COST,
-                REVISED_UNIT_PRICE: DataPOID.REVISED_UNIT_PRICE,
                 ORDER_UOM: DataPOID.ORDER_UOM,
                 ORDER_QTY: DataPOID.ORDER_QTY,
                 MO_QTY: DataPOID.MO_QTY,
@@ -466,8 +467,8 @@ export const postPOListing = async (req, res) => {
                 SHIPPING_TERMS_CODE: DataPOID.SHIPPING_TERMS_CODE,
                 PRICE_TYPE: DataPOID.PRICE_TYPE,
                 UNIT_PRICE: DataPOID.UNIT_PRICE,
+                UNIT_PRICE_FINAL: DataPOID.UNIT_PRICE,
                 MO_COST: DataPOID.MO_COST,
-                REVISED_UNIT_PRICE: DataPOID.REVISED_UNIT_PRICE,
                 ORDER_UOM: DataPOID.ORDER_UOM,
                 ORDER_QTY: DataPOID.ORDER_QTY,
                 MO_QTY: DataPOID.MO_QTY,
@@ -545,6 +546,7 @@ export const postPOSizeListing = async (req, res) => {
                         MO_QTY: data.MO_QTY==='' ? null:data.MO_QTY,
                         SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
                         ORDER_UOM: data.ORDER_UOM,
+                        UNIT_PRICE: data.UNIT_PRICE,
                         SHIPPED_QTY: data.SHIPPED_QTY,
                         DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
                         DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
@@ -559,6 +561,7 @@ export const postPOSizeListing = async (req, res) => {
                     }, {
                         where: {
                             ORDER_PO_ID: data.ORDER_PO_ID,
+                            SIZE_ID: data.SIZE_ID,
                             SIZE_CODE: data.SIZE_CODE,
                         }
                     });
@@ -596,6 +599,7 @@ export const postPOSizeListing = async (req, res) => {
                         SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
                         ORDER_UOM: data.ORDER_UOM,
                         SHIPPED_QTY: data.SHIPPED_QTY,
+                        UNIT_PRICE: data.UNIT_PRICE,
                         DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
                         DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
                         COUNTRY: data.COUNTRY,
@@ -604,9 +608,9 @@ export const postPOSizeListing = async (req, res) => {
                         PRODUCTION_MONTH: data.PRODUCTION_MONTH,
                         MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                         SIZE_ID: data.SIZE_ID,
+                        SIZE_CODE: data.SIZE_CODE,
                         SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
                         ORDER_PO_ID: data.ORDER_PO_ID,
-                        SIZE_CODE: data.SIZE_CODE,
                         CREATE_BY: data.CREATE_BY,
                         SUMMIT_FLAG: 1
                     });
