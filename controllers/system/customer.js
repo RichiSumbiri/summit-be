@@ -587,12 +587,27 @@ export const deleteProdDivisionById = async (req, res) => {
 export const getListProdSeason = async (req, res) => {
     try {
         const { custId } = req.params;
+        const { is_dropdown } = req.query;
 
-        const seasons = await CustomerProductSeason.findAll({
-            where: { CTC_ID: custId, IS_DELETE: { [Op.or]: [0, null] } },
+        const queryOptions = {
+            where: {
+                CTC_ID: custId,
+                IS_DELETE: { [Op.or]: [0, null] }
+            },
             order: [["CTPROD_SESION_ID", "ASC"]],
             raw: true
-        });
+        };
+
+        if (is_dropdown === "true") {
+            queryOptions.attributes = [
+                "CTPROD_SESION_ID",
+                "CTPROD_SESION_CODE",
+                "CTPROD_SESION_NAME",
+                "CTPROD_SESION_YEAR",
+            ];
+        }
+
+        const seasons = await CustomerProductSeason.findAll(queryOptions);
 
         return res.json({ data: seasons });
     } catch (error) {
@@ -600,6 +615,7 @@ export const getListProdSeason = async (req, res) => {
         res.status(500).json({ error, message: "Error fetching Product Season" });
     }
 };
+
 
 // ✅ Get Specific Product Season
 export const getSpesificProdSeason = async (req, res) => {
