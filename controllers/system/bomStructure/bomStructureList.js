@@ -280,6 +280,16 @@ export const updateBomStructureList = async (req, res) => {
             });
         }
 
+        const isSplitNoPO = body.IS_SPLIT_NO_PO ? body.IS_SPLIT_NO_PO : data.IS_SPLIT_NO_PO;
+        const isSplitColor = body.IS_SPLIT_COLOR ? body.IS_SPLIT_COLOR : data.IS_SPLIT_COLOR;
+
+        if (isSplitNoPO && isSplitColor) {
+            return res.status(400).json({
+                success: false,
+                message: "Split po no and Split color cannot both be true at the same time",
+            });
+        }
+
         await data.update({
             ...body, UPDATED_ID: req.body.UPDATED_ID || null, UPDATED_AT: new Date(),
         });

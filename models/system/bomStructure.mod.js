@@ -10,6 +10,7 @@ import SizeChartMod from "./sizeChart.mod.js";
 import ColorChartMod from "./colorChart.mod.js";
 import {OrderPoListing} from "../production/order.mod.js";
 import BomTemplateListModel from "./bomTemplateList.mod.js";
+import MasterItemDimensionModel from "./masterItemDimention.mod.js";
 
 export const BomStructureRevModel = db.define("bom_structure_rev", {
     ID: {
@@ -276,122 +277,6 @@ export const BomStructureNoteModel = db.define("bom_structure_notes", {
 })
 
 
-export const BomStructurePendingDimension = db.define("bom_structure_pending_dimension", {
-    ID: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
-    },
-    BOM_STRUCTURE_LIST_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    SIZE_ID: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
-    },
-    COLOR_ID: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
-    },
-    CREATED_AT: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-    ORDER_PO_ID: {
-        type: DataTypes.STRING(33),
-        allowNull: true,
-    },
-    EXTRA_BOOKING: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0
-    },
-    MATERIAL_ITEM_REQUIREMENT_QTY: {
-        type: DataTypes.DOUBLE,
-        defaultValue: 0
-    },
-    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: {
-        type: DataTypes.DOUBLE,
-        defaultValue: 0
-    },
-    BOOKING_APPROVAL_STATUS: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    },
-    EXTRA_APPROVAL_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: true
-    }
-}, {
-    tableName: "bom_structure_pending_dimension",
-    timestamps: false
-})
-export const BomStructureListDetailModel = db.define("bom_structure_list_detail", {
-    ID: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    },
-    BOM_STRUCTURE_LIST_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    ITEM_SPLIT_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    ITEM_DIMENSION_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    SIZE_ID: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
-    },
-    COLOR_ID: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
-    },
-    IS_DELETED: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-    },
-    DELETED_AT: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-    ORDER_PO_ID: {
-        type: DataTypes.STRING(30),
-        allowNull: true,
-    },
-    EXTRA_BOOKING: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-        allowNull: true,
-    },
-    MATERIAL_ITEM_REQUIREMENT_QTY: {
-        type: DataTypes.DOUBLE,
-        defaultValue: 0,
-        allowNull: true,
-    },
-    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: {
-        type: DataTypes.DOUBLE,
-        defaultValue: 0,
-        allowNull: true,
-    },
-    BOOKING_APPROVAL_STATUS: {
-        type: DataTypes.BOOLEAN,
-        allowNull: true,
-    },
-    EXTRA_APPROVAL_ID: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-}, {
-    tableName: "bom_structure_list_detail",
-    timestamps: false
-})
-
 export const BomStructureSizeModel = db.define("bom_structure_size", {
     ID: {
         type: DataTypes.INTEGER,
@@ -445,6 +330,234 @@ export const BomStructureColorModel = db.define("bom_structure_color", {
     timestamps: false,
 });
 
+export const BomStructureListDetailModel = db.define("bom_structure_list_detail", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    BOM_STRUCTURE_LIST_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ITEM_SPLIT_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    COLOR_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    SIZE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    ITEM_DIMENSION_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ORDER_QUANTITY: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    STANDARD_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    INTERNAL_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    BOOKING_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    PRODUCTION_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    EXTRA_BOOKS: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    MATERIAL_ITEM_REQUIREMENT_QUANTITY: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    EXTRA_REQUIRE_QUANTITY: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    TOTAL_EXTRA_PURCHASE_PLAN: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    IS_BOOKING: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        allowNull: true,
+    },
+    EXTRA_APPROVAL_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    CREATED_AT: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: true,
+    },
+    CREATED_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    UPDATED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    UPDATED_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    }
+}, {
+    tableName: 'bom_structure_list_detail',
+    timestamps: false,
+});
+
+export const BomStructurePendingDimension = db.define("bom_structure_pending_dimension", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    BOM_STRUCTURE_LIST_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    SIZE_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    COLOR_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+    },
+    ORDER_QUANTITY: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
+    MATERIAL_ITEM_REQUIREMENT_QTY: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    EXTRA_APPROVAL_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ITEM_DIMENSION_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    STANDARD_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    INTERNAL_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    BOOKING_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    PRODUCTION_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    EXTRA_REQUIRE_QTY: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    EXTRA_BOOKS: {
+        type: DataTypes.DOUBLE,
+        allowNull: true,
+    },
+    CREATED_AT: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: true,
+    },
+    IS_BOOKING: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        allowNull: true,
+    }
+}, {
+    tableName: 'bom_structure_pending_dimension',
+    timestamps: false,
+});
+
+BomStructurePendingDimension.belongsTo(BomStructureListModel, {
+    foreignKey: 'BOM_STRUCTURE_LIST_ID',
+    as: 'BOM_STRUCTURE_LIST',
+});
+
+BomStructurePendingDimension.belongsTo(ColorChartMod, {
+    foreignKey: 'COLOR_ID',
+    targetKey: 'COLOR_ID',
+    as: 'COLOR',
+});
+
+BomStructurePendingDimension.belongsTo(SizeChartMod, {
+    foreignKey: 'SIZE_ID',
+    targetKey: 'SIZE_ID',
+    as: 'SIZE',
+});
+
+BomStructurePendingDimension.belongsTo(MasterItemDimensionModel, {
+    foreignKey: 'ITEM_DIMENSION_ID',
+    as: 'ITEM_DIMENSION',
+});
+
+BomStructurePendingDimension.belongsTo(OrderPoListing, {
+    foreignKey: "ORDER_PO_ID",
+    as: "ORDER_PO"
+})
+
+BomStructureListDetailModel.belongsTo(BomStructureListModel, {
+    foreignKey: 'BOM_STRUCTURE_LIST_ID',
+    as: 'BOM_STRUCTURE_LIST',
+});
+
+BomStructureListDetailModel.belongsTo(ColorChartMod, {
+    foreignKey: 'COLOR_ID',
+    targetKey: 'COLOR_ID',
+    as: 'COLOR',
+});
+
+BomStructureListDetailModel.belongsTo(SizeChartMod, {
+    foreignKey: 'SIZE_ID',
+    targetKey: 'SIZE_ID',
+    as: 'SIZE',
+});
+
+BomStructureListDetailModel.belongsTo(MasterItemDimensionModel, {
+    foreignKey: 'ITEM_DIMENSION_ID',
+    as: 'ITEM_DIMENSION',
+});
 
 BomStructureColorModel.belongsTo(ColorChartMod, {
     foreignKey: "COLOR_ID",
@@ -512,44 +625,5 @@ BomStructureNoteModel.belongsTo(BomStructureModel, {
     as: "BOM_STRUCTURE"
 })
 
-BomStructurePendingDimension.belongsTo(BomStructureListModel, {
-    foreignKey: "BOM_STRUCTURE_LIST_ID",
-    as: "BOM_STRUCTURE_LIST"
-})
-
-BomStructurePendingDimension.belongsTo(SizeChartMod, {
-    foreignKey: "SIZE_ID",
-    as: "SIZE"
-})
-
-BomStructurePendingDimension.belongsTo(ColorChartMod, {
-    foreignKey: "COLOR_ID",
-    as: "COLOR"
-})
-
-BomStructurePendingDimension.belongsTo(OrderPoListing, {
-    foreignKey: "ORDER_PO_ID",
-    as: "ORDER_PO"
-})
-
-BomStructureListDetailModel.belongsTo(BomTemplateListModel, {
-    foreignKey: "ITEM_DIMENSION_ID",
-    as: "ITEM_DIMENSION"
-})
-
-BomStructureListDetailModel.belongsTo(ColorChartMod, {
-    foreignKey: "COLOR_ID",
-    as: "COLOR"
-})
-
-BomStructureListDetailModel.belongsTo(SizeChartMod, {
-    foreignKey: "SIZE_ID",
-    as: "SIZE"
-})
-
-BomStructureListDetailModel.belongsTo(OrderPoListing, {
-    foreignKey: "ORDER_PO_ID",
-    as: "ORDER_PO"
-})
 
 export default BomStructureModel;
