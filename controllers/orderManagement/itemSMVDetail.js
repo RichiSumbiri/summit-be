@@ -1,7 +1,7 @@
 import { col, Op, where } from "sequelize";
 import { orderitemSMV } from "../../models/orderManagement/orderitemSMV.mod.js";
 import { ModelOrderPOHeader } from "../../models/orderManagement/orderManagement.mod.js";
-import productItemSmvDetail from "../../models/orderManagement/ProductItemSmvDetail.mod.js";
+import productItemSmvDetail from "../../models/orderManagement/productItemSmvDetail.mod.js";
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 import {
