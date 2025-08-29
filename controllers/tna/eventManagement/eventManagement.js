@@ -5,11 +5,6 @@ import {
 import MasterEventType from "../../../models/system/masterEventType.mod.js";
 import eventFramework from "../../../models/tna/eventFramework.mod.js";
 import eventTemplate from "../../../models/tna/eventTemplate.mod.js";
-import {
-  CustomerDetail,
-  CustomerProductDivision,
-  CustomerProductSeason,
-} from "../../../models/system/customer.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import eventTemplateLine from "../../../models/tna/eventTemplateLine.mod.js";
 import eventMaster from "../../../models/tna/eventMaster.mod.js";
@@ -19,23 +14,104 @@ import masterProductionProcess from "../../../models/system/masterProductionProc
 import masterOffsetLink from "../../../models/system/masterOffsetLink.mod.js";
 import { ModelOrderPOHeader } from "../../../models/orderManagement/orderManagement.mod.js";
 import { OrderPoListing } from "../../../models/production/order.mod.js";
-import {
-  EventDiaryHeader,
-  EventDiaryLine,
-} from "../../../models/tna/eventDiary.mod.js";
+import { EventDiaryHeader } from "../../../models/tna/eventDiary.mod.js";
+import { Op, or } from "sequelize";
 
 export const getEventManagement = async (req, res) => {
   try {
-    // const { ORDER_ID, TEMPLATE_ID } = req.query;
+    const {
+      CUSTOMER_ORDER_TYPE,
+      CUSTOMER_ORDER_TYPE_FROM,
+      CUSTOMER_ORDER_TYPE_TO,
+      CUSTOMER_SEASON_ID,
+      CUSTOMER_ID,
+      CUSTOMER_DIVISION_ID,
+      ORDER_ID,
+      EVENT_TYPE_ID,
+      EVENT_GROUP_ID,
+      COMMITMENT_DATE_FROM,
+      COMMITMENT_DATE_TO,
+      DISPARITY,
+      IS_COMPLETE,
+      IS_IN_PROGRESS,
+      IS_OVERDUE,
+      PRODUCTION_MONTH,
+    } = req.query;
+
+    //event framework filter
+    const whereFramework = {};
+
+    if (ORDER_ID) {
+      whereFramework.ORDER_ID = ORDER_ID;
+    }
+
+    //po header filter
+    const wherePOHeader = {};
+
+    if (
+      CUSTOMER_ORDER_TYPE_FROM &&
+      CUSTOMER_ORDER_TYPE_TO &&
+      CUSTOMER_ORDER_TYPE
+    ) {
+      const range = {
+        [Op.between]: [
+          new Date(CUSTOMER_ORDER_TYPE_FROM).setHours(0, 0, 0, 0),
+          new Date(CUSTOMER_ORDER_TYPE_TO).setHours(23, 59, 59, 999),
+        ],
+      };
+
+      if (CUSTOMER_ORDER_TYPE.toLowerCase() === "all") {
+        wherePOHeader[Op.or] = [
+          { PLAN_CUT_DATE: range },
+          { PLAN_SEW_DATE: range },
+          { PLAN_FIN_DATE: range },
+          { PLAN_PP_MEETING: range },
+          { ORDER_CONFIRMED_DATE: range },
+        ];
+      } else {
+        wherePOHeader[CUSTOMER_ORDER_TYPE] = range;
+      }
+    }
+
+    if (CUSTOMER_ID) {
+      wherePOHeader.CUSTOMER_ID = CUSTOMER_ID;
+    }
+
+    if (CUSTOMER_SEASON_ID) {
+      wherePOHeader.CUSTOMER_SEASON_ID = CUSTOMER_SEASON_ID;
+    }
+
+    if (CUSTOMER_DIVISION_ID) {
+      wherePOHeader.CUSTOMER_DIVISION_ID = CUSTOMER_DIVISION_ID;
+    }
+
+    //event master filter
+    const whereEventMaster = {};
+
+    if (EVENT_TYPE_ID) {
+      whereEventMaster.EVENT_TYPE_ID = EVENT_TYPE_ID;
+    }
+
+    if (EVENT_GROUP_ID) {
+      whereEventMaster.EVENT_GROUP_ID = EVENT_GROUP_ID;
+    }
+
+    //diary header filter
+    const whereEventDiary = {};
+
+    if (COMMITMENT_DATE_FROM && COMMITMENT_DATE_TO) {
+      whereEventDiary.COMMITMENT_DATE = {
+        [Op.between]: [
+          new Date(COMMITMENT_DATE_FROM),
+          new Date(COMMITMENT_DATE_TO),
+        ],
+      };
+    }
 
     const eventFrameworkData = await eventFramework.findAll({
+      attributes: ["ID", "ORDER_ID", "TEMPLATE_ID"],
+      where: whereFramework,
       include: [
-        {
-          model: Users,
-          as: "generated_by",
-          required: true,
-          attributes: [["USER_INISIAL", "GENERATED_BY"]],
-        },
         {
           model: ModelOrderPOHeader,
           as: "order_po_header",
@@ -45,33 +121,16 @@ export const getEventManagement = async (req, res) => {
             "ORDER_CONFIRMED_DATE",
             "PLAN_CUT_DATE",
             "PLAN_SEW_DATE",
+            "ORDER_REFERENCE_PO_NO",
+            "ORDER_STYLE_DESCRIPTION",
           ],
-          include: [
-            {
-              model: CustomerDetail,
-              as: "customer_detail",
-              required: true,
-              attributes: ["CTC_NAME"],
-            },
-            {
-              model: CustomerProductDivision,
-              as: "customer_product_division",
-              required: true,
-              attributes: ["CTPROD_DIVISION_NAME"],
-            },
-            {
-              model: CustomerProductSeason,
-              as: "customer_product_season",
-              required: true,
-              attributes: ["CTPROD_SESION_NAME"],
-            },
-          ],
+          where: wherePOHeader,
         },
         {
           model: eventTemplate,
           as: "event_template",
           required: true,
-          attributes: ["TEMPLATE_ID", "TEMPLATE_NAME"],
+          attributes: ["TEMPLATE_ID"],
           include: [
             {
               model: eventTemplateLine,
@@ -81,6 +140,7 @@ export const getEventManagement = async (req, res) => {
               where: { IS_ACTIVE: 1 },
               attributes: [
                 "TEMPLATE_LINE_ID",
+                "TEMPLATE_ID",
                 "EVENT_OFFSET_DAYS",
                 "IS_ACTIVE",
                 "IS_SPLIT_EVENT",
@@ -94,6 +154,7 @@ export const getEventManagement = async (req, res) => {
                   as: "event_master",
                   required: true,
                   attributes: ["EVENT_ID", "EVENT_NAME"],
+                  where: whereEventMaster,
                   include: [
                     {
                       model: modelMasterDepartmentFx,
@@ -142,8 +203,21 @@ export const getEventManagement = async (req, res) => {
     for (const record of eventFrameworkData) {
       const plainData = record.get({ plain: true });
 
+      const wherePoLine = {};
+
+      wherePoLine.ORDER_NO = plainData.ORDER_ID;
+
+      if (PRODUCTION_MONTH) {
+        const [year, month] = PRODUCTION_MONTH.split("-");
+        const monthName = new Date(`${year}-${month}-01`).toLocaleString(
+          "en-US",
+          { month: "long" }
+        );
+        wherePoLine.PRODUCTION_MONTH = `${monthName}/${year}`;
+      }
+
       const orders = await OrderPoListing.findAll({
-        where: { ORDER_NO: plainData.ORDER_ID },
+        where: wherePoLine,
       });
 
       const orderMap = Object.fromEntries(
@@ -167,13 +241,23 @@ export const getEventManagement = async (req, res) => {
       const orderIds = orders.map((o) => o.ORDER_PO_ID).concat(null);
 
       const diaries = await EventDiaryHeader.findAll({
+        attributes: [
+          "EVENT_DIARY_ID",
+          "ORDER_PO_ID",
+          "ORDER_ID",
+          "EVENT_ID",
+          "EVENT_NOTE",
+          "EVENT_STATUS",
+          "COMMITMENT_DATE",
+          "COMPLETED_AT",
+        ],
         where: {
           ORDER_PO_ID: orderIds,
           EVENT_ID: eventIds,
           ORDER_ID: plainData.ORDER_ID,
+          ...whereEventDiary,
         },
         include: [
-          { model: EventDiaryLine, as: "event_diary_lines", required: false },
           {
             model: Users,
             as: "completed_by",
@@ -211,8 +295,11 @@ export const getEventManagement = async (req, res) => {
         }
       }
 
-      plainData.order_po_header.FINAL_DELIVERY_DATE =
-        orders[0]?.FINAL_DELIVERY_DATE;
+      plainData.order_po_header.FINAL_DELIVERY_DATE = earliestDeliveryDate;
+      plainData.order_po_header.CUSTOMER_NAME = orders[0]?.CUSTOMER_NAME;
+      plainData.order_po_header.CUSTOMER_DIVISION =
+        orders[0]?.CUSTOMER_DIVISION;
+      plainData.order_po_header.CUSTOMER_SEASON = orders[0]?.CUSTOMER_SEASON;
 
       plainData.event_template.event_template_lines = new_template_line;
 
@@ -265,22 +352,89 @@ export const getEventManagement = async (req, res) => {
           const targetDate = new Date(offsetDate);
           targetDate.setDate(targetDate.getDate() + data.EVENT_OFFSET_DAYS);
           data.target_date = targetDate;
+
+          const now = new Date();
+          let status = null;
+
+          if (data?.diary) {
+            status = "In Progress";
+
+            if (data?.diary?.EVENT_STATUS?.toLowerCase() === "complete") {
+              status = "Completed";
+            } else if (targetDate && now > targetDate) {
+              status = "Overdue";
+            }
+          }
+
+          data.main_status = status;
         } else {
           data.variance_days = null;
           data.target_date = null;
+          data.main_status = null;
         }
       }
 
-      results.push(plainData);
+      plainData.event_template.event_template_lines =
+        plainData.event_template.event_template_lines.filter((line) => {
+          if (!line.diary) return false;
+
+          // Status check
+          let statusOk = true;
+          if (IS_COMPLETE || IS_IN_PROGRESS || IS_OVERDUE) {
+            statusOk = false;
+            switch (line.main_status) {
+              case "Completed":
+                if (IS_COMPLETE === "true") statusOk = true;
+                break;
+              case "In Progress":
+                if (IS_IN_PROGRESS === "true") statusOk = true;
+                break;
+              case "Overdue":
+                if (IS_OVERDUE === "true") statusOk = true;
+                break;
+            }
+          }
+
+          // Disparity check
+          let disparityOk = true;
+          if (DISPARITY) {
+            const commitmentDate = line.diary?.COMMITMENT_DATE
+              ? new Date(line.diary.COMMITMENT_DATE)
+              : null;
+            const targetDate = line.target_date;
+
+            if (!commitmentDate || !targetDate) disparityOk = false;
+
+            if (
+              DISPARITY === "commitment_late" &&
+              !(commitmentDate > targetDate)
+            )
+              disparityOk = false;
+            if (DISPARITY === "target_late" && !(targetDate > commitmentDate))
+              disparityOk = false;
+          }
+
+          return statusOk && disparityOk;
+        });
+
+      // Only push plainData if there are remaining lines
+      if (plainData.event_template.event_template_lines.length > 0) {
+        results.push(plainData);
+      }
     }
 
     return successResponse(
       res,
       results,
-      "Event framework fetched successfully",
+      "Event management fetched successfully",
       200
     );
   } catch (err) {
-    return errorResponse(res, err, "Failed to fetch event framework data", 500);
+    return errorResponse(
+      res,
+      err,
+      "Failed to fetch event management data",
+      500
+    );
   }
 };
