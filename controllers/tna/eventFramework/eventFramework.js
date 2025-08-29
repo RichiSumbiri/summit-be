@@ -424,7 +424,12 @@ export const generatetEventFramework = async (req, res) => {
 
 export const getOrderManagementDropdown = async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    const { page, limit, CUSTOMER_ID } = req.query;
+
+    const where = {};
+    if (CUSTOMER_ID) {
+      where.CUSTOMER_ID = CUSTOMER_ID;
+    }
 
     const listDetail = await ModelOrderPOHeader.findAndCountAll({
       attributes: [
@@ -440,6 +445,7 @@ export const getOrderManagementDropdown = async (req, res) => {
         "CONTRACT_EXPIRED_DATE",
         "PROJECTION_ORDER_ID",
       ],
+      where,
       include: [
         {
           model: MasterItemIdModel,
