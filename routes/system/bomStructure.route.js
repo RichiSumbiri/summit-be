@@ -1,9 +1,10 @@
 import express from "express";
 import {
+    approveStatusBomStructure,
     createBomStructure,
     deleteBomStructure,
     getAllBomStructures,
-    getBomStructureById,
+    getBomStructureById, importBomTemplateListToStructure,
     updateBomStructure,
 } from "../../controllers/system/bomStructure/bomStructure.js";
 import {
@@ -45,6 +46,7 @@ router.get("/master/", getAllBomStructures);
 router.get("/master/:id", getBomStructureById);
 router.post("/master/", createBomStructure);
 router.put("/master/:id", updateBomStructure);
+router.patch("/master/status/:ID", approveStatusBomStructure)
 router.delete("/master/:id", deleteBomStructure);
 
 router.get("/list", getAllBomStructureList);
@@ -53,6 +55,7 @@ router.post("/list", createBomStructureList);
 router.post("/list/bulk", createBomStructureListBulk);
 router.put("/list/:id", updateBomStructureList);
 router.delete("/list/:id", deleteBomStructureList);
+router.patch("/list/:id", importBomTemplateListToStructure);
 
 router.get("/revisions", getAllBomStructureRevs);
 router.get("/revisions/:id", getBomStructureRevById);

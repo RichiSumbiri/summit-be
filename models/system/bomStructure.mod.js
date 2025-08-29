@@ -265,6 +265,10 @@ export const BomStructureNoteModel = db.define("bom_structure_notes", {
     BOM_STRUCTURE_ID: {
         type: DataTypes.STRING(15),
         allowNull: false
+    },
+    IS_BOM_CONFIRMATION: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
     tableName: "bom_structure_notes",

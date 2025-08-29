@@ -64,6 +64,11 @@ import {
 import { getOrderType } from "../../controllers/setup/OrderType.js";
 import { getOffsetLink } from "../../controllers/setup/OffsetLink.js";
 import { getAllPackingMethod } from "../../controllers/system/masterPackingMethod.js";
+import {
+  createExtraPurchaseLimit, deleteExtraPurchaseLimit,
+  getAllExtraPurchaseLimits,
+  getExtraPurchaseLimitById, updateExtraPurchaseLimit
+} from "../../controllers/system/masterPurchaseLimit.js";
 
 const router = express.Router();
 router.get("/country/:buyer", getListCountry);
@@ -158,10 +163,14 @@ router.get("/payment-methode", getListPayMethode);
 // get packing method
 router.get("/packing-method", getAllPackingMethod);
 
+// extra purchase limit
+router.get("/extra-purchase-limit", getAllExtraPurchaseLimits);
+router.get("/extra-purchase-limit/:id", getExtraPurchaseLimitById);
+router.post("/extra-purchase-limit", createExtraPurchaseLimit);
+router.put("/extra-purchase-limit/:id", updateExtraPurchaseLimit);
+router.delete("/extra-purchase-limit/:id", deleteExtraPurchaseLimit);
 
 // uom category
-
-
 router.get("/uom-category-item/:masterItemid", getAllUomCategoryByItemid);
 router.get("/uom-category", getAllUomCategories);
 router.get("/uom-category/:id", getUomCategoryById);

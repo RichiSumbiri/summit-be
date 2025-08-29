@@ -67,7 +67,7 @@ export const getBomStructureNoteById = async (req, res) => {
 };
 
 export const createBomStructureNote = async (req, res) => {
-    const { NOTE, BOM_STRUCTURE_ID, REV_ID = 0, USER_ID } = req.body;
+    const { NOTE, BOM_STRUCTURE_ID, IS_BOM_CONFIRMATION, REV_ID = 0 } = req.body;
 
     try {
         if (!NOTE || !BOM_STRUCTURE_ID) {
@@ -88,6 +88,7 @@ export const createBomStructureNote = async (req, res) => {
         await BomStructureNoteModel.create({
             NOTE,
             BOM_STRUCTURE_ID,
+            IS_BOM_CONFIRMATION,
             REV_ID,
         });
 
@@ -105,11 +106,11 @@ export const createBomStructureNote = async (req, res) => {
 
 export const updateBomStructureNote = async (req, res) => {
     const { id } = req.params;
-    const { NOTE, REV_ID, USER_ID } = req.body;
+    const { NOTE, REV_ID, IS_BOM_CONFIRMATION } = req.body;
 
     try {
         const [updated] = await BomStructureNoteModel.update(
-            { NOTE, REV_ID },
+            { NOTE, REV_ID, IS_BOM_CONFIRMATION },
             { where: { ID: id } }
         );
 
