@@ -792,6 +792,18 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             }
         });
 
+        // Update the order size status for the specified ORDER_ID and ORDER_PO_ID
+        await OrderPoListingSize.update({
+            PO_STATUS: PO_STATUS,
+            UPDATE_BY: CREATE_BY,
+            UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                ORDER_NO: ORDER_ID,
+                ORDER_PO_ID: ORDER_PO_ID
+            }
+        });
+
         // add to log order status change
         await ModelOrderPOListingLogStatus.create({
             ORDER_ID: ORDER_ID,
