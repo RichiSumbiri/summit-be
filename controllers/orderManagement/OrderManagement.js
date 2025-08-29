@@ -509,56 +509,63 @@ export const postPOSizeListing = async (req, res) => {
     try {
         const { DataPOSize } = req.body;
         for (const data of DataPOSize) {
-            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true})
+            const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true});
             if (CheckData) {
-                await OrderPoListingSize.update({
-                    MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
-                    ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
-                    CUSTOMER_NAME: data.CUSTOMER_NAME,
-                    CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
-                    CUSTOMER_SEASON: data.CUSTOMER_SEASON,
-                    CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
-                    CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
-                    ORDER_NO: data.ORDER_NO,
-                    ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
-                    ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
-                    PO_STATUS: data.PO_STATUS,
-                    MO_AVAILABILITY: data.MO_AVAILABILITY,
-                    MO_NO: data.MO_NO,
-                    MO_RELEASED_DATE: data.MO_RELEASED_DATE,
-                    PO_REF_CODE: data.PO_REF_CODE,
-                    PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
-                    PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
-                    PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
-                    ITEM_COLOR_ID: data.ITEM_COLOR_ID,
-                    ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
-                    ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
-                    PRODUCT_ID: data.PRODUCT_ID,
-                    PRODUCT_TYPE: data.PRODUCT_TYPE,
-                    PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
-                    ORDER_QTY: data.ORDER_QTY==='' ? null:data.ORDER_QTY,
-                    MO_QTY: data.MO_QTY==='' ? null:data.MO_QTY,
-                    SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
-                    ORDER_UOM: data.ORDER_UOM,
-                    SHIPPED_QTY: data.SHIPPED_QTY,
-                    DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
-                    DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
-                    COUNTRY: data.COUNTRY,
-                    FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
-                    PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
-                    PRODUCTION_MONTH: data.PRODUCTION_MONTH,
-                    MANUFACTURING_SITE: data.MANUFACTURING_SITE,
-                    SIZE_ID: data.SIZE_ID,
-                    SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
-                    UPDATE_BY: data.UPDATE_BY
-                }, {
-                    where: {
-                        ORDER_PO_ID: data.ORDER_PO_ID,
-                        SIZE_CODE: data.SIZE_CODE,
-                    }
-                });    
+                // delete data po size jika null order qty & mo qty
+                if(data.ORDER_QTY==='' && data.MO_QTY===''){
+                   await OrderPoListingSize.destroy({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true})
+                } else {
+                    // update data po size
+                    await OrderPoListingSize.update({
+                        MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
+                        ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
+                        CUSTOMER_NAME: data.CUSTOMER_NAME,
+                        CUSTOMER_DIVISION: data.CUSTOMER_DIVISION,
+                        CUSTOMER_SEASON: data.CUSTOMER_SEASON,
+                        CUSTOMER_PROGRAM: data.CUSTOMER_PROGRAM,
+                        CUSTOMER_BUY_PLAN: data.CUSTOMER_BUY_PLAN,
+                        ORDER_NO: data.ORDER_NO,
+                        ORDER_REFERENCE_PO_NO: data.ORDER_REFERENCE_PO_NO,
+                        ORDER_STYLE_DESCRIPTION: data.ORDER_STYLE_DESCRIPTION,
+                        PO_STATUS: data.PO_STATUS,
+                        MO_AVAILABILITY: data.MO_AVAILABILITY,
+                        MO_NO: data.MO_NO,
+                        MO_RELEASED_DATE: data.MO_RELEASED_DATE,
+                        PO_REF_CODE: data.PO_REF_CODE,
+                        PRODUCT_ITEM_ID: data.PRODUCT_ITEM_ID,
+                        PRODUCT_ITEM_CODE: data.PRODUCT_ITEM_CODE,
+                        PRODUCT_ITEM_DESCRIPTION: data.PRODUCT_ITEM_DESCRIPTION,
+                        ITEM_COLOR_ID: data.ITEM_COLOR_ID,
+                        ITEM_COLOR_CODE: data.ITEM_COLOR_CODE,
+                        ITEM_COLOR_NAME: data.ITEM_COLOR_NAME,
+                        PRODUCT_ID: data.PRODUCT_ID,
+                        PRODUCT_TYPE: data.PRODUCT_TYPE,
+                        PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
+                        ORDER_QTY: data.ORDER_QTY==='' ? null:data.ORDER_QTY,
+                        MO_QTY: data.MO_QTY==='' ? null:data.MO_QTY,
+                        SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
+                        ORDER_UOM: data.ORDER_UOM,
+                        SHIPPED_QTY: data.SHIPPED_QTY,
+                        DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
+                        DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
+                        COUNTRY: data.COUNTRY,
+                        FINAL_DELIVERY_DATE: data.FINAL_DELIVERY_DATE,
+                        PLAN_EXFACTORY_DATE: data.PLAN_EXFACTORY_DATE,
+                        PRODUCTION_MONTH: data.PRODUCTION_MONTH,
+                        MANUFACTURING_SITE: data.MANUFACTURING_SITE,
+                        SIZE_ID: data.SIZE_ID,
+                        SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
+                        UPDATE_BY: data.UPDATE_BY
+                    }, {
+                        where: {
+                            ORDER_PO_ID: data.ORDER_PO_ID,
+                            SIZE_CODE: data.SIZE_CODE,
+                        }
+                    });
+                }                    
             } else {
-                if(data.SIZE_CODE && data.ORDER_QTY){
+                if(data.ORDER_NO && data.ORDER_PO_ID && data.SIZE_CODE && data.ORDER_QTY!==null){
+                    // buat data po size
                     await OrderPoListingSize.create({
                         MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
                         ORDER_PLACEMENT_COMPANY: data.ORDER_PLACEMENT_COMPANY,
@@ -604,10 +611,8 @@ export const postPOSizeListing = async (req, res) => {
                         SUMMIT_FLAG: 1
                     });
                 }
-                
             }
         }
-
         return res.status(200).json({
             success: 200,
             message: "success post po size"
