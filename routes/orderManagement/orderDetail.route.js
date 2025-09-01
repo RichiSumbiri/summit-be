@@ -4,6 +4,7 @@ import {
     getListPODetailByOrderID,
     getListPOIDByMOID,
     getLogOrderPOIDStatus,
+    getOrderExecuteInfo,
     getOrderHeaderLogStatus,
     getOrderInventoryDetail,
     getPOListingSizeByPOID, postPOListing, postPOSizeListing,
@@ -25,5 +26,6 @@ router.post("/po-detail-status", postUpdateOrderPOIDStatus);
 router.get("/listing-mo", getListPOIDByMOID);
 router.get("/listing-inventory", getOrderInventoryDetail);
 
+router.get("/order-execute-info", getOrderExecuteInfo);
 
 export default router;

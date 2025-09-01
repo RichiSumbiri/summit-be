@@ -1,11 +1,14 @@
 import {QueryTypes} from "sequelize";
 import db from "../../config/database.js";
 import {
+    ModelMasterOrderExecuteInfo,
     ModelOrderPOHeader,
     ModelOrderPOHeaderLogStatus,
     ModelOrderPOListingLogStatus,
     ModelSupplyChainPlanning,
     OrderMOListing,
+    queryCheckBOMStructureByOrderIDAndItemTypeCode,
+    queryCheckTNAEventStatusByOrderID,
     queryGetAllPOIDByOrderID,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
@@ -24,6 +27,14 @@ import {
     CustomerProgramName
 } from "../../models/system/customer.mod.js";
 import { orderitemSMV } from "../../models/orderManagement/orderitemSMV.mod.js";
+import BomStructureModel, { BomStructureListModel } from "../../models/system/bomStructure.mod.js";
+import { ModelVendorDetail } from "../../models/system/VendorDetail.mod.js";
+import Users from "../../models/setup/users.mod.js";
+import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
+import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
+import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
+import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import MasterCompanyModel from "../../models/setup/company.mod.js";
 // import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";
 // import ProductItemModel from "../../models/system/productItem.mod.js";
 
@@ -1020,6 +1031,177 @@ export const getOrderInventoryDetail = async(req,res) => {
             success: false,
             error: err,
             message: "error get order inventory detail"
+        });
+    }
+}
+
+export const getOrderExecuteInfo = async(req,res) => {
+    try {
+        const { ORDER_ID } = req.query;
+        
+        // init data
+        let OrderExecuteInfo = [];
+        let BOMRMValidationStatus = 0;
+        let BOMSAValidationStatus = 0;
+        let BOMPMValidationStatus = 0;
+        let BOMPCValidationStatus = 0;
+        let TNAValidationStatus = 0;
+        let CompValidationStatus = 0;
+        let RouteValidationStatus = 0;
+        let ActualSMVValidationStatus = 0;
+        let PCDValidationStatus = 0;
+        let PSDValidationStatus = 0;
+
+        // Get Master Order Execute Info
+        OrderExecuteInfo = await ModelMasterOrderExecuteInfo.findAll({ raw: true });
+        
+        // Check Last Revision of BOM Structure
+        const ListBOMLastRev = await BomStructureModel.findOne({
+            where: {
+                ORDER_ID: ORDER_ID
+            }, 
+            order: [['LAST_REV_ID', 'DESC']],
+            raw: true
+        });
+
+
+        
+        if(ListBOMLastRev!==null){
+            // Check Status BOM Structure 
+            const ListBOMDetail = await db.query(queryCheckBOMStructureByOrderIDAndItemTypeCode, {
+                replacements: {
+                    orderID: ORDER_ID,
+                    lastRevID: ListBOMLastRev.LAST_REV_ID ? ListBOMLastRev.LAST_REV_ID : 0
+                },
+                type: QueryTypes.SELECT
+            });
+
+            // get Check BOM Structure Raw Material : index 1
+            const ListBOMRMOpen = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='RM' && bom.STATUS==='Open');
+            const ListBOMRMConfirmed = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='RM' && bom.STATUS==='Confirmed');
+            BOMRMValidationStatus = ListBOMRMOpen.length===0 && ListBOMRMConfirmed.length > 0 ? 1 : 0;
+
+            // get Check BOM Structure Sewing Accessories : index 2
+            const ListBOMSAOpen = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='SA' && bom.STATUS==='Open');
+            const ListBOMSAConfirmed = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='SA' && bom.STATUS==='Confirmed');
+            BOMSAValidationStatus = ListBOMSAOpen.length===0 && ListBOMSAConfirmed.length > 0 ? 1 : 0;
+
+            // get Check BOM Structure Packaging Material : index 3
+            const ListBOMPMOpen = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='PM' && bom.STATUS==='Open');
+            const ListBOMPMConfirmed = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='PM' && bom.STATUS==='Confirmed');
+            BOMPMValidationStatus = ListBOMPMOpen.length===0 && ListBOMPMConfirmed.length > 0 ? 1 : 0;
+
+            // get Check BOM Structure Production Consumable : index 4
+            const ListBOMPCOpen = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='PM' && bom.STATUS==='Open');
+            const ListBOMPCConfirmed = ListBOMDetail.filter(bom=> bom.ITEM_TYPE_CODE==='PM' && bom.STATUS==='Confirmed');
+            BOMPCValidationStatus = ListBOMPCOpen.length===0 && ListBOMPCConfirmed.length > 0 ? 1 : 0;
+        }
+        
+
+        // Check TNA PreProduction Event Completion
+        const ListTNAStatus = await db.query(queryCheckTNAEventStatusByOrderID, {
+            replacements: {
+                orderID: ORDER_ID
+            },
+            type: QueryTypes.SELECT
+        });
+
+        if(ListTNAStatus.length!==0){
+            const ListTNACompleted = ListTNAStatus.filter((tna=>tna.EVENT_STATUS==='Completed'));
+            TNAValidationStatus = ListTNACompleted.length === ListTNAStatus.length ? 1 : 0;
+        }
+
+        // Check Actual Item SMV -  Sewing
+        const CheckSMVSewing = await orderitemSMV.findOne({ where: { ORDER_ID:ORDER_ID, PRODUCTION_PROCESS_ID:2 }, raw: true });
+        if(CheckSMVSewing.ACTUAL_SMV!=='0.0000') ActualSMVValidationStatus=1;
+
+
+        // Check Target PCD Order
+        const CheckPCDOrder = await ModelOrderPOHeader.findOne({ where: { ORDER_ID: ORDER_ID }});
+        if(CheckPCDOrder.PLAN_CUT_DATE) PCDValidationStatus = 1;
+        if(CheckPCDOrder.PLAN_SEW_DATE) PSDValidationStatus = 1;
+
+        // Set Status for Order Execution Info 
+        OrderExecuteInfo = OrderExecuteInfo.map((row) => {
+            switch(row.ID){
+                case 1: 
+                    return {
+                        ...row,
+                            CURRENT_STATUS: BOMRMValidationStatus,
+                    };
+                case 2:
+                    return {
+                        ...row,
+                            CURRENT_STATUS: BOMSAValidationStatus,
+                    };
+                case 3:
+                    return {
+                        ...row,
+                            CURRENT_STATUS: BOMPMValidationStatus,
+                };
+                case 4:
+                    return {
+                        ...row,
+                            CURRENT_STATUS: BOMPCValidationStatus,
+                };
+                case 5:
+                    if(ORDER_ID.substring(0,3)==='BLK'){
+                        return {
+                            ...row,
+                            CURRENT_STATUS: TNAValidationStatus,
+                        };  
+                    } else {
+                        return {
+                            ...row,
+                                VALIDATION_DEFAULT: 0,
+                                CURRENT_STATUS: BOMPCValidationStatus,
+                        };
+                    }
+                case 6:
+                    return {
+                            ...row,
+                        CURRENT_STATUS: CompValidationStatus,
+                    };
+                case 7:
+                    return {
+                            ...row,
+                        CURRENT_STATUS: RouteValidationStatus,
+                    };
+                case 8:
+                    return {
+                            ...row,
+                        CURRENT_STATUS: ActualSMVValidationStatus,
+                    };
+                case 9:
+                    return {
+                            ...row,
+                        CURRENT_STATUS: PCDValidationStatus,
+                    };
+                case 10:
+                    return {
+                            ...row,
+                        CURRENT_STATUS: PSDValidationStatus,
+                    };
+
+            }
+            return row;
+        });
+        
+        
+        
+        return res.status(200).json({
+            success: true,
+            message: `Success get order execute info for Order ${ORDER_ID}`,
+            data: OrderExecuteInfo
+        });
+
+
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order execute info"
         });
     }
 }
