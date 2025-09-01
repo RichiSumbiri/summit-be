@@ -23,6 +23,7 @@ import {
     CustomerProductSeason,
     CustomerProgramName
 } from "../../models/system/customer.mod.js";
+import { orderitemSMV } from "../../models/orderManagement/orderitemSMV.mod.js";
 // import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";
 // import ProductItemModel from "../../models/system/productItem.mod.js";
 
@@ -780,6 +781,22 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             });
         }
         
+        // check if post status is CONFIRMED then check for order SMV
+        if(PO_STATUS==='Confirmed'){
+            const CheckOrderSMV = await orderitemSMV.findAll({
+                where: {
+                    ORDER_ID: ORDER_ID
+                }, raw: true
+            });
+            if(CheckOrderSMV.length===0){
+                return res.status(400).json({
+                    success: false,
+                    message: "Please set Order Item SMV for this Order!"
+                }); 
+            }
+        }
+
+
         // Update the order status for the specified ORDER_ID and ORDER_PO_ID
         await OrderPoListing.update({
             PO_STATUS: PO_STATUS,
