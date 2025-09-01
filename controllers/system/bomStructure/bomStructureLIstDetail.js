@@ -1,89 +1,87 @@
-import {BomStructureListDetailModel} from "../../../models/system/bomStructure.mod.js";
-import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
-import SizeChartMod from "../../../models/system/sizeChart.mod.js";
+import {BomStructureListDetailModel, BomStructureListModel} from "../../../models/system/bomStructure.mod.js";
 import ColorChartMod from "../../../models/system/colorChart.mod.js";
-import {OrderPoListing} from "../../../models/production/order.mod.js";
+import SizeChartMod from "../../../models/system/sizeChart.mod.js";
+import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
 
 export const getAllBomStructureListDetails = async (req, res) => {
-    const { BOM_STRUCTURE_LIST_ID, ITEM_DIMENSION_ID, SIZE_ID, COLOR_ID, ORDER_PO_ID } = req.query;
-    const whereCondition = { IS_DELETED: false };
+    const { BOM_STRUCTURE_LIST_ID, ITEM_DIMENSION_ID, COLOR_ID, SIZE_ID } = req.query;
+    const where = {};
 
-    if (BOM_STRUCTURE_LIST_ID) whereCondition.BOM_STRUCTURE_LIST_ID = BOM_STRUCTURE_LIST_ID;
-    if (ITEM_DIMENSION_ID) whereCondition.ITEM_DIMENSION_ID = ITEM_DIMENSION_ID;
-    if (SIZE_ID) whereCondition.SIZE_ID = SIZE_ID;
-    if (COLOR_ID) whereCondition.COLOR_ID = COLOR_ID;
-    if (ORDER_PO_ID) whereCondition.ORDER_PO_ID = ORDER_PO_ID;
+    if (BOM_STRUCTURE_LIST_ID) where.BOM_STRUCTURE_LIST_ID = BOM_STRUCTURE_LIST_ID;
+    if (ITEM_DIMENSION_ID) where.ITEM_DIMENSION_ID = ITEM_DIMENSION_ID;
+    if (COLOR_ID) where.COLOR_ID = COLOR_ID;
+    if (SIZE_ID) where.SIZE_ID = SIZE_ID;
 
     try {
         const details = await BomStructureListDetailModel.findAll({
-            where: whereCondition,
+            where,
             include: [
                 {
-                    model: BomTemplateListModel,
-                    as: "ITEM_DIMENSION",
-                    attributes: ["ID", "ITEM_CODE", "DESCRIPTION"],
-                },
-                {
-                    model: SizeChartMod,
-                    as: "SIZE",
-                    attributes: ["ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LIST",
+                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS"],
                 },
                 {
                     model: ColorChartMod,
                     as: "COLOR",
-                    attributes: ["ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                    attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
                 },
                 {
-                    model: OrderPoListing,
-                    as: "ORDER_PO",
-                    attributes: ["ORDER_PO_ID", "PO_NUMBER"],
+                    model: SizeChartMod,
+                    as: "SIZE",
+                    attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
                 },
+                {
+                    model: MasterItemDimensionModel,
+                    as: "ITEM_DIMENSION",
+                    attributes: ["ID", "SERIAL_NO", "MASTER_ITEM_ID"],
+                }
             ],
+            order: [['ID', 'ASC']]
         });
 
         return res.status(200).json({
             success: true,
-            message: "BOM Structure List Details retrieved successfully",
+            message: "Detail BOM Structure List berhasil diambil",
             data: details,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Failed to retrieve BOM list details: ${error.message}`,
+            message: `Gagal mengambil data: ${error.message}`,
         });
     }
 };
 
 export const getBomStructureListDetailById = async (req, res) => {
-    try {
-        const { id } = req.params;
+    const { id } = req.params;
 
+    try {
         const detail = await BomStructureListDetailModel.findByPk(id, {
-            where: { IS_DELETED: false },
             include: [
-                { model: BomTemplateListModel, as: "ITEM_DIMENSION" },
-                { model: SizeChartMod, as: "SIZE" },
+                { model: BomStructureListModel, as: "BOM_STRUCTURE_LIST" },
                 { model: ColorChartMod, as: "COLOR" },
-                { model: OrderPoListing, as: "ORDER_PO" },
-            ],
+                { model: SizeChartMod, as: "SIZE" },
+                { model: MasterItemDimensionModel, as: "ITEM_DIMENSION" },
+            ]
         });
 
         if (!detail) {
             return res.status(404).json({
                 success: false,
-                message: "BOM Structure List Detail not found",
+                message: "Detail tidak ditemukan",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "BOM Structure List Detail retrieved successfully",
+            message: "Detail berhasil diambil",
             data: detail,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Failed to retrieve detail: ${error.message}`,
+            message: `Gagal mengambil detail: ${error.message}`,
         });
     }
 };
@@ -92,42 +90,62 @@ export const createBomStructureListDetail = async (req, res) => {
     const {
         BOM_STRUCTURE_LIST_ID,
         ITEM_SPLIT_ID,
-        ITEM_DIMENSION_ID,
-        SIZE_ID,
-        COLOR_ID,
         ORDER_PO_ID,
-        EXTRA_BOOKING = 0,
-        MATERIAL_ITEM_REQUIREMENT_QTY = 0,
-        TOTAL_EXTRA_PURCHASE_PLAN_PERCENT = 0,
-        BOOKING_APPROVAL_STATUS = false,
+        COLOR_ID,
+        SIZE_ID,
+        ITEM_DIMENSION_ID,
+        ORDER_QUANTITY,
+        STANDARD_CONSUMPTION_PER_ITEM,
+        INTERNAL_CONSUMPTION_PER_ITEM,
+        BOOKING_CONSUMPTION_PER_ITEM,
+        PRODUCTION_CONSUMPTION_PER_ITEM,
+        EXTRA_BOOKS,
+        MATERIAL_ITEM_REQUIREMENT_QUANTITY,
+        EXTRA_REQUIRE_QUANTITY,
+        TOTAL_EXTRA_PURCHASE_PLAN,
+        IS_BOOKING = true,
         EXTRA_APPROVAL_ID,
+        CREATED_ID
     } = req.body;
 
     try {
+        if (!BOM_STRUCTURE_LIST_ID) {
+            return res.status(400).json({
+                success: false,
+                message: "BOM_STRUCTURE_LIST_ID wajib diisi",
+            });
+        }
 
         await BomStructureListDetailModel.create({
             BOM_STRUCTURE_LIST_ID,
             ITEM_SPLIT_ID,
-            ITEM_DIMENSION_ID,
-            SIZE_ID,
-            COLOR_ID,
             ORDER_PO_ID,
-            EXTRA_BOOKING,
-            MATERIAL_ITEM_REQUIREMENT_QTY,
-            TOTAL_EXTRA_PURCHASE_PLAN_PERCENT,
-            BOOKING_APPROVAL_STATUS,
+            COLOR_ID,
+            SIZE_ID,
+            ITEM_DIMENSION_ID,
+            ORDER_QUANTITY,
+            STANDARD_CONSUMPTION_PER_ITEM,
+            INTERNAL_CONSUMPTION_PER_ITEM,
+            BOOKING_CONSUMPTION_PER_ITEM,
+            PRODUCTION_CONSUMPTION_PER_ITEM,
+            EXTRA_BOOKS,
+            MATERIAL_ITEM_REQUIREMENT_QUANTITY,
+            EXTRA_REQUIRE_QUANTITY,
+            TOTAL_EXTRA_PURCHASE_PLAN,
+            IS_BOOKING,
             EXTRA_APPROVAL_ID,
-            IS_DELETED: false,
+            CREATED_ID,
+            CREATED_AT: new Date(),
         });
 
         return res.status(201).json({
             success: true,
-            message: "BOM Structure List Detail created successfully",
+            message: "Detail berhasil dibuat",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Failed to create detail: ${error.message}`,
+            message: `Gagal membuat detail: ${error.message}`,
         });
     }
 };
@@ -138,25 +156,24 @@ export const updateBomStructureListDetail = async (req, res) => {
 
     try {
         const [updated] = await BomStructureListDetailModel.update(updateData, {
-            where: { ID: id, IS_DELETED: false },
+            where: { ID: id }
         });
 
         if (!updated) {
             return res.status(404).json({
                 success: false,
-                message: "Detail not found or already deleted",
+                message: "Detail tidak ditemukan",
             });
         }
 
-        const updatedDetail = await BomStructureListDetailModel.findByPk(id);
         return res.status(200).json({
             success: true,
-            message: "Detail updated successfully",
+            message: "Detail berhasil diperbarui",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Failed to update detail: ${error.message}`,
+            message: `Gagal memperbarui detail: ${error.message}`,
         });
     }
 };
@@ -165,29 +182,20 @@ export const deleteBomStructureListDetail = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [deleted] = await BomStructureListDetailModel.update(
-            {
-                IS_DELETED: true,
-                DELETED_AT: new Date(),
-            },
-            { where: { ID: id, IS_DELETED: false } }
-        );
-
-        if (!deleted) {
-            return res.status(404).json({
-                success: false,
-                message: "Detail not found",
-            });
-        }
+        const deleted = await BomStructureListDetailModel.destroy({ where: { ID: id } });
+        if (!deleted) return res.status(404).json({
+            success: false,
+            message: "Detail tidak ditemukan",
+        });
 
         return res.status(200).json({
             success: true,
-            message: "Detail soft deleted successfully",
+            message: "Detail berhasil dihapus",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Failed to delete detail: ${error.message}`,
+            message: `Gagal menghapus detail: ${error.message}`,
         });
     }
 };
