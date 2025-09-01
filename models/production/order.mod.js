@@ -278,7 +278,7 @@ export const OrderPoListingSize = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-    SUMMIT_FLAG: { type: DataTypes.INTEGER(1), allowNull: false, defaultValue:'0' },
+    SUMMIT_FLAG: { type: DataTypes.INTEGER(1), allowNull: true, defaultValue:'0' },
   },
   {
     freezeTableName: true,
