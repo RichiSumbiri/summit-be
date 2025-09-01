@@ -1113,7 +1113,7 @@ export const getOrderExecuteInfo = async(req,res) => {
 
         // Check Actual Item SMV -  Sewing
         const CheckSMVSewing = await orderitemSMV.findOne({ where: { ORDER_ID:ORDER_ID, PRODUCTION_PROCESS_ID:2 }, raw: true });
-        if(CheckSMVSewing.ACTUAL_SMV!=='0.0000') ActualSMVValidationStatus=1;
+        if(CheckSMVSewing && CheckSMVSewing.ACTUAL_SMV!=='0.0000') ActualSMVValidationStatus=1;
 
 
         // Check Target PCD Order
