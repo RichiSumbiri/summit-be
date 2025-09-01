@@ -1,7 +1,15 @@
-import {BomStructureListDetailModel, BomStructureListModel} from "../../../models/system/bomStructure.mod.js";
+import {
+    BomStructureListDetailModel,
+    BomStructureListModel,
+    BomStructurePendingDimension
+} from "../../../models/system/bomStructure.mod.js";
 import ColorChartMod from "../../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../../models/system/sizeChart.mod.js";
 import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
+import {Op} from "sequelize";
+import {OrderPoListing} from "../../../models/production/order.mod.js";
+import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
+import {limitFloating} from "../../../util/general.js";
 
 export const getAllBomStructureListDetails = async (req, res) => {
     const { BOM_STRUCTURE_LIST_ID, ITEM_DIMENSION_ID, COLOR_ID, SIZE_ID } = req.query;
@@ -19,7 +27,19 @@ export const getAllBomStructureListDetails = async (req, res) => {
                 {
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
-                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS"],
+                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
+                    include: [
+                        {
+                            model: ModelVendorDetail,
+                            as: "VENDOR",
+                            attributes: ['VENDOR_ID', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+                        }
+                    ]
+                },
+                {
+                    model: OrderPoListing,
+                    as: "ORDER_PO",
+                    attributes: ["ORDER_PO_ID", "ITEM_COLOR_ID", "ITEM_COLOR_CODE", "ITEM_COLOR_NAME"],
                 },
                 {
                     model: ColorChartMod,
@@ -34,7 +54,19 @@ export const getAllBomStructureListDetails = async (req, res) => {
                 {
                     model: MasterItemDimensionModel,
                     as: "ITEM_DIMENSION",
-                    attributes: ["ID", "SERIAL_NO", "MASTER_ITEM_ID"],
+                    attributes: ["ID", "DIMENSION_ID", "SERIAL_NO", "MASTER_ITEM_ID", "COLOR_ID", "SIZE_ID"],
+                    include: [
+                        {
+                            model: ColorChartMod,
+                            as: "MASTER_COLOR",
+                            attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                        },
+                        {
+                            model: SizeChartMod,
+                            as: "MASTER_SIZE",
+                            attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+                        },
+                    ],
                 }
             ],
             order: [['ID', 'ASC']]
@@ -52,6 +84,7 @@ export const getAllBomStructureListDetails = async (req, res) => {
         });
     }
 };
+
 
 export const getBomStructureListDetailById = async (req, res) => {
     const { id } = req.params;
@@ -146,6 +179,152 @@ export const createBomStructureListDetail = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Gagal membuat detail: ${error.message}`,
+        });
+    }
+};
+
+
+export const revertBomStructureListDetail = async (req, res) => {
+    const { bomStructureListId, bomStructureListDetail = [] } = req.body;
+
+    if (!bomStructureListId || !Array.isArray(bomStructureListDetail) || bomStructureListDetail.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Item Dimension ID and Bom Template Pending List are required",
+        });
+    }
+
+    try {
+        const bomStructureList = await BomStructureListModel.findByPk(bomStructureListId);
+        if (!bomStructureList) {
+            return res.status(404).json({
+                success: false,
+                message: "BOM Structure List not found",
+            });
+        }
+
+        if (bomStructureList.STATUS !== "Open") {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot revert: BOM Structure List is not in 'Open' status",
+            });
+        }
+
+        const detailsToDelete = await BomStructureListDetailModel.findAll({
+            where: {
+                ID: { [Op.in]: bomStructureListDetail },
+                BOM_STRUCTURE_LIST_ID: bomStructureListId
+            }
+        });
+
+        if (detailsToDelete.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No valid Bom Structure List Details found for this BOM",
+            });
+        }
+
+        await BomStructureListDetailModel.destroy({
+            where: {
+                ID: { [Op.in]: bomStructureListDetail },
+                BOM_STRUCTURE_LIST_ID: bomStructureListId
+            }
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: `Berhasil revert bom structure list detail`,
+        });
+    } catch (err) {
+        return res.status(500).json({status: false, message: "Failed to revert bom structure list detail " + err.message})
+    }
+}
+
+export const createBomStructureListDetailBulk = async (req, res) => {
+    const { bomStructureListId, itemDimensionId, createdId, bomTemplatePendingList = [] } = req.body;
+
+    if (!bomStructureListId || !itemDimensionId || !Array.isArray(bomTemplatePendingList) || bomTemplatePendingList.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Item Dimension ID and Bom Template Pending List are required",
+        });
+    }
+
+    try {
+        const bomStructureList = await BomStructureListModel.findByPk(bomStructureListId)
+        if (!bomStructureList) return res.status(404).json({
+            success: false,
+            message: "Bom Structure List not found",
+        });
+
+        const itemDimension = await MasterItemDimensionModel.findByPk(itemDimensionId);
+        if (!itemDimension) {
+            return res.status(404).json({
+                success: false,
+                message: "Item Dimension not found",
+            });
+        }
+
+        const pendingDimensions = await BomStructurePendingDimension.findAll({
+            where: {
+                ID: { [Op.in]: bomTemplatePendingList }
+            }
+        });
+
+        if (pendingDimensions.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No valid Pending Dimensions found",
+            });
+        }
+
+        const lastID = await BomStructureListDetailModel.findOne({where: {
+            BOM_STRUCTURE_LIST_ID: bomStructureListId,
+            }, order: [['ITEM_SPLIT_ID', 'DESC']]})
+
+
+        const detailToCreate = pendingDimensions.map((pd, idx) => ({
+            BOM_STRUCTURE_LIST_ID: pd.BOM_STRUCTURE_LIST_ID,
+            ITEM_SPLIT_ID: (lastID + idx) + 1,
+            ORDER_PO_ID: pd.ORDER_PO_ID,
+            COLOR_ID: pd.COLOR_ID,
+            SIZE_ID: pd.SIZE_ID,
+            ITEM_DIMENSION_ID: itemDimensionId,
+            ORDER_QUANTITY: pd.ORDER_QUANTITY,
+            STANDARD_CONSUMPTION_PER_ITEM: limitFloating(pd.STANDARD_CONSUMPTION_PER_ITEM),
+            INTERNAL_CONSUMPTION_PER_ITEM: limitFloating(pd.INTERNAL_CONSUMPTION_PER_ITEM),
+            BOOKING_CONSUMPTION_PER_ITEM: limitFloating(pd.BOOKING_CONSUMPTION_PER_ITEM),
+            PRODUCTION_CONSUMPTION_PER_ITEM: limitFloating(pd.PRODUCTION_CONSUMPTION_PER_ITEM),
+            EXTRA_BOOKS: limitFloating(pd.EXTRA_BOOKS, 2),
+            MATERIAL_ITEM_REQUIREMENT_QUANTITY: limitFloating(pd.MATERIAL_ITEM_REQUIREMENT_QTY),
+            EXTRA_REQUIRE_QUANTITY: limitFloating(pd.EXTRA_REQUIRE_QTY),
+            TOTAL_EXTRA_PURCHASE_PLAN: limitFloating(pd.TOTAL_EXTRA_PURCHASE_PLAN_PERCENT),
+            IS_BOOKING: pd.IS_BOOKING,
+            EXTRA_APPROVAL_ID: pd.EXTRA_APPROVAL_ID,
+            CREATED_AT: new Date(),
+            CREATED_ID: createdId || null,
+        }));
+
+
+        await BomStructureListDetailModel.bulkCreate(detailToCreate, {
+            returning: true,
+            validate: true
+        });
+
+        await BomStructurePendingDimension.destroy({
+            where: {
+                ID: { [Op.in]: bomTemplatePendingList }
+            }
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: `Berhasil dibuat dari pending dimension`,
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Gagal membuat BOM Structure List Detail: " + err.message,
         });
     }
 };

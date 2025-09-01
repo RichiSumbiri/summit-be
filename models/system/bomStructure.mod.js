@@ -118,7 +118,7 @@ const BomStructureModel = db.define(
 )
 
 
-export const BomStructureListModel = db.define(
+export const  BomStructureListModel = db.define(
     'bom_structure_list',
     {
         ID: {
@@ -510,6 +510,78 @@ export const BomStructurePendingDimension = db.define("bom_structure_pending_dim
     timestamps: false,
 });
 
+export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_detail", {
+    ID: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    BOM_STRUCTURE_LINE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ITEM_DIMENSION_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+    },
+    COST_PER_ITEM: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    FINANCE_COST: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    FREIGHT_COST: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    OTHER_COST: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    NOTE: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+    },
+    APPROVE_PURCHASE_QUANTITY: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    PLAN_CURRENT_QUANTITY: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+        allowNull: true,
+    }
+}, {
+    tableName: 'bom_structure_sourcing_detail',
+    timestamps: false,
+});
+
+BomStructureSourcingDetail.belongsTo(MasterItemDimensionModel, {
+    foreignKey: "ITEM_DIMENSION_ID",
+    as: "ITEM_DIMENSION"
+})
+
+BomStructureSourcingDetail.belongsTo(ModelOrderPOHeader, {
+    foreignKey: "ORDER_PO_ID",
+    as: "ORDER_PO"
+})
+
+BomStructureSourcingDetail.belongsTo(BomStructureListModel, {
+    foreignKey: "BOM_STRUCTURE_LINE_ID",
+    as: "BOM_STRUCTURE_LINE"
+})
+
 BomStructurePendingDimension.belongsTo(BomStructureListModel, {
     foreignKey: 'BOM_STRUCTURE_LIST_ID',
     as: 'BOM_STRUCTURE_LIST',
@@ -541,6 +613,11 @@ BomStructureListDetailModel.belongsTo(BomStructureListModel, {
     foreignKey: 'BOM_STRUCTURE_LIST_ID',
     as: 'BOM_STRUCTURE_LIST',
 });
+
+BomStructureListDetailModel.belongsTo(OrderPoListing, {
+    foreignKey: "ORDER_PO_ID",
+    as: "ORDER_PO"
+})
 
 BomStructureListDetailModel.belongsTo(ColorChartMod, {
     foreignKey: 'COLOR_ID',

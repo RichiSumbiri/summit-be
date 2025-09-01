@@ -1,5 +1,5 @@
 import BomStructureModel, {
-    BomStructureColorModel,
+    BomStructureColorModel, BomStructureListDetailModel,
     BomStructureListModel,
     BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel, BomStructureSizeModel
 } from "../../../models/system/bomStructure.mod.js";
@@ -430,6 +430,8 @@ export const importBomTemplateListToStructure = async (req, res) => {
         const bomTemplate = await BomTemplateModel.findByPk(bomStrucute.BOM_TEMPLATE_ID)
         if (!bomTemplate) return res.status(404).json({status: false, message: "Bom Template not found"})
 
+
+
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {
                 BOM_TEMPLATE_ID: bomTemplate.ID,
@@ -455,6 +457,21 @@ export const importBomTemplateListToStructure = async (req, res) => {
         for (const item in listBomStructure) {
             const data = listBomStructure[item].dataValues
             if (data.STATUS.toLowerCase() === "confirmed") return res.status(500).json({status: false, message: "Bom Structure List already confirmed"})
+        }
+
+        for (const item in listBomStructure) {
+            const data2 = listBomStructure[item].dataValues
+            await BomStructureListDetailModel.destroy({
+                where: {
+                    BOM_STRUCTURE_LIST_ID: data2.ID
+                }
+            })
+
+            await BomStructurePendingDimension.destroy({
+                where: {
+                    BOM_STRUCTURE_LIST_ID: data2.ID
+                }
+            })
         }
 
         await BomStructureListModel.update({IS_DELETED: true, DELETED_AT: new Date()}, {

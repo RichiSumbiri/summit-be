@@ -14,9 +14,14 @@ import {
     getBomStructureNoteById, updateBomStructureNote
 } from "../../controllers/system/bomStructure/bomStructureNote.js";
 import {
-    createBomStructureList, createBomStructureListBulk, deleteBomStructureList,
+    createBomStructureList,
+    createBomStructureListBulk,
+    deleteBomStructureList,
     getAllBomStructureList,
-    getBomStructureListById, updateBomStructureList
+    getBomStructureListById,
+    getBomTemplateListByBomStructureList,
+    updateBomStructureList, updateBomStructureListStatus,
+    updateBomStructureListStatusBulk
 } from "../../controllers/system/bomStructure/bomStructureList.js";
 import {
     createBomStructureRev, deleteBomStructureRev,
@@ -31,15 +36,21 @@ import {
     deleteBomStructureColor
 } from "../../controllers/system/bomStructure/bomStructureColorAndSize.js";
 import {
-    createBomStructureListDetail, deleteBomStructureListDetail,
+    createBomStructureListDetail, createBomStructureListDetailBulk, deleteBomStructureListDetail,
     getAllBomStructureListDetails,
-    getBomStructureListDetailById, updateBomStructureListDetail
+    getBomStructureListDetailById, revertBomStructureListDetail, updateBomStructureListDetail
 } from "../../controllers/system/bomStructure/bomStructureLIstDetail.js";
 import {
+    createPendingDimensionFromBomTemplateList,
     createPendingDimensionStructure, deletePendingDimensionStructure,
     getAllPendingDimensionStructure,
-    getPendingDimensionStructureById, updatePendingDimensionStructure
+    getPendingDimensionStructureById, updatePendingDimensionStructure, updatePendingDimensionStructureCustom
 } from "../../controllers/system/bomStructure/bomStructurePendingDimension.js";
+import {
+    createSourcingDetail, deleteSourcingDetail,
+    getAllSourcingDetails,
+    getSourcingDetailById, updateSourcingDetail
+} from "../../controllers/system/bomStructure/bomStructureSourcingDetail.js";
 
 const router = express.Router();
 
@@ -54,9 +65,14 @@ router.get("/list", getAllBomStructureList);
 router.get("/list/:id", getBomStructureListById);
 router.post("/list", createBomStructureList);
 router.post("/list/bulk", createBomStructureListBulk);
+router.post("/list/bulk", createBomStructureListBulk);
 router.put("/list/:id", updateBomStructureList);
 router.delete("/list/:id", deleteBomStructureList);
 router.patch("/list/:id", importBomTemplateListToStructure);
+
+router.get("/list-template/:id", getBomTemplateListByBomStructureList);
+router.put("/list-status/bulk", updateBomStructureListStatusBulk)
+router.put("/list-status", updateBomStructureListStatus)
 
 router.get("/revisions", getAllBomStructureRevs);
 router.get("/revisions/:id", getBomStructureRevById);
@@ -73,6 +89,8 @@ router.delete("/notes/:id", deleteBomStructureNote);
 router.get("/list-details", getAllBomStructureListDetails);
 router.get("/list-details/:id", getBomStructureListDetailById);
 router.post("/list-details", createBomStructureListDetail);
+router.post("/list-detail/bulk", createBomStructureListDetailBulk);
+router.post("/list-detail/revert", revertBomStructureListDetail);
 router.put("/list-details/:id", updateBomStructureListDetail);
 router.delete("/list-details/:id", deleteBomStructureListDetail);
 
@@ -80,14 +98,21 @@ router.get("/pending-dimensions", getAllPendingDimensionStructure);
 router.get("/pending-dimensions/:id", getPendingDimensionStructureById);
 router.post("/pending-dimensions", createPendingDimensionStructure);
 router.put("/pending-dimensions/:id", updatePendingDimensionStructure);
+router.patch("/pending-dimensions/:id", updatePendingDimensionStructureCustom);
+router.post("/pending-dimension/import", createPendingDimensionFromBomTemplateList);
 router.delete("/pending-dimensions/:id", deletePendingDimensionStructure);
+
+router.get("/sourcing", getAllSourcingDetails);
+router.get("/sourcing/:id", getSourcingDetailById);
+router.post("/sourcing", createSourcingDetail);
+router.put("/sourcing/:id", updateSourcingDetail);
+router.delete("/sourcing/:id", deleteSourcingDetail);
 
 router.get("/size", getAllBomStructureSizes);
 router.get("/size/:id", getBomStructureSizeById);
 router.post("/size", createBomStructureSize);
 router.put("/size/:id", updateBomStructureSize);
 router.delete("/size/:id", deleteBomStructureSize);
-
 
 router.get("/color", getAllBomStructureColors);
 router.get("/color/:id", getBomStructureColorById);

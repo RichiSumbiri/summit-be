@@ -1,4 +1,7 @@
-import BomStructureModel, {BomStructureListModel} from "../../../models/system/bomStructure.mod.js";
+import BomStructureModel, {
+    BomStructureListDetailModel,
+    BomStructureListModel, BomStructureSourcingDetail
+} from "../../../models/system/bomStructure.mod.js";
 import BomTemplateModel from "../../../models/system/bomTemplate.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../../models/setup/ItemGroups.mod.js";
@@ -7,6 +10,8 @@ import {MasterItemCategories} from "../../../models/setup/ItemCategories.mod.js"
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import MasterCompanyModel from "../../../models/setup/company.mod.js";
+import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
+import { Op} from "sequelize";
 
 export const getAllBomStructureList = async (req, res) => {
     try {
@@ -336,3 +341,272 @@ export const deleteBomStructureList = async (req, res) => {
 };
 
 
+export const getBomTemplateListByBomStructureList = async (req, res) => {
+    const {id} = req.params
+    if (!id) return res.status(400).json({status: false, message: "Id is required"})
+    try {
+        const bomStructureList = await BomStructureListModel.findByPk(id)
+        if (!bomStructureList) return res.status(404).json({status: false, message: "Bom structure list not found"})
+
+        const bomStructure = await BomStructureModel.findByPk(bomStructureList.BOM_STRUCTURE_ID)
+        if (!bomStructure) return res.status(404).json({status: false, message: "Bom structure not found"})
+
+        const bomTemplate = await BomTemplateModel.findByPk(bomStructure.BOM_TEMPLATE_ID)
+        if (!bomTemplate) return res.status(404).json({status: false, message: "Bom template not found"})
+
+        const lists = await BomTemplateListModel.findAll({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+                MASTER_ITEM_ID: bomStructureList.MASTER_ITEM_ID,
+                VENDOR_ID: bomStructureList.VENDOR_ID,
+                IS_DELETED: false,
+            }, include: [{
+                model: MasterItemIdModel,
+                as: "MASTER_ITEM",
+                attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
+                include: [{
+                    model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                }, {
+                    model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                }, {
+                    model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                },]
+            }, {
+                model: ModelVendorDetail,
+                as: "VENDOR",
+                attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+            }, {
+                model: Users, as: "CREATED", attributes: ['USER_NAME']
+            }, {
+                model: Users, as: "UPDATED", attributes: ['USER_NAME']
+            },],
+        });
+
+        return res.status(200).json({status: true, message: "Success get bom template list", data: lists })
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Gagagl menampilkan bom template list " + err.message
+        })
+    }
+}
+
+
+
+export const updateBomStructureListStatusBulk = async (req, res) => {
+    const { bom_structure_list, status, UPDATED_ID } = req.body;
+
+    if (!Array.isArray(bom_structure_list) || bom_structure_list.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "bom_structure_list harus array dan tidak boleh kosong",
+        });
+    }
+
+    if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
+        return res.status(400).json({
+            success: false,
+            message: "Status hanya boleh: Confirmed, Canceled, Deleted",
+        });
+    }
+
+    try {
+        const records = await BomStructureListModel.findAll({
+            where: {
+                ID: { [Op.in]: bom_structure_list },
+                STATUS: "Open"
+            }
+        });
+
+        if (records.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Tidak ada data yang bisa diproses (semua bukan status Open)",
+                updated_count: 0
+            });
+        }
+
+        let updatedCount = 0;
+
+        for (const record of records) {
+            try {
+                if (status === "Confirmed") {
+
+                    const listDetails = await BomStructureListDetailModel.findAll({
+                        where: { BOM_STRUCTURE_LIST_ID: record.ID }
+                    });
+
+                    if (listDetails.length === 0) {
+                        continue;
+                    }
+
+                    const grouped = listDetails.reduce((acc, detail) => {
+                        const key = detail.ITEM_DIMENSION_ID;
+                        if (!acc[key]) {
+                            acc[key] = {
+                                ITEM_DIMENSION_ID: key,
+                                totalRequirement: 0,
+                                ORDER_PO_ID: detail.ORDER_PO_ID
+                            };
+                        }
+                        acc[key].totalRequirement += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                        return acc;
+                    }, {});
+
+                    const sourcingToCreate = [];
+                    for (const group of Object.values(grouped)) {
+                        const exists = await BomStructureSourcingDetail.findOne({
+                            where: {
+                                BOM_STRUCTURE_LINE_ID: record.ID,
+                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID
+                            }
+                        });
+
+                        if (!exists) {
+                            sourcingToCreate.push({
+                                BOM_STRUCTURE_LINE_ID: record.ID,
+                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                                ORDER_PO_ID: group.ORDER_PO_ID || null,
+                                APPROVE_PURCHASE_QUANTITY: group.totalRequirement,
+                                PLAN_CURRENT_QUANTITY: group.totalRequirement,
+                                COST_PER_ITEM: 0,
+                                FINANCE_COST: 0,
+                                FREIGHT_COST: 0,
+                                OTHER_COST: 0,
+                                NOTE: ""
+                            });
+                        }
+                    }
+
+                    if (sourcingToCreate.length > 0) {
+                        await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
+                    }
+                }
+
+                await record.update({
+                    STATUS: status,
+                    UPDATED_AT: new Date(),
+                    UPDATED_ID: UPDATED_ID || null
+                });
+
+                updatedCount++;
+            } catch (err) {
+                console.log("Error when change status ", updatedCount, err.message)
+                continue;
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Berhasil memperbarui ${updatedCount} data ke status ${status}`,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Gagal memperbarui status",
+        });
+    }
+};
+
+export const updateBomStructureListStatus = async (req, res) => {
+    const { id, status, UPDATED_ID } = req.body;
+
+    if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
+        return res.status(400).json({
+            success: false,
+            message: "Status hanya boleh: Confirmed, Canceled, Deleted",
+        });
+    }
+
+    try {
+        const record = await BomStructureListModel.findByPk(id);
+
+        if (!record) {
+            return res.status(404).json({
+                success: false,
+                message: "Bom Structure List tidak ditemukan",
+            });
+        }
+
+        if (record.STATUS !== "Open") {
+            return res.status(400).json({
+                success: false,
+                message: `Status hanya bisa diubah dari 'Open', status saat ini: ${record.STATUS}`,
+            });
+        }
+
+        if (status === "Confirmed") {
+
+            const listDetails = await BomStructureListDetailModel.findAll({
+                where: { BOM_STRUCTURE_LIST_ID: id }
+            });
+            if (listDetails.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Tidak bisa Confirm: Belum ada detail BOM",
+                });
+            }
+
+            const grouped = listDetails.reduce((acc, detail) => {
+                const key = detail.ITEM_DIMENSION_ID;
+                if (!acc[key]) {
+                    acc[key] = {
+                        ITEM_DIMENSION_ID: key,
+                        totalRequirement: 0,
+                        ORDER_PO_ID: detail.ORDER_PO_ID
+                    };
+                }
+                acc[key].totalRequirement += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                return acc;
+            }, {});
+
+            const sourcingToCreate = [];
+            for (const group of Object.values(grouped)) {
+                const exists = await BomStructureSourcingDetail.findOne({
+                    where: {
+                        BOM_STRUCTURE_LINE_ID: id,
+                        ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID
+                    }
+                });
+
+                if (!exists) {
+                    sourcingToCreate.push({
+                        BOM_STRUCTURE_LINE_ID: id,
+                        ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                        ORDER_PO_ID: group.ORDER_PO_ID || null,
+                        APPROVE_PURCHASE_QUANTITY: group.totalRequirement,
+                        PLAN_CURRENT_QUANTITY: group.totalRequirement,
+                        COST_PER_ITEM: 0,
+                        FINANCE_COST: 0,
+                        FREIGHT_COST: 0,
+                        OTHER_COST: 0,
+                        NOTE: ""
+                    });
+                }
+            }
+
+            if (sourcingToCreate.length > 0) {
+                await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
+            }
+        }
+
+        await record.update({
+            STATUS: status,
+            UPDATED_AT: new Date(),
+            UPDATED_ID
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: `Status berhasil diubah menjadi ${status}`
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Gagal memperbarui status: ${error.message}`,
+        });
+    }
+};
