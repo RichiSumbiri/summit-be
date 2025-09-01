@@ -394,122 +394,6 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
 
 
 
-export const updateBomStructureListStatusBulk = async (req, res) => {
-    const { bom_structure_list, status, UPDATED_ID } = req.body;
-
-    if (!Array.isArray(bom_structure_list) || bom_structure_list.length === 0) {
-        return res.status(400).json({
-            success: false,
-            message: "bom_structure_list harus array dan tidak boleh kosong",
-        });
-    }
-
-    if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
-        return res.status(400).json({
-            success: false,
-            message: "Status hanya boleh: Confirmed, Canceled, Deleted",
-        });
-    }
-
-    try {
-        const records = await BomStructureListModel.findAll({
-            where: {
-                ID: { [Op.in]: bom_structure_list },
-                STATUS: "Open"
-            }
-        });
-
-        if (records.length === 0) {
-            return res.status(200).json({
-                success: true,
-                message: "Tidak ada data yang bisa diproses (semua bukan status Open)",
-                updated_count: 0
-            });
-        }
-
-        let updatedCount = 0;
-
-        for (const record of records) {
-            try {
-                if (status === "Confirmed") {
-
-                    const listDetails = await BomStructureListDetailModel.findAll({
-                        where: { BOM_STRUCTURE_LIST_ID: record.ID }
-                    });
-
-                    if (listDetails.length === 0) {
-                        continue;
-                    }
-
-                    const grouped = listDetails.reduce((acc, detail) => {
-                        const key = detail.ITEM_DIMENSION_ID;
-                        if (!acc[key]) {
-                            acc[key] = {
-                                ITEM_DIMENSION_ID: key,
-                                totalRequirement: 0,
-                                ORDER_PO_ID: detail.ORDER_PO_ID
-                            };
-                        }
-                        acc[key].totalRequirement += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
-                        return acc;
-                    }, {});
-
-                    const sourcingToCreate = [];
-                    for (const group of Object.values(grouped)) {
-                        const exists = await BomStructureSourcingDetail.findOne({
-                            where: {
-                                BOM_STRUCTURE_LINE_ID: record.ID,
-                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID
-                            }
-                        });
-
-                        if (!exists) {
-                            sourcingToCreate.push({
-                                BOM_STRUCTURE_LINE_ID: record.ID,
-                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
-                                ORDER_PO_ID: group.ORDER_PO_ID || null,
-                                APPROVE_PURCHASE_QUANTITY: group.totalRequirement,
-                                PLAN_CURRENT_QUANTITY: group.totalRequirement,
-                                COST_PER_ITEM: 0,
-                                FINANCE_COST: 0,
-                                FREIGHT_COST: 0,
-                                OTHER_COST: 0,
-                                NOTE: ""
-                            });
-                        }
-                    }
-
-                    if (sourcingToCreate.length > 0) {
-                        await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
-                    }
-                }
-
-                await record.update({
-                    STATUS: status,
-                    UPDATED_AT: new Date(),
-                    UPDATED_ID: UPDATED_ID || null
-                });
-
-                updatedCount++;
-            } catch (err) {
-                console.log("Error when change status ", updatedCount, err.message)
-                continue;
-            }
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: `Berhasil memperbarui ${updatedCount} data ke status ${status}`,
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Gagal memperbarui status",
-        });
-    }
-};
-
 export const updateBomStructureListStatus = async (req, res) => {
     const { id, status, UPDATED_ID } = req.body;
 
@@ -521,7 +405,13 @@ export const updateBomStructureListStatus = async (req, res) => {
     }
 
     try {
-        const record = await BomStructureListModel.findByPk(id);
+        const record = await BomStructureListModel.findByPk(id, {
+            include: [{
+                model: BomStructureModel,
+                as: 'BOM_STRUCTURE',
+                attributes: ['ORDER_ID']
+            }]
+        });
 
         if (!record) {
             return res.status(404).json({
@@ -538,10 +428,10 @@ export const updateBomStructureListStatus = async (req, res) => {
         }
 
         if (status === "Confirmed") {
-
             const listDetails = await BomStructureListDetailModel.findAll({
                 where: { BOM_STRUCTURE_LIST_ID: id }
             });
+
             if (listDetails.length === 0) {
                 return res.status(400).json({
                     success: false,
@@ -549,16 +439,20 @@ export const updateBomStructureListStatus = async (req, res) => {
                 });
             }
 
+            // Group by ITEM_DIMENSION_ID
             const grouped = listDetails.reduce((acc, detail) => {
                 const key = detail.ITEM_DIMENSION_ID;
                 if (!acc[key]) {
                     acc[key] = {
                         ITEM_DIMENSION_ID: key,
-                        totalRequirement: 0,
-                        ORDER_PO_ID: detail.ORDER_PO_ID
+                        costQuantity: 0,           // ✅ semua (untuk COST_PER_ITEM)
+                        approveQuantity: 0         // ✅ hanya IS_BOOKING = true
                     };
                 }
-                acc[key].totalRequirement += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                acc[key].costQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                if (detail.IS_BOOKING) {
+                    acc[key].approveQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                }
                 return acc;
             }, {});
 
@@ -575,10 +469,10 @@ export const updateBomStructureListStatus = async (req, res) => {
                     sourcingToCreate.push({
                         BOM_STRUCTURE_LINE_ID: id,
                         ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
-                        ORDER_PO_ID: group.ORDER_PO_ID || null,
-                        APPROVE_PURCHASE_QUANTITY: group.totalRequirement,
-                        PLAN_CURRENT_QUANTITY: group.totalRequirement,
-                        COST_PER_ITEM: 0,
+                        ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
+                        APPROVE_PURCHASE_QUANTITY: group.approveQuantity,     // ✅ hanya yang IS_BOOKING = true
+                        PLAN_CURRENT_QUANTITY: group.costQuantity,           // ✅ semua (bisa diganti sesuai kebutuhan)
+                        COST_PER_ITEM: group.costQuantity,                   // ✅ semua (bukan hanya booking)
                         FINANCE_COST: 0,
                         FREIGHT_COST: 0,
                         OTHER_COST: 0,
@@ -607,6 +501,130 @@ export const updateBomStructureListStatus = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Gagal memperbarui status: ${error.message}`,
+        });
+    }
+};
+
+export const updateBomStructureListStatusBulk = async (req, res) => {
+    const { bom_structure_list, status, UPDATED_ID } = req.body;
+
+    if (!Array.isArray(bom_structure_list) || bom_structure_list.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "bom_structure_list harus array dan tidak boleh kosong",
+        });
+    }
+
+    if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
+        return res.status(400).json({
+            success: false,
+            message: "Status hanya boleh: Confirmed, Canceled, Deleted",
+        });
+    }
+
+    try {
+        const records = await BomStructureListModel.findAll({
+            where: {
+                ID: { [Op.in]: bom_structure_list },
+                STATUS: "Open"
+            },
+            include: [{
+                model: BomStructureModel,
+                as: 'BOM_STRUCTURE',
+                attributes: ['ORDER_ID']
+            }]
+        });
+
+        if (records.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Tidak ada data yang bisa diproses (semua bukan status Open)",
+                updated_count: 0
+            });
+        }
+
+        let updatedCount = 0;
+
+        for (const record of records) {
+            try {
+                if (status === "Confirmed") {
+                    const listDetails = await BomStructureListDetailModel.findAll({
+                        where: { BOM_STRUCTURE_LIST_ID: record.ID }
+                    });
+
+                    if (listDetails.length === 0) {
+                        continue;
+                    }
+
+                    const grouped = listDetails.reduce((acc, detail) => {
+                        const key = detail.ITEM_DIMENSION_ID;
+                        if (!acc[key]) {
+                            acc[key] = {
+                                ITEM_DIMENSION_ID: key,
+                                costQuantity: 0,
+                                approveQuantity: 0
+                            };
+                        }
+                        acc[key].costQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                        if (detail.IS_BOOKING) {
+                            acc[key].approveQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                        }
+                        return acc;
+                    }, {});
+
+                    const sourcingToCreate = [];
+                    for (const group of Object.values(grouped)) {
+                        const exists = await BomStructureSourcingDetail.findOne({
+                            where: {
+                                BOM_STRUCTURE_LINE_ID: record.ID,
+                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID
+                            }
+                        });
+
+                        if (!exists) {
+                            sourcingToCreate.push({
+                                BOM_STRUCTURE_LINE_ID: record.ID,
+                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                                ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
+                                APPROVE_PURCHASE_QUANTITY: group.approveQuantity,
+                                PLAN_CURRENT_QUANTITY: group.costQuantity,
+                                COST_PER_ITEM: group.costQuantity,           // ✅ semua
+                                FINANCE_COST: 0,
+                                FREIGHT_COST: 0,
+                                OTHER_COST: 0,
+                                NOTE: ""
+                            });
+                        }
+                    }
+
+                    if (sourcingToCreate.length > 0) {
+                        await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
+                    }
+                }
+
+                await record.update({
+                    STATUS: status,
+                    UPDATED_AT: new Date(),
+                    UPDATED_ID: UPDATED_ID || null
+                });
+
+                updatedCount++;
+            } catch (err) {
+                console.error("Error updating record ID:", record.ID, err.message);
+                continue;
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Berhasil memperbarui ${updatedCount} data ke status ${status}`,
+        });
+
+    } catch (error) {
+        console.error("Error in updateBomStructureListStatusBulk:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Gagal memperbarui status",
         });
     }
 };

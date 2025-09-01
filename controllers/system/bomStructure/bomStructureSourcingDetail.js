@@ -1,4 +1,6 @@
-import {BomStructureSourcingDetail} from "../../../models/system/bomStructure.mod.js";
+import {BomStructureListModel, BomStructureSourcingDetail} from "../../../models/system/bomStructure.mod.js";
+import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
+import {ModelOrderPOHeader} from "../../../models/orderManagement/orderManagement.mod.js";
 
 export const getAllSourcingDetails = async (req, res) => {
     const { BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, ORDER_PO_ID } = req.query;
@@ -9,7 +11,20 @@ export const getAllSourcingDetails = async (req, res) => {
     if (ORDER_PO_ID) where.ORDER_PO_ID = ORDER_PO_ID;
 
     try {
-        const details = await BomStructureSourcingDetail.findAll({ where });
+        const details = await BomStructureSourcingDetail.findAll({ where, include: [
+                {
+                    model: MasterItemDimensionModel,
+                    as: "ITEM_DIMENSION"
+                },
+                {
+                    model: ModelOrderPOHeader,
+                    as: "ORDER_PO"
+                },
+                {
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LINE"
+                },
+            ] });
 
         return res.status(200).json({
             success: true,
