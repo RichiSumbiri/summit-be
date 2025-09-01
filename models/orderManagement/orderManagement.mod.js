@@ -838,4 +838,80 @@ WHERE pl.SUMMIT_FLAG ='1' AND opl.ORDER_NO = :OrderID
     order_po_header_log_status opls
   LEFT JOIN xref_user_web xuw ON xuw.USER_ID = opls.CREATE_BY 
   WHERE opls.ORDER_ID = :orderID
-  `
+  `;
+
+
+  export const ModelMasterOrderExecuteInfo = db.define(
+  "master_order_execute_info",
+  {
+    ID: {
+      type: DataTypes.INTEGER(20),
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    NAME: {
+      type: DataTypes.STRING(200),
+      allowNull: false,
+    },
+    VALIDATION_DEFAULT: {
+      type: DataTypes.BOOLEAN, // tinyint(1) → BOOLEAN in Sequelize
+      allowNull: false,
+      defaultValue: false,
+    },
+  },
+  {
+    tableName: "master_order_execute_info",
+    timestamps: false, // no createdAt/updatedAt in your DDL
+    underscored: false, // keep original column naming
+  }
+);
+
+export const queryCheckTNAEventStatusByOrderID = `
+SELECT
+	ef.ORDER_ID,
+	ef.TEMPLATE_ID,
+	etl.TEMPLATE_LINE_ID,
+	etl.EVENT_ID,
+	em.EVENT_NAME,
+	em.EVENT_GROUP_ID,
+	meg.EVENT_GROUP_NAME,
+	met.EVENT_TYPE_ID,
+	met.EVENT_TYPE_NAME,
+	edh.EVENT_DIARY_ID,
+	edh.EVENT_STATUS 
+FROM
+	event_framework ef
+LEFT JOIN event_template et ON et.TEMPLATE_ID = ef.TEMPLATE_ID 
+LEFT JOIN event_template_line etl ON etl.TEMPLATE_ID = et.TEMPLATE_ID 
+LEFT JOIN event_master em ON em.EVENT_ID = etl.EVENT_ID 
+LEFT JOIN master_event_group meg ON meg.EVENT_GROUP_ID = em.EVENT_GROUP_ID 
+LEFT JOIN master_event_type met ON met.EVENT_TYPE_ID = em.EVENT_TYPE_ID 
+LEFT JOIN event_diary_header edh ON edh.EVENT_ID = etl.EVENT_ID 
+WHERE ef.ORDER_ID = :orderID AND met.EVENT_TYPE_NAME='Pre-Production'
+`;
+
+export const queryCheckBOMStructureByOrderIDAndItemTypeCode = `
+SELECT
+	bsl.BOM_STRUCTURE_ID,
+	bsl.STATUS,
+  bs.ORDER_ID,
+	bs.LAST_REV_ID,
+	bsl.MASTER_ITEM_ID,
+	mii.ITEM_GROUP_ID,
+	mig.ITEM_GROUP_CODE,
+	mii.ITEM_TYPE_ID,
+	mit.ITEM_TYPE_CODE,
+	mii.ITEM_CATEGORY_ID,
+	mic.ITEM_CATEGORY_CODE
+FROM
+	bom_structure_list bsl
+LEFT JOIN master_item_id mii ON mii.ITEM_ID = bsl.MASTER_ITEM_ID
+LEFT JOIN master_item_group mig ON mig.ITEM_GROUP_ID = mii.ITEM_GROUP_ID 
+LEFT JOIN master_item_type mit ON mit.ITEM_TYPE_ID = mii.ITEM_TYPE_ID 
+LEFT JOIN master_item_category mic ON mic.ITEM_CATEGORY_ID = mii.ITEM_CATEGORY_ID
+LEFT JOIN bom_structure bs ON bs.ID = bsl.BOM_STRUCTURE_ID
+WHERE 
+  bs.ORDER_ID = :orderID 
+  AND bs.LAST_REV_ID = :lastRevID
+`;
