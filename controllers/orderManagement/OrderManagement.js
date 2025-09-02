@@ -33,8 +33,9 @@ import Users from "../../models/setup/users.mod.js";
 import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
-import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import BomTemplateModel, { BomTemplateColor } from "../../models/system/bomTemplate.mod.js";
 import MasterCompanyModel from "../../models/setup/company.mod.js";
+import { MasterOrderType } from "../../models/setup/orderType.mod.js";
 // import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";
 // import ProductItemModel from "../../models/system/productItem.mod.js";
 
@@ -285,6 +286,39 @@ export const getListPODetailByOrderID = async (req, res) => {
     }
 }
 
+export const getPOSizeListingCheck = async(req,res) => {
+    try {
+        const { ORDER_ID } = req.query;
+        if(!ORDER_ID){
+            return res.status(400).json({
+                success: false,
+                error: err,
+                message: "error missing parameter"
+            });
+        }
+
+        const CheckData = await OrderPoListingSize.findAll({
+            where: {
+                ORDER_NO: ORDER_ID
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: `success check order po listing size for order ${ORDER_ID}`,
+            data: CheckData.length
+        });
+
+
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order detail by order id"
+        });
+    }
+}
+
 export const getPOListingSizeByPOID = async (req, res) => {
     try {
         const {poid} = req.params;
@@ -371,7 +405,45 @@ export const getAllPODetailHeader = async (req, res) => {
 
 export const postPOListing = async (req, res) => {
     try {
-        const {DataPOID} = req.body;
+        const { DataPOID } = req.body;
+
+        // CHECK MASTER ORDER TYPE
+            const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_ID).substring(0,3) }});
+            
+            // CHECK BOM TEMPLATE BASE ON GMT & ORDER TYPE
+            const getBOMTemplateID = await BomTemplateModel.findOne({
+                where: {
+                    MASTER_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
+                    CUSTOMER_ID: DataPOID.CUSTOMER_ID,
+                    ORDER_TYPE_ID: getMasterOrderType.TYPE_ID
+                },
+                raw: true
+            });
+
+            if(!getBOMTemplateID){
+                return res.status(400).json({
+                    success: true,
+                    message: "Please create BOM Template for Item " + DataPOID.PRODUCT_ITEM_ID
+                });
+            }
+
+            // CHECK BOM TEMPLATE COLOR
+            const getBOMTemplateColor = await BomTemplateColor.findOne({
+                where: {
+                    BOM_TEMPLATE_ID: getBOMTemplateID.ID,
+                    REV_ID: getBOMTemplateID.LAST_REV_ID,
+                    COLOR_ID: DataPOID.ITEM_COLOR_ID
+                }
+            });
+
+            if(!getBOMTemplateColor){
+                return res.status(400).json({
+                    success: true,
+                    message: `Please add color ${DataPOID.ITEM_COLOR_CODE} to BOM Template ${DataPOID.PRODUCT_ITEM_ID}`
+                });
+            }
+
+
         if (DataPOID.ORDER_PO_ID) {
             await OrderPoListing.update({
                 MANUFACTURING_COMPANY: DataPOID.MANUFACTURING_COMPANY,
