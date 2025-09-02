@@ -2047,7 +2047,8 @@ export const copyIeOb = async (req, res) =>{
           const listObDetailNew = listObDetail.map(({OB_DETAIL_ID, ...obd}) => {
             //datapatkan nilai target detail ob
              const getTarget = (dataNewOb.OB_WH * 60)/parseFloat(obd.OB_DETAIL_SMV); 
-             const OB_DETAIL_TARGET = getTarget
+             const OB_DETAIL_TARGET = Number.isFinite(getTarget) ? getTarget : 0
+             
              const findFeatId = resultFeatures.find(ft => ft.FEATURES_ID === obd.FEATURES_ID)             
              return ({...obd, OB_ID, OB_DETAIL_TARGET, ID_OB_FEATURES : findFeatId.ID_OB_FEATURES,  ADD_ID : dataNewOb.OB_ADD_ID })
           })
