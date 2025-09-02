@@ -965,15 +965,26 @@ export const changeMOListingStatus = async(req,res) => {
             }
         });
 
-        // Update POID Status if Status is Released to Production
+        // Update POID & Size Status if Status is Released to Production
         if(DataMOID.NEW_MO_STATUS==='Released to Production'){
+            // update POID
             await OrderPoListing.update({
                 PO_STATUS: 'Released to Production',
                 MO_RELEASED_DATE: moment().format('YYYY-MM-DD')
             }, {
                 where: {
-                    MO_ID: DataMOID.MO_ID,
-                    ORDER_ID: DataMOID.ORDER_ID
+                    MO_NO: DataMOID.MO_ID,
+                    ORDER_NO: DataMOID.ORDER_ID
+                }
+            });
+            // update PO Size Listing
+            await OrderPoListingSize.update({
+                PO_STATUS: 'Released to Production',
+                MO_RELEASED_DATE: moment().format('YYYY-MM-DD')
+            }, {
+                where: {
+                    MO_NO: DataMOID.MO_ID,
+                    ORDER_NO: DataMOID.ORDER_ID
                 }
             });
         }
@@ -1016,7 +1027,7 @@ export const postMOListing = async (req, res) => {
             const newIncrement = !getLastMOID ? '0000001' : parseInt(getLastMOID.MO_ID.slice(-8)) + 1;
             const newMOID = 'MO' + newIncrement.toString().padStart(8, '0');
 
-            // CREATE DETAIL ORDER PO ID
+            // CREATE DETAIL ORDER MO
             await OrderMOListing.create({
                 MO_ID: newMOID,
                 MO_CODE: DataMOID.MO_CODE,
@@ -1031,10 +1042,22 @@ export const postMOListing = async (req, res) => {
 
             // UPDATE POID MO NO
             for (const poid of listPOID) {
+                // update po listing
                 await OrderPoListing.update({
                     MO_AVAILABILITY: 'Yes',
                     MO_NO: newMOID,
-                    MO_RELEASED_DATE: moment().format('YYYY-MM-DD'),
+                    UPDATE_BY: DataMOID.CREATE_BY,
+                    UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                }, {
+                    where: {
+                        ORDER_NO: DataMOID.ORDER_ID,
+                        ORDER_PO_ID: poid.ORDER_PO_ID
+                    }   
+                });
+                // update po listing size
+                await OrderPoListingSize.update({
+                    MO_AVAILABILITY: 'Yes',
+                    MO_NO: newMOID,
                     UPDATE_BY: DataMOID.CREATE_BY,
                     UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
                 }, {
