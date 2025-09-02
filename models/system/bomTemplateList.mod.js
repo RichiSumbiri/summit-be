@@ -34,11 +34,11 @@ const BomTemplateListModel = db.define(
             allowNull: true,
         },
         COSTING_CONSUMER_PER_ITEM: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,6),
             allowNull: true,
         },
         INTERNAL_CUSTOMER_PER_ITEM: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,6),
             allowNull: true,
         },
         IS_SPLIT_COLOR: {

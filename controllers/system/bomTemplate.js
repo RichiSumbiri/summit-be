@@ -1606,6 +1606,38 @@ export const updateNoteByBomTemplateIdAndRevId = async (req, res) => {
             });
         }
 
+        const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
+        if (!bomTemplate) return res.status(404).json({status: false, message: "Bom template not found"})
+
+        const foundOpenStatusList = await BomTemplateListModel.findOne({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+                STATUS: "Open"
+            }
+        })
+
+        if (foundOpenStatusList) return res.status(500).json({
+            status: false,
+            message: "Failed to approve status because there are still open statuses in the BOM list"
+        })
+
+        const colorCount = await BomTemplateColor.count({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID
+            }
+        })
+        if (!colorCount) return res.status(500).json({status: false, message: "Failed to approve status because color is empty"})
+
+        const sizeCount = await BomTemplateSize.count({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID
+            }
+        })
+        if (!sizeCount) return res.status(500).json({status: false, message: "Failed to approve status because size is empty"})
+
         const dataNote = await BomTemplateNote.findOne({ where: { BOM_TEMPLATE_ID, REV_ID } });
         if (!dataNote) {
             return res.status(404).json({

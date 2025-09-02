@@ -212,7 +212,7 @@ export const createBomStructure = async (req, res) => {
             CREATED_AT: new Date(),
         });
 
-        await BomStructureNoteModel.create({
+        const noteResp = await BomStructureNoteModel.create({
             REV_ID: LAST_REV_ID || 0,
             NOTE,
             BOM_STRUCTURE_ID: ID
@@ -236,14 +236,13 @@ export const createBomStructure = async (req, res) => {
 
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {
-                REV_ID: bomTemplate.dataValues.LAST_REV_ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
                 BOM_TEMPLATE_ID,
                 STATUS: {[Op.in]: ["Confirmed"]},
                 IS_DELETED: false
             },
             order: [['ID', 'ASC']]
         })
-
 
         if (bomTemplateList.length) {
             await BomStructureListModel.bulkCreate(await Promise.all(bomTemplateList.map(async (item, idx) => {
@@ -312,15 +311,13 @@ export const createBomStructure = async (req, res) => {
             },]
         })
 
-        const noteBomStructure = await BomStructureNoteModel.findOne({where: {REV_ID: LAST_REV_ID || 0,}})
-
         return res.status(201).json({
             success: true,
             message: "BOM structure created successfully",
             data: {
                 ...bomStructure.toJSON(),
-                NOTE: noteBomStructure.NOTE,
-                IS_BOM_CONFIRMATION: noteBomStructure.IS_BOM_CONFIRMATION
+                NOTE: noteResp.NOTE,
+                IS_BOM_CONFIRMATION: noteResp.IS_BOM_CONFIRMATION
             }
         });
     } catch (error) {
@@ -340,6 +337,10 @@ export const approveStatusBomStructure = async (req, res) => {
     })
 
     try {
+        const bomStructureMod = await BomStructureModel.findByPk(ID)
+
+        if (!bomStructureMod) return res.status(404).json({status: false, message: "Bom structure not found"})
+
         const revision = await BomStructureNoteModel.findOne({
             where: {
                 BOM_STRUCTURE_ID: ID,
@@ -348,6 +349,17 @@ export const approveStatusBomStructure = async (req, res) => {
         })
 
         if (!revision) return res.status(404).json({status: false, message: "Note not found"})
+
+        const bomStructureList = await BomStructureListModel.findOne({
+            where: {
+                BOM_STRUCTURE_ID: ID,
+                REV_ID,
+                STATUS: "Open"
+            }
+        })
+
+        if (bomStructureList) return res.status(500).json({status: false, message: `BOM structure cannot be approved because there are still items with "open" status in the list`})
+
 
         await BomStructureNoteModel.update({
             IS_BOM_CONFIRMATION: true
@@ -431,6 +443,43 @@ export const importBomTemplateListToStructure = async (req, res) => {
         if (!bomTemplate) return res.status(404).json({status: false, message: "Bom Template not found"})
 
 
+        const bomTemplateNote = await BomTemplateNote.findOne({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID
+            }
+        })
+
+        if (!bomTemplateNote) return res.status(404).json({status: false, message: "Bom template note not found"})
+        if (!bomTemplateNote.IS_APPROVE) return res.status(500).json({
+            status: false,
+            message: "Cannot retrieve the BOM template in the latest revision because its status is not yet approved"
+        })
+
+        const bomTemplateColor = await BomTemplateColor.findAll({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+                DELETED_AT: null,
+            }
+        })
+
+        const bomTemplateSize = await BomTemplateSize.findAll({
+            where: {
+                BOM_TEMPLATE_ID: bomTemplate.ID,
+                REV_ID: bomTemplate.LAST_REV_ID,
+                DELETED_AT: null,
+            }
+        })
+
+        if (!bomTemplateColor.length) return res.status(500).json({
+            status: false,
+            message: "Bom template color empty in last revision"
+        })
+        if (!bomTemplateSize.length) return res.status(500).json({
+            status: false,
+            message: "Bom template size empty in last revision"
+        })
 
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {
@@ -456,7 +505,10 @@ export const importBomTemplateListToStructure = async (req, res) => {
 
         for (const item in listBomStructure) {
             const data = listBomStructure[item].dataValues
-            if (data.STATUS.toLowerCase() === "confirmed") return res.status(500).json({status: false, message: "Bom Structure List already confirmed"})
+            if (data.STATUS.toLowerCase() === "confirmed") return res.status(500).json({
+                status: false,
+                message: "Bom Structure List already confirmed"
+            })
         }
 
         for (const item in listBomStructure) {
@@ -474,13 +526,41 @@ export const importBomTemplateListToStructure = async (req, res) => {
             })
         }
 
+        await BomStructureColorModel.destroy({
+            where: {
+                BOM_STRUCTURE_ID: bomStrucute.ID,
+                REV_ID: bomStrucute.LAST_REV_ID,
+            }
+        })
+        await BomStructureSizeModel.destroy({
+            where: {
+                BOM_STRUCTURE_ID: bomStrucute.ID,
+                REV_ID: bomStrucute.LAST_REV_ID
+            }
+        })
+
+        if (bomTemplateColor.length) {
+            await BomStructureColorModel.bulkCreate(bomTemplateColor.map((item, idx) => ({
+                BOM_STRUCTURE_ID: bomStrucute.ID,
+                COLOR_ID: item.COLOR_ID,
+                REV_ID: bomStrucute.LAST_REV_ID
+            })))
+        }
+
+        if (bomTemplateSize.length) {
+            await BomStructureSizeModel.bulkCreate(bomTemplateSize.map((item) => ({
+                BOM_STRUCTURE_ID: bomStrucute.ID,
+                SIZE_ID: item.SIZE_ID,
+                REV_ID: bomStrucute.LAST_REV_ID
+            })))
+        }
+
         await BomStructureListModel.update({IS_DELETED: true, DELETED_AT: new Date()}, {
             where: {
                 BOM_STRUCTURE_ID: id,
                 REV_ID
             }
         })
-
         await BomStructureListModel.bulkCreate(await Promise.all(bomTemplateList.map(async (item, idx) => {
             const data = item.dataValues
             const masterItemId = await MasterItemIdModel.findByPk(item.MASTER_ITEM_ID)

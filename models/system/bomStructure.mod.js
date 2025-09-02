@@ -151,27 +151,27 @@ export const  BomStructureListModel = db.define(
             allowNull: true,
         },
         STANDARD_CONSUMPTION_PER_ITEM: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,6),
             defaultValue: 0,
             allowNull: true,
         },
         INTERNAL_CONSUMPTION_PER_ITEM: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,6),
             defaultValue: 0,
             allowNull: true,
         },
         BOOKING_CONSUMPTION_PER_ITEM: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,6),
             defaultValue: 0,
             allowNull: true,
         },
         PRODUCTION_CONSUMPTION_PER_ITEM: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,6),
             defaultValue: 0,
             allowNull: true,
         },
         EXTRA_BOOKS: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.DECIMAL(65,2),
             defaultValue: 0,
             allowNull: true,
         },
@@ -365,35 +365,35 @@ export const BomStructureListDetailModel = db.define("bom_structure_list_detail"
         allowNull: true,
     },
     STANDARD_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     INTERNAL_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     BOOKING_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     PRODUCTION_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     EXTRA_BOOKS: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,2),
         allowNull: true,
     },
     MATERIAL_ITEM_REQUIREMENT_QUANTITY: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     EXTRA_REQUIRE_QUANTITY: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     TOTAL_EXTRA_PURCHASE_PLAN: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,2),
         allowNull: true,
     },
     IS_BOOKING: {
@@ -454,12 +454,12 @@ export const BomStructurePendingDimension = db.define("bom_structure_pending_dim
         defaultValue: 0,
     },
     MATERIAL_ITEM_REQUIREMENT_QTY: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         defaultValue: 0,
         allowNull: true,
     },
     TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,2),
         defaultValue: 0,
         allowNull: true,
     },
@@ -472,27 +472,27 @@ export const BomStructurePendingDimension = db.define("bom_structure_pending_dim
         allowNull: true,
     },
     STANDARD_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     INTERNAL_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     BOOKING_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     PRODUCTION_CONSUMPTION_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     EXTRA_REQUIRE_QTY: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         allowNull: true,
     },
     EXTRA_BOOKS: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,2),
         allowNull: true,
     },
     CREATED_AT: {
@@ -529,22 +529,22 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         allowNull: true,
     },
     COST_PER_ITEM: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         defaultValue: 0,
         allowNull: true,
     },
     FINANCE_COST: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         defaultValue: 0,
         allowNull: true,
     },
     FREIGHT_COST: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         defaultValue: 0,
         allowNull: true,
     },
     OTHER_COST: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,6),
         defaultValue: 0,
         allowNull: true,
     },
@@ -553,12 +553,12 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         allowNull: true,
     },
     APPROVE_PURCHASE_QUANTITY: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,2),
         defaultValue: 0,
         allowNull: true,
     },
     PLAN_CURRENT_QUANTITY: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(65,2),
         defaultValue: 0,
         allowNull: true,
     }

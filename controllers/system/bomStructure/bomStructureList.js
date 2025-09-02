@@ -34,7 +34,7 @@ export const getAllBomStructureList = async (req, res) => {
             }, {
                 model: MasterItemIdModel,
                 as: "MASTER_ITEM",
-                attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"],
+                attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE", "ITEM_GROUP_ID", "ITEM_TYPE_ID", "ITEM_CATEGORY_ID"],
                 include: [{
                     model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
                 }, {
@@ -288,6 +288,17 @@ export const updateBomStructureList = async (req, res) => {
         const isSplitNoPO = body.IS_SPLIT_NO_PO ? body.IS_SPLIT_NO_PO : data.IS_SPLIT_NO_PO;
         const isSplitColor = body.IS_SPLIT_COLOR ? body.IS_SPLIT_COLOR : data.IS_SPLIT_COLOR;
 
+        if (body?.MASTER_ITEM_ID) {
+            if (body?.MASTER_ITEM_ID !== data.MASTER_ITEM_ID) {
+                const bomStructureListDetailCount = await BomStructureListDetailModel.count({
+                    where: {
+                        BOM_STRUCTURE_LIST_ID: id
+                    }
+                })
+                if (bomStructureListDetailCount) return res.status(500).json({status: false, message: "Failed to change master item because split detail already declared"})
+            }
+        }
+
         if (isSplitNoPO && isSplitColor) {
             return res.status(400).json({
                 success: false,
@@ -439,20 +450,23 @@ export const updateBomStructureListStatus = async (req, res) => {
                 });
             }
 
-            // Group by ITEM_DIMENSION_ID
             const grouped = listDetails.reduce((acc, detail) => {
                 const key = detail.ITEM_DIMENSION_ID;
                 if (!acc[key]) {
                     acc[key] = {
                         ITEM_DIMENSION_ID: key,
-                        costQuantity: 0,           // ✅ semua (untuk COST_PER_ITEM)
-                        approveQuantity: 0         // ✅ hanya IS_BOOKING = true
+                        costQuantity: 0,
+                        approveQuantity: 0
                     };
                 }
-                acc[key].costQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+
+                const requirement = parseFloat(detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY) || 0;
+
+                acc[key].costQuantity += requirement;
                 if (detail.IS_BOOKING) {
-                    acc[key].approveQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
+                    acc[key].approveQuantity += requirement;
                 }
+
                 return acc;
             }, {});
 
@@ -470,9 +484,9 @@ export const updateBomStructureListStatus = async (req, res) => {
                         BOM_STRUCTURE_LINE_ID: id,
                         ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
                         ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
-                        APPROVE_PURCHASE_QUANTITY: group.approveQuantity,     // ✅ hanya yang IS_BOOKING = true
-                        PLAN_CURRENT_QUANTITY: group.costQuantity,           // ✅ semua (bisa diganti sesuai kebutuhan)
-                        COST_PER_ITEM: group.costQuantity,                   // ✅ semua (bukan hanya booking)
+                        APPROVE_PURCHASE_QUANTITY: parseFloat(group.approveQuantity) || 0,
+                        PLAN_CURRENT_QUANTITY: parseFloat(group.costQuantity) || 0,
+                        COST_PER_ITEM: parseFloat(group.costQuantity) || 0,
                         FINANCE_COST: 0,
                         FREIGHT_COST: 0,
                         OTHER_COST: 0,
@@ -588,7 +602,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                                 ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
                                 APPROVE_PURCHASE_QUANTITY: group.approveQuantity,
                                 PLAN_CURRENT_QUANTITY: group.costQuantity,
-                                COST_PER_ITEM: group.costQuantity,           // ✅ semua
+                                COST_PER_ITEM: group.costQuantity,
                                 FINANCE_COST: 0,
                                 FREIGHT_COST: 0,
                                 OTHER_COST: 0,

@@ -88,9 +88,9 @@ export const createSize = async (req, res) => {
             const existing = await sizeItemCategory.findOne({
                 where: {
                     SIZE_ID: existingSize.SIZE_ID,
-                    ITEM_GROUP_ID: sizeData?.SIZE_ITEM_CATEGORY.ITEM_GROUP_ID,
-                    ITEM_TYPE_ID: sizeData?.SIZE_ITEM_CATEGORY.ITEM_TYPE_ID,
-                    ITEM_CATEGORY_ID: sizeData?.SIZE_ITEM_CATEGORY.ITEM_CATEGORY_ID,
+                    ITEM_GROUP_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_GROUP_ID),
+                    ITEM_TYPE_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_TYPE_ID),
+                    ITEM_CATEGORY_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_CATEGORY_ID),
                 },
             });
 
@@ -99,9 +99,9 @@ export const createSize = async (req, res) => {
             }
             await sizeItemCategory.create({
                 SIZE_ID: existingSize.SIZE_ID,
-                ITEM_GROUP_ID: sizeData?.SIZE_ITEM_CATEGORY.ITEM_GROUP_ID,
-                ITEM_TYPE_ID: sizeData?.SIZE_ITEM_CATEGORY.ITEM_TYPE_ID,
-                ITEM_CATEGORY_ID: sizeData?.SIZE_ITEM_CATEGORY.ITEM_CATEGORY_ID,
+                ITEM_GROUP_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_GROUP_ID),
+                ITEM_TYPE_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_TYPE_ID),
+                ITEM_CATEGORY_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_CATEGORY_ID),
                 CREATED_BY: existingSize.CREATED_BY,
                 UPDATED_BY: existingSize.UPDATED_BY,
             });

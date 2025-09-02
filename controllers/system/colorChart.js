@@ -88,12 +88,14 @@ export const createColor = async (req, res) => {
             if (!colorData?.COLOR_ITEM_CATEGORY) {
                 return errorResponse(res, null, "COLOR_CODE already exists", 400);
             }
+
+
             const existing = await colorItemCategory.findOne({
                 where: {
                     COLOR_ID: existingColor.COLOR_ID,
-                    ITEM_GROUP_ID: colorData?.COLOR_ITEM_CATEGORY.ITEM_GROUP_ID,
-                    ITEM_TYPE_ID: colorData?.COLOR_ITEM_CATEGORY.ITEM_TYPE_ID,
-                    ITEM_CATEGORY_ID: colorData?.COLOR_ITEM_CATEGORY.ITEM_CATEGORY_ID,
+                    ITEM_GROUP_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_GROUP_ID),
+                    ITEM_TYPE_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_TYPE_ID),
+                    ITEM_CATEGORY_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_CATEGORY_ID),
                 },
             });
             if (existing) {
@@ -101,9 +103,9 @@ export const createColor = async (req, res) => {
             }
             await colorItemCategory.create({
                 COLOR_ID: existingColor.COLOR_ID,
-                ITEM_GROUP_ID: colorData?.COLOR_ITEM_CATEGORY.ITEM_GROUP_ID,
-                ITEM_TYPE_ID: colorData?.COLOR_ITEM_CATEGORY.ITEM_TYPE_ID,
-                ITEM_CATEGORY_ID: colorData?.COLOR_ITEM_CATEGORY.ITEM_CATEGORY_ID,
+                ITEM_GROUP_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_GROUP_ID),
+                ITEM_TYPE_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_TYPE_ID),
+                ITEM_CATEGORY_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_CATEGORY_ID),
                 CREATED_BY: colorData.CREATED_BY,
                 UPDATED_BY: colorData.UPDATED_BY,
             });
