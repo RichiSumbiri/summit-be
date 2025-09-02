@@ -68,8 +68,7 @@ export const createColor = async (req, res) => {
         }
 
         const normalizedColorCode = colorData.COLOR_CODE.trim().toLowerCase();
-
-        const existingColor = await colorChart.findOne({
+        let existingColor = await colorChart.findOne({
             where: {
                 [Op.and]: [
                     {COLOR_CODE: {[Op.ne]: null}},
@@ -88,8 +87,6 @@ export const createColor = async (req, res) => {
             if (!colorData?.COLOR_ITEM_CATEGORY) {
                 return errorResponse(res, null, "COLOR_CODE already exists", 400);
             }
-
-
             const existing = await colorItemCategory.findOne({
                 where: {
                     COLOR_ID: existingColor.COLOR_ID,
@@ -101,6 +98,13 @@ export const createColor = async (req, res) => {
             if (existing) {
                 return errorResponse(res, null, "Color already exist in this ccategory", 400);
             }
+        } else {
+            const customId = await generateCustomId();
+            colorData.COLOR_ID = customId;
+            existingColor = await colorChart.create(colorData);
+        }
+
+        if (colorData?.COLOR_ITEM_CATEGORY) {
             await colorItemCategory.create({
                 COLOR_ID: existingColor.COLOR_ID,
                 ITEM_GROUP_ID: Number(colorData?.COLOR_ITEM_CATEGORY?.ITEM_GROUP_ID),
@@ -109,18 +113,10 @@ export const createColor = async (req, res) => {
                 CREATED_BY: colorData.CREATED_BY,
                 UPDATED_BY: colorData.UPDATED_BY,
             });
-            return successResponse(res, {
-                COLOR_ID: existingColor.COLOR_ID
-            }, "Color category relation added successfully", 200);
         }
 
-        const customId = await generateCustomId();
-
-        colorData.COLOR_ID = customId;
-        await colorChart.create(colorData);
-
         return successResponse(res, {
-            COLOR_ID: customId
+            COLOR_ID: existingColor.COLOR_ID
         }, "Color created successfully", 201);
     } catch (err) {
         return errorResponse(res, err, "Failed to create color data", 400);

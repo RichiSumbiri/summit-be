@@ -66,7 +66,7 @@ export const createSize = async (req, res) => {
 
         const normalizedSizeCode = sizeData.SIZE_CODE.trim().toLowerCase();
 
-        const existingSize = await sizeChart.findOne({
+        let existingSize = await sizeChart.findOne({
             where: {
                 [Op.and]: [
                     {SIZE_CODE: {[Op.ne]: null}},
@@ -97,6 +97,16 @@ export const createSize = async (req, res) => {
             if (existing) {
                 return errorResponse(res, null, "Size already exist in this ccategory", 400);
             }
+        } else {
+            const customId = await generateCustomId();
+
+            sizeData.SIZE_ID = customId;
+            existingSize = await sizeChart.create(sizeData);
+        }
+
+        if (sizeData?.SIZE_ITEM_CATEGORY) {
+
+
             await sizeItemCategory.create({
                 SIZE_ID: existingSize.SIZE_ID,
                 ITEM_GROUP_ID: Number(sizeData?.SIZE_ITEM_CATEGORY?.ITEM_GROUP_ID),
@@ -105,18 +115,10 @@ export const createSize = async (req, res) => {
                 CREATED_BY: existingSize.CREATED_BY,
                 UPDATED_BY: existingSize.UPDATED_BY,
             });
-            return successResponse(res, {
-                SIZE_ID: existingSize.SIZE_ID
-            }, "Size created successfully", 201);
         }
 
-        const customId = await generateCustomId();
-
-        sizeData.SIZE_ID = customId;
-        await sizeChart.create(sizeData);
-
         return successResponse(res, {
-            SIZE_ID: customId
+            SIZE_ID: existingSize.SIZE_ID
         }, "Size created successfully", 201);
     } catch (err) {
         return errorResponse(res, err, "Failed to create size data", 400);
