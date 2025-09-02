@@ -16,10 +16,22 @@ import colorChart, {FGColorChartModel} from "../../models/system/colorChart.mod.
 import {Op, where} from "sequelize";
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
+import BomTemplateListDetail from "../../models/system/bomTemplateListDetail.mod.js";
 
 export const createBomTemplate = async (req, res) => {
     try {
-        let { NAME, LAST_REV_ID, MASTER_ITEM_ID, CUSTOMER_ID, CUSTOMER_DIVISION_ID, CUSTOMER_SESSION_ID, NOTE, IS_ACTIVE, USER_ID, ORDER_TYPE_ID } = req.body;
+        let {
+            NAME,
+            LAST_REV_ID,
+            MASTER_ITEM_ID,
+            CUSTOMER_ID,
+            CUSTOMER_DIVISION_ID,
+            CUSTOMER_SESSION_ID,
+            NOTE,
+            IS_ACTIVE,
+            USER_ID,
+            ORDER_TYPE_ID
+        } = req.body;
 
         if (!NAME || !MASTER_ITEM_ID || !CUSTOMER_ID || !ORDER_TYPE_ID) {
             return res.status(400).json({
@@ -135,7 +147,7 @@ export const createBomTemplate = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "BOM template created successfully",
-            data: {...template.dataValues, NOTE: bomNotes?.NOTE ?? "", IS_APPROVE: bomNotes?.IS_APPROVE ?? false  }
+            data: {...template.dataValues, NOTE: bomNotes?.NOTE ?? "", IS_APPROVE: bomNotes?.IS_APPROVE ?? false}
         });
     } catch (error) {
         return res.status(500).json({
@@ -176,7 +188,7 @@ export const cloneBomTemplate = async (req, res) => {
         }
 
         const existingTemplate = await BomTemplateModel.findOne({
-            where: {MASTER_ITEM_ID: originalTemplate.MASTER_ITEM_ID, ORDER_TYPE_ID,  IS_DELETED: false},
+            where: {MASTER_ITEM_ID: originalTemplate.MASTER_ITEM_ID, ORDER_TYPE_ID, IS_DELETED: false},
         });
 
         if (existingTemplate) {
@@ -255,11 +267,11 @@ export const cloneBomTemplate = async (req, res) => {
         }
 
         if (originalLists.length) {
-            const masterItemId = await  MasterItemIdModel.findOne({
+            const masterItemId = await MasterItemIdModel.findOne({
                 ID: originalTemplate.MASTER_ITEM_ID
             })
 
-            await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
+            const listBomTemplate =  await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
                 ...item.dataValues,
                 ID: null,
                 BOM_TEMPLATE_ID: clonedTemplateID,
@@ -273,6 +285,25 @@ export const cloneBomTemplate = async (req, res) => {
                 CREATED_AT: new Date(),
                 CONSUMPTION_UOM: masterItemId?.ITEM_UOM_BASE || "",
             })));
+
+            for (let i = 0; i < listBomTemplate.length; i++) {
+                const data = listBomTemplate[i].dataValues
+                const bomTemplateListDetail = await BomTemplateListDetail.findAll({
+                    where: {
+                        BOM_TEMPLATE_LIST_ID: data.ID,
+                        IS_DELETED: false,
+                    }
+                })
+
+                if (bomTemplateListDetail.length) {
+                    await BomTemplateListDetail.bulkCreate(bomTemplateListDetail.map((item, idx) => ({
+                        ...item.dataValues,
+                        ID: null,
+                        SPLIT_DETAIL_ID: idx + 1,
+                        BOM_TEMPLATE_LIST_ID: data.ID
+                    })))
+                }
+            }
         }
         return res.status(201).json({
             success: true,
@@ -405,12 +436,12 @@ export const saveNewRevision = async (req, res) => {
             DELETED_AT: null
         })))
 
-        const masterItemId = await  MasterItemIdModel.findOne({
+        const masterItemId = await MasterItemIdModel.findOne({
             ID: originalTemplate.MASTER_ITEM_ID
         })
 
 
-        await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
+        const listBomTemplate = await BomTemplateListModel.bulkCreate(originalLists.map((item, idx) => ({
             ...item.dataValues,
             ID: null,
             STATUS: "Open",
@@ -423,6 +454,26 @@ export const saveNewRevision = async (req, res) => {
             REV_ID: newRev.ID,
             CONSUMPTION_UOM: masterItemId?.ITEM_UOM_BASE || ""
         })));
+
+
+        for (let i = 0; i < listBomTemplate.length; i++) {
+            const data = listBomTemplate[i].dataValues
+            const bomTemplateListDetail = await BomTemplateListDetail.findAll({
+                where: {
+                    BOM_TEMPLATE_LIST_ID: data.ID,
+                    IS_DELETED: false,
+                }
+            })
+
+            if (bomTemplateListDetail.length) {
+                await BomTemplateListDetail.bulkCreate(bomTemplateListDetail.map((item, idx) => ({
+                    ...item.dataValues,
+                    ID: null,
+                    SPLIT_DETAIL_ID: idx + 1,
+                    BOM_TEMPLATE_LIST_ID: data.ID
+                })))
+            }
+        }
 
         await BomTemplateNote.create({
             BOM_TEMPLATE_ID: id, REV_ID: newRev.ID, NOTE: NOTE, IS_APPROVE: false,
@@ -465,9 +516,11 @@ export const getAllBomTemplates = async (req, res) => {
     }
 
     if (ORDER_TYPE_CODE) {
-        const orderType = await MasterOrderType.findOne({ where: {
+        const orderType = await MasterOrderType.findOne({
+            where: {
                 TYPE_CODE: ORDER_TYPE_CODE
-        }})
+            }
+        })
         if (!orderType) {
             return res.status(400).json({status: false, message: "Order Type Code Not Found"})
         }
@@ -684,12 +737,12 @@ export const updateBomTemplate = async (req, res) => {
         });
 
         const [note, created] = await BomTemplateNote.findOrCreate({
-            where: { BOM_TEMPLATE_ID: id, REV_ID: LAST_REV_ID },
-            defaults: { NOTE }
+            where: {BOM_TEMPLATE_ID: id, REV_ID: LAST_REV_ID},
+            defaults: {NOTE}
         });
 
         if (!created) {
-            await note.update({ NOTE });
+            await note.update({NOTE});
         }
 
 
@@ -1596,8 +1649,8 @@ export const getNoteByRevision = async (req, res) => {
 
 export const updateNoteByBomTemplateIdAndRevId = async (req, res) => {
     try {
-        const { BOM_TEMPLATE_ID, REV_ID } = req.params;
-        const { NOTE, IS_APPROVE, USER_ID } = req.body;
+        const {BOM_TEMPLATE_ID, REV_ID} = req.params;
+        const {NOTE, IS_APPROVE, USER_ID} = req.body;
 
         if (!BOM_TEMPLATE_ID) {
             return res.status(400).json({
@@ -1628,7 +1681,10 @@ export const updateNoteByBomTemplateIdAndRevId = async (req, res) => {
                 REV_ID: bomTemplate.LAST_REV_ID
             }
         })
-        if (!colorCount) return res.status(500).json({status: false, message: "Failed to approve status because color is empty"})
+        if (!colorCount) return res.status(500).json({
+            status: false,
+            message: "Failed to approve status because color is empty"
+        })
 
         const sizeCount = await BomTemplateSize.count({
             where: {
@@ -1636,9 +1692,12 @@ export const updateNoteByBomTemplateIdAndRevId = async (req, res) => {
                 REV_ID: bomTemplate.LAST_REV_ID
             }
         })
-        if (!sizeCount) return res.status(500).json({status: false, message: "Failed to approve status because size is empty"})
+        if (!sizeCount) return res.status(500).json({
+            status: false,
+            message: "Failed to approve status because size is empty"
+        })
 
-        const dataNote = await BomTemplateNote.findOne({ where: { BOM_TEMPLATE_ID, REV_ID } });
+        const dataNote = await BomTemplateNote.findOne({where: {BOM_TEMPLATE_ID, REV_ID}});
         if (!dataNote) {
             return res.status(404).json({
                 success: false,

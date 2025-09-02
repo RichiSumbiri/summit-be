@@ -162,7 +162,7 @@ export const cloneBomTemplateList = async (req, res) => {
 
         const BOM_TEMPLATE_LINE_ID = lastEntry ? lastEntry.BOM_TEMPLATE_LINE_ID + 1 : 1;
 
-        await BomTemplateListModel.create({
+        const newLineId = await BomTemplateListModel.create({
             BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID,
             BOM_TEMPLATE_LINE_ID,
             STATUS: "Open",
@@ -183,7 +183,24 @@ export const cloneBomTemplateList = async (req, res) => {
             CREATED_AT: new Date(),
         });
 
-        return res.status(201).json({
+        const bomTemplateListDetail = await BomTemplateListDetail.findAll({
+            where: {
+                BOM_TEMPLATE_LIST_ID: originalEntry.ID,
+                IS_DELETED: false,
+            }
+        })
+
+
+        if (bomTemplateListDetail.length) {
+            await BomTemplateListDetail.bulkCreate(bomTemplateListDetail.map((item, idx) => ({
+                ...item.dataValues,
+                ID: null,
+                SPLIT_DETAIL_ID: idx + 1,
+                BOM_TEMPLATE_LIST_ID: newLineId.ID
+            })))
+        }
+
+        return res.status(200).json({
             success: true, message: "BOM template list cloned successfully",
         });
     } catch (error) {

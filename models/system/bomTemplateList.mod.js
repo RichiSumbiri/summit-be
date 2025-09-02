@@ -11,6 +11,7 @@ const BomTemplateListModel = db.define(
         ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
+            autoIncrement: true,
             primaryKey: true,
         },
         BOM_TEMPLATE_ID: {
