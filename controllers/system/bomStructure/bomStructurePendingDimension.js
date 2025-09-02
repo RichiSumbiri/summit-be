@@ -152,7 +152,7 @@ export const createPendingDimensionStructure = async (req, res) => {
         }
 
         const orderPos = await OrderPoListing.findAll({
-            where: { ORDER_NO: bomStructure.ORDER_ID },
+            where: { ORDER_NO: bomStructure.ORDER_ID, PO_STATUS: "Confirmed" },
             attributes: ["ORDER_PO_ID", "ITEM_COLOR_ID", "ORDER_QTY"]
         });
 
@@ -164,7 +164,7 @@ export const createPendingDimensionStructure = async (req, res) => {
         }
 
         const allSizeRecords = await OrderPoListingSize.findAll({
-            where: { ORDER_NO: bomStructure.ORDER_ID },
+            where: { ORDER_NO: bomStructure.ORDER_ID, PO_STATUS: "Confirmed" },
             attributes: ["ORDER_PO_ID", "SIZE_ID", "ORDER_QTY"]
         });
 
