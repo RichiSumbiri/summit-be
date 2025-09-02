@@ -1,7 +1,7 @@
 import BomStructureModel, {
-    BomStructureColorModel, BomStructureListDetailModel,
+    BomStructureListDetailModel,
     BomStructureListModel,
-    BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel, BomStructureSizeModel
+    BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel
 } from "../../../models/system/bomStructure.mod.js";
 import BomTemplateModel, {
     BomTemplateColor,
@@ -178,21 +178,7 @@ export const createBomStructure = async (req, res) => {
             })
         }
 
-        const bomTemplateColorList = await BomTemplateColor.findAll({
-            where: {
-                BOM_TEMPLATE_ID: bomTemplate.ID,
-                REV_ID: bomTemplate.LAST_REV_ID,
-                DELETED_AT: null
-            }
-        })
 
-        const bomTemplateSizeList = await BomTemplateSize.findAll({
-            where: {
-                BOM_TEMPLATE_ID: bomTemplate.ID,
-                REV_ID: bomTemplate.LAST_REV_ID,
-                DELETED_AT: null
-            }
-        })
 
         const getLastID = await BomStructureModel.findOne({
             order: [['ID', 'DESC']], raw: true
@@ -218,21 +204,6 @@ export const createBomStructure = async (req, res) => {
             BOM_STRUCTURE_ID: ID
         })
 
-        if (bomTemplateColorList.length) {
-            await BomStructureColorModel.bulkCreate(bomTemplateColorList.map(item => ({
-                BOM_STRUCTURE_ID: ID,
-                COLOR_ID: item.COLOR_ID,
-                REV_ID: 0
-            })))
-        }
-
-        if (bomTemplateSizeList.length) {
-            await BomStructureSizeModel.bulkCreate(bomTemplateSizeList.map(item => ({
-                BOM_STRUCTURE_ID: ID,
-                SIZE_ID: item.SIZE_ID,
-                REV_ID: 0
-            })))
-        }
 
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {
@@ -456,31 +427,6 @@ export const importBomTemplateListToStructure = async (req, res) => {
             message: "Cannot retrieve the BOM template in the latest revision because its status is not yet approved"
         })
 
-        const bomTemplateColor = await BomTemplateColor.findAll({
-            where: {
-                BOM_TEMPLATE_ID: bomTemplate.ID,
-                REV_ID: bomTemplate.LAST_REV_ID,
-                DELETED_AT: null,
-            }
-        })
-
-        const bomTemplateSize = await BomTemplateSize.findAll({
-            where: {
-                BOM_TEMPLATE_ID: bomTemplate.ID,
-                REV_ID: bomTemplate.LAST_REV_ID,
-                DELETED_AT: null,
-            }
-        })
-
-        if (!bomTemplateColor.length) return res.status(500).json({
-            status: false,
-            message: "Bom template color empty in last revision"
-        })
-        if (!bomTemplateSize.length) return res.status(500).json({
-            status: false,
-            message: "Bom template size empty in last revision"
-        })
-
         const bomTemplateList = await BomTemplateListModel.findAll({
             where: {
                 BOM_TEMPLATE_ID: bomTemplate.ID,
@@ -524,35 +470,6 @@ export const importBomTemplateListToStructure = async (req, res) => {
                     BOM_STRUCTURE_LIST_ID: data2.ID
                 }
             })
-        }
-
-        await BomStructureColorModel.destroy({
-            where: {
-                BOM_STRUCTURE_ID: bomStrucute.ID,
-                REV_ID: bomStrucute.LAST_REV_ID,
-            }
-        })
-        await BomStructureSizeModel.destroy({
-            where: {
-                BOM_STRUCTURE_ID: bomStrucute.ID,
-                REV_ID: bomStrucute.LAST_REV_ID
-            }
-        })
-
-        if (bomTemplateColor.length) {
-            await BomStructureColorModel.bulkCreate(bomTemplateColor.map((item, idx) => ({
-                BOM_STRUCTURE_ID: bomStrucute.ID,
-                COLOR_ID: item.COLOR_ID,
-                REV_ID: bomStrucute.LAST_REV_ID
-            })))
-        }
-
-        if (bomTemplateSize.length) {
-            await BomStructureSizeModel.bulkCreate(bomTemplateSize.map((item) => ({
-                BOM_STRUCTURE_ID: bomStrucute.ID,
-                SIZE_ID: item.SIZE_ID,
-                REV_ID: bomStrucute.LAST_REV_ID
-            })))
         }
 
         await BomStructureListModel.update({IS_DELETED: true, DELETED_AT: new Date()}, {
