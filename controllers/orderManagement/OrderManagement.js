@@ -955,46 +955,66 @@ export const changeMOListingStatus = async(req,res) => {
     try {
         const {DataMOID} = req.body;
         
+        switch(DataMOID.NEW_MO_STATUS){
+            case 'Released to Production':
+                // update POID
+                await OrderPoListing.update({ PO_STATUS: 'Released to Production', MO_RELEASED_DATE: moment().format('YYYY-MM-DD')}, {
+                    where: {
+                        MO_NO: DataMOID.MO_ID,
+                        ORDER_NO: DataMOID.ORDER_ID
+                    }
+                });
+                // update PO Size Listing
+                await OrderPoListingSize.update({ PO_STATUS: 'Released to Production', MO_RELEASED_DATE: moment().format('YYYY-MM-DD')}, {
+                    where: {
+                        MO_NO: DataMOID.MO_ID,
+                        ORDER_NO: DataMOID.ORDER_ID
+                    }
+                });
+            case 'Canceled':
+                // update POID
+                await OrderPoListing.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
+                    where: {
+                        MO_NO: DataMOID.MO_ID,
+                        ORDER_NO: DataMOID.ORDER_ID
+                    }
+                });
+                // update PO Size Listing
+                await OrderPoListingSize.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
+                    where: {
+                        MO_NO: DataMOID.MO_ID,
+                        ORDER_NO: DataMOID.ORDER_ID
+                    }
+                });
+            case 'Deleted':
+                // update POID
+                await OrderPoListing.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
+                    where: {
+                        MO_NO: DataMOID.MO_ID,
+                        ORDER_NO: DataMOID.ORDER_ID
+                    }
+                });
+                // update PO Size Listing
+                await OrderPoListingSize.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
+                    where: {
+                        MO_NO: DataMOID.MO_ID,
+                        ORDER_NO: DataMOID.ORDER_ID
+                    }
+                }); 
+        }
+
         // Update Status MO
-        await OrderMOListing.update({
-            MO_STATUS: DataMOID.NEW_MO_STATUS
-        }, {
+        await OrderMOListing.update({ MO_STATUS: DataMOID.NEW_MO_STATUS }, {
             where: {
                 MO_ID: DataMOID.MO_ID,
                 ORDER_ID: DataMOID.ORDER_ID
             }
         });
 
-        // Update POID & Size Status if Status is Released to Production
-        if(DataMOID.NEW_MO_STATUS==='Released to Production'){
-            // update POID
-            await OrderPoListing.update({
-                PO_STATUS: 'Released to Production',
-                MO_RELEASED_DATE: moment().format('YYYY-MM-DD')
-            }, {
-                where: {
-                    MO_NO: DataMOID.MO_ID,
-                    ORDER_NO: DataMOID.ORDER_ID
-                }
-            });
-            // update PO Size Listing
-            await OrderPoListingSize.update({
-                PO_STATUS: 'Released to Production',
-                MO_RELEASED_DATE: moment().format('YYYY-MM-DD')
-            }, {
-                where: {
-                    MO_NO: DataMOID.MO_ID,
-                    ORDER_NO: DataMOID.ORDER_ID
-                }
-            });
-        }
-
         return res.status(200).json({
             success: true,
             message: "success change mo status",
         });
-
-        // Update POID Status if MO Status set to be Cancel
 
     } catch(err){
         console.error(err);
