@@ -8,6 +8,7 @@ import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
 import BomTemplatePendingDimension from "../../models/system/bomTemplatePandingDimension.mod.js";
 import {DataTypes} from "sequelize";
+import {MIN_ALLOWED_VALUE} from "../../util/enum.js";
 
 
 export const getAllBomTemplateListDetails = async (req, res) => {
@@ -173,9 +174,11 @@ export const createBomTemplateListDetailBulk = async (req, res) => {
             if (!pending) {
                 throw new Error(`Pending dimension with ID ${item} not found`);
             }
-            return {
-                ...pending.dataValues
+
+            if (pending.COSTING_CONSUMER_PER_ITEM < MIN_ALLOWED_VALUE || pending.INTERNAL_CUSTOMER_PER_ITEM < MIN_ALLOWED_VALUE) {
+                throw new Error(`Costing and internal values must not be zero`);
             }
+            return { ...pending.dataValues }
         }))
 
         const count = await BomTemplateListDetail.count({
@@ -187,6 +190,8 @@ export const createBomTemplateListDetailBulk = async (req, res) => {
             listDetail.push({
                 BOM_TEMPLATE_LIST_ID: BOM_TEMPLATE_LIST_ID,
                 ITEM_SPLIT_ID: count + (idx+1),
+                COSTING_CONSUMER_PER_ITEM: item.COSTING_CONSUMER_PER_ITEM,
+                INTERNAL_CUSTOMER_PER_ITEM: item.INTERNAL_CUSTOMER_PER_ITEM,
                 ITEM_DIMENSION_ID: ITEM_DIMENSION_ID,
                 SIZE_ID: item.SIZE?.SIZE_ID,
                 COLOR_ID: item.COLOR?.COLOR_ID
@@ -262,6 +267,8 @@ export const revertListDetailBulk = async (req, res) => {
             BOM_TEMPLATE_LIST_ID: BOM_TEMPLATE_LIST_ID,
             BOM_TEMPLATE_SIZE_ID: item?.SIZE_TEMP?.ID,
             BOM_TEMPLATE_COLOR_ID:item?.COLOR_TEMP?.ID,
+            INTERNAL_CUSTOMER_PER_ITEM: item.INTERNAL_CUSTOMER_PER_ITEM,
+            COSTING_CONSUMER_PER_ITEM: item.COSTING_CONSUMER_PER_ITEM,
             CREATED_AT: new Date()
         })))
 
@@ -288,7 +295,7 @@ export const revertListDetailBulk = async (req, res) => {
 
 export const createBomTemplateListDetail = async (req, res) => {
     try {
-        const { BOM_TEMPLATE_LIST_ID, ITEM_SPLIT_ID, ITEM_DIMENSION_ID, SIZE_ID, COLOR_ID } = req.body;
+        const { BOM_TEMPLATE_LIST_ID, INTERNAL_CUSTOMER_PER_ITEM, COSTING_CONSUMER_PER_ITEM, ITEM_SPLIT_ID, ITEM_DIMENSION_ID, SIZE_ID, COLOR_ID } = req.body;
 
         if (!ITEM_DIMENSION_ID || !SIZE_ID || !COLOR_ID) {
             return res.status(400).json({
@@ -298,11 +305,7 @@ export const createBomTemplateListDetail = async (req, res) => {
         }
 
         await BomTemplateListDetail.create({
-            BOM_TEMPLATE_LIST_ID,
-            ITEM_SPLIT_ID: ITEM_SPLIT_ID || null,
-            ITEM_DIMENSION_ID,
-            SIZE_ID,
-            COLOR_ID,
+            BOM_TEMPLATE_LIST_ID, ITEM_SPLIT_ID: ITEM_SPLIT_ID ?? null, ITEM_DIMENSION_ID, INTERNAL_CUSTOMER_PER_ITEM, COSTING_CONSUMER_PER_ITEM, SIZE_ID, COLOR_ID,
         });
 
         return res.status(201).json({
@@ -332,9 +335,9 @@ export const updateBomTemplateListDetail = async (req, res) => {
 
         await detail.update({
             ITEM_SPLIT_ID: ITEM_SPLIT_ID || null,
-            ITEM_DIMENSION_ID: ITEM_DIMENSION_ID || detail.ITEM_DIMENSION_ID,
-            SIZE_ID: SIZE_ID || detail.SIZE_ID,
-            COLOR_ID: COLOR_ID || detail.COLOR_ID,
+            ITEM_DIMENSION_ID: ITEM_DIMENSION_ID ?? detail.ITEM_DIMENSION_ID,
+            SIZE_ID: SIZE_ID ?? detail.SIZE_ID,
+            COLOR_ID: COLOR_ID ?? detail.COLOR_ID,
         });
 
         return res.status(200).json({

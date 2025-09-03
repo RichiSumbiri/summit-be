@@ -18,7 +18,13 @@ export const getAllBomStructureList = async (req, res) => {
         const {BOM_STRUCTURE_ID, MASTER_ITEM_ID, STATUS} = req.query;
 
         const where = {IS_DELETED: false};
-        if (BOM_STRUCTURE_ID) where.BOM_STRUCTURE_ID = BOM_STRUCTURE_ID;
+        if (BOM_STRUCTURE_ID) {
+            const bomStructure = await BomStructureModel.findByPk(BOM_STRUCTURE_ID)
+            if (!bomStructure) return res.status(404).json({status: false, message: "Bom structure not found"})
+
+            where.REV_ID = bomStructure.LAST_REV_ID
+            where.BOM_STRUCTURE_ID = BOM_STRUCTURE_ID
+        }
         if (MASTER_ITEM_ID) where.MASTER_ITEM_ID = MASTER_ITEM_ID;
         if (STATUS) where.STATUS = STATUS;
 
@@ -288,15 +294,16 @@ export const updateBomStructureList = async (req, res) => {
         const isSplitNoPO = body.IS_SPLIT_NO_PO ? body.IS_SPLIT_NO_PO : data.IS_SPLIT_NO_PO;
         const isSplitColor = body.IS_SPLIT_COLOR ? body.IS_SPLIT_COLOR : data.IS_SPLIT_COLOR;
 
-        if (body?.MASTER_ITEM_ID) {
-            if (body?.MASTER_ITEM_ID !== data.MASTER_ITEM_ID) {
-                const bomStructureListDetailCount = await BomStructureListDetailModel.count({
-                    where: {
-                        BOM_STRUCTURE_LIST_ID: id
-                    }
-                })
-                if (bomStructureListDetailCount) return res.status(500).json({status: false, message: "Failed to change master item because split detail already declared"})
-            }
+        if (body?.MASTER_ITEM_ID || body?.VENDOR_ID) {
+            const bomStructureListDetailCount = await BomStructureListDetailModel.count({
+                where: {
+                    BOM_STRUCTURE_LIST_ID: id
+                }
+            })
+            if (bomStructureListDetailCount) return res.status(500).json({
+                status: false,
+                message: "Failed to change master item and vendor because split detail already declared"
+            })
         }
 
         if (isSplitNoPO && isSplitColor) {

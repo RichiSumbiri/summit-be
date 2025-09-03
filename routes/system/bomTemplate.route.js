@@ -48,7 +48,7 @@ import {
     createCustomPendingDimensionDetail,
     createPendingDimension, createPendingDimensionDetail, deletePendingDimension,
     getAllPendingDimensions,
-    getPendingDimensionById, updatePendingDimension
+    getPendingDimensionById, updatePendingDimension, updatePendingDimensionCustom
 } from "../../controllers/system/bomTemplatePandingDimension.js";
 
 const router = express.Router();
@@ -115,6 +115,7 @@ router.get("/pending-dimensions", getAllPendingDimensions);
 router.get("/pending-dimensions/:id", getPendingDimensionById);
 router.post("/pending-dimensions/custom", createCustomPendingDimensionDetail);
 router.post("/pending-dimensions/detail", createPendingDimensionDetail);
+router.patch("/pending-dimension/:id", updatePendingDimensionCustom)
 router.post("/pending-dimensions", createPendingDimension);
 router.put("/pending-dimensions/:id", updatePendingDimension);
 router.delete("/pending-dimensions/:id", deletePendingDimension);

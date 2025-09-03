@@ -8,6 +8,8 @@ import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
 import {where} from "sequelize";
 import Users from "../../models/setup/users.mod.js";
 import BomTemplateListDetail from "../../models/system/bomTemplateListDetail.mod.js";
+import {BomStructureListDetailModel} from "../../models/system/bomStructure.mod.js";
+import BomTemplateListDetailMod from "../../models/system/bomTemplateListDetail.mod.js";
 
 export const createBomTemplateList = async (req, res) => {
     try {
@@ -396,6 +398,17 @@ export const updateBomTemplateListSingle = async (req, res) => {
             });
         }
 
+       if (reqBody?.MASTER_ITEM_ID || reqBody?.VENDOR_ID) {
+           const bomStructureListDetail = await BomTemplateListDetailMod.findOne({
+               where: {
+                   BOM_TEMPLATE_LIST_ID: id,
+                   IS_DELETED: false
+               }
+           })
+           if (bomStructureListDetail) return res.status(500).json({
+               success: false, message: "Cannot modify master item and vendor because BOM structure detail list already exists",
+           });
+       }
         await list.update({
             ...reqBody, UPDATED_AT: new Date(), UPDATED_ID: USER_ID
         });

@@ -125,17 +125,6 @@ export const createPendingDimensionStructure = async (req, res) => {
 
         const { IS_SPLIT_SIZE, IS_SPLIT_COLOR, IS_SPLIT_NO_PO } = bomStructureList;
 
-        // if (
-        //     bomStructureList.STANDARD_CONSUMPTION_PER_ITEM < 0 ||
-        //     bomStructureList.INTERNAL_CONSUMPTION_PER_ITEM <= 0 ||
-        //     bomStructureList.BOOKING_CONSUMPTION_PER_ITEM <= 0 ||
-        //     bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM <= 0
-        // ) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "Consumption cannot be negative or zero",
-        //     });
-        // }
 
         if (!IS_SPLIT_SIZE && !IS_SPLIT_COLOR && !IS_SPLIT_NO_PO) {
             return res.status(400).json({
@@ -600,23 +589,28 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
             });
         }
 
-        const bomTemplateListDetail = await BomTemplateListDetail.findAll({
-            where: { BOM_TEMPLATE_LIST_ID: bomTemplateListId }
-        });
-
-        if (bomTemplateListDetail.length === 0) {
-            return res.status(404).json({
+        const { IS_SPLIT_COLOR, IS_SPLIT_SIZE, IS_SPLIT_NO_PO } = bomStructureList;
+        if (
+            bomTemplateList.IS_SPLIT_COLOR !== IS_SPLIT_COLOR ||
+            bomTemplateList.IS_SPLIT_SIZE !== IS_SPLIT_SIZE
+        ) {
+            return res.status(400).json({
                 success: false,
-                message: "Bom Template List Detail is empty",
+                message: "Split status of BOM structure does not match split status of BOM template."
             });
         }
 
-        const { IS_SPLIT_SIZE, IS_SPLIT_COLOR } = bomTemplateList;
-
-        if (!IS_SPLIT_SIZE && !IS_SPLIT_COLOR) {
+        if (IS_SPLIT_NO_PO && IS_SPLIT_COLOR) {
             return res.status(400).json({
                 success: false,
-                message: "At least one split (Size or Color) must be enabled in the template",
+                message: "IS_SPLIT_NO_PO and IS_SPLIT_COLOR cannot both be true",
+            });
+        }
+
+        if (!IS_SPLIT_SIZE && !IS_SPLIT_COLOR && !IS_SPLIT_NO_PO) {
+            return res.status(400).json({
+                success: false,
+                message: "At least one split (Size, Color, or No PO) must be enabled",
             });
         }
 
@@ -633,71 +627,38 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
         });
 
         const orderPos = await OrderPoListing.findAll({
-            where: { ORDER_NO: bomStructure.ORDER_ID },
+            where: { ORDER_NO: bomStructure.ORDER_ID, PO_STATUS: "Confirmed" },
             attributes: ["ORDER_PO_ID", "ITEM_COLOR_ID", "ORDER_QTY"]
         });
 
+        if (orderPos.length === 0 && IS_SPLIT_NO_PO) {
+            return res.status(400).json({
+                success: false,
+                message: "No order PO found for this order",
+            });
+        }
+
         const allSizeRecords = await OrderPoListingSize.findAll({
-            where: { ORDER_NO: bomStructure.ORDER_ID },
+            where: { ORDER_NO: bomStructure.ORDER_ID, PO_STATUS: "Confirmed" },
             attributes: ["ORDER_PO_ID", "SIZE_ID", "ORDER_QTY"]
         });
 
         const finalRequest = [];
 
-        if (IS_SPLIT_COLOR && !IS_SPLIT_SIZE) {
-            const colors = await ColorChartMod.findAll({
-                where: { COLOR_ID: bomTemplateListDetail.map(d => d.COLOR_ID) },
-                attributes: ["COLOR_ID"]
-            });
-
-            for (const color of colors) {
-                const relevantPos = orderPos.filter(po => po.ITEM_COLOR_ID === color.COLOR_ID);
-                const quantity = relevantPos.reduce((sum, po) => sum + (po.ORDER_QTY || 0), 0);
-                const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
-
-                finalRequest.push({
-                    BOM_STRUCTURE_LIST_ID: id,
-                    COLOR_ID: color.COLOR_ID,
-                    SIZE_ID: null,
-                    ORDER_PO_ID: null,
-                    ORDER_QUANTITY: quantity,
-                    STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
-                    INTERNAL_CONSUMPTION_PER_ITEM: bomStructureList.INTERNAL_CONSUMPTION_PER_ITEM,
-                    BOOKING_CONSUMPTION_PER_ITEM: bomStructureList.BOOKING_CONSUMPTION_PER_ITEM,
-                    PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
-                    EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
-                    MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
-                    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: 0,
-                    EXTRA_REQUIRE_QTY: 0,
-                    ITEM_DIMENSION_ID: null,
-                    IS_BOOKING: true,
-                    CREATED_AT: new Date(),
-                });
-            }
-        }
-
-        else if (IS_SPLIT_SIZE && !IS_SPLIT_COLOR) {
-            const sizes = await SizeChartMod.findAll({
-                where: { SIZE_ID: bomTemplateListDetail.map(d => d.SIZE_ID) },
-                attributes: ["SIZE_ID"]
-            });
-
-            for (const size of sizes) {
-                const quantity = allSizeRecords
-                    .filter(r => r.SIZE_ID === size.SIZE_ID)
-                    .reduce((sum, r) => sum + (r.ORDER_QTY || 0), 0);
-
+        if (IS_SPLIT_NO_PO && !IS_SPLIT_COLOR && !IS_SPLIT_SIZE) {
+            for (const po of orderPos) {
+                const quantity = po.ORDER_QTY || 0;
                 const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
 
                 finalRequest.push({
                     BOM_STRUCTURE_LIST_ID: id,
                     COLOR_ID: null,
-                    SIZE_ID: size.SIZE_ID,
-                    ORDER_PO_ID: null,
+                    SIZE_ID: null,
+                    ORDER_PO_ID: po.ORDER_PO_ID,
                     ORDER_QUANTITY: quantity,
                     STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
-                    INTERNAL_CONSUMPTION_PER_ITEM: bomStructureList.INTERNAL_CONSUMPTION_PER_ITEM,
-                    BOOKING_CONSUMPTION_PER_ITEM: bomStructureList.BOOKING_CONSUMPTION_PER_ITEM,
+                    INTERNAL_CONSUMPTION_PER_ITEM:  bomTemplateList.INTERNAL_CUSTOMER_PER_ITEM,
+                    BOOKING_CONSUMPTION_PER_ITEM: bomTemplateList.COSTING_CONSUMER_PER_ITEM,
                     PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
                     EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
                     MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
@@ -710,37 +671,132 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
             }
         }
 
-        else if (IS_SPLIT_COLOR && IS_SPLIT_SIZE) {
-            const colors = await ColorChartMod.findAll({
-                where: { COLOR_ID: [...new Set(bomTemplateListDetail.map(d => d.COLOR_ID))] },
-                attributes: ["COLOR_ID"]
-            });
+        else if (IS_SPLIT_COLOR && !IS_SPLIT_SIZE && !IS_SPLIT_NO_PO) {
+            const colorMap = new Map();
+            for (const po of orderPos) {
+                const colorId = po.ITEM_COLOR_ID;
+                if (!colorMap.has(colorId)) {
+                    colorMap.set(colorId, 0);
+                }
+                colorMap.set(colorId, colorMap.get(colorId) + (po.ORDER_QTY || 0));
+            }
 
-            const sizes = await SizeChartMod.findAll({
-                where: { SIZE_ID: [...new Set(bomTemplateListDetail.map(d => d.SIZE_ID))] },
-                attributes: ["SIZE_ID"]
-            });
+            for (const [colorId, quantity] of colorMap) {
+                const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
 
-            for (const color of colors) {
-                for (const size of sizes) {
-                    const relevantPos = orderPos.filter(po => po.ITEM_COLOR_ID === color.COLOR_ID);
-                    const relevantPoIds = relevantPos.map(po => po.ORDER_PO_ID);
+                finalRequest.push({
+                    BOM_STRUCTURE_LIST_ID: id,
+                    COLOR_ID: colorId,
+                    SIZE_ID: null,
+                    ORDER_PO_ID: null,
+                    ORDER_QUANTITY: quantity,
+                    STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
+                    INTERNAL_CONSUMPTION_PER_ITEM:  bomTemplateList.INTERNAL_CUSTOMER_PER_ITEM,
+                    BOOKING_CONSUMPTION_PER_ITEM: bomTemplateList.COSTING_CONSUMER_PER_ITEM,
+                    PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
+                    EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
+                    MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
+                    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: 0,
+                    EXTRA_REQUIRE_QTY: 0,
+                    ITEM_DIMENSION_ID: null,
+                    IS_BOOKING: true,
+                    CREATED_AT: new Date(),
+                });
+            }
+        }
 
-                    const quantity = allSizeRecords
-                        .filter(r => relevantPoIds.includes(r.ORDER_PO_ID) && r.SIZE_ID === size.SIZE_ID)
-                        .reduce((sum, r) => sum + (r.ORDER_QTY || 0), 0);
+        else if (IS_SPLIT_SIZE && !IS_SPLIT_COLOR && !IS_SPLIT_NO_PO) {
+            const sizeMap = new Map();
+            for (const record of allSizeRecords) {
+                const sizeId = record.SIZE_ID;
+                if (!sizeMap.has(sizeId)) {
+                    sizeMap.set(sizeId, 0);
+                }
+                sizeMap.set(sizeId, sizeMap.get(sizeId) + (record.ORDER_QTY || 0));
+            }
 
+            for (const [sizeId, quantity] of sizeMap) {
+                const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
+
+                finalRequest.push({
+                    BOM_STRUCTURE_LIST_ID: id,
+                    COLOR_ID: null,
+                    SIZE_ID: sizeId,
+                    ORDER_PO_ID: null,
+                    ORDER_QUANTITY: quantity,
+                    STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
+                    INTERNAL_CONSUMPTION_PER_ITEM:  bomTemplateList.INTERNAL_CUSTOMER_PER_ITEM,
+                    BOOKING_CONSUMPTION_PER_ITEM: bomTemplateList.COSTING_CONSUMER_PER_ITEM,
+                    PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
+                    EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
+                    MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
+                    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: 0,
+                    EXTRA_REQUIRE_QTY: 0,
+                    ITEM_DIMENSION_ID: null,
+                    IS_BOOKING: true,
+                    CREATED_AT: new Date(),
+                });
+            }
+        }
+
+        else if (IS_SPLIT_COLOR && IS_SPLIT_SIZE && !IS_SPLIT_NO_PO) {
+            const comboMap = new Map();
+
+            for (const record of allSizeRecords) {
+                const po = orderPos.find(p => p.ORDER_PO_ID === record.ORDER_PO_ID);
+                if (!po || !record.SIZE_ID) continue;
+
+                const key = `${po.ITEM_COLOR_ID}-${record.SIZE_ID}`;
+                if (!comboMap.has(key)) {
+                    comboMap.set(key, {
+                        COLOR_ID: po.ITEM_COLOR_ID,
+                        SIZE_ID: record.SIZE_ID,
+                        quantity: 0
+                    });
+                }
+                comboMap.get(key).quantity += record.ORDER_QTY || 0;
+            }
+
+            for (const { COLOR_ID, SIZE_ID, quantity } of comboMap.values()) {
+                const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
+
+                finalRequest.push({
+                    BOM_STRUCTURE_LIST_ID: id,
+                    COLOR_ID,
+                    SIZE_ID,
+                    ORDER_PO_ID: null,
+                    ORDER_QUANTITY: quantity,
+                    STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
+                    INTERNAL_CONSUMPTION_PER_ITEM:  bomTemplateList.INTERNAL_CUSTOMER_PER_ITEM,
+                    BOOKING_CONSUMPTION_PER_ITEM: bomTemplateList.COSTING_CONSUMER_PER_ITEM,
+                    PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
+                    EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
+                    MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
+                    TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: 0,
+                    EXTRA_REQUIRE_QTY: 0,
+                    ITEM_DIMENSION_ID: null,
+                    IS_BOOKING: true,
+                    CREATED_AT: new Date(),
+                });
+            }
+        }
+
+        else if (IS_SPLIT_NO_PO && IS_SPLIT_SIZE && !IS_SPLIT_COLOR) {
+            for (const po of orderPos) {
+                const sizeRecords = allSizeRecords.filter(r => r.ORDER_PO_ID === po.ORDER_PO_ID);
+                for (const record of sizeRecords) {
+                    const quantity = record.ORDER_QTY || 0;
                     const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
 
                     finalRequest.push({
                         BOM_STRUCTURE_LIST_ID: id,
-                        COLOR_ID: color.COLOR_ID,
-                        SIZE_ID: size.SIZE_ID,
-                        ORDER_PO_ID: null,
+                        COLOR_ID: null,
+                        SIZE_ID: record.SIZE_ID,
+                        ORDER_PO_ID: po.ORDER_PO_ID,
                         ORDER_QUANTITY: quantity,
                         STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
-                        INTERNAL_CONSUMPTION_PER_ITEM: bomStructureList.INTERNAL_CONSUMPTION_PER_ITEM,
-                        BOOKING_CONSUMPTION_PER_ITEM: bomStructureList.BOOKING_CONSUMPTION_PER_ITEM,
+                        INTERNAL_CONSUMPTION_PER_ITEM:  bomTemplateList.INTERNAL_CUSTOMER_PER_ITEM,
+                        BOOKING_CONSUMPTION_PER_ITEM: bomTemplateList.COSTING_CONSUMER_PER_ITEM,
                         PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
                         EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
                         MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
@@ -755,18 +811,18 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
         }
 
         else {
-            const quantity = orderPos.reduce((sum, po) => sum + (po.ORDER_QTY || 0), 0);
-            const materialRequirement = quantity * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
+            const totalQty = orderPos.reduce((sum, po) => sum + (po.ORDER_QTY || 0), 0);
+            const materialRequirement = totalQty * bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM;
 
             finalRequest.push({
                 BOM_STRUCTURE_LIST_ID: id,
                 COLOR_ID: null,
                 SIZE_ID: null,
                 ORDER_PO_ID: null,
-                ORDER_QUANTITY: quantity,
+                ORDER_QUANTITY: totalQty,
                 STANDARD_CONSUMPTION_PER_ITEM: bomStructureList.STANDARD_CONSUMPTION_PER_ITEM,
-                INTERNAL_CONSUMPTION_PER_ITEM: bomStructureList.INTERNAL_CONSUMPTION_PER_ITEM,
-                BOOKING_CONSUMPTION_PER_ITEM: bomStructureList.BOOKING_CONSUMPTION_PER_ITEM,
+                INTERNAL_CONSUMPTION_PER_ITEM:  bomTemplateList.INTERNAL_CUSTOMER_PER_ITEM,
+                BOOKING_CONSUMPTION_PER_ITEM: bomTemplateList.COSTING_CONSUMER_PER_ITEM,
                 PRODUCTION_CONSUMPTION_PER_ITEM: bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM,
                 EXTRA_BOOKS: bomStructureList.EXTRA_BOOKS ?? 0,
                 MATERIAL_ITEM_REQUIREMENT_QTY: materialRequirement,
@@ -798,6 +854,9 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
             const toCreate = finalRequest.filter(req =>
                 !existingKeys.has(`${req.COLOR_ID || ''}-${req.SIZE_ID || ''}-${req.ORDER_PO_ID || ''}`)
             );
+
+            console.log("existingKeys ", existingKeys)
+            console.log("toCreate ", toCreate)
 
             if (toCreate.length > 0) {
                 await BomStructurePendingDimension.bulkCreate(toCreate, { validate: true });
@@ -835,6 +894,7 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Error in createPendingDimensionFromBomTemplateList:", error);
         return res.status(500).json({
             success: false,
             message: `Gagal membuat pending dimension: ${error.message}`,

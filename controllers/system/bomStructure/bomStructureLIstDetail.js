@@ -283,27 +283,32 @@ export const createBomStructureListDetailBulk = async (req, res) => {
             }, order: [['ITEM_SPLIT_ID', 'DESC']]})
 
 
-        const detailToCreate = pendingDimensions.map((pd, idx) => ({
-            BOM_STRUCTURE_LIST_ID: pd.BOM_STRUCTURE_LIST_ID,
-            ITEM_SPLIT_ID: (lastID + idx) + 1,
-            ORDER_PO_ID: pd.ORDER_PO_ID,
-            COLOR_ID: pd.COLOR_ID,
-            SIZE_ID: pd.SIZE_ID,
-            ITEM_DIMENSION_ID: itemDimensionId,
-            ORDER_QUANTITY: pd.ORDER_QUANTITY,
-            STANDARD_CONSUMPTION_PER_ITEM: limitFloating(pd.STANDARD_CONSUMPTION_PER_ITEM),
-            INTERNAL_CONSUMPTION_PER_ITEM: limitFloating(pd.INTERNAL_CONSUMPTION_PER_ITEM),
-            BOOKING_CONSUMPTION_PER_ITEM: limitFloating(pd.BOOKING_CONSUMPTION_PER_ITEM),
-            PRODUCTION_CONSUMPTION_PER_ITEM: limitFloating(pd.PRODUCTION_CONSUMPTION_PER_ITEM),
-            EXTRA_BOOKS: limitFloating(pd.EXTRA_BOOKS, 2),
-            MATERIAL_ITEM_REQUIREMENT_QUANTITY: limitFloating(pd.MATERIAL_ITEM_REQUIREMENT_QTY),
-            EXTRA_REQUIRE_QUANTITY: limitFloating(pd.EXTRA_REQUIRE_QTY),
-            TOTAL_EXTRA_PURCHASE_PLAN: limitFloating(pd.TOTAL_EXTRA_PURCHASE_PLAN_PERCENT),
-            IS_BOOKING: pd.IS_BOOKING,
-            EXTRA_APPROVAL_ID: pd.EXTRA_APPROVAL_ID,
-            CREATED_AT: new Date(),
-            CREATED_ID: createdId || null,
-        }));
+        const detailToCreate = pendingDimensions.map((pd, idx) => {
+            if (pd.MATERIAL_ITEM_REQUIREMENT_QTY <= 0 ) {
+                throw new Error("Material item requirement quantity tidak dapat nol")
+            }
+            return {
+                BOM_STRUCTURE_LIST_ID: pd.BOM_STRUCTURE_LIST_ID,
+                ITEM_SPLIT_ID: (lastID + idx) + 1,
+                ORDER_PO_ID: pd.ORDER_PO_ID,
+                COLOR_ID: pd.COLOR_ID,
+                SIZE_ID: pd.SIZE_ID,
+                ITEM_DIMENSION_ID: itemDimensionId,
+                ORDER_QUANTITY: pd.ORDER_QUANTITY,
+                STANDARD_CONSUMPTION_PER_ITEM: limitFloating(pd.STANDARD_CONSUMPTION_PER_ITEM),
+                INTERNAL_CONSUMPTION_PER_ITEM: limitFloating(pd.INTERNAL_CONSUMPTION_PER_ITEM),
+                BOOKING_CONSUMPTION_PER_ITEM: limitFloating(pd.BOOKING_CONSUMPTION_PER_ITEM),
+                PRODUCTION_CONSUMPTION_PER_ITEM: limitFloating(pd.PRODUCTION_CONSUMPTION_PER_ITEM),
+                EXTRA_BOOKS: limitFloating(pd.EXTRA_BOOKS, 2),
+                MATERIAL_ITEM_REQUIREMENT_QUANTITY: limitFloating(pd.MATERIAL_ITEM_REQUIREMENT_QTY),
+                EXTRA_REQUIRE_QUANTITY: limitFloating(pd.EXTRA_REQUIRE_QTY),
+                TOTAL_EXTRA_PURCHASE_PLAN: limitFloating(pd.TOTAL_EXTRA_PURCHASE_PLAN_PERCENT),
+                IS_BOOKING: pd.IS_BOOKING,
+                EXTRA_APPROVAL_ID: pd.EXTRA_APPROVAL_ID,
+                CREATED_AT: new Date(),
+                CREATED_ID: createdId || null,
+            }
+        });
 
 
         await BomStructureListDetailModel.bulkCreate(detailToCreate, {

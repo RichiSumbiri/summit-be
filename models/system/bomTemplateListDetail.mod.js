@@ -33,6 +33,14 @@ const BomTemplateListDetail = db.define(
             type: DataTypes.STRING(20),
             allowNull: true,
         },
+        INTERNAL_CUSTOMER_PER_ITEM: {
+            type: DataTypes.DECIMAL(65,6),
+            defaultValue: 0,
+        },
+        COSTING_CONSUMER_PER_ITEM: {
+            type: DataTypes.DECIMAL(65,6),
+            defaultValue: 0,
+        },
         IS_DELETED: {
             type: DataTypes.BOOLEAN,
             defaultValue: false

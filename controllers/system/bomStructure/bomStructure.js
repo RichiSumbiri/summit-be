@@ -4,9 +4,7 @@ import BomStructureModel, {
     BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel
 } from "../../../models/system/bomStructure.mod.js";
 import BomTemplateModel, {
-    BomTemplateColor,
     BomTemplateNote,
-    BomTemplateSize
 } from "../../../models/system/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../../models/orderManagement/orderManagement.mod.js";
 import {
@@ -15,14 +13,13 @@ import {
 import Users from "../../../models/setup/users.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
-import {DataTypes, Op} from "sequelize";
-import BomStructureMod from "../../../models/system/bomStructure.mod.js";
+import {Op} from "sequelize";
 
 export const getAllBomStructures = async (req, res) => {
     try {
         const {BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, LAST_REV_ID = 0} = req.query;
 
-        const where = {IS_DELETED: false, LAST_REV_ID};
+        const where = {IS_DELETED: false};
 
         if (BOM_TEMPLATE_ID) where.BOM_TEMPLATE_ID = BOM_TEMPLATE_ID;
         if (ORDER_ID) where.ORDER_ID = ORDER_ID;
@@ -158,6 +155,15 @@ export const createBomStructure = async (req, res) => {
                 success: false, message: "Order and Bom Template are required",
             });
         }
+
+        const alreadyOrder = await BomStructureModel.findOne({
+            where: {
+                ORDER_ID,
+                IS_DELETED: false
+            }
+        })
+
+        if (alreadyOrder) return res.status(500).json({status: false, message: "Order is already used in another BOM structure"})
 
         const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
         if (!bomTemplate) {
@@ -550,7 +556,7 @@ export const deleteBomStructure = async (req, res) => {
         const {id} = req.params;
 
         const structure = await BomStructureModel.findOne({
-            where: {ID: id, IS_DELETED: false}
+            where: {ID: id}
         });
 
         if (!structure) {

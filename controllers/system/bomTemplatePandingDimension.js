@@ -3,7 +3,6 @@ import BomTemplateModel, {BomTemplateSize, BomTemplateColor} from "../../models/
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import BomTemplatePendingDimension from "../../models/system/bomTemplatePandingDimension.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
-import {DataTypes} from "sequelize";
 import {MIN_ALLOWED_VALUE} from "../../util/enum.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
@@ -232,6 +231,8 @@ export const createCustomPendingDimensionDetail = async (req, res) => {
                 if (!existingCombos.has(key)) {
                     newPending.push({
                         BOM_TEMPLATE_LIST_ID,
+                        INTERNAL_CUSTOMER_PER_ITEM: list.INTERNAL_CUSTOMER_PER_ITEM,
+                        COSTING_CONSUMER_PER_ITEM: list.COSTING_CONSUMER_PER_ITEM,
                         BOM_TEMPLATE_SIZE_ID: sizeId ? sizeMap[sizeId] : null,
                         BOM_TEMPLATE_COLOR_ID: colorId ? colorMap[colorId] : null
                     });
@@ -267,7 +268,7 @@ export const createPendingDimensionDetail = async (req, res) => {
         });
     }
 
-    const MIN_ALLOWED_VALUE = 0.00001;
+
     try {
         const bomTemplateList = await BomTemplateListModel.findByPk(BOM_TEMPLATE_LIST_ID);
         if (!bomTemplateList) {
@@ -345,6 +346,8 @@ export const createPendingDimensionDetail = async (req, res) => {
                     if (!existingCombos.has(`${sizeCode}:${colorCode}`)) {
                         templatePending.push({
                             BOM_TEMPLATE_LIST_ID,
+                            INTERNAL_CUSTOMER_PER_ITEM,
+                            COSTING_CONSUMER_PER_ITEM,
                             BOM_TEMPLATE_SIZE_ID: sizeId,
                             BOM_TEMPLATE_COLOR_ID: colorId,
                         });
@@ -355,7 +358,7 @@ export const createPendingDimensionDetail = async (req, res) => {
             if (sizeIds.length === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: "No sizes found",
+                    message: "FG item size has not been selected yet",
                 });
             }
             for (const sizeId of sizeIds) {
@@ -363,6 +366,8 @@ export const createPendingDimensionDetail = async (req, res) => {
                 if (!existingCombos.has(`${sizeCode}:null`)) {
                     templatePending.push({
                         BOM_TEMPLATE_LIST_ID,
+                        INTERNAL_CUSTOMER_PER_ITEM,
+                        COSTING_CONSUMER_PER_ITEM,
                         BOM_TEMPLATE_SIZE_ID: sizeId,
                         BOM_TEMPLATE_COLOR_ID: null,
                     });
@@ -372,7 +377,7 @@ export const createPendingDimensionDetail = async (req, res) => {
             if (colorIds.length === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: "No colors found",
+                    message: "FG item color has not been selected yet",
                 });
             }
             for (const colorId of colorIds) {
@@ -380,6 +385,8 @@ export const createPendingDimensionDetail = async (req, res) => {
                 if (!existingCombos.has(`null:${colorCode}`)) {
                     templatePending.push({
                         BOM_TEMPLATE_LIST_ID,
+                        INTERNAL_CUSTOMER_PER_ITEM,
+                        COSTING_CONSUMER_PER_ITEM,
                         BOM_TEMPLATE_SIZE_ID: null,
                         BOM_TEMPLATE_COLOR_ID: colorId,
                     });
@@ -389,6 +396,8 @@ export const createPendingDimensionDetail = async (req, res) => {
             if (!existingCombos.has(`null:null`)) {
                 templatePending.push({
                     BOM_TEMPLATE_LIST_ID,
+                    INTERNAL_CUSTOMER_PER_ITEM,
+                    COSTING_CONSUMER_PER_ITEM,
                     BOM_TEMPLATE_SIZE_ID: null,
                     BOM_TEMPLATE_COLOR_ID: null,
                 });
@@ -412,9 +421,9 @@ export const createPendingDimensionDetail = async (req, res) => {
 };
 export const createPendingDimension = async (req, res) => {
     try {
-        const {BOM_TEMPLATE_LIST_ID, SIZE_ID, COLOR_ID} = req.body;
+        const {BOM_TEMPLATE_LIST_ID, INTERNAL_CUSTOMER_PER_ITEM, COSTING_CONSUMER_PER_ITEM, SIZE_ID, COLOR_ID} = req.body;
 
-        await BomTemplatePendingDimension.create({BOM_TEMPLATE_LIST_ID, SIZE_ID, COLOR_ID});
+        await BomTemplatePendingDimension.create({BOM_TEMPLATE_LIST_ID, INTERNAL_CUSTOMER_PER_ITEM, COSTING_CONSUMER_PER_ITEM, SIZE_ID, COLOR_ID});
         return res.status(201).json({
             success: true,
             message: "Pending dimensions created for preview",
@@ -458,6 +467,91 @@ export const updatePendingDimension = async (req, res) => {
             success: true,
             message: "Pending dimension updated successfully",
             data: pending,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update pending dimension: ${error.message}`,
+        });
+    }
+};
+
+export const updatePendingDimensionCustom = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const bodyReq = req.body;
+
+        const pending = await BomTemplatePendingDimension.findByPk(id);
+        if (!pending) {
+            return res.status(404).json({
+                success: false,
+                message: "Pending dimension not found",
+            });
+        }
+
+        await pending.update(bodyReq);
+
+        const pendingList = await BomTemplatePendingDimension.findAll({
+            where: {
+                BOM_TEMPLATE_LIST_ID: pending.BOM_TEMPLATE_LIST_ID
+            },
+            include: [
+                {
+                    model: BomTemplateListModel,
+                    as: "LIST_ITEM",
+                    attributes: ["ID", "BOM_TEMPLATE_LINE_ID", "BOM_TEMPLATE_ID", "MASTER_ITEM_ID", "COSTING_CONSUMER_PER_ITEM", "INTERNAL_CUSTOMER_PER_ITEM", "VENDOR_ID", "NOTE", "ITEM_POSITION"],
+                    include: [
+                        {
+                            model: MasterItemIdModel,
+                            as: "MASTER_ITEM",
+                            attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_UOM_BASE"]
+                        },
+                        {
+                            model: BomTemplateModel,
+                            as: "BOM_TEMPLATE",
+                            attributes: ["ID", "NAME"]
+                        },
+                        {
+                            model: ModelVendorDetail,
+                            as: "VENDOR",
+                            attributes: ["VENDOR_ID", "VENDOR_CODE", "VENDOR_NAME"]
+                        }
+                    ]
+                },
+                {
+                    model: BomTemplateSize,
+                    required: false,
+                    as: "SIZE",
+                    attributes: ["ID", "SIZE_ID", "BOM_TEMPLATE_ID", "REV_ID"],
+                    include: [
+                        {
+                            model: SizeChartMod,
+                            as: "SIZE",
+                            attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+                        },
+                    ],
+                },
+                {
+                    model: BomTemplateColor,
+                    as: "COLOR",
+                    required: false,
+                    attributes: ["ID", "COLOR_ID", "BOM_TEMPLATE_ID", "REV_ID"],
+                    include: [
+                        {
+                            model: ColorChartMod,
+                            as: "COLOR",
+                            attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                        },
+                    ],
+                }
+            ],
+            order: [["CREATED_AT", "DESC"]],
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Pending dimension updated successfully",
+            data: pendingList
         });
     } catch (error) {
         return res.status(500).json({

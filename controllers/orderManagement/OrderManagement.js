@@ -1,4 +1,4 @@
-import {QueryTypes} from "sequelize";
+import {Op, QueryTypes} from "sequelize";
 import db from "../../config/database.js";
 import {
     ModelMasterOrderExecuteInfo,
@@ -342,7 +342,7 @@ export const getPOListingSizeByPOID = async (req, res) => {
 }
 
 export const getAllPODetailHeader = async (req, res) => {
-    const {ORDER_TYPE_CODE, ORDER_STATUS} = req.query
+    const {ORDER_TYPE_CODE, ORDER_STATUS, IS_BOM_STRUCTURE} = req.query
 
     const where = {}
     if (ORDER_TYPE_CODE) {
@@ -350,6 +350,18 @@ export const getAllPODetailHeader = async (req, res) => {
     }
     if (ORDER_STATUS) {
         where.ORDER_STATUS = ORDER_STATUS
+    }
+
+    if (IS_BOM_STRUCTURE) {
+        const bomStrcucture = await BomStructureModel.findAll({
+            where: {
+                IS_DELETED: false
+            }
+        })
+
+        where.ORDER_ID = {
+            [Op.notIn]: bomStrcucture.map((item) => item.ORDER_ID)
+        }
     }
 
 
