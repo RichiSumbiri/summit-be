@@ -289,7 +289,7 @@ export const createBomStructureListDetailBulk = async (req, res) => {
             }
             return {
                 BOM_STRUCTURE_LIST_ID: pd.BOM_STRUCTURE_LIST_ID,
-                ITEM_SPLIT_ID: (lastID + idx) + 1,
+                ITEM_SPLIT_ID: ((lastID?.ITEM_SPLIT_ID ?? 0) + idx) + 1,
                 ORDER_PO_ID: pd.ORDER_PO_ID,
                 COLOR_ID: pd.COLOR_ID,
                 SIZE_ID: pd.SIZE_ID,
