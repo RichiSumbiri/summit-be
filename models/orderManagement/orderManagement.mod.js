@@ -958,3 +958,93 @@ LEFT JOIN customer_delivery_loc cdl ON cdl.CTLOC_ID = oplll.DELIVERY_LOCATION_ID
 LEFT JOIN master_packing_method mpm ON mpm.CODE = oplll.PACKING_METHOD 
 WHERE oplll.ORDER_ID = :orderID AND oplll.ORDER_PO_ID = :orderPOID
 `;
+
+export const ModelOrderPOAlteration = db.define("order_po_listing_log_alteration", {
+  ID: {
+    type: DataTypes.INTEGER(255),
+    autoIncrement: true,
+    primaryKey: true,
+    allowNull: false,
+  },
+  ORDER_ID: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+  },
+  ORDER_PO_ID: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+  },
+  ALT_ID: {
+    type: DataTypes.INTEGER(20),
+    allowNull: false,
+    defaultValue: 0,
+  },
+  PO_REF_CODE: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  DELIVERY_LOCATION_ID: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  COUNTRY_CODE: {
+    type: DataTypes.STRING(10),
+    allowNull: true,
+  },
+  PACKING_METHOD: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  DELIVERY_MODE_CODE: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  MANUFACTURING_COMPANY: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  MANUFACTURING_SITE: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  PO_CONFIRMED_DATE: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  PO_EXPIRY_DATE: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  ORIGINAL_DELIVERY_DATE: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  FINAL_DELIVERY_DATE: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  PLAN_EXFACTORY_DATE: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  PRODUCTION_MONTH: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  NOTE_REMARKS: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  CREATE_BY: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  CREATE_DATE: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+}, {
+  tableName: "order_po_listing_log_alteration",
+  timestamps: false,
+  freezeTableName: true,
+});
