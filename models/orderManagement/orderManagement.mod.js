@@ -722,8 +722,8 @@ SELECT
 	oml.MO_DESCRIPTION,
 	oml.MO_STATUS,
 	oml.ORDER_ID,
-	opl.ITEM_COLOR_ID,
-	mcc.COLOR_CODE AS ITEM_COLOR_CODE,
+	oml.ITEM_COLOR_ID,
+	oml.ITEM_COLOR_CODE,
 	mcc.COLOR_DESCRIPTION as ITEM_COLOR_NAME,
 	oph.ORDER_UOM,
 	SUM(opl.ORDER_QTY) AS ORDER_QTY,
@@ -769,6 +769,14 @@ export const OrderMOListing = db.define("order_mo_listing", {
     },
     ORDER_ID: {
       type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    ITEM_COLOR_ID: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    ITEM_COLOR_CODE: {
+      type: DataTypes.STRING(100),
       allowNull: true,
     },
     CREATE_BY: {
@@ -914,4 +922,39 @@ LEFT JOIN bom_structure bs ON bs.ID = bsl.BOM_STRUCTURE_ID
 WHERE 
   bs.ORDER_ID = :orderID 
   AND bs.LAST_REV_ID = :lastRevID
+`;
+
+
+export const queryListOrderPOAlteration = `
+SELECT
+	oplll.ID,
+	oplll.ORDER_ID,
+	oplll.ORDER_PO_ID,
+	oplll.ALT_ID,
+	oplll.PO_REF_CODE,
+	oplll.DELIVERY_LOCATION_ID,
+	cdl.CTLOC_CODE AS DELIVERY_LOCATION_CODE,
+	cdl.CTLOC_NAME AS DELIVERY_LOCATION_NAME,
+	oplll.COUNTRY_CODE,
+	mc.COUNTRY_NAME,
+	oplll.PACKING_METHOD,
+	mpm.DESCRIPTION AS PACKING_METHOD_NAME,
+	oplll.DELIVERY_MODE_CODE,
+	oplll.MANUFACTURING_COMPANY,
+	oplll.MANUFACTURING_SITE,
+	oplll.PO_CONFIRMED_DATE,
+	oplll.PO_EXPIRY_DATE,
+	oplll.ORIGINAL_DELIVERY_DATE,
+	oplll.FINAL_DELIVERY_DATE,
+	oplll.PLAN_EXFACTORY_DATE,
+	oplll.PRODUCTION_MONTH,
+	oplll.NOTE_REMARKS,
+	oplll.CREATE_BY,
+	oplll.CREATE_DATE
+FROM
+	order_po_listing_log_alteration oplll
+LEFT JOIN master_country mc ON mc.COUNTRY_CODE = oplll.COUNTRY_CODE 
+LEFT JOIN customer_delivery_loc cdl ON cdl.CTLOC_ID = oplll.DELIVERY_LOCATION_ID 
+LEFT JOIN master_packing_method mpm ON mpm.CODE = oplll.PACKING_METHOD 
+WHERE oplll.ORDER_ID = :orderID AND oplll.ORDER_PO_ID = :orderPOID
 `;

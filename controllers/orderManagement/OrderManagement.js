@@ -15,6 +15,7 @@ import {
     queryGetLogStatusOrderHeaderByOrderID,
     queryGetMOListingByOrderID,
     queryGetOrderInventoryDetail,
+    queryListOrderPOAlteration,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
 import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
@@ -966,9 +967,7 @@ export const getListMOIDByOrderID = async (req, res) => {
 export const changeMOListingStatus = async(req,res) => {
     try {
         const {DataMOID} = req.body;
-        
-        switch(DataMOID.NEW_MO_STATUS){
-            case 'Released to Production':
+        if(DataMOID.NEW_MO_STATUS==='Released to Production'){
                 // update POID
                 await OrderPoListing.update({ PO_STATUS: 'Released to Production', MO_RELEASED_DATE: moment().format('YYYY-MM-DD')}, {
                     where: {
@@ -983,38 +982,23 @@ export const changeMOListingStatus = async(req,res) => {
                         ORDER_NO: DataMOID.ORDER_ID
                     }
                 });
-            case 'Canceled':
-                // update POID
-                await OrderPoListing.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
+        } else if(DataMOID.NEW_MO_STATUS==='Canceled' || DataMOID.NEW_MO_STATUS==='Deleted'){
+            // update POID
+                await OrderPoListing.update({ PO_STATUS:'Confirmed', MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
                     where: {
                         MO_NO: DataMOID.MO_ID,
                         ORDER_NO: DataMOID.ORDER_ID
                     }
                 });
                 // update PO Size Listing
-                await OrderPoListingSize.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
+                await OrderPoListingSize.update({ PO_STATUS:'Confirmed', MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
                     where: {
                         MO_NO: DataMOID.MO_ID,
                         ORDER_NO: DataMOID.ORDER_ID
                     }
                 });
-            case 'Deleted':
-                // update POID
-                await OrderPoListing.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
-                    where: {
-                        MO_NO: DataMOID.MO_ID,
-                        ORDER_NO: DataMOID.ORDER_ID
-                    }
-                });
-                // update PO Size Listing
-                await OrderPoListingSize.update({ MO_NO:null, MO_AVAILABILITY:'No', MO_RELEASED_DATE: null }, {
-                    where: {
-                        MO_NO: DataMOID.MO_ID,
-                        ORDER_NO: DataMOID.ORDER_ID
-                    }
-                }); 
         }
-
+        
         // Update Status MO
         await OrderMOListing.update({ MO_STATUS: DataMOID.NEW_MO_STATUS }, {
             where: {
@@ -1041,10 +1025,13 @@ export const changeMOListingStatus = async(req,res) => {
 export const postMOListing = async (req, res) => {
     try {
         const {DataMOID} = req.body;
+        console.log(DataMOID);
         if (DataMOID.ORDER_MO_ID) {
             await OrderMOListing.update({
                 MO_CODE: DataMOID.MO_CODE,
                 MO_DESCRIPTION: DataMOID.MO_DESCRIPTION,
+                ITEM_COLOR_ID: DataMOID.ITEM_COLOR_ID,
+                ITEM_COLOR_CODE: DataMOID.ITEM_COLOR_CODE,
                 UPDATE_BY: DataMOID.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
@@ -1065,6 +1052,8 @@ export const postMOListing = async (req, res) => {
                 MO_CODE: DataMOID.MO_CODE,
                 MO_DESCRIPTION: DataMOID.MO_DESCRIPTION,
                 ORDER_ID: DataMOID.ORDER_ID,
+                ITEM_COLOR_ID: DataMOID.ITEM_COLOR_ID,
+                ITEM_COLOR_CODE: DataMOID.ITEM_COLOR_CODE,
                 CREATE_BY: DataMOID.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
@@ -1329,6 +1318,45 @@ export const getOrderExecuteInfo = async(req,res) => {
             success: false,
             error: err,
             message: "error get order execute info"
+        });
+    }
+}
+
+
+export const getOrderPOAlteration = async(req,res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID } = req.query;
+
+        if(!ORDER_ID || !ORDER_PO_ID){
+            return res.status(400).json({
+                success: false,
+                message: `error missing parameter`,
+                
+            });    
+        }
+
+        const dataPOAlteration = await db.query(queryListOrderPOAlteration, {
+            replacements: {
+                orderID: ORDER_ID,
+                orderPOID: ORDER_PO_ID
+            },
+            type: QueryTypes.SELECT
+        });
+
+
+
+        return res.status(200).json({
+            success: true,
+            message: `Success get order po alteration for Order ${ORDER_ID}`,
+            data: dataPOAlteration    
+        });
+
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order po alteration"
         });
     }
 }
