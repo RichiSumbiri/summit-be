@@ -584,6 +584,11 @@ BomStructureListDetailModel.belongsTo(MasterItemDimensionModel, {
     as: 'ITEM_DIMENSION',
 });
 
+BomStructureListDetailModel.belongsTo(Users, {
+    foreignKey: "EXTRA_APPROVAL_ID",
+    as: "USER"
+})
+
 BomStructureModel.belongsTo(BomStructureRevModel, {
     foreignKey: "LAST_REV_ID",
     as: "REV"

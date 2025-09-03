@@ -10,6 +10,7 @@ import {Op} from "sequelize";
 import {OrderPoListing} from "../../../models/production/order.mod.js";
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import {limitFloating} from "../../../util/general.js";
+import Users from "../../../models/setup/users.mod.js";
 
 export const getAllBomStructureListDetails = async (req, res) => {
     const { BOM_STRUCTURE_LIST_ID, ITEM_DIMENSION_ID, COLOR_ID, SIZE_ID } = req.query;
@@ -50,6 +51,11 @@ export const getAllBomStructureListDetails = async (req, res) => {
                     model: SizeChartMod,
                     as: "SIZE",
                     attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+                },
+                {
+                    model: Users,
+                    as: "USER",
+                    attributes: ['USER_NAME']
                 },
                 {
                     model: MasterItemDimensionModel,
@@ -190,7 +196,7 @@ export const revertBomStructureListDetail = async (req, res) => {
     if (!bomStructureListId || !Array.isArray(bomStructureListDetail) || bomStructureListDetail.length === 0) {
         return res.status(400).json({
             success: false,
-            message: "Item Dimension ID and Bom Template Pending List are required",
+            message: "BOM_STRUCTURE_LIST_ID and Bom Structure List Detail IDs are required",
         });
     }
 
@@ -210,35 +216,87 @@ export const revertBomStructureListDetail = async (req, res) => {
             });
         }
 
-        const detailsToDelete = await BomStructureListDetailModel.findAll({
+        const detailsToRevert = await BomStructureListDetailModel.findAll({
             where: {
                 ID: { [Op.in]: bomStructureListDetail },
                 BOM_STRUCTURE_LIST_ID: bomStructureListId
             }
         });
 
-        if (detailsToDelete.length === 0) {
+        if (detailsToRevert.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: "No valid Bom Structure List Details found for this BOM",
             });
         }
 
+        const pendingToCreate = detailsToRevert.map(detail => ({
+            BOM_STRUCTURE_LIST_ID: detail.BOM_STRUCTURE_LIST_ID,
+            COLOR_ID: detail.COLOR_ID,
+            SIZE_ID: detail.SIZE_ID,
+            ORDER_PO_ID: detail.ORDER_PO_ID,
+            ORDER_QUANTITY: detail.ORDER_QUANTITY,
+            STANDARD_CONSUMPTION_PER_ITEM: detail.STANDARD_CONSUMPTION_PER_ITEM,
+            INTERNAL_CONSUMPTION_PER_ITEM: detail.INTERNAL_CONSUMPTION_PER_ITEM,
+            BOOKING_CONSUMPTION_PER_ITEM: detail.BOOKING_CONSUMPTION_PER_ITEM,
+            PRODUCTION_CONSUMPTION_PER_ITEM: detail.PRODUCTION_CONSUMPTION_PER_ITEM,
+            EXTRA_BOOKS: detail.EXTRA_BOOKS,
+            MATERIAL_ITEM_REQUIREMENT_QTY: detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY,
+            TOTAL_EXTRA_PURCHASE_PLAN_PERCENT: detail.TOTAL_EXTRA_PURCHASE_PLAN,
+            EXTRA_REQUIRE_QTY: detail.EXTRA_REQUIRE_QUANTITY,
+            ITEM_DIMENSION_ID: detail.ITEM_DIMENSION_ID,
+            IS_BOOKING: detail.IS_BOOKING,
+            EXTRA_APPROVAL_ID: detail.EXTRA_APPROVAL_ID,
+            CREATED_AT: new Date()
+        }));
+
         await BomStructureListDetailModel.destroy({
             where: {
-                ID: { [Op.in]: bomStructureListDetail },
-                BOM_STRUCTURE_LIST_ID: bomStructureListId
+                ID: { [Op.in]: bomStructureListDetail }
             }
         });
 
-        return res.status(201).json({
+        await BomStructurePendingDimension.bulkCreate(pendingToCreate, { validate: true });
+
+        const pendingDimensionsList = await BomStructurePendingDimension.findAll({
+            where: {
+                BOM_STRUCTURE_LIST_ID: bomStructureListId
+            },
+            include: [
+                {
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LIST",
+                    attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID"],
+                    required: true,
+                    include: {
+                        model: ModelVendorDetail,
+                        as: "VENDOR",
+                        attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+                    }
+                },
+                {
+                    model: OrderPoListing,
+                    as: "ORDER_PO",
+                    attributes: ["ORDER_PO_ID", "ITEM_COLOR_ID", "ITEM_COLOR_CODE", "ITEM_COLOR_NAME"],
+                },
+                { model: ColorChartMod, as: "COLOR", attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"] },
+                { model: SizeChartMod, as: "SIZE", attributes: ["SIZE_ID", "SIZE_CODE"] }
+            ]
+        });
+
+        return res.status(200).json({
             success: true,
-            message: `BOM structure list detail successfully reverted`,
+            message: `${detailsToRevert.length} detail successfully reverted to pending`,
+            data: pendingDimensionsList
         });
     } catch (err) {
-        return res.status(500).json({status: false, message: "Failed to revert bom structure list detail " + err.message})
+        console.error("Error in revertBomStructureListDetail:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to revert bom structure list detail: " + err.message
+        });
     }
-}
+};
 
 export const createBomStructureListDetailBulk = async (req, res) => {
     const { bomStructureListId, itemDimensionId, createdId, bomTemplatePendingList = [] } = req.body;
@@ -304,7 +362,7 @@ export const createBomStructureListDetailBulk = async (req, res) => {
                 EXTRA_REQUIRE_QUANTITY: limitFloating(pd.EXTRA_REQUIRE_QTY),
                 TOTAL_EXTRA_PURCHASE_PLAN: limitFloating(pd.TOTAL_EXTRA_PURCHASE_PLAN_PERCENT),
                 IS_BOOKING: pd.IS_BOOKING,
-                EXTRA_APPROVAL_ID: pd.EXTRA_APPROVAL_ID,
+                EXTRA_APPROVAL_ID: pd.IS_BOOKING ? null : createdId,
                 CREATED_AT: new Date(),
                 CREATED_ID: createdId || null,
             }
@@ -322,9 +380,36 @@ export const createBomStructureListDetailBulk = async (req, res) => {
             }
         });
 
+        const pendingDimensionsList = await BomStructurePendingDimension.findAll({
+            where: {
+                BOM_STRUCTURE_LIST_ID: bomStructureListId
+            },
+            include: [
+                {
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LIST",
+                    attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID"],
+                    required: true,
+                    include: {
+                        model: ModelVendorDetail,
+                        as: "VENDOR",
+                        attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+                    }
+                },
+                {
+                    model: OrderPoListing,
+                    as: "ORDER_PO",
+                    attributes: ["ORDER_PO_ID", "ITEM_COLOR_ID", "ITEM_COLOR_CODE", "ITEM_COLOR_NAME"],
+                },
+                { model: ColorChartMod, as: "COLOR", attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"] },
+                { model: SizeChartMod, as: "SIZE", attributes: ["SIZE_ID", "SIZE_CODE"] }
+            ]
+        });
+
         return res.status(201).json({
             success: true,
-            message: "Successfully created from pending dimension"
+            message: "Successfully created from pending dimension",
+            data: pendingDimensionsList
         });
     } catch (err) {
         return res.status(500).json({

@@ -11,6 +11,7 @@ import {Op} from "sequelize";
 import {OrderPoListing, OrderPoListingSize} from "../../../models/production/order.mod.js";
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
+import {MIN_ALLOWED_VALUE} from "../../../util/enum.js";
 
 export const getAllPendingDimensionStructure = async (req, res) => {
     const {BOM_STRUCTURE_LIST_ID, COLOR_ID, SIZE_ID, ITEM_DIMENSION_ID} = req.query;
@@ -122,15 +123,9 @@ export const createPendingDimensionStructure = async (req, res) => {
             });
         }
 
+        if (bomStructureList.PRODUCTION_CONSUMPTION_PER_ITEM < MIN_ALLOWED_VALUE) return res.status(500).json({status: false, message: "Product consumption cannot value zero"})
+
         const { IS_SPLIT_SIZE, IS_SPLIT_COLOR, IS_SPLIT_NO_PO } = bomStructureList;
-
-
-        if (!IS_SPLIT_SIZE && !IS_SPLIT_COLOR && !IS_SPLIT_NO_PO) {
-            return res.status(400).json({
-                success: false,
-                message: "At least one split (Size, Color, or No PO) must be enabled",
-            });
-        }
 
         if (IS_SPLIT_NO_PO && IS_SPLIT_COLOR) {
             return res.status(400).json({
@@ -384,7 +379,6 @@ export const createPendingDimensionStructure = async (req, res) => {
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
                     attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID"],
-                    where: { BOM_STRUCTURE_ID },
                     required: true,
                     include: {
                         model: ModelVendorDetail,
@@ -586,6 +580,10 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
                 success: false,
                 message: "Bom Template List not found",
             });
+        }
+
+        if (bomTemplateList.STATUS !== "Confirmed") {
+            return res.status(500).json({status: false, message: "Bom template list must be status confirmed"})
         }
 
         const { IS_SPLIT_COLOR, IS_SPLIT_SIZE, IS_SPLIT_NO_PO } = bomStructureList;

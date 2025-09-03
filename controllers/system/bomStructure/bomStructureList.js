@@ -609,7 +609,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                                 ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
                                 APPROVE_PURCHASE_QUANTITY: group.approveQuantity,
                                 PLAN_CURRENT_QUANTITY: group.costQuantity,
-                                COST_PER_ITEM: group.costQuantity,
+                                COST_PER_ITEM: parseFloat(group.costQuantity) || 0,
                                 FINANCE_COST: 0,
                                 FREIGHT_COST: 0,
                                 OTHER_COST: 0,

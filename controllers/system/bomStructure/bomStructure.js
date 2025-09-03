@@ -74,7 +74,7 @@ export const getAllBomStructures = async (req, res) => {
         const validResponse = await Promise.all(structures.map(async (item) => {
             const noteBomStructure = await BomStructureNoteModel.findOne({
                 where: {
-                    REV_ID: LAST_REV_ID,
+                    REV_ID: item.LAST_REV_ID,
                     BOM_STRUCTURE_ID: item.ID
                 }
             })
@@ -306,7 +306,7 @@ export const createBomStructure = async (req, res) => {
 
 export const approveStatusBomStructure = async (req, res) => {
     const {ID} = req.params
-    const {REV_ID = 0} = req.query
+    const {REV_ID = 0} = req.body
 
     if (!ID) return res.status(400).json({
         success: false,
@@ -326,17 +326,20 @@ export const approveStatusBomStructure = async (req, res) => {
         })
 
         if (!revision) return res.status(404).json({status: false, message: "Note not found"})
-
         const bomStructureList = await BomStructureListModel.findOne({
             where: {
                 BOM_STRUCTURE_ID: ID,
                 REV_ID,
-                STATUS: "Open"
+                STATUS: "Open",
+                IS_DELETED: false
             }
         })
 
-        if (bomStructureList) return res.status(500).json({status: false, message: `BOM structure cannot be approved because there are still items with "open" status in the list`})
+        console.log("ID ", ID)
+        console.log("REV_ID ", REV_ID)
+        console.log("bomStructureList ", bomStructureList)
 
+        if (bomStructureList) return res.status(500).json({status: false, message: `BOM structure cannot be approved because there are still items with "open" status in the list`})
 
         await BomStructureNoteModel.update({
             IS_BOM_CONFIRMATION: true
