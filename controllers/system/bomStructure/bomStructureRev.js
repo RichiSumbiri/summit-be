@@ -47,14 +47,13 @@ export const getAllBomStructureRevs = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Daftar revisi BOM berhasil diambil",
+            message: "BOM revision list successfully retrieved",
             data: revs,
         });
     } catch (error) {
-        console.error("Error fetching BOM revisions:", error);
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil data revisi BOM: ${error.message}`,
+            message: `Failed to retrieve BOM revision data: ${error.message}`,
         });
     }
 };
@@ -77,20 +76,19 @@ export const getBomStructureRevById = async (req, res) => {
         if (!rev) {
             return res.status(404).json({
                 success: false,
-                message: "Revisi BOM tidak ditemukan",
+                message: "BOM revision not found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Revisi BOM berhasil diambil",
+            message: "BOM revision successfully retrieved",
             data: rev,
         });
     } catch (error) {
-        console.error("Error fetching BOM revision by ID:", error);
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil revisi BOM: ${error.message}`,
+            message: `Failed to retrieve BOM revision: ${error.message}`,
         });
     }
 };
@@ -102,7 +100,7 @@ export const createBomStructureRev = async (req, res) => {
     if (!BOM_STRUCTURE_ID) {
         return res.status(400).json({
             success: false,
-            message: "BOM_STRUCTURE_ID wajib diisi",
+            message: "Bom Structure is required",
         });
     }
 
@@ -114,14 +112,14 @@ export const createBomStructureRev = async (req, res) => {
         if (!bomStructure) {
             return res.status(400).json({
                 success: false,
-                message: "BOM Structure tidak ditemukan atau sudah dihapus",
+                message: "BOM Structure not found",
             });
         }
 
         if (bomStructure.IS_NOT_ALLOW_REVISION) {
             return res.status(400).json({
                 success: false,
-                message: "Tidak dapat menambah revisi",
+                message: "Cannot create new revision because it is not permitted.",
             });
         }
 
@@ -133,7 +131,7 @@ export const createBomStructureRev = async (req, res) => {
             if (!lastRev) {
                 return res.status(400).json({
                     success: false,
-                    message: "Revisi terakhir tidak ditemukan",
+                    message: "Lastes revision not found",
                 });
             }
             nextSequence = lastRev.SEQUENCE + 1;
@@ -150,8 +148,21 @@ export const createBomStructureRev = async (req, res) => {
         if (existingRev) {
             return res.status(400).json({
                 success: false,
-                message: `Revisi dengan SEQUENCE ${nextSequence} sudah ada`,
+                message: `Revision with SEQUENCE ${nextSequence} already exists`,
             });
+        }
+
+        const checkOpenList = await BomStructureListModel.findOne({
+            where: {
+                BOM_STRUCTURE_ID: bomStructure.ID,
+                STATUS: "Open",
+                REV_ID: bomStructure.LAST_REV_ID
+            }
+        })
+
+
+        if (checkOpenList) {
+            return res.status(500).json({status: false, message: `Cannot create revision because there are still items with "open" status in the BOM structure list.`})
         }
 
         const newRev = await BomStructureRevModel.create({
@@ -169,7 +180,7 @@ export const createBomStructureRev = async (req, res) => {
                 BOM_STRUCTURE_ID: bomStructure.ID,
                 REV_ID: lastRevId,
                 STATUS: {
-                    [Op.in]: ["Confirmed", "Open"]
+                    [Op.in]: ["Confirmed"]
                 },
                 IS_DELETED: false,
             },
@@ -179,7 +190,7 @@ export const createBomStructureRev = async (req, res) => {
         if (oldBomStructureLists.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Tidak ada data BOM Structure List untuk direvisi",
+                message: "There is no BOM Structure List data to revise",
             });
         }
 
@@ -218,7 +229,7 @@ export const createBomStructureRev = async (req, res) => {
         const newDetailsToCreate = allOldDetails.map(detail => {
             const newBomStructureListId = oldToNewMap.get(detail.BOM_STRUCTURE_LIST_ID);
             if (!newBomStructureListId) {
-                throw new Error(`Mapping gagal untuk BOM_STRUCTURE_LIST_ID: ${detail.BOM_STRUCTURE_LIST_ID}`);
+                throw new Error(`Mapping failed for BOM_STRUCTURE_LIST_ID: ${detail.BOM_STRUCTURE_LIST_ID}`);
             }
 
             const data = detail.dataValues;
@@ -293,7 +304,7 @@ export const createBomStructureRev = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Revisi BOM berhasil dibuat",
+            message: "BOM revision successfully created",
             data: {
                 ...updatedStructure.dataValues,
                 IS_BOM_CONFIRMATION: note?.IS_BOM_CONFIRMATION ?? false,
@@ -302,10 +313,9 @@ export const createBomStructureRev = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error creating BOM revision:", error);
         return res.status(500).json({
             success: false,
-            message: `Gagal membuat revisi BOM: ${error.message}`,
+            message: `Failed to create new revision: ${error.message}`,
         });
     }
 };
@@ -322,7 +332,7 @@ export const updateBomStructureRev = async (req, res) => {
         if (!rev) {
             return res.status(404).json({
                 success: false,
-                message: "Revisi BOM tidak ditemukan",
+                message: "BOM revision not found",
             });
         }
 
@@ -338,7 +348,7 @@ export const updateBomStructureRev = async (req, res) => {
             if (conflict) {
                 return res.status(400).json({
                     success: false,
-                    message: `SEQUENCE ${SEQUENCE} sudah digunakan`,
+                    message: `SEQUENCE ${SEQUENCE} already used`,
                 });
             }
         }
@@ -352,14 +362,13 @@ export const updateBomStructureRev = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Revisi BOM berhasil diperbarui",
+            message: "BOM Revision success updated",
             data: rev,
         });
     } catch (error) {
-        console.error("Error updating BOM revision:", error);
         return res.status(500).json({
             success: false,
-            message: `Gagal memperbarui revisi BOM: ${error.message}`,
+            message: `Failed to update bom revision: ${error.message}`,
         });
     }
 };
@@ -376,7 +385,7 @@ export const deleteBomStructureRev = async (req, res) => {
         if (!rev) {
             return res.status(404).json({
                 success: false,
-                message: "Revisi BOM tidak ditemukan",
+                message: "BOM Revision not found",
             });
         }
 
@@ -387,13 +396,12 @@ export const deleteBomStructureRev = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Revisi BOM berhasil dihapus (soft delete)",
+            message: "BOM revision successfully deleted",
         });
     } catch (error) {
-        console.error("Error deleting BOM revision:", error);
         return res.status(500).json({
             success: false,
-            message: `Gagal menghapus revisi BOM: ${error.message}`,
+            message: `Failed to delete bom revision: ${error.message}`,
         });
     }
 };

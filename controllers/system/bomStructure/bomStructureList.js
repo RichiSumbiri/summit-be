@@ -405,7 +405,7 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             status: false,
-            message: "Gagagl menampilkan bom template list " + err.message
+            message: "Failed to show bom structure " + err.message
         })
     }
 }
@@ -418,7 +418,7 @@ export const updateBomStructureListStatus = async (req, res) => {
     if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
         return res.status(400).json({
             success: false,
-            message: "Status hanya boleh: Confirmed, Canceled, Deleted",
+            message: "Status only: Confirmed, Canceled, Deleted",
         });
     }
 
@@ -434,14 +434,14 @@ export const updateBomStructureListStatus = async (req, res) => {
         if (!record) {
             return res.status(404).json({
                 success: false,
-                message: "Bom Structure List tidak ditemukan",
+                message: "Bom Structure List not found",
             });
         }
 
         if (record.STATUS !== "Open") {
             return res.status(400).json({
                 success: false,
-                message: `Status hanya bisa diubah dari 'Open', status saat ini: ${record.STATUS}`,
+                message: `Status can only be changed from 'Open'; current status is ${record.STATUS}`,
             });
         }
 
@@ -453,7 +453,7 @@ export const updateBomStructureListStatus = async (req, res) => {
             if (listDetails.length === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: "Tidak bisa Confirm: Belum ada detail BOM",
+                    message: "Cannot confirm: BOM details are missing",
                 });
             }
 
@@ -515,13 +515,13 @@ export const updateBomStructureListStatus = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: `Status berhasil diubah menjadi ${status}`
+            message: `Status success change to  ${status}`
         });
 
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal memperbarui status: ${error.message}`,
+            message: `failed to change status: ${error.message}`,
         });
     }
 };
@@ -532,14 +532,14 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
     if (!Array.isArray(bom_structure_list) || bom_structure_list.length === 0) {
         return res.status(400).json({
             success: false,
-            message: "bom_structure_list harus array dan tidak boleh kosong",
+            message: "bom structure list must be array and cannot empty",
         });
     }
 
     if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
         return res.status(400).json({
             success: false,
-            message: "Status hanya boleh: Confirmed, Canceled, Deleted",
+            message: "Status only: Confirmed, Canceled, Deleted",
         });
     }
 
@@ -559,7 +559,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
         if (records.length === 0) {
             return res.status(200).json({
                 success: true,
-                message: "Tidak ada data yang bisa diproses (semua bukan status Open)",
+                message: "No data available for processing (all records are not in 'Open' status)",
                 updated_count: 0
             });
         }
@@ -638,14 +638,13 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: `Berhasil memperbarui ${updatedCount} data ke status ${status}`,
+            message: `Success change ${updatedCount} data to status ${status}`,
         });
 
     } catch (error) {
-        console.error("Error in updateBomStructureListStatusBulk:", error);
         return res.status(500).json({
             success: false,
-            message: "Gagal memperbarui status",
+            message: "Failed to update status " + err.message,
         });
     }
 };

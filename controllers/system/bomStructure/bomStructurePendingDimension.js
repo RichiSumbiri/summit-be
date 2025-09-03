@@ -11,7 +11,6 @@ import {Op} from "sequelize";
 import {OrderPoListing, OrderPoListingSize} from "../../../models/production/order.mod.js";
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
-import BomTemplateListDetail from "../../../models/system/bomTemplateListDetail.mod.js";
 
 export const getAllPendingDimensionStructure = async (req, res) => {
     const {BOM_STRUCTURE_LIST_ID, COLOR_ID, SIZE_ID, ITEM_DIMENSION_ID} = req.query;
@@ -52,13 +51,13 @@ export const getAllPendingDimensionStructure = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Pending dimensions berhasil diambil",
+            message: "Pending dimensions retrieved successfully",
             data: dimensions,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil data: ${error.message}`,
+            message: `Failed to retrieve data: ${error.message}`,
         });
     }
 };
@@ -79,19 +78,19 @@ export const getPendingDimensionStructureById = async (req, res) => {
         if (!dim) {
             return res.status(404).json({
                 success: false,
-                message: "Pending dimension tidak ditemukan",
+                message: "Pending dimension not found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Pending dimension berhasil diambil",
+            message: "Pending dimension retrieved successfully",
             data: dim,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil data: ${error.message}`,
+            message: `Failed to create pending dimension: ${error.message}`,
         });
     }
 };
@@ -405,14 +404,14 @@ export const createPendingDimensionStructure = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Pending dimension berhasil dibuat",
+            message: "Pending dimension created successfully",
             data: response
         });
 
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal membuat pending dimension: ${error.message}`,
+            message: `Failed to create pending dimension: ${error.message}`,
         });
     }
 };
@@ -429,19 +428,19 @@ export const updatePendingDimensionStructure = async (req, res) => {
         if (!updated) {
             return res.status(404).json({
                 success: false,
-                message: "Pending dimension tidak ditemukan",
+                message: "Pending dimension not found",
             });
         }
 
         await BomStructurePendingDimension.findByPk(id);
         return res.status(200).json({
             success: true,
-            message: "Pending dimension berhasil diperbarui",
+            message: "Pending dimension updated successfully",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal memperbarui pending dimension: ${error.message}`,
+            message: `Failed to update pending dimension: ${error.message}`,
         });
     }
 };
@@ -461,7 +460,7 @@ export const updatePendingDimensionStructureCustom = async (req, res) => {
         if (!pending) {
             return res.status(404).json({
                 success: false,
-                message: "Pending dimension tidak ditemukan",
+                message: "Pending dimension not found",
             });
         }
 
@@ -499,7 +498,7 @@ export const updatePendingDimensionStructureCustom = async (req, res) => {
         if (!updated) {
             return res.status(500).json({
                 success: false,
-                message: "Gagal memperbarui pending dimension",
+                message: "Failed to update pending dimension",
             });
         }
 
@@ -532,14 +531,14 @@ export const updatePendingDimensionStructureCustom = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Pending dimension berhasil diperbarui",
+            message: "Pending dimension updated successfully",
             data: response
         });
 
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal memperbarui pending dimension: ${error.message}`,
+            message: `Failed to update pending dimension: ${error.message}`,
         });
     }
 };
@@ -855,9 +854,6 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
                 !existingKeys.has(`${req.COLOR_ID || ''}-${req.SIZE_ID || ''}-${req.ORDER_PO_ID || ''}`)
             );
 
-            console.log("existingKeys ", existingKeys)
-            console.log("toCreate ", toCreate)
-
             if (toCreate.length > 0) {
                 await BomStructurePendingDimension.bulkCreate(toCreate, { validate: true });
             }
@@ -889,15 +885,14 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Pending dimension berhasil dibuat dari template",
+            message: "Pending dimension successfully created from template",
             data: response
         });
 
     } catch (error) {
-        console.error("Error in createPendingDimensionFromBomTemplateList:", error);
         return res.status(500).json({
             success: false,
-            message: `Gagal membuat pending dimension: ${error.message}`,
+            message: `Failed to create pending dimension: ${error.message}`,
         });
     }
 };
@@ -910,18 +905,18 @@ export const deletePendingDimensionStructure = async (req, res) => {
         if (!deleted) {
             return res.status(404).json({
                 success: false,
-                message: "Pending dimension tidak ditemukan",
+                message: "Pending dimension not found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Pending dimension berhasil dihapus",
+            message: "Pending dimension successfully deleted",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal menghapus pending dimension: ${error.message}`,
+            message: `Failed to delete pending dimension: ${error.message}`,
         });
     }
 };

@@ -28,13 +28,13 @@ export const getAllSourcingDetails = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Data sourcing detail berhasil diambil",
+            message: "Sourcing detail data retrieved successfully",
             data: details,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil data sourcing detail: ${error.message}`,
+            message: `Failed to retrieve sourcing detail data: ${error.message}`,
         });
     }
 };
@@ -48,19 +48,19 @@ export const getSourcingDetailById = async (req, res) => {
         if (!detail) {
             return res.status(404).json({
                 success: false,
-                message: "Sourcing detail tidak ditemukan",
+                message: "Sourcing detail not found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Sourcing detail berhasil diambil",
+            message: "Sourcing detail retrieved successfully",
             data: detail
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil sourcing detail: ${error.message}`,
+            message: `Failed to retrieve sourcing detail: ${error.message}`,
         });
     }
 };
@@ -83,11 +83,11 @@ export const createSourcingDetail = async (req, res) => {
         if (!BOM_STRUCTURE_LINE_ID || !ITEM_DIMENSION_ID) {
             return res.status(400).json({
                 success: false,
-                message: "BOM_STRUCTURE_LINE_ID dan ITEM_DIMENSION_ID wajib diisi",
+                message: "BOM_STRUCTURE_LINE_ID and ITEM_DIMENSION_ID are required",
             });
         }
 
-        const newDetail = await BomStructureSourcingDetail.create({
+        await BomStructureSourcingDetail.create({
             BOM_STRUCTURE_LINE_ID,
             ITEM_DIMENSION_ID,
             ORDER_PO_ID: ORDER_PO_ID || null,
@@ -102,13 +102,12 @@ export const createSourcingDetail = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Sourcing detail berhasil dibuat",
-            newDetail,
+            message: "Sourcing detail created successfully",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal membuat sourcing detail: ${error.message}`,
+            message: `Failed to create sourcing detail: ${error.message}`,
         });
     }
 };
@@ -123,7 +122,7 @@ export const updateSourcingDetail = async (req, res) => {
         if (!detail) {
             return res.status(404).json({
                 success: false,
-                message: "Sourcing detail tidak ditemukan",
+                message: "Sourcing detail not found",
             });
         }
 
@@ -139,13 +138,12 @@ export const updateSourcingDetail = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Sourcing detail berhasil diperbarui",
-            detail,
+            message: "Sourcing detail updated successfully",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal memperbarui sourcing detail: ${error.message}`,
+            message: `Failed to update sourcing detail: ${error.message}`,
         });
     }
 };
@@ -159,7 +157,7 @@ export const deleteSourcingDetail = async (req, res) => {
         if (!detail) {
             return res.status(404).json({
                 success: false,
-                message: "Sourcing detail tidak ditemukan",
+                message: "Sourcing detail not found",
             });
         }
 
@@ -167,12 +165,12 @@ export const deleteSourcingDetail = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Sourcing detail berhasil dihapus",
+            message: "Sourcing detail deleted successfully",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal menghapus sourcing detail: ${error.message}`,
+            message: `Failed to delete sourcing detail: ${error.message}`,
         });
     }
 };

@@ -74,13 +74,13 @@ export const getAllBomStructureListDetails = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Detail BOM Structure List berhasil diambil",
+            message: "BOM Structure List detail retrieved successfully",
             data: details,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil data: ${error.message}`,
+            message: `Failed to retrieve data: ${error.message}`,
         });
     }
 };
@@ -102,19 +102,19 @@ export const getBomStructureListDetailById = async (req, res) => {
         if (!detail) {
             return res.status(404).json({
                 success: false,
-                message: "Detail tidak ditemukan",
+                message: "Detail not found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Detail berhasil diambil",
+            message: "Detail retrieved successfully",
             data: detail,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal mengambil detail: ${error.message}`,
+            message: `Failed to retrieve detail: ${error.message}`,
         });
     }
 };
@@ -145,7 +145,7 @@ export const createBomStructureListDetail = async (req, res) => {
         if (!BOM_STRUCTURE_LIST_ID) {
             return res.status(400).json({
                 success: false,
-                message: "BOM_STRUCTURE_LIST_ID wajib diisi",
+                message: "Bom Structure List is required",
             });
         }
 
@@ -173,12 +173,12 @@ export const createBomStructureListDetail = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Detail berhasil dibuat",
+            message: "Detail created successfully"
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal membuat detail: ${error.message}`,
+            message: `Failed to create detail: ${error.message}`,
         });
     }
 };
@@ -233,7 +233,7 @@ export const revertBomStructureListDetail = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: `Berhasil revert bom structure list detail`,
+            message: `BOM structure list detail successfully reverted`,
         });
     } catch (err) {
         return res.status(500).json({status: false, message: "Failed to revert bom structure list detail " + err.message})
@@ -285,7 +285,7 @@ export const createBomStructureListDetailBulk = async (req, res) => {
 
         const detailToCreate = pendingDimensions.map((pd, idx) => {
             if (pd.MATERIAL_ITEM_REQUIREMENT_QTY <= 0 ) {
-                throw new Error("Material item requirement quantity tidak dapat nol")
+                throw new Error("Material item requirement quantity cannot be zero");
             }
             return {
                 BOM_STRUCTURE_LIST_ID: pd.BOM_STRUCTURE_LIST_ID,
@@ -324,13 +324,12 @@ export const createBomStructureListDetailBulk = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: `Berhasil dibuat dari pending dimension`,
+            message: "Successfully created from pending dimension"
         });
     } catch (err) {
         return res.status(500).json({
             success: false,
-            message: "Gagal membuat BOM Structure List Detail: " + err.message,
-        });
+            message: "Failed to create BOM Structure List Detail: " + err.message        });
     }
 };
 
@@ -346,18 +345,18 @@ export const updateBomStructureListDetail = async (req, res) => {
         if (!updated) {
             return res.status(404).json({
                 success: false,
-                message: "Detail tidak ditemukan",
+                message: "Detail not found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Detail berhasil diperbarui",
+            message: "Detail successfully updated",
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal memperbarui detail: ${error.message}`,
+            message: `Failed to update detail: ${error.message}`,
         });
     }
 };
@@ -369,17 +368,17 @@ export const deleteBomStructureListDetail = async (req, res) => {
         const deleted = await BomStructureListDetailModel.destroy({ where: { ID: id } });
         if (!deleted) return res.status(404).json({
             success: false,
-            message: "Detail tidak ditemukan",
+            message: "Detail not found",
         });
 
         return res.status(200).json({
             success: true,
-            message: "Detail berhasil dihapus",
+            message: "Detail successfully deleted"
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `Gagal menghapus detail: ${error.message}`,
+            message: `Failed to delete detail: ${error.message}`
         });
     }
 };
