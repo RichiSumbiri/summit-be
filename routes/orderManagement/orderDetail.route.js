@@ -7,6 +7,7 @@ import {
     getOrderExecuteInfo,
     getOrderHeaderLogStatus,
     getOrderInventoryDetail,
+    getOrderPOAlteration,
     getPOListingSizeByPOID, getPOSizeListingCheck, postPOListing, postPOSizeListing,
     postUpdateOrderPOIDStatus
 } from "../../controllers/orderManagement/OrderManagement.js";
@@ -27,6 +28,9 @@ router.post("/po-detail-status", postUpdateOrderPOIDStatus);
 router.get("/listing-mo", getListPOIDByMOID);
 router.get("/listing-inventory", getOrderInventoryDetail);
 
+
 router.get("/order-execute-info", getOrderExecuteInfo);
+router.get("/order-alteration", getOrderPOAlteration);
+
 
 export default router;
