@@ -722,8 +722,8 @@ SELECT
 	oml.MO_DESCRIPTION,
 	oml.MO_STATUS,
 	oml.ORDER_ID,
-	opl.ITEM_COLOR_ID,
-	mcc.COLOR_CODE AS ITEM_COLOR_CODE,
+	oml.ITEM_COLOR_ID,
+	oml.ITEM_COLOR_CODE,
 	mcc.COLOR_DESCRIPTION as ITEM_COLOR_NAME,
 	oph.ORDER_UOM,
 	SUM(opl.ORDER_QTY) AS ORDER_QTY,
@@ -769,6 +769,14 @@ export const OrderMOListing = db.define("order_mo_listing", {
     },
     ORDER_ID: {
       type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    ITEM_COLOR_ID: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    ITEM_COLOR_CODE: {
+      type: DataTypes.STRING(100),
       allowNull: true,
     },
     CREATE_BY: {
