@@ -2,6 +2,7 @@ import {Op, QueryTypes} from "sequelize";
 import db from "../../config/database.js";
 import {
     ModelMasterOrderExecuteInfo,
+    ModelOrderPOAlteration,
     ModelOrderPOHeader,
     ModelOrderPOHeaderLogStatus,
     ModelOrderPOListingLogStatus,
@@ -1322,6 +1323,101 @@ export const getOrderExecuteInfo = async(req,res) => {
     }
 }
 
+export const postOrderPOAlteration = async(req,res) => {
+    try {
+        const { DataPOAlter } = req.body;
+        
+        // Check Last PO Alter
+        const CountOrderPOAlter = await ModelOrderPOAlteration.count({
+            where: {
+                ORDER_ID: DataPOAlter.ORDER_NO,
+                ORDER_PO_ID: DataPOAlter.ORDER_PO_ID
+            }
+        });
+        
+        // Add new Order PO Alter
+        await ModelOrderPOAlteration.create({
+            ORDER_ID: DataPOAlter.ORDER_NO,
+            ORDER_PO_ID: DataPOAlter.ORDER_PO_ID,
+            ALT_ID: CountOrderPOAlter,
+            PO_REF_CODE: DataPOAlter.PO_REF_CODE,
+            DELIVERY_LOCATION_ID: DataPOAlter.DELIVERY_LOCATION_ID,
+            COUNTRY_CODE: DataPOAlter.COUNTRY, 
+            PACKING_METHOD: DataPOAlter.PACKING_METHOD, 
+            DELIVERY_MODE_CODE: DataPOAlter.DELIVERY_MODE_CODE,
+            MANUFACTURING_COMPANY: DataPOAlter.MANUFACTURING_COMPANY,
+            MANUFACTURING_SITE: DataPOAlter.MANUFACTURING_SITE,
+            PO_CONFIRMED_DATE: DataPOAlter.PO_CONFIRMED_DATE, 
+            PO_EXPIRY_DATE: DataPOAlter.PO_EXPIRY_DATE, 
+            ORIGINAL_DELIVERY_DATE: DataPOAlter.ORIGINAL_DELIVERY_DATE, 
+            FINAL_DELIVERY_DATE: DataPOAlter.FINAL_DELIVERY_DATE, 
+            PLAN_EXFACTORY_DATE: DataPOAlter.PLAN_EXFACTORY_DATE, 
+            PRODUCTION_MONTH: DataPOAlter.PRODUCTION_MONTH, 
+            NOTE_REMARKS: DataPOAlter.NOTE_REMARKS, 
+            CREATE_BY: DataPOAlter.CREATE_BY, 
+            CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+        });
+
+        // Update PO Listing Data
+        await OrderPoListing.update({
+            ORDER_REFERENCE_PO_NO: DataPOAlter.PO_REF_CODE,
+            DELIVERY_LOCATION_ID: DataPOAlter.DELIVERY_LOCATION_ID,
+            COUNTRY_CODE: DataPOAlter.COUNTRY, 
+            PACKING_METHOD: DataPOAlter.PACKING_METHOD, 
+            DELIVERY_MODE_CODE: DataPOAlter.DELIVERY_MODE_CODE,
+            MANUFACTURING_COMPANY: DataPOAlter.MANUFACTURING_COMPANY,
+            MANUFACTURING_SITE: DataPOAlter.MANUFACTURING_SITE,
+            PO_CONFIRMED_DATE: DataPOAlter.PO_CONFIRMED_DATE, 
+            PO_EXPIRY_DATE: DataPOAlter.PO_EXPIRY_DATE, 
+            ORIGINAL_DELIVERY_DATE: DataPOAlter.ORIGINAL_DELIVERY_DATE, 
+            FINAL_DELIVERY_DATE: DataPOAlter.FINAL_DELIVERY_DATE, 
+            PLAN_EXFACTORY_DATE: DataPOAlter.PLAN_EXFACTORY_DATE, 
+            PRODUCTION_MONTH: DataPOAlter.PRODUCTION_MONTH, 
+            NOTE_REMARKS: DataPOAlter.NOTE_REMARKS, 
+        }, {
+            where: {
+                ORDER_NO: DataPOAlter.ORDER_NO,
+                ORDER_PO_ID: DataPOAlter.ORDER_PO_ID,
+            }
+        });
+
+        // Update PO Listing Size Data
+        await OrderPoListingSize.update({
+            ORDER_REFERENCE_PO_NO: DataPOAlter.PO_REF_CODE,
+            DELIVERY_LOCATION_ID: DataPOAlter.DELIVERY_LOCATION_ID,
+            COUNTRY_CODE: DataPOAlter.COUNTRY, 
+            PACKING_METHOD: DataPOAlter.PACKING_METHOD, 
+            DELIVERY_MODE_CODE: DataPOAlter.DELIVERY_MODE_CODE,
+            MANUFACTURING_COMPANY: DataPOAlter.MANUFACTURING_COMPANY,
+            MANUFACTURING_SITE: DataPOAlter.MANUFACTURING_SITE,
+            PO_CONFIRMED_DATE: DataPOAlter.PO_CONFIRMED_DATE, 
+            PO_EXPIRY_DATE: DataPOAlter.PO_EXPIRY_DATE, 
+            ORIGINAL_DELIVERY_DATE: DataPOAlter.ORIGINAL_DELIVERY_DATE, 
+            FINAL_DELIVERY_DATE: DataPOAlter.FINAL_DELIVERY_DATE, 
+            PLAN_EXFACTORY_DATE: DataPOAlter.PLAN_EXFACTORY_DATE, 
+            PRODUCTION_MONTH: DataPOAlter.PRODUCTION_MONTH, 
+            NOTE_REMARKS: DataPOAlter.NOTE_REMARKS, 
+        }, {
+            where: {
+                ORDER_NO: DataPOAlter.ORDER_NO,
+                ORDER_PO_ID: DataPOAlter.ORDER_PO_ID,
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: `Success post order po alter`
+        });
+
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error post order po alteration"
+        });
+    }
+}
 
 export const getOrderPOAlteration = async(req,res) => {
     try {
