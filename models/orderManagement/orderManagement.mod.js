@@ -105,6 +105,11 @@ export const ModelOrderPOHeader = db.define('order_po_header', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  COMPONENT_STATUS: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue:'0',
+  },
   NOTE_REMARKS: {
     type: DataTypes.STRING(255),
     allowNull: true,
