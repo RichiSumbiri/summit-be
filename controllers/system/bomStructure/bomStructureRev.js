@@ -156,7 +156,6 @@ export const createBomStructureRev = async (req, res) => {
             where: {
                 BOM_STRUCTURE_ID: bomStructure.ID,
                 STATUS: "Open",
-                REV_ID: bomStructure.LAST_REV_ID
             }
         })
 
@@ -175,78 +174,6 @@ export const createBomStructureRev = async (req, res) => {
             UPDATED_AT: new Date(),
         });
 
-        const oldBomStructureLists = await BomStructureListModel.findAll({
-            where: {
-                BOM_STRUCTURE_ID: bomStructure.ID,
-                REV_ID: lastRevId,
-                STATUS: {
-                    [Op.in]: ["Confirmed"]
-                },
-                IS_DELETED: false,
-            },
-            order: [['ID', 'ASC']]
-        });
-
-        if (oldBomStructureLists.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "There is no BOM Structure List data to revise",
-            });
-        }
-
-        const oldToNewMap = new Map();
-
-        const newBomStructureLists = await BomStructureListModel.bulkCreate(
-            oldBomStructureLists.map((item, idx) => {
-                const data = item.dataValues;
-                const newListId = null;
-                oldToNewMap.set(data.ID, newListId);
-                return {
-                    ...data,
-                    ID: null,
-                    BOM_LINE_ID: idx + 1,
-                    REV_ID: newRev.ID,
-                    STATUS: "Open",
-                    CREATED_ID,
-                    CREATED_AT: new Date(),
-                    UPDATED_ID: null,
-                    UPDATED_AT: null
-                };
-            }),
-            { returning: true }
-        );
-
-        oldBomStructureLists.forEach((old, index) => {
-            oldToNewMap.set(old.ID, newBomStructureLists[index].ID);
-        });
-
-        const allOldDetails = await BomStructureListDetailModel.findAll({
-            where: {
-                BOM_STRUCTURE_LIST_ID: { [Op.in]: oldBomStructureLists.map(l => l.ID) }
-            }
-        });
-
-        const newDetailsToCreate = allOldDetails.map(detail => {
-            const newBomStructureListId = oldToNewMap.get(detail.BOM_STRUCTURE_LIST_ID);
-            if (!newBomStructureListId) {
-                throw new Error(`Mapping failed for BOM_STRUCTURE_LIST_ID: ${detail.BOM_STRUCTURE_LIST_ID}`);
-            }
-
-            const data = detail.dataValues;
-            return {
-                ...data,
-                ID: null,
-                BOM_STRUCTURE_LIST_ID: newBomStructureListId,
-                CREATED_ID,
-                CREATED_AT: new Date(),
-                UPDATED_ID: null,
-                UPDATED_AT: null
-            };
-        });
-
-        if (newDetailsToCreate.length > 0) {
-            await BomStructureListDetailModel.bulkCreate(newDetailsToCreate, { validate: true });
-        }
 
         const noteBomStructure = await BomStructureNoteModel.findOne({
             where: {
@@ -260,7 +187,6 @@ export const createBomStructureRev = async (req, res) => {
                 ...noteBomStructure.dataValues,
                 ID: null,
                 REV_ID: newRev.ID,
-                IS_BOM_CONFIRMATION: false,
                 CREATED_AT: new Date(),
                 UPDATED_AT: null
             });
@@ -270,6 +196,46 @@ export const createBomStructureRev = async (req, res) => {
             { LAST_REV_ID: newRev.ID, IS_NOT_ALLOW_REVISION: true },
             { where: { ID: BOM_STRUCTURE_ID } }
         );
+
+
+
+        const bomStructureListTrash = await BomStructureListModel.findAll({
+            where: {
+                BOM_STRUCTURE_ID,
+                status: {
+                    [Op.in]: ["Canceled", "Deleted", "Open"]
+                }
+            }
+        })
+
+        if (bomStructureListTrash.length > 0) {
+            await BomStructureListModel.update(
+                { IS_DELETED: true, DELETED_AT: new Date() },
+                {
+                    where: {
+                        ID: { [Op.in]: bomStructureListTrash.map(item => item.ID) }
+                    }
+                }
+            );
+        }
+
+        const bomStructureListConfirm = await BomStructureListModel.findAll({
+            where: {
+                BOM_STRUCTURE_ID,
+                status: "Confirmed"
+            }
+        })
+
+        if (bomStructureListConfirm.length > 0) {
+            await BomStructureListModel.update(
+                { STATUS: "Open" },
+                {
+                    where: {
+                        ID: { [Op.in]: bomStructureListConfirm.map(item => item.ID) }
+                    }
+                }
+            );
+        }
 
         const updatedStructure = await BomStructureModel.findOne({
             where: { ID: BOM_STRUCTURE_ID },
@@ -307,7 +273,6 @@ export const createBomStructureRev = async (req, res) => {
             message: "BOM revision successfully created",
             data: {
                 ...updatedStructure.dataValues,
-                IS_BOM_CONFIRMATION: note?.IS_BOM_CONFIRMATION ?? false,
                 NOTE: note?.NOTE ?? ""
             },
         });

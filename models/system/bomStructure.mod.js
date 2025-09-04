@@ -130,10 +130,6 @@ export const  BomStructureListModel = db.define(
             type: DataTypes.STRING,
             allowNull: false,
         },
-        REV_ID: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
-        },
         BOM_LINE_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -267,10 +263,6 @@ export const BomStructureNoteModel = db.define("bom_structure_notes", {
         type: DataTypes.STRING(15),
         allowNull: false
     },
-    IS_BOM_CONFIRMATION: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    }
 }, {
     tableName: "bom_structure_notes",
     timestamps: false

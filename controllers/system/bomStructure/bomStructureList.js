@@ -22,7 +22,6 @@ export const getAllBomStructureList = async (req, res) => {
             const bomStructure = await BomStructureModel.findByPk(BOM_STRUCTURE_ID)
             if (!bomStructure) return res.status(404).json({status: false, message: "Bom structure not found"})
 
-            where.REV_ID = bomStructure.LAST_REV_ID
             where.BOM_STRUCTURE_ID = BOM_STRUCTURE_ID
         }
         if (MASTER_ITEM_ID) where.MASTER_ITEM_ID = MASTER_ITEM_ID;
@@ -375,7 +374,6 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
         const lists = await BomTemplateListModel.findAll({
             where: {
                 BOM_TEMPLATE_ID: bomTemplate.ID,
-                REV_ID: bomTemplate.LAST_REV_ID,
                 MASTER_ITEM_ID: bomStructureList.MASTER_ITEM_ID,
                 VENDOR_ID: bomStructureList.VENDOR_ID,
                 IS_DELETED: false,

@@ -80,7 +80,6 @@ export const getAllBomStructures = async (req, res) => {
             })
             return {
                 ...item.toJSON(),
-                IS_BOM_CONFIRMATION: noteBomStructure?.IS_BOM_CONFIRMATION ?? false,
                 NOTE: noteBomStructure?.NOTE ?? ""
             }
         }))
@@ -133,7 +132,6 @@ export const getBomStructureById = async (req, res) => {
             data: {
                 ...structure,
                 NOTE: noteBomStructure?.NOTE ?? "",
-                IS_BOM_CONFIRMATION: noteBomStructure?.IS_BOM_CONFIRMATION ?? false
             },
         });
     } catch (error) {
@@ -236,7 +234,6 @@ export const createBomStructure = async (req, res) => {
                     PRODUCTION_CONSUMPTION_PER_ITEM: 0,
                     CONSUMPTION_UOM: masterItemId.ITEM_UOM_BASE,
                     BOM_LINE_ID: idx + 1,
-                    REV_ID: 0,
                     BOM_STRUCTURE_ID: ID,
                     IS_SPLIT_STATUS: false,
                     CREATED_ID,
@@ -294,7 +291,6 @@ export const createBomStructure = async (req, res) => {
             data: {
                 ...bomStructure.toJSON(),
                 NOTE: noteResp.NOTE,
-                IS_BOM_CONFIRMATION: noteResp.IS_BOM_CONFIRMATION
             }
         });
     } catch (error) {
@@ -304,112 +300,6 @@ export const createBomStructure = async (req, res) => {
     }
 };
 
-export const approveStatusBomStructure = async (req, res) => {
-    const {ID} = req.params
-    const {REV_ID = 0} = req.body
-
-    if (!ID) return res.status(400).json({
-        success: false,
-        message: "ID and rev id is required"
-    })
-
-    try {
-        const bomStructureMod = await BomStructureModel.findByPk(ID)
-
-        if (!bomStructureMod) return res.status(404).json({status: false, message: "Bom structure not found"})
-
-        const revision = await BomStructureNoteModel.findOne({
-            where: {
-                BOM_STRUCTURE_ID: ID,
-                REV_ID,
-            }
-        })
-
-        if (!revision) return res.status(404).json({status: false, message: "Note not found"})
-        const bomStructureList = await BomStructureListModel.findOne({
-            where: {
-                BOM_STRUCTURE_ID: ID,
-                REV_ID,
-                STATUS: "Open",
-                IS_DELETED: false
-            }
-        })
-
-        console.log("ID ", ID)
-        console.log("REV_ID ", REV_ID)
-        console.log("bomStructureList ", bomStructureList)
-
-        if (bomStructureList) return res.status(500).json({status: false, message: `BOM structure cannot be approved because there are still items with "open" status in the list`})
-
-        await BomStructureNoteModel.update({
-            IS_BOM_CONFIRMATION: true
-        }, {
-            where: {
-                ID: revision.ID
-            }
-        })
-
-        const bomStructure = await BomStructureModel.findOne({
-            where: {ID}, include: [{
-                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], required: false,
-            }, {
-                model: ModelOrderPOHeader,
-                as: "ORDER",
-                attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
-                required: false,
-                duplicating: false,
-                include: [{
-                    model: MasterItemIdModel,
-                    as: "ITEM",
-                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
-                }, {
-                    model: CustomerDetail,
-                    as: "CUSTOMER",
-                    attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
-                    required: false
-                }, {
-                    model: CustomerProductDivision,
-                    as: "CUSTOMER_DIVISION",
-                    attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
-                    required: false
-                }, {
-                    model: CustomerProductSeason,
-                    as: "CUSTOMER_SEASON",
-                    attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
-                    required: false
-                }, {
-                    model: CustomerProgramName,
-                    as: "CUSTOMER_PROGRAM",
-                    attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
-                    required: false
-                }]
-            }, {
-                model: Users, as: "CREATED", attributes: ['USER_NAME'], required: false
-            }, {
-                model: Users, as: "UPDATED", attributes: ['USER_NAME'], required: false
-            },]
-        })
-
-        const noteBomStructure = await BomStructureNoteModel.findOne({
-            where: {
-                REV_ID: bomStructure.LAST_REV_ID ?? 0,
-                BOM_STRUCTURE_ID: bomStructure.ID
-            }
-        })
-
-        return res.status(201).json({
-            success: true,
-            message: "BOM structure created successfully",
-            data: {
-                ...bomStructure.toJSON(),
-                NOTE: noteBomStructure.NOTE,
-                IS_BOM_CONFIRMATION: noteBomStructure.IS_BOM_CONFIRMATION
-            }
-        });
-    } catch (err) {
-        return res.status(500).json({message: "Failed to approve status bom structure " + err.message})
-    }
-}
 
 export const importBomTemplateListToStructure = async (req, res) => {
     const {id} = req.params
@@ -453,7 +343,6 @@ export const importBomTemplateListToStructure = async (req, res) => {
         const listBomStructure = await BomStructureListModel.findAll({
             where: {
                 BOM_STRUCTURE_ID: id,
-                REV_ID,
                 IS_DELETED: false
             }
         })
@@ -484,32 +373,8 @@ export const importBomTemplateListToStructure = async (req, res) => {
         await BomStructureListModel.update({IS_DELETED: true, DELETED_AT: new Date()}, {
             where: {
                 BOM_STRUCTURE_ID: id,
-                REV_ID
             }
         })
-        await BomStructureListModel.bulkCreate(await Promise.all(bomTemplateList.map(async (item, idx) => {
-            const data = item.dataValues
-            const masterItemId = await MasterItemIdModel.findByPk(item.MASTER_ITEM_ID)
-            return {
-                ...data,
-                ID: null,
-                COMPANY_ID,
-                STATUS: "Open",
-                STANDARD_CONSUMPTION_PER_ITEM: 0,
-                INTERNAL_CONSUMPTION_PER_ITEM: data.INTERNAL_CUSTOMER_PER_ITEM,
-                BOOKING_CONSUMPTION_PER_ITEM: data.COSTING_CONSUMER_PER_ITEM,
-                PRODUCTION_CONSUMPTION_PER_ITEM: 0,
-                CONSUMPTION_UOM: masterItemId.ITEM_UOM_BASE,
-                BOM_LINE_ID: idx + 1,
-                REV_ID: REV_ID,
-                BOM_STRUCTURE_ID: id,
-                IS_SPLIT_STATUS: false,
-                CREATED_ID: USER_ID,
-                CREATED_AT: new Date(),
-                UPDATED_ID: null,
-                UPDATED_AT: null
-            }
-        })))
         return res.status(200).json({success: true, message: "Success import bom structure"})
     } catch (err) {
         return res.status(500).json({status: false, message: "Failed to import bom template list" + err.message})

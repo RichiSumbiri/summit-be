@@ -1,6 +1,5 @@
 import express from "express";
 import {
-    approveStatusBomStructure,
     createBomStructure,
     deleteBomStructure,
     getAllBomStructures,
@@ -52,7 +51,6 @@ router.get("/master/", getAllBomStructures);
 router.get("/master/:id", getBomStructureById);
 router.post("/master/", createBomStructure);
 router.put("/master/:id", updateBomStructure);
-router.patch("/master/status/:ID", approveStatusBomStructure)
 router.delete("/master/:id", deleteBomStructure);
 
 router.get("/list", getAllBomStructureList);
