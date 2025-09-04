@@ -16,6 +16,7 @@ import {
     queryGetLogStatusOrderHeaderByOrderID,
     queryGetMOListingByOrderID,
     queryGetOrderInventoryDetail,
+    queryGetSizeByGMT,
     queryListOrderPOAlteration,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
@@ -121,27 +122,6 @@ export const postOrderHeader = async (req, res) => {
     try {
         const {DataHeader} = req.body;
 
-        // // GET ITEM ID ATTRIBUTE 
-        // const itemAttributeData = await db.query(queryGetItemMasterAttribute, {
-        //     replacements: {
-        //         itemID: DataHeader.ITEM_ID
-        //     }, type: QueryTypes.SELECT
-        // });
-
-        // // GET MASTER ATTRIBUTE PRODUCT ITEM TYPE
-        // const itemAttributeType = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM TYPE');
-
-        // // GET MASTER ATTRIBUTE PRODUCT ITEM CATEGORY
-        // const itemAttributeCategory = itemAttributeData.filter(a=> a.MASTER_ATTRIBUTE_NAME === 'PRODUCT ITEM CATEGORIES');
-
-        // // GET PRODUCT ITEM ID
-        // const ProductItemData = await ProductItemModel.findOne({
-        //     where: {
-        //         PRODUCT_TYPE_ATTB: itemAttributeType.length > 0 ? itemAttributeType[0].MASTER_ATTRIBUTE_VALUE_ID : null,
-        //         PRODUCT_CAT_ATTB: itemAttributeCategory.length > 0 ? itemAttributeCategory[0].MASTER_ATTRIBUTE_VALUE_ID : null
-        //     }, raw: true
-        // });
-
         if (DataHeader.ORDER_ID) {
             // UPDATE ORDER HEADER
             await ModelOrderPOHeader.update({
@@ -164,8 +144,6 @@ export const postOrderHeader = async (req, res) => {
                 ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
-                SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
-                SIZE_TEMPLATE_LIST: JSON.stringify(DataHeader.SIZE_TEMPLATE_LIST),
                 PRODUCT_ID: DataHeader.PRODUCT_ID,
                 UPDATE_BY: DataHeader.CREATE_BY,
                 UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -185,6 +163,21 @@ export const postOrderHeader = async (req, res) => {
             });
             const newIncrement = !latestOrder ? '0000001' : parseInt(latestOrder.ORDER_ID.slice(-7)) + 1;
             const newOrderID = DataHeader.ORDER_TYPE_CODE + newIncrement.toString().padStart(7, '0');
+            
+            // GET SIZE LISTING BY GMT
+            const ListSize = await db.query(queryGetSizeByGMT, {
+                replacements: {
+                    itemID: DataHeader.ITEM_ID
+                },
+                type: QueryTypes.SELECT
+            });
+
+            if(ListSize.length===0){
+                return res.status(400).json({
+                    success: false,
+                    message: `Please Check Size Allocation for Item ${DataHeader.ITEM_ID}`
+                });
+            }
             
             // CREATE NEW ORDER HEADER
             await ModelOrderPOHeader.create({
@@ -210,8 +203,7 @@ export const postOrderHeader = async (req, res) => {
                 ORDER_REFERENCE_PO_NO: DataHeader.ORDER_REFERENCE_PO_NO,
                 FLAG_MULTISET_ITEMS: DataHeader.FLAG_MULTISET_ITEMS || 0,
                 NOTE_REMARKS: DataHeader.NOTE_REMARKS,
-                SIZE_TEMPLATE_ID: DataHeader.SIZE_TEMPLATE_ID,
-                SIZE_TEMPLATE_LIST: JSON.stringify(DataHeader.SIZE_TEMPLATE_LIST),
+                SIZE_TEMPLATE_LIST: JSON.stringify(ListSize),
                 PRODUCT_ID: DataHeader.PRODUCT_ID,
                 CREATE_BY: DataHeader.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')

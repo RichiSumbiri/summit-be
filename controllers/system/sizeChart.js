@@ -2,10 +2,12 @@ import sizeChart, {
     FGSizeChartModel,
 } from "../../models/system/sizeChart.mod.js";
 import {successResponse, errorResponse} from "../helpers/responseHelper.js";
-import {Op, Sequelize} from "sequelize";
+import {Op, QueryTypes, Sequelize} from "sequelize";
 import Users from "../../models/setup/users.mod.js";
 import {getPagination} from "../util/Query.js";
 import sizeItemCategory from "../../models/system/sizeItemCategory.mod.js";
+import { queryGetSizeByGMT } from "../../models/orderManagement/orderManagement.mod.js";
+import db from "../../config/database.js";
 
 export const getSizes = async (req, res) => {
     try {
@@ -481,3 +483,25 @@ export const deleteFGSizeChart = async (req, res) => {
         });
     }
 };
+
+export const getSizeChartByGMT = async(req,res) => {
+    try {
+        const { ITEM_ID } = req.query;
+        const ListSize = await db.query(queryGetSizeByGMT, {
+            replacements: {
+                itemID: ITEM_ID
+            },
+            type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: `success get fg size chart for ${ITEM_ID}`,
+            data: ListSize
+        });
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            message: `Failed to get FG size chart: ${err.message}`,
+        });
+    }
+}

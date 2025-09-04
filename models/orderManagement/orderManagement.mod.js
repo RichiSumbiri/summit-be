@@ -408,6 +408,18 @@ ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
   as: "customer_product_season",
 });
 
+export const queryGetSizeByGMT = `
+SELECT
+	fsc.MASTER_ITEM_ID,
+	fsc.SIZE_ID,
+	msc.SIZE_CODE,
+	msc.SIZE_DESCRIPTION
+FROM
+	fg_size_chart fsc
+LEFT JOIN master_size_chart msc ON msc.SIZE_ID = fsc.SIZE_ID 
+WHERE fsc.MASTER_ITEM_ID = :itemID
+`;
+
 
 export const ModelSupplyChainPlanning = db.define(
     "order_supply_chain_planning",

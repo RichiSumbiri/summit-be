@@ -5,6 +5,7 @@ import {
   showSize,
   editSize,
   deleteSize, getAllFGSizeCharts, createFGSizeChart, updateFGSizeChart, getFGSizeChartById, deleteFGSizeChart,
+  getSizeChartByGMT,
 } from "../../controllers/system/sizeChart.js";
 
 import {
@@ -44,7 +45,7 @@ router.post("/fg-size",  createFGSizeChart);
 router.get("/fg-size/:id", getFGSizeChartById);
 router.put("/fg-size/:id", updateFGSizeChart);
 router.delete("/fg-size/:id", deleteFGSizeChart);
-
+router.get("/fg-size-by-gmt", getSizeChartByGMT);
 
 // size template
 router.get("/size-template", getAllSizeChartTemplates);
