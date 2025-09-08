@@ -6,6 +6,7 @@ import {
     ModelOrderPOHeader,
     ModelOrderPOHeaderLogStatus,
     ModelOrderPOListingLogStatus,
+    ModelOrderRoute,
     ModelSupplyChainPlanning,
     OrderMOListing,
     queryCheckBOMStructureByOrderIDAndItemTypeCode,
@@ -920,6 +921,22 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
         });
 
+        // update allow revision for bom structure if existing bom structure found
+        const CheckBOM = await BomStructureModel.findOne({
+            where: {
+                ORDER_ID: ORDER_ID
+            }
+        });
+        if(CheckBOM){
+            await BomStructureModel.update({
+                IS_NOT_ALLOW_REVISION: false
+            }, {
+                where: {
+                    ORDER_ID: ORDER_ID
+                }
+            });
+        }
+
         return res.status(200).json({
             success: true,
             message: "success update order po id status"
@@ -1468,6 +1485,36 @@ export const getOrderDefaultRoute = async(req,res) => {
             success: false,
             error: err,
             message: "error get order default route"
+        });
+    }
+}
+
+export const getOrderDataRoute = async(req,res) => {
+    try {
+        const { ORDER_ID } = req.query;
+        if(!ORDER_ID){
+            return res.status(400).json({
+                success: false,
+                message: `Failed get data route for process order`,
+            });
+        }
+        const data = await ModelOrderRoute.findAll({
+            where:{
+                ORDER_ID: ORDER_ID
+            },
+            raw: true
+        });
+        return res.status(200).json({
+            success: true,
+            message: `Success get data route for process order`,
+            data    
+        });
+
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order data route"
         });
     }
 }

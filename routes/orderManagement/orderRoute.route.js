@@ -1,8 +1,8 @@
 import express from "express";
-import { getOrderDefaultRoute } from "../../controllers/orderManagement/OrderManagement.js";
+import { getOrderDataRoute, getOrderDefaultRoute } from "../../controllers/orderManagement/OrderManagement.js";
 const router = express.Router();
 
 router.get("/default-route", getOrderDefaultRoute);
-
+router.get("/order", getOrderDataRoute);
 
 export default router;

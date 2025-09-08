@@ -1074,9 +1074,50 @@ SELECT
 	mppd.ID SUBPROCESS_ID,
 	mppd.NAME AS SUBPROCESS_NAME,
 	mppd.DEFAULT_ROUTE_FLAG,
+	mppd.MAIN_BUNDLE_FLAG,
 	mppd.DISPATCH_AVAILABILITY_FLAG,
 	mppd.STOCK_STATUS_CODE
 FROM
 	master_production_process_detail mppd
 LEFT JOIN master_production_process mpp ON mpp.PRODUCTION_PROCESS_ID = mppd.PROCESS_ID 
 `;
+
+export const ModelOrderRoute = db.define(
+    "order_route_detail",
+    {
+      ROUTE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      ORDER_ID: {
+        type: DataTypes.CHAR(10),
+        allowNull: true,
+      },
+      PROCESS_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      SUBPROCESS_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      ORDER_ROUTE_FLAG: {
+        type: DataTypes.INTEGER(1),
+        allowNull: true,
+      },
+      CREATE_BY: {
+        type: DataTypes.STRING(200),
+        allowNull: true,
+      },
+      CREATE_DATE: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+    },
+    {
+      tableName: "order_route_detail",
+      timestamps: false, // karena tidak ada kolom createdAt/updatedAt
+    }
+  );
