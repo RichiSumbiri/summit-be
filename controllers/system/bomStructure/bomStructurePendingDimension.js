@@ -556,7 +556,7 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
             });
         }
 
-        if (bomStructureList.STATUS !== "Open") {
+        if (bomStructureList.STATUS !== "Open" && bomStructureList.STATUS !== "Re-Confirmed") {
             return res.status(400).json({
                 success: false,
                 message: "Bom Structure List must be in 'Open' status",

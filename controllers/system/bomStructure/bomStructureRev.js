@@ -15,6 +15,7 @@ import {
     CustomerProductSeason,
     CustomerProgramName
 } from "../../../models/system/customer.mod.js";
+import {OrderPoListing, OrderPoListingSize} from "../../../models/production/order.mod.js";
 
 export const getAllBomStructureRevs = async (req, res) => {
     const { BOM_STRUCTURE_ID, SEQUENCE, TITLE } = req.query;
@@ -152,18 +153,6 @@ export const createBomStructureRev = async (req, res) => {
             });
         }
 
-        const checkOpenList = await BomStructureListModel.findOne({
-            where: {
-                BOM_STRUCTURE_ID: bomStructure.ID,
-                STATUS: "Open",
-            }
-        })
-
-
-        if (checkOpenList) {
-            return res.status(500).json({status: false, message: `Cannot create revision because there are still items with "open" status in the BOM structure list.`})
-        }
-
         const newRev = await BomStructureRevModel.create({
             TITLE: `Revision ${nextSequence}`,
             DESCRIPTION: `Description Revision ${nextSequence}`,
@@ -203,7 +192,7 @@ export const createBomStructureRev = async (req, res) => {
             where: {
                 BOM_STRUCTURE_ID,
                 status: {
-                    [Op.in]: ["Canceled", "Deleted", "Open"]
+                    [Op.in]: ["Canceled", "Deleted"]
                 }
             }
         })
@@ -219,22 +208,224 @@ export const createBomStructureRev = async (req, res) => {
             );
         }
 
+        const activeLists = await BomStructureListModel.findAll({
+            where: {
+                BOM_STRUCTURE_ID,
+                IS_DELETED: false
+            },
+            order: [['ID', 'ASC']]
+        });
+
+        const updates = activeLists.map((list, index) =>
+            list.update({
+                BOM_LINE_ID: index + 1,
+                UPDATED_AT: new Date(),
+                UPDATED_ID: CREATED_ID
+            })
+        );
+
+        if (updates.length > 0) {
+            await Promise.all(updates);
+        }
+
         const bomStructureListConfirm = await BomStructureListModel.findAll({
             where: {
                 BOM_STRUCTURE_ID,
-                status: "Confirmed"
-            }
+                status: {[Op.in]: ["Confirmed"]}
+            },
+            include: [{
+                model: BomStructureModel,
+                as: 'BOM_STRUCTURE',
+                attributes: ['ORDER_ID']
+            }]
+        })
+
+        const bomStructureListOpen = await BomStructureListModel.findAll({
+            where: {
+                BOM_STRUCTURE_ID,
+                status: {[Op.in]: ["Open"]}
+            },
+            include: [{
+                model: BomStructureModel,
+                as: 'BOM_STRUCTURE',
+                attributes: ['ORDER_ID']
+            }]
         })
 
         if (bomStructureListConfirm.length > 0) {
             await BomStructureListModel.update(
-                { STATUS: "Open" },
+                {STATUS: "Re-Confirmed"},
                 {
                     where: {
-                        ID: { [Op.in]: bomStructureListConfirm.map(item => item.ID) }
+                        ID: {[Op.in]: bomStructureListConfirm.map(item => item.ID)}
                     }
                 }
             );
+        }
+
+
+
+        const orderPos = await OrderPoListing.findAll({
+            where: {ORDER_NO: bomStructure.ORDER_ID, PO_STATUS: "Confirmed"},
+            attributes: ["ORDER_PO_ID", "ITEM_COLOR_ID", "ORDER_QTY"]
+        });
+
+        const allSizeRecords = await OrderPoListingSize.findAll({
+            where: {ORDER_NO: bomStructure.ORDER_ID, PO_STATUS: "Confirmed"},
+            attributes: ["ORDER_PO_ID", "SIZE_ID", "ORDER_QTY"]
+        });
+
+
+
+        const listsToProcess = [...bomStructureListConfirm, ...bomStructureListOpen];
+        for (const list of listsToProcess) {
+            const {IS_SPLIT_SIZE, IS_SPLIT_COLOR, IS_SPLIT_NO_PO} = list;
+
+
+            if (IS_SPLIT_NO_PO && IS_SPLIT_COLOR) {
+                console.log(`Skipped: Invalid split (IS_SPLIT_NO_PO && IS_SPLIT_COLOR) for ID ${list.ID}`);
+                continue;
+            }
+
+            const detailCount = await BomStructureListDetailModel.count({
+                where: { BOM_STRUCTURE_LIST_ID: list.ID }
+            });
+
+            if (detailCount <= 0) {
+                continue;
+            }
+
+            const finalDetails = [];
+            if (IS_SPLIT_NO_PO && !IS_SPLIT_COLOR && !IS_SPLIT_SIZE) {
+                for (const po of orderPos) {
+                    const quantity = po.ORDER_QTY || 0;
+                    const materialRequirement = quantity * list.PRODUCTION_CONSUMPTION_PER_ITEM;
+
+                    finalDetails.push({
+                        BOM_STRUCTURE_LIST_ID: list.ID,
+                        COLOR_ID: null,
+                        SIZE_ID: null,
+                        ORDER_PO_ID: po.ORDER_PO_ID,
+                        ORDER_QUANTITY: quantity,
+                        MATERIAL_ITEM_REQUIREMENT_QUANTITY: materialRequirement
+                    });
+                }
+            } else if (IS_SPLIT_COLOR && !IS_SPLIT_SIZE && !IS_SPLIT_NO_PO) {
+                const colorMap = new Map();
+                for (const po of orderPos) {
+                    const colorId = po.ITEM_COLOR_ID;
+                    if (!colorMap.has(colorId)) {
+                        colorMap.set(colorId, 0);
+                    }
+                    colorMap.set(colorId, colorMap.get(colorId) + (po.ORDER_QTY || 0));
+                }
+
+                for (const [colorId, quantity] of colorMap) {
+                    const materialRequirement = quantity * list.PRODUCTION_CONSUMPTION_PER_ITEM;
+                    finalDetails.push({
+                        BOM_STRUCTURE_LIST_ID: list.ID,
+                        COLOR_ID: colorId,
+                        SIZE_ID: null,
+                        ORDER_PO_ID: null,
+                        ORDER_QUANTITY: quantity,
+                        MATERIAL_ITEM_REQUIREMENT_QUANTITY: materialRequirement
+                    });
+                }
+            } else if (IS_SPLIT_SIZE && !IS_SPLIT_COLOR && !IS_SPLIT_NO_PO) {
+                const sizeMap = new Map();
+                for (const record of allSizeRecords) {
+                    const sizeId = record.SIZE_ID;
+                    if (!sizeMap.has(sizeId)) {
+                        sizeMap.set(sizeId, 0);
+                    }
+                    sizeMap.set(sizeId, sizeMap.get(sizeId) + (record.ORDER_QTY || 0));
+                }
+
+                for (const [sizeId, quantity] of sizeMap) {
+                    const materialRequirement = quantity * list.PRODUCTION_CONSUMPTION_PER_ITEM;
+                    finalDetails.push({
+                        BOM_STRUCTURE_LIST_ID: list.ID,
+                        COLOR_ID: null,
+                        SIZE_ID: sizeId,
+                        ORDER_PO_ID: null,
+                        ORDER_QUANTITY: quantity,
+                        MATERIAL_ITEM_REQUIREMENT_QUANTITY: materialRequirement
+                    });
+                }
+            } else if (IS_SPLIT_COLOR && IS_SPLIT_SIZE && !IS_SPLIT_NO_PO) {
+                const comboMap = new Map();
+                for (const record of allSizeRecords) {
+                    const po = orderPos.find(p => p.ORDER_PO_ID === record.ORDER_PO_ID);
+                    if (!po || !record.SIZE_ID) continue;
+                    const key = `${po.ITEM_COLOR_ID}-${record.SIZE_ID}`;
+                    if (!comboMap.has(key)) {
+                        comboMap.set(key, {
+                            COLOR_ID: po.ITEM_COLOR_ID,
+                            SIZE_ID: record.SIZE_ID,
+                            quantity: 0
+                        });
+                    }
+                    comboMap.get(key).quantity += record.ORDER_QTY || 0;
+                }
+
+                for (const {COLOR_ID, SIZE_ID, quantity} of comboMap.values()) {
+                    const materialRequirement = quantity * list.PRODUCTION_CONSUMPTION_PER_ITEM;
+                    finalDetails.push({
+                        BOM_STRUCTURE_LIST_ID: list.ID,
+                        COLOR_ID,
+                        SIZE_ID,
+                        ORDER_PO_ID: null,
+                        ORDER_QUANTITY: quantity,
+                        MATERIAL_ITEM_REQUIREMENT_QUANTITY: materialRequirement
+                    });
+                }
+            } else if (IS_SPLIT_NO_PO && IS_SPLIT_SIZE && !IS_SPLIT_COLOR) {
+                for (const po of orderPos) {
+                    const sizeRecords = allSizeRecords.filter(r => r.ORDER_PO_ID === po.ORDER_PO_ID);
+                    for (const record of sizeRecords) {
+                        const quantity = record.ORDER_QTY || 0;
+                        const materialRequirement = quantity * list.PRODUCTION_CONSUMPTION_PER_ITEM;
+                        finalDetails.push({
+                            BOM_STRUCTURE_LIST_ID: list.ID,
+                            COLOR_ID: null,
+                            SIZE_ID: record.SIZE_ID,
+                            ORDER_PO_ID: po.ORDER_PO_ID,
+                            ORDER_QUANTITY: quantity,
+                            MATERIAL_ITEM_REQUIREMENT_QUANTITY: materialRequirement
+                        });
+                    }
+                }
+            } else {
+                const totalQty = orderPos.reduce((sum, po) => sum + (po.ORDER_QTY || 0), 0);
+                const materialRequirement = totalQty * list.PRODUCTION_CONSUMPTION_PER_ITEM;
+                finalDetails.push({
+                    BOM_STRUCTURE_LIST_ID: list.ID,
+                    COLOR_ID: null,
+                    SIZE_ID: null,
+                    ORDER_PO_ID: null,
+                    ORDER_QUANTITY: totalQty,
+                    MATERIAL_ITEM_REQUIREMENT_QUANTITY: materialRequirement
+                });
+            }
+
+            for (const detail of finalDetails) {
+                await BomStructureListDetailModel.update(
+                    {
+                        ORDER_QUANTITY: detail.ORDER_QUANTITY,
+                        MATERIAL_ITEM_REQUIREMENT_QUANTITY: detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY,
+                        UPDATED_AT: new Date(),
+                        UPDATED_ID: CREATED_ID
+                    },
+                    {
+                        where: {
+                            BOM_STRUCTURE_LIST_ID: detail.BOM_STRUCTURE_LIST_ID,
+                            COLOR_ID: detail.COLOR_ID,
+                            SIZE_ID: detail.SIZE_ID,
+                            ORDER_PO_ID: detail.ORDER_PO_ID
+                        }
+                    }
+                );
+            }
         }
 
         const updatedStructure = await BomStructureModel.findOne({

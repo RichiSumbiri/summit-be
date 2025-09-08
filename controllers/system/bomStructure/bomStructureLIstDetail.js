@@ -209,7 +209,7 @@ export const revertBomStructureListDetail = async (req, res) => {
             });
         }
 
-        if (bomStructureList.STATUS !== "Open") {
+        if (bomStructureList.STATUS !== "Open" && bomStructureList.STATUS !== "Re-Confirmed" ) {
             return res.status(400).json({
                 success: false,
                 message: "Cannot revert: BOM Structure List is not in 'Open' status",
