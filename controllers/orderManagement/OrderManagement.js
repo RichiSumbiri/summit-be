@@ -1524,11 +1524,36 @@ export const postOrderDataRoute = async (req, res) => {
     const { DataRoute } = req.body;
     
     for (const route of DataRoute.LIST) {
-      await ModelOrderRoute.upsert({
-        ORDER_ID: DataRoute.ORDER_ID,      // 👈 include ORDER_ID
-        SUBPROCESS_ID: route.SUBPROCESS_ID,
-        ORDER_ROUTE_FLAG: route.ORDER_ROUTE_FLAG
-      });
+        const CheckExistingRoute = await ModelOrderRoute.findAll({
+            where: {
+                ORDER_ID: DataRoute.ORDER_ID,
+                PROCESS_ID: route.PROCESS_ID,
+                SUBPROCESS_ID: route.SUBPROCESS_ID        
+            },
+            raw: true
+        });
+        if(CheckExistingRoute.length===0){
+            await ModelOrderRoute.create({
+                ORDER_ID: DataRoute.ORDER_ID,      // 👈 include ORDER_ID
+                PROCESS_ID: route.PROCESS_ID,
+                SUBPROCESS_ID: route.SUBPROCESS_ID,
+                ORDER_ROUTE_FLAG: route.ORDER_ROUTE_FLAG,
+                CREATE_BY: DataRoute.UPDATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+        } else {
+            await ModelOrderRoute.update({
+                ORDER_ROUTE_FLAG: route.ORDER_ROUTE_FLAG,
+                CREATE_BY: DataRoute.UPDATE_BY,
+                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    ORDER_ID: DataRoute.ORDER_ID,      // 👈 include ORDER_ID
+                    PROCESS_ID: route.PROCESS_ID,
+                    SUBPROCESS_ID: route.SUBPROCESS_ID
+                }
+            });
+        }
     }
 
     return res.status(200).json({
@@ -1536,6 +1561,7 @@ export const postOrderDataRoute = async (req, res) => {
       message: `Success POST data route for process order`
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       success: false,
       error: err.message,
