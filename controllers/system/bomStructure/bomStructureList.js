@@ -226,7 +226,7 @@ export const createBomStructureListBulk = async (req, res) => {
                 BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID,
                 STATUS: item.STATUS || "Open",
                 MASTER_ITEM_ID: item.MASTER_ITEM_ID,
-                CONSUMPTION_UOM: masterItemId.CONSUMPTION_UOM,
+                CONSUMPTION_UOM: masterItemId.ITEM_UOM_DEFAULT,
                 BOM_LINE_ID: nextId + idx,
                 COMPANY_ID: item.COMPANY_ID,
                 STANDARD_CONSUMPTION_PER_ITEM: item.STANDARD_CONSUMPTION_PER_ITEM ?? 0,
@@ -293,7 +293,15 @@ export const updateBomStructureList = async (req, res) => {
         const isSplitNoPO = body.IS_SPLIT_NO_PO ? body.IS_SPLIT_NO_PO : data.IS_SPLIT_NO_PO;
         const isSplitColor = body.IS_SPLIT_COLOR ? body.IS_SPLIT_COLOR : data.IS_SPLIT_COLOR;
 
-        if (body?.MASTER_ITEM_ID || body?.VENDOR_ID) {
+        if (isSplitNoPO && isSplitColor) {
+            return res.status(400).json({
+                success: false,
+                message: "Split po no and Split color cannot both be true at the same time",
+            });
+        }
+
+
+        if (body?.MASTER_ITEM_ID || body?.VENDOR_ID || body?.IS_SPLIT_NO_PO !== undefined || body?.IS_SPLIT_COLOR  !== undefined || body?.IS_SPLIT_SIZE  !== undefined) {
             const bomStructureListDetailCount = await BomStructureListDetailModel.count({
                 where: {
                     BOM_STRUCTURE_LIST_ID: id
@@ -303,13 +311,6 @@ export const updateBomStructureList = async (req, res) => {
                 status: false,
                 message: "Failed to change master item and vendor because split detail already declared"
             })
-        }
-
-        if (isSplitNoPO && isSplitColor) {
-            return res.status(400).json({
-                success: false,
-                message: "Split po no and Split color cannot both be true at the same time",
-            });
         }
 
         await data.update({
@@ -436,10 +437,10 @@ export const updateBomStructureListStatus = async (req, res) => {
             });
         }
 
-        if (record.STATUS !== "Open") {
+        if (record.STATUS !== "Open" && record.STATUS !== "Re-Confirmed") {
             return res.status(400).json({
                 success: false,
-                message: `Status can only be changed from 'Open'; current status is ${record.STATUS}`,
+                message: `Status can only be changed from 'Open' or 'Re-Confirmed'; current status is ${record.STATUS}`,
             });
         }
 
@@ -476,6 +477,7 @@ export const updateBomStructureListStatus = async (req, res) => {
             }, {});
 
             const sourcingToCreate = [];
+            const sourcingToUpdate = []
             for (const group of Object.values(grouped)) {
                 const exists = await BomStructureSourcingDetail.findOne({
                     where: {
@@ -484,24 +486,52 @@ export const updateBomStructureListStatus = async (req, res) => {
                     }
                 });
 
-                if (!exists) {
-                    sourcingToCreate.push({
-                        BOM_STRUCTURE_LINE_ID: id,
-                        ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
-                        ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
-                        APPROVE_PURCHASE_QUANTITY: parseFloat(group.approveQuantity) || 0,
-                        PLAN_CURRENT_QUANTITY: parseFloat(group.costQuantity) || 0,
-                        COST_PER_ITEM: parseFloat(group.costQuantity) || 0,
-                        FINANCE_COST: 0,
-                        FREIGHT_COST: 0,
-                        OTHER_COST: 0,
-                        NOTE: ""
+                const data = {
+                    BOM_STRUCTURE_LINE_ID: id,
+                    ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                    ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
+                    APPROVE_PURCHASE_QUANTITY: group.approveQuantity,
+                    PLAN_CURRENT_QUANTITY: group.costQuantity,
+                    COST_PER_ITEM: group.costQuantity,
+                    FINANCE_COST: 0,
+                    FREIGHT_COST: 0,
+                    OTHER_COST: 0,
+                    NOTE: ""
+                };
+
+                if (exists) {
+                    sourcingToUpdate.push({
+                        ...data,
+                        ID: exists.ID
                     });
+                } else {
+                    sourcingToCreate.push(data);
                 }
             }
 
             if (sourcingToCreate.length > 0) {
                 await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
+            }
+
+            if (sourcingToUpdate.length > 0) {
+                const updatePromises = sourcingToUpdate.map(detail =>
+                    BomStructureSourcingDetail.update(
+                        {
+                            ORDER_PO_ID: detail.ORDER_PO_ID,
+                            APPROVE_PURCHASE_QUANTITY: detail.APPROVE_PURCHASE_QUANTITY,
+                            PLAN_CURRENT_QUANTITY: detail.PLAN_CURRENT_QUANTITY,
+                            COST_PER_ITEM: detail.COST_PER_ITEM,
+                            FINANCE_COST: detail.FINANCE_COST,
+                            FREIGHT_COST: detail.FREIGHT_COST,
+                            OTHER_COST: detail.OTHER_COST,
+                            NOTE: detail.NOTE,
+                        },
+                        {
+                            where: { ID: detail.ID }
+                        }
+                    )
+                );
+                await Promise.all(updatePromises);
             }
         }
 
@@ -542,10 +572,25 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
     }
 
     try {
+        let validStatuses = [];
+        switch (status) {
+            case "Confirmed":
+                validStatuses = ["Open", "Re-Confirmed"];
+                break;
+            case "Canceled":
+                validStatuses = ["Confirmed", "Re-Confirmed"];
+                break;
+            case "Deleted":
+                validStatuses = ["Open"];
+                break;
+            default:
+                validStatuses = [];
+        }
+
         const records = await BomStructureListModel.findAll({
             where: {
                 ID: { [Op.in]: bom_structure_list },
-                STATUS: "Open"
+                STATUS: { [Op.in]: validStatuses }
             },
             include: [{
                 model: BomStructureModel,
@@ -557,7 +602,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
         if (records.length === 0) {
             return res.status(200).json({
                 success: true,
-                message: "No data available for processing (all records are not in 'Open' status)",
+                message: `No data available for processing`,
                 updated_count: 0
             });
         }
@@ -640,9 +685,10 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Error in updateBomStructureListStatusBulk:", error);
         return res.status(500).json({
             success: false,
-            message: "Failed to update status " + err.message,
+            message: "Failed to update status: " + error.message,
         });
     }
 };

@@ -135,7 +135,7 @@ export const  BomStructureListModel = db.define(
             allowNull: true,
         },
         STATUS: {
-            type: DataTypes.ENUM('Confirmed', 'Canceled', 'Deleted', 'Open'),
+            type: DataTypes.ENUM('Confirmed', 'Canceled', 'Deleted', 'Open', 'Re-Confirmed'),
             allowNull: true,
         },
         BOM_STRUCTURE_ID: {
@@ -498,7 +498,7 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         allowNull: true,
     },
     PLAN_CURRENT_QUANTITY: {
-        type: DataTypes.DECIMAL(65,2),
+        type: DataTypes.DECIMAL(65,6),
         defaultValue: 0,
         allowNull: true,
     }
