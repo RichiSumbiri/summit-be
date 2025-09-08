@@ -1518,3 +1518,28 @@ export const getOrderDataRoute = async(req,res) => {
         });
     }
 }
+
+export const postOrderDataRoute = async (req, res) => {
+  try {
+    const { DataRoute } = req.body;
+    
+    for (const route of DataRoute.LIST) {
+      await ModelOrderRoute.upsert({
+        ORDER_ID: DataRoute.ORDER_ID,      // 👈 include ORDER_ID
+        SUBPROCESS_ID: route.SUBPROCESS_ID,
+        ORDER_ROUTE_FLAG: route.ORDER_ROUTE_FLAG
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Success POST data route for process order`
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+      message: "error post order data route"
+    });
+  }
+};
