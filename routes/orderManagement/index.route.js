@@ -7,7 +7,7 @@ import orderMORoute from "./orderMO.route.js";
 import supplyChainPlannningRoute from "./supplyChainPlanning.route.js";
 import masterOrderPlanningRoute from "./masterOrderPlanning.js";
 import orderCompDetailRoute from "./orderCompDtl.route.js";
-
+import orderProcessRoute from "./orderRoute.route.js";
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.use("/order-detail", orderPODetailRoute);
 router.use("/order-mo", orderMORoute);
 router.use("/supply-chain-planning", supplyChainPlannningRoute);
 router.use("/master-order-planning", masterOrderPlanningRoute);
-
+router.use("/order-route", orderProcessRoute);
 
 
 router.use("/order-comp-detail", orderCompDetailRoute);

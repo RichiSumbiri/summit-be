@@ -11,6 +11,7 @@ import {
     queryCheckBOMStructureByOrderIDAndItemTypeCode,
     queryCheckTNAEventStatusByOrderID,
     queryGetAllPOIDByOrderID,
+    queryGetDefaultProcessRoute,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
     queryGetLogStatusOrderHeaderByOrderID,
@@ -1445,6 +1446,28 @@ export const getOrderPOAlteration = async(req,res) => {
             success: false,
             error: err,
             message: "error get order po alteration"
+        });
+    }
+}
+
+
+
+export const getOrderDefaultRoute = async(req,res) => {
+    try {
+        const data = await db.query(queryGetDefaultProcessRoute, {
+            type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: `Success get default route for process order`,
+            data    
+        });
+
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get order default route"
         });
     }
 }

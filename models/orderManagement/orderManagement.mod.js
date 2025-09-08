@@ -1065,3 +1065,18 @@ export const ModelOrderPOAlteration = db.define("order_po_listing_log_alteration
   timestamps: false,
   freezeTableName: true,
 });
+
+
+export const queryGetDefaultProcessRoute = `
+SELECT
+	mppd.PROCESS_ID,
+	mpp.PRODUCTION_PROCESS_NAME AS PROCESS_NAME,
+	mppd.ID SUBPROCESS_ID,
+	mppd.NAME AS SUBPROCESS_NAME,
+	mppd.DEFAULT_ROUTE_FLAG,
+	mppd.DISPATCH_AVAILABILITY_FLAG,
+	mppd.STOCK_STATUS_CODE
+FROM
+	master_production_process_detail mppd
+LEFT JOIN master_production_process mpp ON mpp.PRODUCTION_PROCESS_ID = mppd.PROCESS_ID 
+`;
