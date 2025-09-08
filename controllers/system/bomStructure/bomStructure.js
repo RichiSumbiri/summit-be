@@ -15,7 +15,7 @@ import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
 import {Op} from "sequelize";
 
-export const getAllBomStructures = async (req, res) => {
+export const  getAllBomStructures = async (req, res) => {
     try {
         const {BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, LAST_REV_ID = 0} = req.query;
 
@@ -28,7 +28,11 @@ export const getAllBomStructures = async (req, res) => {
 
         const structures = await BomStructureModel.findAll({
             where, include: [{
-                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], required: false,
+                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], include: [{
+                    model: MasterItemIdModel,
+                    as:"MASTER_ITEM",
+                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]
+                }]
             }, {
                 model: BomStructureRevModel,
                 as: "REV",
