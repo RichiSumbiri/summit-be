@@ -232,19 +232,6 @@ export const LoginQc13 = async (req, res) => {
 
     const user = findSchedule[0];
 
-    let idSiteLine = user.ID_SITELINE;
-    if (user.SITE_NAME[user.SITE_NAME.length-1]?.toLocaleLowerCase() === "b") {
-      const itemLine = await SiteLine.findOne({
-        where: {
-          SITE_NAME: user.SITE_NAME.slice(0, -1) + "A",
-          LINE_NAME: user.LINE_NAME,
-          SHIFT: user.SHIFT.slice(0, -1) + "A"
-        }
-      })
-      if (!itemLine) return res.status(400).json({status: false, message: "Line not found"})
-      idSiteLine = itemLine.IS_SITELINE
-    }
-
     const format = "HH:mm:ss";
 
     const now_time = moment().format(format);
@@ -270,7 +257,7 @@ export const LoginQc13 = async (req, res) => {
       const qcType = user.QC_TYPE_NAME;
       const siteName = user.SITE_NAME;
       const lineName = user.LINE_NAME;
-
+      const idSiteLine = user.ID_SITELINE;
       const shift = user.SHIFT;
       const groupId = user.GROUP_ID;
       const accessToken = jwt.sign(
@@ -310,6 +297,130 @@ export const LoginQc13 = async (req, res) => {
             QC_USER_ID: userId,
           },
         }
+      );
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+      res.json({ accessToken });
+    } else {
+      return res.status(400).json({
+        message: "User anda tidak sesuai dengan rentang waktu Shift saat ini!",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(404).json({ message: "User Name or Password Incorrect" });
+  }
+};
+
+
+export const LoginQc14 = async (req, res) => {
+  try {
+    const { QC_USERNAME, QC_USER_PASSWORD } = req.body;
+    const finduser = await QcUsers.findOne({
+      where: { QC_USERNAME: QC_USERNAME },
+    });
+
+    if (!finduser) {
+      return res.status(400).json({ message: "User Atau Password Salah" });
+    }
+
+    const findSchedule = await db.query(QryGetUserQcWhGroup, {
+      replacements: {
+        userNameQc: QC_USERNAME,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    if (findSchedule.length === 0) {
+      return res.status(400).json({
+        message: "Anda tidak memiliki Jadwal Login, harap hubungi Adm QC",
+      });
+    }
+
+
+    const user = findSchedule[0];
+
+    let idSiteLine = user.ID_SITELINE;
+    if (user.SITE_NAME[user.SITE_NAME.length-1]?.toLocaleLowerCase() === "b") {
+      const itemLine = await SiteLine.findOne({
+        where: {
+          SITE_NAME: user.SITE_NAME,
+          LINE_NAME: user.LINE_NAME,
+          SHIFT: user.SHIFT.slice(0, -1) + "A"
+        }
+      })
+      if (!itemLine) return res.status(400).json({status: false, message: "Line not found"})
+      idSiteLine = itemLine.ID_SITELINE
+    }
+
+
+    const format = "HH:mm:ss";
+    const now_time = moment().format(format);
+
+    const start = moment(user.START_TIME, format);
+    const end = moment(user.END_TIME, format);
+    const now = moment(now_time, format);
+
+    // Periksa apakah now_time berada di antara start_time dan end_time
+    if (now.isBetween(start, end) || user.QC_BYPASS_LOGIN === "Y") {
+      const match = await bcryptjs.compare(
+          QC_USER_PASSWORD,
+          user.QC_USER_PASSWORD
+      );
+
+      if (!match)
+        return res
+            .status(400)
+            .json({ message: "User Name or Password Incorrect" });
+      const userId = user.QC_USER_ID;
+      const username = user.QC_USERNAME;
+      const qcName = user.QC_NAME;
+      const qcType = user.QC_TYPE_NAME;
+      const siteName = user.SITE_NAME;
+      const lineName = user.LINE_NAME;
+      const shift = user.SHIFT;
+      const groupId = user.GROUP_ID;
+      const accessToken = jwt.sign(
+          {
+            userId,
+            username,
+            qcName,
+            qcType,
+            siteName,
+            lineName,
+            idSiteLine,
+            shift,
+            groupId,
+          },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: "20s" }
+      );
+      const refreshToken = jwt.sign(
+          {
+            userId,
+            username,
+            qcName,
+            qcType,
+            siteName,
+            lineName,
+            idSiteLine,
+            shift,
+            groupId,
+          },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: "1d" }
+      );
+      await QcUsers.update(
+          { QC_USER_REF_TOKEN: refreshToken },
+          {
+            where: {
+              QC_USER_ID: userId,
+            },
+          }
       );
 
       res.cookie("refreshToken", refreshToken, {

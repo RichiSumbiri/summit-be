@@ -6,6 +6,7 @@ import {
 } from "../../models/production/quality.mod.js";
 import { QueryTypes, Op } from "sequelize";
 import db from "../../config/database.js";
+import {SiteLine} from "../../models/production/sewing.mod.js";
 
 export const refreshToken = async (req, res) => {
   try {
@@ -153,3 +154,72 @@ export const refreshTokenQc13 = async (req, res) => {
     console.log(error);
   }
 };
+
+
+
+export const refreshTokenQc14 = async (req, res) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) return res.sendStatus(401);
+        const finduser = await db.query(QueryGetUserQcReftok13, {
+            replacements: {
+                reftoken: refreshToken,
+            },
+            type: QueryTypes.SELECT,
+        });
+
+        if (!finduser[0]) return res.sendStatus(403);
+        const user = finduser[0];
+
+        let idSiteLine = user.ID_SITELINE;
+        if (user.SITE_NAME[user.SITE_NAME.length-1]?.toLocaleLowerCase() === "b") {
+            const itemLine = await SiteLine.findOne({
+                where: {
+                    SITE_NAME: user.SITE_NAME,
+                    LINE_NAME: user.LINE_NAME,
+                    SHIFT: user.SHIFT.slice(0, -1) + "A"
+                }
+            })
+            if (!itemLine) return res.status(400).json({status: false, message: "Line not found"})
+            idSiteLine = itemLine.ID_SITELINE
+        }
+
+        jwt.verify(
+            refreshToken,
+            process.env.REFRESH_TOKEN_SECRET,
+            (err, decoded) => {
+                if (err) return res.sendStatus(403);
+                const userId = user.QC_USER_ID;
+                const username = user.QC_USERNAME;
+                const qcName = user.QC_NAME;
+                const qcType = user.QC_TYPE_NAME;
+                const siteName = user.SITE_NAME;
+                const lineName = user.LINE_NAME;
+
+                const shift = user.SHIFT;
+                const groupId = user.GROUP_ID;
+                const accessToken = jwt.sign(
+                    {
+                        userId,
+                        username,
+                        qcName,
+                        qcType,
+                        siteName,
+                        lineName,
+                        idSiteLine,
+                        shift,
+                        groupId,
+                    },
+                    process.env.ACCESS_TOKEN_SECRET,
+                    {
+                        expiresIn: "15s",
+                    }
+                );
+                res.json({ accessToken });
+            }
+        );
+    } catch (error) {
+        console.log(error);
+    }
+};
+

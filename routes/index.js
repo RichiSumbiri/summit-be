@@ -6,12 +6,12 @@ import {
   Logout,
   LoginQc,
   LogoutQc,
-  LoginQc13,
+  LoginQc13, LoginQc14,
 } from "../controllers/auth/Login.js";
 import {
   refreshToken,
   refreshTokenQc,
-  refreshTokenQc13,
+  refreshTokenQc13, refreshTokenQc14,
 } from "../controllers/auth/RefreshToken.js";
 import userAccesRoute from "./auth/userAccess.route.js";
 import getMenu from "../controllers/setup/Menu.js";
@@ -63,11 +63,13 @@ const router = express.Router();
 router.post("/login", Login);
 router.post("/loginqc", LoginQc);
 router.post("/loginqc13", LoginQc13);
+router.post("/loginqc14", LoginQc14);
 router.delete("/logout", Logout);
 router.delete("/logoutqc", LogoutQc);
 router.get("/token", refreshToken);
 router.get("/tokenQc", refreshTokenQc);
 router.get("/tokenQc13", refreshTokenQc13);
+router.get("/tokenQc14", refreshTokenQc14);
 router.get("/menu", getMenu);
 router.get("/dept", getDept);
 router.get("/dept/:id", getDeptById);
