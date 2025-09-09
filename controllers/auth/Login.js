@@ -9,6 +9,7 @@ import {
 import { QueryTypes, Op } from "sequelize";
 import db from "../../config/database.js";
 import moment from "moment/moment.js";
+import {SiteLine} from "../../models/production/sewing.mod.js";
 // export const getUserLogin = async (req, res) =>{
 //   const users = await Users.findAll();
 //   res.json(users);
@@ -228,7 +229,21 @@ export const LoginQc13 = async (req, res) => {
       });
     }
 
+
     const user = findSchedule[0];
+
+    let idSiteLine = user.ID_SITELINE;
+    if (user.SITE_NAME[user.SITE_NAME.length-1]?.toLocaleLowerCase() === "b") {
+      const itemLine = await SiteLine.findOne({
+        where: {
+          SITE_NAME: user.SITE_NAME.slice(0, -1) + "A",
+          LINE_NAME: user.LINE_NAME,
+          SHIFT: user.SHIFT.slice(0, -1) + "A"
+        }
+      })
+      if (!itemLine) return res.status(400).json({status: false, message: "Line not found"})
+      idSiteLine = itemLine.IS_SITELINE
+    }
 
     const format = "HH:mm:ss";
 
@@ -255,7 +270,7 @@ export const LoginQc13 = async (req, res) => {
       const qcType = user.QC_TYPE_NAME;
       const siteName = user.SITE_NAME;
       const lineName = user.LINE_NAME;
-      const idSiteLine = user.ID_SITELINE;
+
       const shift = user.SHIFT;
       const groupId = user.GROUP_ID;
       const accessToken = jwt.sign(
