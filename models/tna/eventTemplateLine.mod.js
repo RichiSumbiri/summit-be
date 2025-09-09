@@ -218,14 +218,14 @@ SELECT
   b.COMPLETED_AT AS EVENT_COMPLETED_DATE
 
 FROM event_diary_line a
-LEFT JOIN event_diary_header b on a.EVENT_DIARY_ID  = b.EVENT_DIARY_ID
+INNER JOIN event_diary_header b on a.EVENT_DIARY_ID  = b.EVENT_DIARY_ID
 LEFT JOIN order_po_listing c ON b.ORDER_PO_ID = c.ORDER_PO_ID
 LEFT JOIN order_po_header d ON d.ORDER_ID = c.ORDER_NO
 LEFT JOIN event_framework e ON e.ORDER_ID = d.ORDER_ID
 LEFT JOIN event_master f ON f.EVENT_ID = b.EVENT_ID
 LEFT JOIN master_event_group g ON g.EVENT_GROUP_ID = f.EVENT_GROUP_ID
 LEFT JOIN xref_user_web h ON h.USER_ID  = a.COMPLETED_BY 
-LEFT JOIN xref_user_web i ON i.USER_ID  = a.CREATED_BY 
+INNER JOIN xref_user_web i ON i.USER_ID  = a.CREATED_BY 
 LEFT JOIN event_template_line j ON j.EVENT_ID = f.EVENT_ID AND e.TEMPLATE_ID = j.TEMPLATE_ID
 LEFT JOIN master_offset_link k ON k.OFFSET_LINK_ID = j.OFFSET_LINK_ID
 LEFT JOIN master_department l ON l.ID_DEPT = f.EXECUTION_DEPARTMENT_ID
