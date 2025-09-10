@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
-import { OrderComponentDetail, qryGetBomRmList, qryGetCompListColor, qryGetListCompDetail, qryListOrderCompDetail } from "../../models/orderManagement/orderCompDetail.mod.js";
+import { OrderComponentDetail, qryGetBomRmList, qryGetCompListColor, qryGetDimByStructure, qryGetListCompDetail, qryListOrderCompDetail } from "../../models/orderManagement/orderCompDetail.mod.js";
 
 export const createOrderCompDetail = async (req, res) => {
     try {
@@ -123,6 +123,33 @@ export const getComFgColorList = async (req, res) => {
             success: false,
             error: err,
             message: "error get  Po FG color",
+        });
+    }
+}
+
+
+
+export const getDimiensionItem = async (req, res) => {
+    try {
+        const {itemId} = req.params;
+        const getListRm = await db.query(qryGetDimByStructure, {
+            replacements: {
+                itemId: itemId
+            }, type: QueryTypes.SELECT
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "success get item dimension",
+            data: getListRm
+        });
+    } catch (err) {
+        console.log(err);
+        
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get item dimension",
         });
     }
 }

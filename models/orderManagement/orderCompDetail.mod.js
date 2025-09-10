@@ -30,7 +30,7 @@ FROM bom_structure bs
  LEFT JOIN master_item_type mit ON mit.ITEM_TYPE_ID = mii.ITEM_TYPE_ID
  WHERE bs.ORDER_ID = :orderId AND bs.IS_DELETED = 0 AND mit.ITEM_TYPE_CODE = 'RM' AND bsl.IS_DELETED = 0 AND bsl.STATUS = 'Confirmed'
  GROUP BY bs.ORDER_ID, bs.ID, bsl.MASTER_ITEM_ID
- 
+
  `
 
 
@@ -59,6 +59,10 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
         type: DataTypes.STRING(100),
         allowNull: true,
       },
+      BOM_STRUCTURE_LIST_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       ITEM_CATEGORY_CODE: {
         type: DataTypes.STRING(100),
         allowNull: true,
@@ -83,11 +87,15 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
         type: DataTypes.STRING(100),
         allowNull: true,
       },
-      DIMESION_ID: {
+      DIMENSION_ID: {
         type: DataTypes.STRING(100),
         allowNull: true,
       },
       MAIN_COMPONENT: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      IS_ACTIVE: {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
@@ -139,7 +147,7 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
     ocd.ITEM_COLOR_CODE,
     ocd.PRODUCT_ID,
     ocd.COMPONENT_ID,
-    ocd.DIMESION_ID,
+    ocd.DIMENSION_ID,
     ocd.ADD_ID,
     ocd.MOD_ID,
     mcc.COLOR_CODE,
@@ -154,3 +162,22 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
   LEFT JOIN master_item_id mii ON mii.ITEM_ID = ocd.MASTER_ITEM_ID
   WHERE ocd.ORDER_ID  = :orderId
 `
+
+export const qryGetDimByStructure = `SELECT 
+	bsld.BOM_STRUCTURE_LIST_ID,
+	bsld.ITEM_DIMENSION_ID,
+	mid2.DIMENSION_ID,
+	mid2.COLOR_ID,
+	mcc.COLOR_CODE,
+	mcc.COLOR_DESCRIPTION,
+	bsl.BOM_LINE_ID,
+	bsl.CONSUMPTION_UOM,
+	bsl.BOOKING_CONSUMPTION_PER_ITEM,
+	bsl.NOTE,
+	bsl.ITEM_POSITION
+	FROM bom_structure_list bsl 
+LEFT JOIN bom_structure_list_detail bsld  ON bsl.ID = bsld.BOM_STRUCTURE_LIST_ID 
+LEFT JOIN master_item_dimension mid2 ON mid2.ID = bsld.ITEM_DIMENSION_ID
+LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = mid2.COLOR_ID 
+WHERE bsl.MASTER_ITEM_ID = :itemId
+GROUP BY bsld.BOM_STRUCTURE_LIST_ID, bsld.ITEM_DIMENSION_ID, mid2.COLOR_ID`
