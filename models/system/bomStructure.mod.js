@@ -464,28 +464,95 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    ORDER_PO_ID: {
-        type: DataTypes.STRING(30),
+    BOOKING_CONSUMPTION_PER_ITEM: {
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
+        allowNull: true,
+    },
+    EXTRA_BOOKS: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    EXTRA_ORDER_QTY: {
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
+        allowNull: true,
+    },
+    CUSTOMER_ORDER_QTY: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: true,
+    },
+    REQUIRE_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    VENDOR_ID: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
+    PURCHASE_UOM: {
+        type: DataTypes.STRING(5),
+        allowNull: true,
+    },
+    REQUIRE_PURCHASE_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    PLAN_PURCHASE_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    PLAN_PURCHASE_QTY_VARIANCE: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    PLAN_PURCHASE_QTY_VARIANCE_PERCENT: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    CURRENCY_CODE: {
+        type: DataTypes.STRING(8),
+        allowNull: true,
+    },
+    LATEST_PER_ITEM_PURCHASE_DETAIL: {
+        type: DataTypes.STRING(255),
         allowNull: true,
     },
     COST_PER_ITEM: {
-        type: DataTypes.DECIMAL(65,6),
-        defaultValue: 0,
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
         allowNull: true,
     },
     FINANCE_COST: {
-        type: DataTypes.DECIMAL(65,6),
-        defaultValue: 0,
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
         allowNull: true,
     },
     FREIGHT_COST: {
-        type: DataTypes.DECIMAL(65,6),
-        defaultValue: 0,
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
         allowNull: true,
     },
     OTHER_COST: {
-        type: DataTypes.DECIMAL(65,6),
-        defaultValue: 0,
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
+        allowNull: true,
+    },
+    TOTAL_ITEM_COST: {
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
+        allowNull: true,
+    },
+    PLAN_PURCHASE_COST: {
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
         allowNull: true,
     },
     NOTE: {
@@ -493,13 +560,91 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         allowNull: true,
     },
     APPROVE_PURCHASE_QUANTITY: {
-        type: DataTypes.DECIMAL(65,2),
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    PENDING_APPROVE_PURCHASE_QUANTITY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+
+    PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    TOTAL_APPROVE_PURCHASE_QUANTITY: {
+        type: DataTypes.DECIMAL(65, 6),
+        defaultValue: 0.000000,
+        allowNull: true,
+    },
+    IS_APPROVAL_SECTION: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    IS_APPROVE: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    APPROVAL_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    STOCK_ALLOCATE_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    PURCHASE_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    UNCONFIRM_PO_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    PENDING_PURCHASE_ORDER_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
+    IS_ACTIVE: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    AVAILABLE_UNAPPROVED_QTY: {
+      type: DataTypes.DECIMAL(65,2),
+      defaultValue: 0
+    },
+    CREATED_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    CREATED_AT: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: true,
+    },
+    UPDATED_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    UPDATED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    IS_DELETED: {
+        type: DataTypes.TINYINT,
         defaultValue: 0,
         allowNull: true,
     },
-    PLAN_CURRENT_QUANTITY: {
-        type: DataTypes.DECIMAL(65,6),
-        defaultValue: 0,
+    DELETED_AT: {
+        type: DataTypes.DATE,
         allowNull: true,
     }
 }, {
@@ -507,19 +652,78 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
     timestamps: false,
 });
 
+export const BomStructureSourcingDetailHistory = db.define(
+    "bom_structure_sourcing_detail_history",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        PURCHASE_QTY: {
+            type: DataTypes.DECIMAL(65, 2),
+            allowNull: true,
+        },
+        NOTE: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        TYPE: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+        },
+        BOM_STRUCTURE_SOURCING_DETAIL_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'bom_structure_sourcing_detail',
+                key: 'ID'
+            }
+        },
+        CREATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        CREATED_AT: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+            allowNull: false,
+        },
+    },
+    {
+        tableName: "bom_structure_sourcing_detail_history",
+        timestamps: false,
+    }
+);
+
+BomStructureSourcingDetailHistory.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
 BomStructureSourcingDetail.belongsTo(MasterItemDimensionModel, {
     foreignKey: "ITEM_DIMENSION_ID",
     as: "ITEM_DIMENSION"
-})
-
-BomStructureSourcingDetail.belongsTo(ModelOrderPOHeader, {
-    foreignKey: "ORDER_PO_ID",
-    as: "ORDER_PO"
-})
+});
 
 BomStructureSourcingDetail.belongsTo(BomStructureListModel, {
     foreignKey: "BOM_STRUCTURE_LINE_ID",
     as: "BOM_STRUCTURE_LINE"
+});
+
+BomStructureSourcingDetail.belongsTo(ModelVendorDetail, {
+    foreignKey: "VENDOR_ID",
+    as: "VENDOR"
+})
+
+BomStructureSourcingDetail.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+BomStructureSourcingDetail.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
 })
 
 BomStructurePendingDimension.belongsTo(BomStructureListModel, {
@@ -584,6 +788,11 @@ BomStructureListDetailModel.belongsTo(Users, {
 BomStructureModel.belongsTo(BomStructureRevModel, {
     foreignKey: "LAST_REV_ID",
     as: "REV"
+})
+
+BomStructureModel.belongsTo(MasterCompanyModel, {
+    foreignKey: "COMPANY_ID",
+    as: "COMPANY"
 })
 
 BomStructureModel.belongsTo(BomTemplateModel, {

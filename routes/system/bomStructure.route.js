@@ -28,6 +28,8 @@ import {
     getBomStructureRevById, updateBomStructureRev
 } from "../../controllers/system/bomStructure/bomStructureRev.js";
 
+import {createSourcingDetailHistory, getSourcingDetailHistoryById, updateSourcingDetailHistory, getAllSourcingDetailHistories, deleteSourcingDetailHistory} from "../../controllers/system/bomStructure/bomStructureSourcingDetailHistory.js"
+
 import {
     createBomStructureListDetail, createBomStructureListDetailBulk, deleteBomStructureListDetail,
     getAllBomStructureListDetails,
@@ -40,9 +42,10 @@ import {
     getPendingDimensionStructureById, updatePendingDimensionStructure, updatePendingDimensionStructureCustom
 } from "../../controllers/system/bomStructure/bomStructurePendingDimension.js";
 import {
-    createSourcingDetail, deleteSourcingDetail,
+    approveSourcingDetail,
+    createSourcingDetail, deleteSourcingDetail, getAllBomSourcingCategory,
     getAllSourcingDetails,
-    getSourcingDetailById, updateSourcingDetail
+    getSourcingDetailById, unApproveSourcingDetail, updateSourcingDetail
 } from "../../controllers/system/bomStructure/bomStructureSourcingDetail.js";
 
 const router = express.Router();
@@ -95,9 +98,19 @@ router.post("/pending-dimension/import", createPendingDimensionFromBomTemplateLi
 router.delete("/pending-dimensions/:id", deletePendingDimensionStructure);
 
 router.get("/sourcing", getAllSourcingDetails);
+router.get("/sourcing-category/:BOM_STRUCTURE_ID", getAllBomSourcingCategory);
 router.get("/sourcing/:id", getSourcingDetailById);
 router.post("/sourcing", createSourcingDetail);
 router.put("/sourcing/:id", updateSourcingDetail);
+router.patch("/sourcing-status", approveSourcingDetail);
+router.patch("/sourcing-status-unapprove", unApproveSourcingDetail);
 router.delete("/sourcing/:id", deleteSourcingDetail);
+
+
+router.post("/sourcing-history", createSourcingDetailHistory);
+router.get("/sourcing-history", getAllSourcingDetailHistories);
+router.get("/sourcing-history/:id", getSourcingDetailHistoryById);
+router.put("/sourcing-history/:id", updateSourcingDetailHistory);
+router.delete("/sourcing-history/:id", deleteSourcingDetailHistory);
 
 export default router;

@@ -14,8 +14,9 @@ import Users from "../../../models/setup/users.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
 import {Op} from "sequelize";
+import CompanyMod from "../../../models/setup/company.mod.js";
 
-export const  getAllBomStructures = async (req, res) => {
+export const getAllBomStructures = async (req, res) => {
     try {
         const {BOM_TEMPLATE_ID, ORDER_ID, COMPANY_ID, LAST_REV_ID = 0} = req.query;
 
@@ -27,10 +28,10 @@ export const  getAllBomStructures = async (req, res) => {
         if (LAST_REV_ID) where.LAST_REV_ID = LAST_REV_ID
 
         const structures = await BomStructureModel.findAll({
-            where, include: [{
+            where, include: [{model: CompanyMod, as: "COMPANY", attributes: ['ID', 'NAME', 'CODE']}, {
                 model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], include: [{
                     model: MasterItemIdModel,
-                    as:"MASTER_ITEM",
+                    as: "MASTER_ITEM",
                     attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]
                 }]
             }, {
@@ -165,7 +166,10 @@ export const createBomStructure = async (req, res) => {
             }
         })
 
-        if (alreadyOrder) return res.status(500).json({status: false, message: "Order is already used in another BOM structure"})
+        if (alreadyOrder) return res.status(500).json({
+            status: false,
+            message: "Order is already used in another BOM structure"
+        })
 
         const bomTemplate = await BomTemplateModel.findByPk(BOM_TEMPLATE_ID)
         if (!bomTemplate) {
@@ -185,7 +189,6 @@ export const createBomStructure = async (req, res) => {
                 message: "BOM template must be approved before it can be used in a BOM structure"
             })
         }
-
 
 
         const getLastID = await BomStructureModel.findOne({

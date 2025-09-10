@@ -11,7 +11,7 @@ import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import MasterCompanyModel from "../../../models/setup/company.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
-import { Op} from "sequelize";
+import {Op} from "sequelize";
 
 export const getAllBomStructureList = async (req, res) => {
     try {
@@ -151,7 +151,7 @@ export const createBomStructureList = async (req, res) => {
             });
         }
 
-        if (STANDARD_CONSUMPTION_PER_ITEM <0 || INTERNAL_CONSUMPTION_PER_ITEM <0 || BOOKING_CONSUMPTION_PER_ITEM <0 || PRODUCTION_CONSUMPTION_PER_ITEM <0) {
+        if (STANDARD_CONSUMPTION_PER_ITEM < 0 || INTERNAL_CONSUMPTION_PER_ITEM < 0 || BOOKING_CONSUMPTION_PER_ITEM < 0 || PRODUCTION_CONSUMPTION_PER_ITEM < 0) {
             return res.status(400).json({
                 success: false, message: "Coasting cannot be negative",
             });
@@ -159,7 +159,7 @@ export const createBomStructureList = async (req, res) => {
 
         const masterItemId = await MasterItemIdModel.findByPk(MASTER_ITEM_ID)
         if (!masterItemId) return res.status(404).json({
-            status:false,
+            status: false,
             message: "Master item id not found"
         })
 
@@ -301,7 +301,7 @@ export const updateBomStructureList = async (req, res) => {
         }
 
 
-        if (body?.MASTER_ITEM_ID || body?.VENDOR_ID || body?.IS_SPLIT_NO_PO !== undefined || body?.IS_SPLIT_COLOR  !== undefined || body?.IS_SPLIT_SIZE  !== undefined) {
+        if (body?.MASTER_ITEM_ID || body?.VENDOR_ID || body?.IS_SPLIT_NO_PO !== undefined || body?.IS_SPLIT_COLOR !== undefined || body?.IS_SPLIT_SIZE !== undefined) {
             const bomStructureListDetailCount = await BomStructureListDetailModel.count({
                 where: {
                     BOM_STRUCTURE_LIST_ID: id
@@ -400,7 +400,7 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
             },],
         });
 
-        return res.status(200).json({status: true, message: "Success get bom template list", data: lists })
+        return res.status(200).json({status: true, message: "Success get bom template list", data: lists})
     } catch (err) {
         return res.status(500).json({
             status: false,
@@ -410,9 +410,8 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
 }
 
 
-
 export const updateBomStructureListStatus = async (req, res) => {
-    const { id, status, UPDATED_ID } = req.body;
+    const {id, status, UPDATED_ID} = req.body;
 
     if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
         return res.status(400).json({
@@ -423,11 +422,13 @@ export const updateBomStructureListStatus = async (req, res) => {
 
     try {
         const record = await BomStructureListModel.findByPk(id, {
-            include: [{
-                model: BomStructureModel,
-                as: 'BOM_STRUCTURE',
-                attributes: ['ORDER_ID']
-            }]
+            include: [
+                {
+                    model: BomStructureModel,
+                    as: 'BOM_STRUCTURE',
+                    attributes: ['ORDER_ID']
+                }
+            ]
         });
 
         if (!record) {
@@ -446,7 +447,17 @@ export const updateBomStructureListStatus = async (req, res) => {
 
         if (status === "Confirmed") {
             const listDetails = await BomStructureListDetailModel.findAll({
-                where: { BOM_STRUCTURE_LIST_ID: id }
+                where: {BOM_STRUCTURE_LIST_ID: id},
+                include: [{
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LIST",
+                    attributes: ['VENDOR_ID', 'CONSUMPTION_UOM'],
+                    include: [{
+                        model: ModelVendorDetail,
+                        as: "VENDOR",
+                        attributes: ['VENDOR_PAYMENT_CURRENCY']
+                    }]
+                }]
             });
 
             if (listDetails.length === 0) {
@@ -457,81 +468,159 @@ export const updateBomStructureListStatus = async (req, res) => {
             }
 
             const grouped = listDetails.reduce((acc, detail) => {
-                const key = detail.ITEM_DIMENSION_ID;
-                if (!acc[key]) {
-                    acc[key] = {
-                        ITEM_DIMENSION_ID: key,
-                        costQuantity: 0,
-                        approveQuantity: 0
+                const itemId = detail.ITEM_DIMENSION_ID;
+                if (!acc[itemId]) {
+                    acc[itemId] = {
+                        ITEM_DIMENSION_ID: itemId,
+                        BOOKING_CONSUMPTION_PER_ITEM: 0,
+                        EXTRA_BOOKS: 0,
+                        EXTRA_ORDER_QTY: 0,
+                        CUSTOMER_ORDER_QTY: 0,
+                        REQUIRE_QTY: 0,
+                        REQUIRE_PURCHASE_QTY: 0,
+                        PLAN_PURCHASE_QTY: 0,
+                        VENDOR_ID: detail?.BOM_STRUCTURE_LIST?.VENDOR_ID || detail.VENDOR_ID,
+                        PURCHASE_UOM: detail?.BOM_STRUCTURE_LIST?.CONSUMPTION_UOM || detail.PURCHASE_UOM,
+                        CURRENCY_CODE: detail?.BOM_STRUCTURE_LIST?.VENDOR?.VENDOR_PAYMENT_CURRENCY || detail.CURRENCY_CODE
                     };
                 }
 
-                const requirement = parseFloat(detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY) || 0;
+                const requirementQty = parseFloat(detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY) || 0;
+                const extraBooks = parseFloat(detail.EXTRA_BOOKS) || 0;
+                const extraOrderQty = parseFloat(detail.EXTRA_REQUIRE_QUANTITY) || 0;
+                const orderQuantity = parseInt(detail.ORDER_QUANTITY) || 0;
+                const bookingConsumption = parseFloat(detail.BOOKING_CONSUMPTION_PER_ITEM) || 0;
 
-                acc[key].costQuantity += requirement;
-                if (detail.IS_BOOKING) {
-                    acc[key].approveQuantity += requirement;
-                }
+                acc[itemId].BOOKING_CONSUMPTION_PER_ITEM += bookingConsumption;
+                acc[itemId].EXTRA_BOOKS += extraBooks;
+                acc[itemId].EXTRA_ORDER_QTY += extraOrderQty;
+                acc[itemId].CUSTOMER_ORDER_QTY += orderQuantity;
+                acc[itemId].REQUIRE_QTY += requirementQty;
+                acc[itemId].REQUIRE_PURCHASE_QTY += requirementQty;
+                acc[itemId].PLAN_PURCHASE_QTY += requirementQty;
 
                 return acc;
             }, {});
 
             const sourcingToCreate = [];
-            const sourcingToUpdate = []
+            const sourcingToUpdate = [];
+
             for (const group of Object.values(grouped)) {
-                const exists = await BomStructureSourcingDetail.findOne({
+                const existingSourcing = await BomStructureSourcingDetail.findOne({
                     where: {
                         BOM_STRUCTURE_LINE_ID: id,
-                        ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID
+                        ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                        IS_DELETED: false
                     }
                 });
+                const PLAN_PURCHASE_QTY_VARIANCE = group.PLAN_PURCHASE_QTY - group.REQUIRE_QTY;
+                const PLAN_PURCHASE_QTY_VARIANCE_PERCENT = group.REQUIRE_QTY > 0
+                    ? (PLAN_PURCHASE_QTY_VARIANCE / group.REQUIRE_QTY) * 100
+                    : 0;
+                const COST_PER_ITEM = existingSourcing?.COST_PER_ITEM || 0;
+                const FINANCE_COST = existingSourcing?.FINANCE_COST || 0;
+                const FREIGHT_COST = existingSourcing?.FREIGHT_COST || 0;
+                const OTHER_COST = existingSourcing?.OTHER_COST || 0;
 
-                const data = {
+                const TOTAL_ITEM_COST = COST_PER_ITEM + FINANCE_COST + FREIGHT_COST + OTHER_COST;
+                const PLAN_PURCHASE_COST = COST_PER_ITEM * group.PLAN_PURCHASE_QTY;
+
+                const commonData = {
                     BOM_STRUCTURE_LINE_ID: id,
                     ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
-                    ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
-                    APPROVE_PURCHASE_QUANTITY: group.approveQuantity,
-                    PLAN_CURRENT_QUANTITY: group.costQuantity,
-                    COST_PER_ITEM: group.costQuantity,
-                    FINANCE_COST: 0,
-                    FREIGHT_COST: 0,
-                    OTHER_COST: 0,
-                    NOTE: ""
+                    BOOKING_CONSUMPTION_PER_ITEM: group.BOOKING_CONSUMPTION_PER_ITEM,
+                    EXTRA_BOOKS: group.EXTRA_BOOKS,
+                    EXTRA_ORDER_QTY: group.EXTRA_ORDER_QTY,
+                    CUSTOMER_ORDER_QTY: group.CUSTOMER_ORDER_QTY,
+                    REQUIRE_QTY: group.REQUIRE_QTY,
+                    VENDOR_ID: group.VENDOR_ID,
+                    PURCHASE_UOM: group.PURCHASE_UOM,
+                    REQUIRE_PURCHASE_QTY: group.REQUIRE_PURCHASE_QTY,
+                    PLAN_PURCHASE_QTY: group.PLAN_PURCHASE_QTY,
+                    CURRENCY_CODE: group.CURRENCY_CODE,
+                    PLAN_PURCHASE_QTY_VARIANCE,
+                    PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
+                    LATEST_PER_ITEM_PURCHASE_DETAIL: null,
+                    COST_PER_ITEM,
+                    FINANCE_COST,
+                    FREIGHT_COST,
+                    OTHER_COST,
+                    TOTAL_ITEM_COST,
+                    PLAN_PURCHASE_COST,
+                    NOTE: null,
+                    APPROVE_PURCHASE_QUANTITY: 0,
+                    PENDING_APPROVE_PURCHASE_QUANTITY: group.REQUIRE_QTY,
+                    PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: 100,
+                    TOTAL_APPROVE_PURCHASE_QUANTITY: 0,
+                    IS_APPROVAL_SECTION: false,
+                    APPROVAL_QTY: 0.00,
+                    STOCK_ALLOCATE_QTY: 0.00,
+                    PURCHASE_QTY: 0.00,
+                    UNCONFIRM_PO_QTY: 0.00,
+                    PENDING_PURCHASE_ORDER_QTY: 0.00,
+                    IS_ACTIVE: true,
+                    CREATED_ID: UPDATED_ID,
+                    CREATED_AT: new Date()
                 };
 
-                if (exists) {
+                if (existingSourcing) {
                     sourcingToUpdate.push({
-                        ...data,
-                        ID: exists.ID
+                        ...commonData,
+                        ID: existingSourcing.ID
                     });
                 } else {
-                    sourcingToCreate.push(data);
+                    sourcingToCreate.push(commonData);
                 }
             }
 
             if (sourcingToCreate.length > 0) {
-                await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
+                await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, {validate: true});
             }
 
             if (sourcingToUpdate.length > 0) {
-                const updatePromises = sourcingToUpdate.map(detail =>
-                    BomStructureSourcingDetail.update(
-                        {
-                            ORDER_PO_ID: detail.ORDER_PO_ID,
-                            APPROVE_PURCHASE_QUANTITY: detail.APPROVE_PURCHASE_QUANTITY,
-                            PLAN_CURRENT_QUANTITY: detail.PLAN_CURRENT_QUANTITY,
-                            COST_PER_ITEM: detail.COST_PER_ITEM,
-                            FINANCE_COST: detail.FINANCE_COST,
-                            FREIGHT_COST: detail.FREIGHT_COST,
-                            OTHER_COST: detail.OTHER_COST,
-                            NOTE: detail.NOTE,
-                        },
-                        {
-                            where: { ID: detail.ID }
-                        }
+                await Promise.all(
+                    sourcingToUpdate.map(detail =>
+                        BomStructureSourcingDetail.update(
+                            {
+                                BOOKING_CONSUMPTION_PER_ITEM: detail.BOOKING_CONSUMPTION_PER_ITEM,
+                                EXTRA_BOOKS: detail.EXTRA_BOOKS,
+                                EXTRA_ORDER_QTY: detail.EXTRA_ORDER_QTY,
+                                CUSTOMER_ORDER_QTY: detail.CUSTOMER_ORDER_QTY,
+                                REQUIRE_QTY: detail.REQUIRE_QTY,
+                                VENDOR_ID: detail.VENDOR_ID,
+                                PURCHASE_UOM: detail.PURCHASE_UOM,
+                                REQUIRE_PURCHASE_QTY: detail.REQUIRE_PURCHASE_QTY,
+                                PLAN_PURCHASE_QTY: detail.PLAN_PURCHASE_QTY,
+                                CURRENCY_CODE: detail.CURRENCY_CODE,
+                                PLAN_PURCHASE_QTY_VARIANCE: detail.PLAN_PURCHASE_QTY_VARIANCE,
+                                PLAN_PURCHASE_QTY_VARIANCE_PERCENT: detail.PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
+                                LATEST_PER_ITEM_PURCHASE_DETAIL: detail.LATEST_PER_ITEM_PURCHASE_DETAIL,
+                                COST_PER_ITEM: detail.COST_PER_ITEM,
+                                FINANCE_COST: detail.FINANCE_COST,
+                                FREIGHT_COST: detail.FREIGHT_COST,
+                                OTHER_COST: detail.OTHER_COST,
+                                TOTAL_ITEM_COST: detail.TOTAL_ITEM_COST,
+                                PLAN_PURCHASE_COST: detail.PLAN_PURCHASE_COST,
+                                NOTE: detail.NOTE,
+                                IS_APPROVE: false,
+                                APPROVE_PURCHASE_QUANTITY: detail.APPROVE_PURCHASE_QUANTITY,
+                                PENDING_APPROVE_PURCHASE_QUANTITY: detail.PENDING_APPROVE_PURCHASE_QUANTITY,
+                                PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: detail.PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT,
+                                TOTAL_APPROVE_PURCHASE_QUANTITY: detail.TOTAL_APPROVE_PURCHASE_QUANTITY,
+                                IS_APPROVAL_SECTION: false,
+                                APPROVAL_QTY: 0,
+                                STOCK_ALLOCATE_QTY: detail.STOCK_ALLOCATE_QTY,
+                                PURCHASE_QTY: detail.PURCHASE_QTY,
+                                UNCONFIRM_PO_QTY: detail.UNCONFIRM_PO_QTY,
+                                PENDING_PURCHASE_ORDER_QTY: detail.PENDING_PURCHASE_ORDER_QTY,
+                                IS_ACTIVE: detail.IS_ACTIVE,
+                                UPDATED_ID: detail.UPDATED_ID,
+                                UPDATED_AT: new Date()
+                            },
+                            {where: {ID: detail.ID}}
+                        )
                     )
                 );
-                await Promise.all(updatePromises);
             }
         }
 
@@ -543,19 +632,18 @@ export const updateBomStructureListStatus = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: `Status success change to  ${status}`
+            message: `Status successfully changed to ${status}`
         });
-
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: `failed to change status: ${error.message}`,
+            message: `Failed to change status: ${error.message}`,
         });
     }
 };
 
 export const updateBomStructureListStatusBulk = async (req, res) => {
-    const { bom_structure_list, status, UPDATED_ID } = req.body;
+    const {bom_structure_list, status, UPDATED_ID} = req.body;
 
     if (!Array.isArray(bom_structure_list) || bom_structure_list.length === 0) {
         return res.status(400).json({
@@ -589,8 +677,8 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
 
         const records = await BomStructureListModel.findAll({
             where: {
-                ID: { [Op.in]: bom_structure_list },
-                STATUS: { [Op.in]: validStatuses }
+                ID: {[Op.in]: bom_structure_list},
+                STATUS: {[Op.in]: validStatuses}
             },
             include: [{
                 model: BomStructureModel,
@@ -613,59 +701,196 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
             try {
                 if (status === "Confirmed") {
                     const listDetails = await BomStructureListDetailModel.findAll({
-                        where: { BOM_STRUCTURE_LIST_ID: record.ID }
+                        where: { BOM_STRUCTURE_LIST_ID: record.ID },
+                        include: [
+                            {
+                                model: BomStructureListModel,
+                                as: "BOM_STRUCTURE_LIST",
+                                attributes: ['VENDOR_ID', 'CONSUMPTION_UOM'],
+                                include: [
+                                    {
+                                        model: ModelVendorDetail,
+                                        as: "VENDOR",
+                                        attributes: ['VENDOR_PAYMENT_CURRENCY']
+                                    }
+                                ]
+                            }
+                        ]
                     });
 
                     if (listDetails.length === 0) {
-                        continue;
+                        continue
                     }
-
                     const grouped = listDetails.reduce((acc, detail) => {
-                        const key = detail.ITEM_DIMENSION_ID;
-                        if (!acc[key]) {
-                            acc[key] = {
-                                ITEM_DIMENSION_ID: key,
-                                costQuantity: 0,
-                                approveQuantity: 0
+                        const itemId = detail.ITEM_DIMENSION_ID;
+                        if (!acc[itemId]) {
+                            acc[itemId] = {
+                                ITEM_DIMENSION_ID: itemId,
+                                BOOKING_CONSUMPTION_PER_ITEM: 0,
+                                EXTRA_BOOKS: 0,
+                                EXTRA_ORDER_QTY: 0,
+                                CUSTOMER_ORDER_QTY: 0,
+                                REQUIRE_QTY: 0,
+                                REQUIRE_PURCHASE_QTY: 0,
+                                PLAN_PURCHASE_QTY: 0,
+                                VENDOR_ID: detail?.BOM_STRUCTURE_LIST?.VENDOR_ID || detail.VENDOR_ID,
+                                PURCHASE_UOM: detail?.BOM_STRUCTURE_LIST?.CONSUMPTION_UOM || detail.PURCHASE_UOM,
+                                CURRENCY_CODE: detail?.BOM_STRUCTURE_LIST?.VENDOR?.VENDOR_PAYMENT_CURRENCY || detail.CURRENCY_CODE
                             };
                         }
-                        acc[key].costQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
-                        if (detail.IS_BOOKING) {
-                            acc[key].approveQuantity += detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY || 0;
-                        }
+
+                        const requirementQty = parseFloat(detail.MATERIAL_ITEM_REQUIREMENT_QUANTITY) || 0;
+                        const extraBooks = parseFloat(detail.EXTRA_BOOKS) || 0;
+                        const extraOrderQty = parseFloat(detail.EXTRA_REQUIRE_QTY) || 0;
+                        const orderQuantity = parseInt(detail.ORDER_QUANTITY) || 0;
+                        const bookingConsumption = parseFloat(detail.BOOKING_CONSUMPTION_PER_ITEM) || 0;
+
+                        acc[itemId].BOOKING_CONSUMPTION_PER_ITEM += bookingConsumption;
+                        acc[itemId].EXTRA_BOOKS += extraBooks;
+                        acc[itemId].EXTRA_ORDER_QTY += extraOrderQty;
+                        acc[itemId].CUSTOMER_ORDER_QTY += orderQuantity;
+                        acc[itemId].REQUIRE_QTY += requirementQty;
+                        acc[itemId].REQUIRE_PURCHASE_QTY += requirementQty;
+                        acc[itemId].PLAN_PURCHASE_QTY += requirementQty;
+
                         return acc;
                     }, {});
 
                     const sourcingToCreate = [];
+                    const sourcingToUpdate = [];
+
                     for (const group of Object.values(grouped)) {
-                        const exists = await BomStructureSourcingDetail.findOne({
+                        const existingSourcing = await BomStructureSourcingDetail.findOne({
                             where: {
                                 BOM_STRUCTURE_LINE_ID: record.ID,
-                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID
+                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                                IS_DELETED: false
                             }
                         });
+                        const PLAN_PURCHASE_QTY_VARIANCE = group.PLAN_PURCHASE_QTY - group.REQUIRE_QTY;
+                        const PLAN_PURCHASE_QTY_VARIANCE_PERCENT = group.REQUIRE_QTY > 0
+                            ? (PLAN_PURCHASE_QTY_VARIANCE / group.REQUIRE_QTY) * 100
+                            : 0;
+                        const COST_PER_ITEM = existingSourcing?.COST_PER_ITEM || 0;
+                        const FINANCE_COST = existingSourcing?.FINANCE_COST || 0;
+                        const FREIGHT_COST = existingSourcing?.FREIGHT_COST || 0;
+                        const OTHER_COST = existingSourcing?.OTHER_COST || 0;
 
-                        if (!exists) {
-                            sourcingToCreate.push({
-                                BOM_STRUCTURE_LINE_ID: record.ID,
-                                ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
-                                ORDER_PO_ID: record.BOM_STRUCTURE?.ORDER_ID || null,
-                                APPROVE_PURCHASE_QUANTITY: group.approveQuantity,
-                                PLAN_CURRENT_QUANTITY: group.costQuantity,
-                                COST_PER_ITEM: parseFloat(group.costQuantity) || 0,
-                                FINANCE_COST: 0,
-                                FREIGHT_COST: 0,
-                                OTHER_COST: 0,
-                                NOTE: ""
+                        const TOTAL_ITEM_COST = COST_PER_ITEM + FINANCE_COST + FREIGHT_COST + OTHER_COST;
+                        const PLAN_PURCHASE_COST = COST_PER_ITEM * group.PLAN_PURCHASE_QTY;
+
+                        const commonData = {
+                            BOM_STRUCTURE_LINE_ID: record.ID,
+                            ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
+                            BOOKING_CONSUMPTION_PER_ITEM: group.BOOKING_CONSUMPTION_PER_ITEM,
+                            EXTRA_BOOKS: group.EXTRA_BOOKS,
+                            EXTRA_ORDER_QTY: group.EXTRA_ORDER_QTY,
+                            CUSTOMER_ORDER_QTY: group.CUSTOMER_ORDER_QTY,
+                            REQUIRE_QTY: group.REQUIRE_QTY,
+                            VENDOR_ID: group.VENDOR_ID,
+                            PURCHASE_UOM: group.PURCHASE_UOM,
+                            REQUIRE_PURCHASE_QTY: group.REQUIRE_PURCHASE_QTY,
+                            PLAN_PURCHASE_QTY: group.PLAN_PURCHASE_QTY,
+                            CURRENCY_CODE: group.CURRENCY_CODE,
+                            PLAN_PURCHASE_QTY_VARIANCE,
+                            PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
+                            LATEST_PER_ITEM_PURCHASE_DETAIL: null,
+                            COST_PER_ITEM,
+                            FINANCE_COST,
+                            FREIGHT_COST,
+                            OTHER_COST,
+                            TOTAL_ITEM_COST,
+                            PLAN_PURCHASE_COST,
+                            NOTE: null,
+                            APPROVE_PURCHASE_QUANTITY: 0,
+                            PENDING_APPROVE_PURCHASE_QUANTITY: group.REQUIRE_QTY,
+                            PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: 100,
+                            TOTAL_APPROVE_PURCHASE_QUANTITY: 0,
+                            IS_APPROVAL_SECTION: false,
+                            APPROVAL_QTY: 0.00,
+                            STOCK_ALLOCATE_QTY: 0.00,
+                            PURCHASE_QTY: 0.00,
+                            UNCONFIRM_PO_QTY: 0.00,
+                            PENDING_PURCHASE_ORDER_QTY: 0.00,
+                            IS_ACTIVE: true,
+                            CREATED_ID: UPDATED_ID,
+                            UPDATED_ID,
+                            CREATED_AT: new Date(),
+                            UPDATED_AT: new Date()
+                        };
+
+                        if (existingSourcing) {
+                            sourcingToUpdate.push({
+                                ...commonData,
+                                ID: existingSourcing.ID
                             });
+                        } else {
+                            sourcingToCreate.push(commonData);
                         }
                     }
-
                     if (sourcingToCreate.length > 0) {
                         await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
                     }
+                    if (sourcingToUpdate.length > 0) {
+                        await Promise.all(
+                            sourcingToUpdate.map(detail =>
+                                BomStructureSourcingDetail.update(
+                                    {
+                                        BOOKING_CONSUMPTION_PER_ITEM: detail.BOOKING_CONSUMPTION_PER_ITEM,
+                                        EXTRA_BOOKS: detail.EXTRA_BOOKS,
+                                        EXTRA_ORDER_QTY: detail.EXTRA_ORDER_QTY,
+                                        CUSTOMER_ORDER_QTY: detail.CUSTOMER_ORDER_QTY,
+                                        REQUIRE_QTY: detail.REQUIRE_QTY,
+                                        VENDOR_ID: detail.VENDOR_ID,
+                                        PURCHASE_UOM: detail.PURCHASE_UOM,
+                                        REQUIRE_PURCHASE_QTY: detail.REQUIRE_PURCHASE_QTY,
+                                        PLAN_PURCHASE_QTY: detail.PLAN_PURCHASE_QTY,
+                                        CURRENCY_CODE: detail.CURRENCY_CODE,
+                                        PLAN_PURCHASE_QTY_VARIANCE: detail.PLAN_PURCHASE_QTY_VARIANCE,
+                                        PLAN_PURCHASE_QTY_VARIANCE_PERCENT: detail.PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
+                                        LATEST_PER_ITEM_PURCHASE_DETAIL: detail.LATEST_PER_ITEM_PURCHASE_DETAIL,
+                                        COST_PER_ITEM: detail.COST_PER_ITEM,
+                                        FINANCE_COST: detail.FINANCE_COST,
+                                        FREIGHT_COST: detail.FREIGHT_COST,
+                                        OTHER_COST: detail.OTHER_COST,
+                                        TOTAL_ITEM_COST: detail.TOTAL_ITEM_COST,
+                                        PLAN_PURCHASE_COST: detail.PLAN_PURCHASE_COST,
+                                        NOTE: detail.NOTE,
+                                        APPROVE_PURCHASE_QUANTITY: detail.APPROVE_PURCHASE_QUANTITY,
+                                        PENDING_APPROVE_PURCHASE_QUANTITY: detail.PENDING_APPROVE_PURCHASE_QUANTITY,
+                                        PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: detail.PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT,
+                                        TOTAL_APPROVE_PURCHASE_QUANTITY: detail.TOTAL_APPROVE_PURCHASE_QUANTITY,
+                                        IS_APPROVAL_SECTION: detail.IS_APPROVAL_SECTION,
+                                        APPROVAL_QTY: detail.APPROVAL_QTY,
+                                        STOCK_ALLOCATE_QTY: detail.STOCK_ALLOCATE_QTY,
+                                        PURCHASE_QTY: detail.PURCHASE_QTY,
+                                        UNCONFIRM_PO_QTY: detail.UNCONFIRM_PO_QTY,
+                                        PENDING_PURCHASE_ORDER_QTY: detail.PENDING_PURCHASE_ORDER_QTY,
+                                        IS_ACTIVE: detail.IS_ACTIVE,
+                                        UPDATED_ID: detail.UPDATED_ID,
+                                        UPDATED_AT: new Date()
+                                    },
+                                    { where: { ID: detail.ID } }
+                                )
+                            )
+                        );
+                    }
                 }
 
+
+                if (status === "Canceled") {
+                    const sourcingDetail = await BomStructureSourcingDetail.findOne({
+                        where: {
+                            BOM_STRUCTURE_LINE_ID: record.ID,
+                            IS_APPROVE: true
+                        }
+                    })
+
+                    if (sourcingDetail) return res.status(500).json({
+                        status: false,
+                        message: "failed to cancel bom structure list because sourcing detail already confirmed"
+                    })
+                }
                 await record.update({
                     STATUS: status,
                     UPDATED_AT: new Date(),
@@ -685,7 +910,6 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error in updateBomStructureListStatusBulk:", error);
         return res.status(500).json({
             success: false,
             message: "Failed to update status: " + error.message,
