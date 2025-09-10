@@ -1238,6 +1238,12 @@ export const getOrderExecuteInfo = async(req,res) => {
             TNAValidationStatus = ListTNACompleted.length === ListTNAStatus.length ? 1 : 0;
         }
 
+        // Check Order Route
+        const CurrentOrderRoute = await ModelOrderRoute.findAll({where: {ORDER_ID: ORDER_ID}, raw: true});
+        if(CurrentOrderRoute.length>0){
+            RouteValidationStatus = 1;
+        } 
+
         // Check Actual Item SMV -  Sewing
         const CheckSMVSewing = await orderitemSMV.findOne({ where: { ORDER_ID:ORDER_ID, PRODUCTION_PROCESS_ID:2 }, raw: true });
         if(CheckSMVSewing && CheckSMVSewing.ACTUAL_SMV!=='0.0000') ActualSMVValidationStatus=1;
