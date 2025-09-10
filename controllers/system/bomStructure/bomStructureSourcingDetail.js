@@ -1,5 +1,5 @@
 import BomStructureModel, {
-    BomStructureListModel,
+    BomStructureListModel, BomStructureRevModel,
     BomStructureSourcingDetail, BomStructureSourcingDetailHistory
 } from "../../../models/system/bomStructure.mod.js";
 import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
@@ -55,6 +55,18 @@ export const getAllSourcingDetails = async (req, res) => {
                     attributes: ['BOM_STRUCTURE_ID', 'COMPANY_ID', 'BOM_LINE_ID', 'STATUS', 'MASTER_ITEM_ID', 'CONSUMPTION_UOM'],
                     include: [
                         {
+                            model: BomStructureModel,
+                            as: "BOM_STRUCTURE",
+                            attributes: ['ID', 'LAST_REV_ID', 'IS_ACTIVE'],
+                            include: [
+                                {
+                                    model: BomStructureRevModel,
+                                    as: "REV",
+                                    attributes: ['TITLE', 'DESCRIPTION', 'SEQUENCE']
+                                }
+                            ]
+                        },
+                        {
                             model: CompanyMod,
                             as: "COMPANY",
                             attributes: ['CODE', 'NAME']
@@ -64,7 +76,7 @@ export const getAllSourcingDetails = async (req, res) => {
                             as: "MASTER_ITEM",
                             required: true,
                             where: ITEM_TYPE_ID ? {ITEM_TYPE_ID} : undefined,
-                            attributes: ['ITEM_ID', 'ITEM_DESCRIPTION', 'ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID'],
+                            attributes: ['ITEM_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID'],
                             include: [
                                 {
                                     model: MasterItemGroup,
@@ -410,7 +422,7 @@ export const unApproveSourcingDetail = async (req, res) => {
             APPROVE_PURCHASE_QUANTITY,
             TOTAL_APPROVE_PURCHASE_QUANTITY: Number(detail.COST_PER_ITEM) * APPROVE_PURCHASE_QUANTITY,
             PENDING_APPROVE_PURCHASE_QUANTITY,
-            PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (Number(detail.PLAN_PURCHASE_QTY) / PENDING_APPROVE_PURCHASE_QUANTITY) * 100,
+            PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / detail.PLAN_PURCHASE_QTY) * 100,
             IS_APPROVE: false,
             IS_APPROVAL_SECTION: false,
             APPROVAL_QTY: 0,
@@ -489,11 +501,12 @@ export const approveSourcingDetail = async (req, res) => {
         for (let i = 0; i < details.length; i++) {
             const sourcing = details[i].dataValues
 
+            const PENDING_APPROVE_PURCHASE_QUANTITY = Number(sourcing.PENDING_APPROVE_PURCHASE_QUANTITY) - Number(sourcing.APPROVAL_QTY)
             await  BomStructureSourcingDetail.update({
                 APPROVE_PURCHASE_QUANTITY: Number(sourcing.APPROVE_PURCHASE_QUANTITY) +  Number(sourcing.APPROVAL_QTY),
                 TOTAL_APPROVE_PURCHASE_QUANTITY: Number(sourcing.COST_PER_ITEM) * Number(sourcing.APPROVAL_QTY),
-                PENDING_APPROVE_PURCHASE_QUANTITY: Number(sourcing.PENDING_APPROVE_PURCHASE_QUANTITY) - Number(sourcing.APPROVAL_QTY),
-                PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (Number(sourcing.APPROVAL_QTY) / Number(sourcing.PENDING_APPROVE_PURCHASE_QUANTITY) - Number(sourcing.APPROVAL_QTY)) * 100, // kurang ini
+                PENDING_APPROVE_PURCHASE_QUANTITY,
+                PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / Number(sourcing.PLAN_PURCHASE_QTY)) * 100,
                 IS_APPROVAL_SECTION: false,
                 APPROVAL_QTY: 0,
                 IS_APPROVE: true,
