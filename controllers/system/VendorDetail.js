@@ -7,7 +7,7 @@ import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
-
+import { toDecimal } from "../../util/general.js";
 
 export const getAllVendorDetail = async(req,res) => {
    try {
@@ -325,13 +325,13 @@ export const postVendorPurchaseDetail = async(req,res) => {
                 MANUFACTURE_LEAD_TIME: dataVPD.MANUFACTURE_LEAD_TIME,
                 DELIVERY_MODE_CODE: dataVPD.DELIVERY_MODE_CODE,
                 DELIVERY_LEAD_TIME: dataVPD.DELIVERY_LEAD_TIME,
-                MIN_ORDER_QTY: dataVPD.MIN_ORDER_QTY,
+                MIN_ORDER_QTY: toDecimal(dataVPD.MIN_ORDER_QTY),
                 MIN_ORDER_QTY_COLOR_VALIDATION: dataVPD.MIN_ORDER_QTY_COLOR_VALIDATION,
                 MIN_ORDER_QTY_SIZE_VALIDATION: dataVPD.MIN_ORDER_QTY_SIZE_VALIDATION,
-                MIN_ORDER_QTY_COLOR_QTY: dataVPD.MIN_ORDER_QTY_COLOR_QTY,
-                MIN_ORDER_QTY_SIZE_QTY: dataVPD.MIN_ORDER_QTY_SIZE_QTY,
-                MIN_UNDER_RECEIPT: dataVPD.MIN_UNDER_RECEIPT,
-                MIN_OVER_RECEIPT: dataVPD.MIN_OVER_RECEIPT,
+                MIN_ORDER_QTY_COLOR_QTY: toDecimal(dataVPD.MIN_ORDER_QTY_COLOR_QTY),
+                MIN_ORDER_QTY_SIZE_QTY: toDecimal(dataVPD.MIN_ORDER_QTY_SIZE_QTY),
+                MIN_UNDER_RECEIPT: toDecimal(dataVPD.MIN_UNDER_RECEIPT),
+                MIN_OVER_RECEIPT: toDecimal(dataVPD.MIN_OVER_RECEIPT),
                 NOTE_REMARKS: dataVPD.NOTE_REMARKS
             }, {
                 where: {
@@ -351,13 +351,13 @@ export const postVendorPurchaseDetail = async(req,res) => {
                 MANUFACTURE_LEAD_TIME: dataVPD.MANUFACTURE_LEAD_TIME,
                 DELIVERY_MODE_CODE: dataVPD.DELIVERY_MODE_CODE,
                 DELIVERY_LEAD_TIME: dataVPD.DELIVERY_LEAD_TIME,
-                MIN_ORDER_QTY: dataVPD.MIN_ORDER_QTY,
+                MIN_ORDER_QTY: toDecimal(dataVPD.MIN_ORDER_QTY),
                 MIN_ORDER_QTY_COLOR_VALIDATION: dataVPD.MIN_ORDER_QTY_COLOR_VALIDATION,
                 MIN_ORDER_QTY_SIZE_VALIDATION: dataVPD.MIN_ORDER_QTY_SIZE_VALIDATION,
-                MIN_ORDER_QTY_COLOR_QTY: dataVPD.MIN_ORDER_QTY_COLOR_QTY,
-                MIN_ORDER_QTY_SIZE_QTY: dataVPD.MIN_ORDER_QTY_SIZE_QTY,
-                MIN_UNDER_RECEIPT: dataVPD.MIN_UNDER_RECEIPT,
-                MIN_OVER_RECEIPT: dataVPD.MIN_OVER_RECEIPT,
+                MIN_ORDER_QTY_COLOR_QTY: toDecimal(dataVPD.MIN_ORDER_QTY_COLOR_QTY),
+                MIN_ORDER_QTY_SIZE_QTY: toDecimal(dataVPD.MIN_ORDER_QTY_SIZE_QTY),
+                MIN_UNDER_RECEIPT: toDecimal(dataVPD.MIN_UNDER_RECEIPT),
+                MIN_OVER_RECEIPT: toDecimal(dataVPD.MIN_OVER_RECEIPT),
                 NOTE_REMARKS: dataVPD.NOTE_REMARKS
             })
         }
