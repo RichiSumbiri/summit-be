@@ -489,6 +489,22 @@ export const updatePendingDimensionCustom = async (req, res) => {
             });
         }
 
+        const numericFields = [
+            'COSTING_CONSUMER_PER_ITEM',
+            'INTERNAL_CUSTOMER_PER_ITEM'
+        ];
+
+        numericFields.forEach(field => {
+            if (bodyReq[field] !== undefined) {
+                if (bodyReq[field] === "" || bodyReq[field] === null || bodyReq[field] === undefined) {
+                    bodyReq[field] = 0;
+                } else {
+                    bodyReq[field] = parseFloat(bodyReq[field]);
+                    if (isNaN(bodyReq[field])) bodyReq[field] = 0;
+                }
+            }
+        });
+
         await pending.update(bodyReq);
 
         const pendingList = await BomTemplatePendingDimension.findAll({
