@@ -467,6 +467,34 @@ export const updateBomStructureListStatus = async (req, res) => {
                 });
             }
 
+            const validItemDimensionIds = new Set(
+                listDetails.map(detail => detail.ITEM_DIMENSION_ID).filter(Boolean)
+            );
+            const existingSourcings = await BomStructureSourcingDetail.findAll({
+                where: {
+                    BOM_STRUCTURE_LINE_ID: id,
+                    IS_DELETED: false
+                }
+            });
+
+            const sourcingToDelete = existingSourcings.filter(sourcing =>
+                !validItemDimensionIds.has(sourcing.ITEM_DIMENSION_ID)
+            );
+
+            if (sourcingToDelete.length > 0) {
+                await Promise.all(
+                    sourcingToDelete.map(sourcing =>
+                        BomStructureSourcingDetail.update(
+                            {
+                                IS_DELETED: true,
+                                DELETED_AT: new Date(),
+                            },
+                            { where: { ID: sourcing.ID } }
+                        )
+                    )
+                );
+            }
+
             const grouped = listDetails.reduce((acc, detail) => {
                 const itemId = detail.ITEM_DIMENSION_ID;
                 if (!acc[itemId]) {
@@ -740,6 +768,37 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                     if (listDetails.length === 0) {
                         continue
                     }
+
+                    const validItemDimensionIds = new Set(
+                        listDetails.map(detail => detail.ITEM_DIMENSION_ID).filter(Boolean)
+                    );
+
+                    const existingSourcings = await BomStructureSourcingDetail.findAll({
+                        where: {
+                            BOM_STRUCTURE_LINE_ID: id,
+                            IS_DELETED: false
+                        }
+                    });
+
+                    const sourcingToDelete = existingSourcings.filter(sourcing =>
+                        !validItemDimensionIds.has(sourcing.ITEM_DIMENSION_ID)
+                    );
+
+                    if (sourcingToDelete.length > 0) {
+                        await Promise.all(
+                            sourcingToDelete.map(sourcing =>
+                                BomStructureSourcingDetail.update(
+                                    {
+                                        IS_DELETED: true,
+                                        DELETED_AT: new Date(),
+                                    },
+                                    { where: { ID: sourcing.ID } }
+                                )
+                            )
+                        );
+                    }
+
+
                     const grouped = listDetails.reduce((acc, detail) => {
                         const itemId = detail.ITEM_DIMENSION_ID;
                         if (!acc[itemId]) {

@@ -151,7 +151,10 @@ export const getAllBomSourcingCategory = async (req, res) => {
         const bomStructureList = await BomStructureListModel.findAll({
             where: {
                 BOM_STRUCTURE_ID,
-                IS_DELETED: false
+                IS_DELETED: false,
+                STATUS: {
+                    [Op.in]: ["Confirmed", "Canceled", "Re-Confirmed"]
+                }
             },
             include: [
                 {
@@ -165,10 +168,6 @@ export const getAllBomSourcingCategory = async (req, res) => {
                             attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         }
                     ],
-                    where: {
-                        IS_DELETED: false
-                    },
-                    required: true
                 }
             ]
         });
