@@ -12,10 +12,12 @@ import {
     OrderMOListing,
     queryCheckBOMStructureByOrderIDAndItemTypeCode,
     queryCheckTNAEventStatusByOrderID,
+    queryDetailPOSizeRevision,
     queryGetAllPOIDByOrderID,
     queryGetDefaultProcessRoute,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
+    queryGetLogPOListingSizeRevision,
     queryGetLogStatusOrderHeaderByOrderID,
     queryGetMOListingByOrderID,
     queryGetOrderInventoryDetail,
@@ -111,7 +113,6 @@ export const changeOrderHeaderStatus = async (req, res) => {
         });
 
     } catch(err){
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -795,7 +796,6 @@ export const postPOSizeListing = async (req, res) => {
             message: "success post po size"
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -1118,7 +1118,6 @@ export const changeMOListingStatus = async(req,res) => {
 export const postMOListing = async (req, res) => {
     try {
         const {DataMOID} = req.body;
-        console.log(DataMOID);
         if (DataMOID.ORDER_MO_ID) {
             await OrderMOListing.update({
                 MO_CODE: DataMOID.MO_CODE,
@@ -1235,7 +1234,6 @@ export const getOrderInventoryDetail = async(req,res) => {
             data: getData
         });
     } catch(err){
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -1657,3 +1655,59 @@ export const postOrderDataRoute = async (req, res) => {
     });
   }
 };
+
+
+
+export const getPOListingSizeLogRevisionByRevID = async(req,res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID } = req.query;
+        if(ORDER_ID && ORDER_PO_ID){
+            const data = await db.query(queryGetLogPOListingSizeRevision, {
+                replacements: {
+                    orderID: ORDER_ID,
+                    orderPOID: ORDER_PO_ID
+                },
+                type: QueryTypes.SELECT
+            });
+             return res.status(200).json({
+                success: true,
+                message: `Success get data po listing size revision log`,
+                data
+            });
+        }
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+            message: "error get order po listing size log revision"
+        });
+    }
+}
+
+
+export const getPOSizeLogRevisionDetailByRevID = async(req,res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID, REV_ID } = req.query;
+        if(ORDER_ID && ORDER_PO_ID && REV_ID){
+            const data = await db.query(queryDetailPOSizeRevision, {
+                replacements: {
+                    orderID: ORDER_ID,
+                    orderPOID: ORDER_PO_ID,
+                    revID: REV_ID
+                },
+                type: QueryTypes.SELECT
+            });
+            return res.status(200).json({
+                success: true,
+                message: `Success get data po listing size revision detail`,
+                data
+            });
+        }
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+            message: "error get order po listing size log revision"
+        });
+    }
+}
