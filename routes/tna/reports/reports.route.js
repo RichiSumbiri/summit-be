@@ -9,6 +9,7 @@ import {
   getEventAchievementAnalysisEvent,
   getEventAchievementAnalysisOwner,
 } from "../../../controllers/tna/reports/eventAchievementView.js";
+import { getEventAgingAnalysisAging, getEventAgingAnalysisCommitment, getEventAgingAnalysisTarget } from "../../../controllers/tna/reports/eventAgingAnalysis.js";
 const router = express.Router();
 
 //event listing
@@ -31,6 +32,20 @@ router.get(
 router.get(
   "/event-achievement-analysis/detail-view",
   getEventAchievementAnalysisDetail
+);
+
+//event aging analysis
+router.get(
+  "/event-aging-analysis/target-due-date",
+  getEventAgingAnalysisTarget
+);
+router.get(
+  "/event-aging-analysis/commitment-due-date",
+  getEventAgingAnalysisCommitment
+);
+router.get(
+  "/event-aging-analysis/aging-detail",
+  getEventAgingAnalysisAging
 );
 
 export default router;
