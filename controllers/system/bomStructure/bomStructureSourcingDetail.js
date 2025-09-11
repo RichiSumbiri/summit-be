@@ -112,7 +112,8 @@ export const getAllSourcingDetails = async (req, res) => {
                     as: "UPDATED",
                     attributes: ['USER_NAME']
                 }
-            ]
+            ],
+            order: [['ID', 'DESC']]
         });
 
         return res.status(200).json({
@@ -150,7 +151,10 @@ export const getAllBomSourcingCategory = async (req, res) => {
         const bomStructureList = await BomStructureListModel.findAll({
             where: {
                 BOM_STRUCTURE_ID,
-                IS_DELETED: false
+                IS_DELETED: false,
+                STATUS: {
+                    [Op.in]: ["Confirmed", "Canceled", "Re-Confirmed"]
+                }
             },
             include: [
                 {
@@ -164,10 +168,6 @@ export const getAllBomSourcingCategory = async (req, res) => {
                             attributes: ['ITEM_TYPE_ID', 'ITEM_TYPE_CODE', 'ITEM_TYPE_DESCRIPTION']
                         }
                     ],
-                    where: {
-                        IS_DELETED: false
-                    },
-                    required: true
                 }
             ]
         });
@@ -356,6 +356,12 @@ export const updateSourcingDetail = async (req, res) => {
         const REQUIRE_QTY = updateData.REQUIRE_QTY ?? detail.REQUIRE_QTY
         const TOTAL_ITEM_COST = Number(COST_PER_ITEM) + Number(FINANCE_COST) + Number(FREIGHT_COST) + Number(OTHER_COST)
         const PLAN_PURCHASE_COST = Number(PLAN_PURCHASE_QTY) * Number(TOTAL_ITEM_COST);
+        let PENDING_APPROVE_PURCHASE_QUANTITY = detail.PENDING_APPROVE_PURCHASE_QUANTITY
+
+        if (Number(detail.PENDING_APPROVE_PURCHASE_QUANTITY) <= 0.00) {
+            PENDING_APPROVE_PURCHASE_QUANTITY = Number(PLAN_PURCHASE_QTY)
+        }
+
         const IS_APPROVAL_SECTION = updateData.IS_APPROVAL_SECTION !== undefined ? updateData.IS_APPROVAL_SECTION : detail.IS_APPROVAL_SECTION
 
         const PLAN_PURCHASE_QTY_VARIANCE = Number(PLAN_PURCHASE_QTY) - Number(REQUIRE_QTY);
@@ -375,7 +381,6 @@ export const updateSourcingDetail = async (req, res) => {
             APPROVAL_QTY = 0
         }
 
-        const PENDING_APPROVE_PURCHASE_QUANTITY = Number(PLAN_PURCHASE_QTY)
         await detail.update({
             ...updateData,
             TOTAL_ITEM_COST,
@@ -384,6 +389,7 @@ export const updateSourcingDetail = async (req, res) => {
             APPROVAL_QTY,
             PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
             PENDING_APPROVE_PURCHASE_QUANTITY,
+            PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / detail.PLAN_PURCHASE_QTY) * 100,
             UPDATED_ID: updateData.UPDATED_ID || detail.UPDATED_ID,
             UPDATED_AT: new Date()
         });
@@ -500,18 +506,18 @@ export const approveSourcingDetail = async (req, res) => {
 
         for (let i = 0; i < details.length; i++) {
             const sourcing = details[i].dataValues
-
             const PENDING_APPROVE_PURCHASE_QUANTITY = Number(sourcing.PENDING_APPROVE_PURCHASE_QUANTITY) - Number(sourcing.APPROVAL_QTY)
+            const APPROVE_PURCHASE_QUANTITY = Number(sourcing.APPROVE_PURCHASE_QUANTITY) +  Number(sourcing.APPROVAL_QTY)
             await  BomStructureSourcingDetail.update({
-                APPROVE_PURCHASE_QUANTITY: Number(sourcing.APPROVE_PURCHASE_QUANTITY) +  Number(sourcing.APPROVAL_QTY),
-                TOTAL_APPROVE_PURCHASE_QUANTITY: Number(sourcing.COST_PER_ITEM) * Number(sourcing.APPROVAL_QTY),
+                APPROVE_PURCHASE_QUANTITY,
+                TOTAL_APPROVE_PURCHASE_QUANTITY: Number(sourcing.COST_PER_ITEM) * Number(APPROVE_PURCHASE_QUANTITY),
                 PENDING_APPROVE_PURCHASE_QUANTITY,
                 PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / Number(sourcing.PLAN_PURCHASE_QTY)) * 100,
                 IS_APPROVAL_SECTION: false,
                 APPROVAL_QTY: 0,
                 IS_APPROVE: true,
-                AVAILABLE_UNAPPROVED_QTY: Number(sourcing.APPROVE_PURCHASE_QUANTITY) +  Number(sourcing.APPROVAL_QTY),
-                PENDING_PURCHASE_ORDER_QTY: Number(sourcing.APPROVAL_QTY),
+                AVAILABLE_UNAPPROVED_QTY: APPROVE_PURCHASE_QUANTITY,
+                PENDING_PURCHASE_ORDER_QTY: APPROVE_PURCHASE_QUANTITY,
                 UPDATED_ID: USER_ID,
                 UPDATED_AT: new Date()
             }, {

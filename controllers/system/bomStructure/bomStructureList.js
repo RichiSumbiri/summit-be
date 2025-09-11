@@ -438,10 +438,10 @@ export const updateBomStructureListStatus = async (req, res) => {
             });
         }
 
-        if (record.STATUS !== "Open" && record.STATUS !== "Re-Confirmed") {
+        if (record.STATUS === "Deleted" || record.STATUS === "Canceled") {
             return res.status(400).json({
                 success: false,
-                message: `Status can only be changed from 'Open' or 'Re-Confirmed'; current status is ${record.STATUS}`,
+                message: `Status cannot be change`,
             });
         }
 
@@ -465,6 +465,34 @@ export const updateBomStructureListStatus = async (req, res) => {
                     success: false,
                     message: "Cannot confirm: BOM details are missing",
                 });
+            }
+
+            const validItemDimensionIds = new Set(
+                listDetails.map(detail => detail.ITEM_DIMENSION_ID).filter(Boolean)
+            );
+            const existingSourcings = await BomStructureSourcingDetail.findAll({
+                where: {
+                    BOM_STRUCTURE_LINE_ID: id,
+                    IS_DELETED: false
+                }
+            });
+
+            const sourcingToDelete = existingSourcings.filter(sourcing =>
+                !validItemDimensionIds.has(sourcing.ITEM_DIMENSION_ID)
+            );
+
+            if (sourcingToDelete.length > 0) {
+                await Promise.all(
+                    sourcingToDelete.map(sourcing =>
+                        BomStructureSourcingDetail.update(
+                            {
+                                IS_DELETED: true,
+                                DELETED_AT: new Date(),
+                            },
+                            { where: { ID: sourcing.ID } }
+                        )
+                    )
+                );
             }
 
             const grouped = listDetails.reduce((acc, detail) => {
@@ -559,17 +587,18 @@ export const updateBomStructureListStatus = async (req, res) => {
                     UNCONFIRM_PO_QTY: 0.00,
                     PENDING_PURCHASE_ORDER_QTY: 0.00,
                     IS_ACTIVE: true,
-                    CREATED_ID: UPDATED_ID,
-                    CREATED_AT: new Date()
+
                 };
 
                 if (existingSourcing) {
                     sourcingToUpdate.push({
                         ...commonData,
+                        UPDATED_ID,
+                        UPDATED_AT: new Date(),
                         ID: existingSourcing.ID
                     });
                 } else {
-                    sourcingToCreate.push(commonData);
+                    sourcingToCreate.push({...commonData, CREATED_ID: UPDATED_ID, CREATED_AT: new Date()});
                 }
             }
 
@@ -578,49 +607,67 @@ export const updateBomStructureListStatus = async (req, res) => {
             }
 
             if (sourcingToUpdate.length > 0) {
-                await Promise.all(
-                    sourcingToUpdate.map(detail =>
-                        BomStructureSourcingDetail.update(
-                            {
-                                BOOKING_CONSUMPTION_PER_ITEM: detail.BOOKING_CONSUMPTION_PER_ITEM,
-                                EXTRA_BOOKS: detail.EXTRA_BOOKS,
-                                EXTRA_ORDER_QTY: detail.EXTRA_ORDER_QTY,
-                                CUSTOMER_ORDER_QTY: detail.CUSTOMER_ORDER_QTY,
-                                REQUIRE_QTY: detail.REQUIRE_QTY,
-                                VENDOR_ID: detail.VENDOR_ID,
-                                PURCHASE_UOM: detail.PURCHASE_UOM,
-                                REQUIRE_PURCHASE_QTY: detail.REQUIRE_PURCHASE_QTY,
-                                PLAN_PURCHASE_QTY: detail.PLAN_PURCHASE_QTY,
-                                CURRENCY_CODE: detail.CURRENCY_CODE,
-                                PLAN_PURCHASE_QTY_VARIANCE: detail.PLAN_PURCHASE_QTY_VARIANCE,
-                                PLAN_PURCHASE_QTY_VARIANCE_PERCENT: detail.PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
-                                LATEST_PER_ITEM_PURCHASE_DETAIL: detail.LATEST_PER_ITEM_PURCHASE_DETAIL,
-                                COST_PER_ITEM: detail.COST_PER_ITEM,
-                                FINANCE_COST: detail.FINANCE_COST,
-                                FREIGHT_COST: detail.FREIGHT_COST,
-                                OTHER_COST: detail.OTHER_COST,
-                                TOTAL_ITEM_COST: detail.TOTAL_ITEM_COST,
-                                PLAN_PURCHASE_COST: detail.PLAN_PURCHASE_COST,
-                                NOTE: detail.NOTE,
-                                IS_APPROVE: false,
-                                APPROVE_PURCHASE_QUANTITY: detail.APPROVE_PURCHASE_QUANTITY,
-                                PENDING_APPROVE_PURCHASE_QUANTITY: detail.PENDING_APPROVE_PURCHASE_QUANTITY,
-                                PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: detail.PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT,
-                                TOTAL_APPROVE_PURCHASE_QUANTITY: detail.TOTAL_APPROVE_PURCHASE_QUANTITY,
-                                IS_APPROVAL_SECTION: false,
-                                APPROVAL_QTY: 0,
-                                STOCK_ALLOCATE_QTY: detail.STOCK_ALLOCATE_QTY,
-                                PURCHASE_QTY: detail.PURCHASE_QTY,
-                                UNCONFIRM_PO_QTY: detail.UNCONFIRM_PO_QTY,
-                                PENDING_PURCHASE_ORDER_QTY: detail.PENDING_PURCHASE_ORDER_QTY,
-                                IS_ACTIVE: detail.IS_ACTIVE,
-                                UPDATED_ID: detail.UPDATED_ID,
-                                UPDATED_AT: new Date()
-                            },
-                            {where: {ID: detail.ID}}
-                        )
-                    )
-                );
+                const updatePromises = sourcingToUpdate.map(async (detail) => {
+                    try {
+                        const COST_PER_ITEM = parseFloat(detail.COST_PER_ITEM) || 0;
+                        const FINANCE_COST = parseFloat(detail.FINANCE_COST) || 0;
+                        const FREIGHT_COST = parseFloat(detail.FREIGHT_COST) || 0;
+                        const OTHER_COST = parseFloat(detail.OTHER_COST) || 0;
+
+                        const TOTAL_ITEM_COST = COST_PER_ITEM + FINANCE_COST + FREIGHT_COST + OTHER_COST;
+
+                        const safeValue = (num, precision = 6) => {
+                            const parsed = parseFloat(num) || 0;
+                            return parseFloat(parsed.toFixed(precision));
+                        };
+
+                        const updateData = {
+                            BOOKING_CONSUMPTION_PER_ITEM: safeValue(detail.BOOKING_CONSUMPTION_PER_ITEM, 6),
+                            EXTRA_BOOKS: safeValue(detail.EXTRA_BOOKS, 2),
+                            EXTRA_ORDER_QTY: safeValue(detail.EXTRA_ORDER_QTY, 6),
+                            CUSTOMER_ORDER_QTY: Math.floor(detail.CUSTOMER_ORDER_QTY || 0),
+                            REQUIRE_QTY: safeValue(detail.REQUIRE_QTY, 2),
+                            VENDOR_ID: detail.VENDOR_ID || null,
+                            PURCHASE_UOM: detail.PURCHASE_UOM || null,
+                            REQUIRE_PURCHASE_QTY: safeValue(detail.REQUIRE_PURCHASE_QTY, 2),
+                            PLAN_PURCHASE_QTY: safeValue(detail.PLAN_PURCHASE_QTY, 2),
+                            CURRENCY_CODE: detail.CURRENCY_CODE || null,
+                            PLAN_PURCHASE_QTY_VARIANCE: safeValue(detail.PLAN_PURCHASE_QTY_VARIANCE, 2),
+                            PLAN_PURCHASE_QTY_VARIANCE_PERCENT: safeValue(detail.PLAN_PURCHASE_QTY_VARIANCE_PERCENT, 2),
+                            LATEST_PER_ITEM_PURCHASE_DETAIL: detail.LATEST_PER_ITEM_PURCHASE_DETAIL || null,
+                            COST_PER_ITEM: safeValue(COST_PER_ITEM, 6),
+                            FINANCE_COST: safeValue(FINANCE_COST, 6),
+                            FREIGHT_COST: safeValue(FREIGHT_COST, 6),
+                            OTHER_COST: safeValue(OTHER_COST, 6),
+                            TOTAL_ITEM_COST: safeValue(TOTAL_ITEM_COST, 6),
+                            PLAN_PURCHASE_COST: safeValue(detail.PLAN_PURCHASE_COST, 6),
+                            NOTE: detail.NOTE || null,
+                            IS_APPROVE: false,
+                            APPROVE_PURCHASE_QUANTITY: safeValue(detail.APPROVE_PURCHASE_QUANTITY, 2),
+                            PENDING_APPROVE_PURCHASE_QUANTITY: safeValue(detail.PENDING_APPROVE_PURCHASE_QUANTITY, 2),
+                            PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: safeValue(detail.PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT, 2),
+                            TOTAL_APPROVE_PURCHASE_QUANTITY: safeValue(detail.TOTAL_APPROVE_PURCHASE_QUANTITY, 6),
+                            IS_APPROVAL_SECTION: false,
+                            APPROVAL_QTY: 0.00,
+                            STOCK_ALLOCATE_QTY: safeValue(detail.STOCK_ALLOCATE_QTY, 2),
+                            PURCHASE_QTY: safeValue(detail.PURCHASE_QTY, 2),
+                            UNCONFIRM_PO_QTY: safeValue(detail.UNCONFIRM_PO_QTY, 2),
+                            PENDING_PURCHASE_ORDER_QTY: safeValue(detail.PENDING_PURCHASE_ORDER_QTY, 2),
+                            IS_ACTIVE: detail.IS_ACTIVE === true,
+                            UPDATED_ID: detail.UPDATED_ID || null,
+                            UPDATED_AT: new Date()
+                        };
+
+                        return await BomStructureSourcingDetail.update(updateData, {
+                            where: { ID: detail.ID }
+                        });
+                    } catch (err) {
+                        console.error(`Error updating sourcing detail ID ${detail.ID}:`, err.message);
+                        throw err;
+                    }
+                });
+
+                await Promise.all(updatePromises);
             }
         }
 
@@ -721,6 +768,37 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                     if (listDetails.length === 0) {
                         continue
                     }
+
+                    const validItemDimensionIds = new Set(
+                        listDetails.map(detail => detail.ITEM_DIMENSION_ID).filter(Boolean)
+                    );
+
+                    const existingSourcings = await BomStructureSourcingDetail.findAll({
+                        where: {
+                            BOM_STRUCTURE_LINE_ID: id,
+                            IS_DELETED: false
+                        }
+                    });
+
+                    const sourcingToDelete = existingSourcings.filter(sourcing =>
+                        !validItemDimensionIds.has(sourcing.ITEM_DIMENSION_ID)
+                    );
+
+                    if (sourcingToDelete.length > 0) {
+                        await Promise.all(
+                            sourcingToDelete.map(sourcing =>
+                                BomStructureSourcingDetail.update(
+                                    {
+                                        IS_DELETED: true,
+                                        DELETED_AT: new Date(),
+                                    },
+                                    { where: { ID: sourcing.ID } }
+                                )
+                            )
+                        );
+                    }
+
+
                     const grouped = listDetails.reduce((acc, detail) => {
                         const itemId = detail.ITEM_DIMENSION_ID;
                         if (!acc[itemId]) {
