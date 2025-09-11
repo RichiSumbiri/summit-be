@@ -1121,3 +1121,107 @@ export const ModelOrderRoute = db.define(
       timestamps: false, // karena tidak ada kolom createdAt/updatedAt
     }
   );
+
+
+export const ModelOrderPOListingSizeLogRevision = db.define("order_po_listing_size_log_revision", {
+  ID: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  ORDER_NO: {
+    type: DataTypes.CHAR(10),
+    allowNull: true
+  },
+  ORDER_PO_ID: {
+    type: DataTypes.CHAR(10),
+    allowNull: true
+  },
+  REV_ID: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  REV_NOTE: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  SIZE_ID: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  SIZE_CODE: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  ORDER_QTY: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  MO_QTY: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  UNIT_PRICE: {
+    type: DataTypes.DECIMAL(60,6),
+    allowNull: true
+  },
+  CREATE_ID: {
+    type: DataTypes.STRING(200),
+    allowNull: true
+  },
+  CREATE_DATE: {
+    type: DataTypes.DATE,
+    allowNull: true
+  }
+}, {
+  tableName: "order_po_listing_size_log_revision",
+  timestamps: false
+});
+
+export const queryGetLogPOListingSizeRevision = `
+SELECT
+	oplslr.ORDER_NO,
+	oplslr.ORDER_PO_ID,
+	oplslr.ORDER_NO,
+	oplslr.ORDER_PO_ID,
+	opl.PO_REF_CODE,
+	opl.ITEM_COLOR_CODE,
+	opl.ITEM_COLOR_NAME,
+	oplslr.REV_ID,
+	oplslr.REV_NOTE,
+	SUM(oplslr.ORDER_QTY) AS TOTAL_ORDER_QTY,
+	SUM(oplslr.MO_QTY ) AS TOTAL_MO_QTY
+FROM
+	order_po_listing_size_log_revision oplslr
+LEFT JOIN order_po_listing opl ON opl.ORDER_PO_ID = oplslr.ORDER_PO_ID 
+WHERE oplslr.ORDER_NO = :orderID AND oplslr.ORDER_PO_ID = :orderPOID
+GROUP BY
+	oplslr.ORDER_NO,
+	oplslr.ORDER_PO_ID,
+	oplslr.REV_ID,
+	oplslr.REV_NOTE 
+`;
+
+export const queryDetailPOSizeRevision = `
+SELECT
+	oplslr.ORDER_NO,
+	oplslr.ORDER_PO_ID,
+	oplslr.ORDER_NO,
+	oplslr.ORDER_PO_ID,
+	opl.PO_REF_CODE,
+	opl.ITEM_COLOR_CODE,
+	opl.ITEM_COLOR_NAME,
+	oplslr.SIZE_ID,
+	oplslr.SIZE_CODE ,
+	oplslr.REV_ID,
+	oplslr.REV_NOTE,
+	oplslr.ORDER_QTY,
+	oplslr.MO_QTY,
+	oplslr.CREATE_ID,
+	oplslr.CREATE_DATE
+FROM
+	order_po_listing_size_log_revision oplslr
+LEFT JOIN order_po_listing opl ON opl.ORDER_PO_ID = oplslr.ORDER_PO_ID 
+WHERE oplslr.ORDER_NO = :orderID AND oplslr.ORDER_PO_ID = :orderPOID AND REV_ID = :revID
+`;

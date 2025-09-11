@@ -6,15 +6,18 @@ import {
     ModelOrderPOHeader,
     ModelOrderPOHeaderLogStatus,
     ModelOrderPOListingLogStatus,
+    ModelOrderPOListingSizeLogRevision,
     ModelOrderRoute,
     ModelSupplyChainPlanning,
     OrderMOListing,
     queryCheckBOMStructureByOrderIDAndItemTypeCode,
     queryCheckTNAEventStatusByOrderID,
+    queryDetailPOSizeRevision,
     queryGetAllPOIDByOrderID,
     queryGetDefaultProcessRoute,
     queryGetListOrderHeader,
     queryGetListPOIDStatus,
+    queryGetLogPOListingSizeRevision,
     queryGetLogStatusOrderHeaderByOrderID,
     queryGetMOListingByOrderID,
     queryGetOrderInventoryDetail,
@@ -110,7 +113,6 @@ export const changeOrderHeaderStatus = async (req, res) => {
         });
 
     } catch(err){
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -606,7 +608,7 @@ export const postPOSizeListing = async (req, res) => {
             if (CheckData) {
                 // delete data po size jika null order qty & mo qty
                 if(data.ORDER_QTY==='' && data.MO_QTY===''){
-                   await OrderPoListingSize.destroy({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true})
+                    await OrderPoListingSize.destroy({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true})
                 } else {
                     // update data po size
                     await OrderPoListingSize.update({
@@ -649,7 +651,10 @@ export const postPOSizeListing = async (req, res) => {
                         MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                         SIZE_ID: data.SIZE_ID,
                         SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
-                        UPDATE_BY: data.UPDATE_BY
+                        REV_ID: data.PO_STATUS==='Open' ? Number(CheckData.REV_ID) : Number(CheckData.REV_ID) + 1,
+                        REV_NOTE: data.REV_NOTE,
+                        UPDATE_BY: data.UPDATE_BY,
+                        UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
                     }, {
                         where: {
                             ORDER_PO_ID: data.ORDER_PO_ID,
@@ -657,9 +662,73 @@ export const postPOSizeListing = async (req, res) => {
                             SIZE_CODE: data.SIZE_CODE,
                         }
                     });
-                }                    
+                }
+
+                // check po status
+                if(data.PO_STATUS==='Open'){
+                    if(Number(data.ORDER_QTY)!==0 || Number(data.MO_QTY)!==0){
+                        // update existing po size listing log revision
+                        await ModelOrderPOListingSizeLogRevision.update({
+                                REV_NOTE: data.REV_NOTE,
+                                ORDER_QTY: data.ORDER_QTY,
+                                MO_QTY: data.MO_QTY,
+                                UNIT_PRICE: data.UNIT_PRICE,
+                                CREATE_ID: data.CREATE_BY,
+                                CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                        }, {
+                            where: {
+                                ORDER_NO: data.ORDER_NO,
+                                ORDER_PO_ID: data.ORDER_PO_ID,
+                                REV_ID: Number(data.REV_ID),
+                                SIZE_ID: data.SIZE_ID,
+                                SIZE_CODE: data.SIZE_CODE
+                            }
+                        });    
+                    } else {
+                        // delete existing po size listing log revision
+                        await ModelOrderPOListingSizeLogRevision.destroy({
+                            where: {
+                                ORDER_NO: data.ORDER_NO,
+                                ORDER_PO_ID: data.ORDER_PO_ID,
+                                REV_ID: Number(data.REV_ID),
+                                SIZE_ID: data.SIZE_ID,
+                                SIZE_CODE: data.SIZE_CODE
+                            }
+                        });
+                    }
+                } else {
+                    // add new data to po size listing log revision
+                    await ModelOrderPOListingSizeLogRevision.create({
+                            ORDER_NO: data.ORDER_NO,
+                            ORDER_PO_ID: data.ORDER_PO_ID,
+                            REV_ID: Number(data.REV_ID) + 1,
+                            REV_NOTE: data.REV_NOTE,
+                            SIZE_ID: data.SIZE_ID,
+                            SIZE_CODE: data.SIZE_CODE,
+                            ORDER_QTY: data.ORDER_QTY,
+                            MO_QTY: data.MO_QTY,
+                            UNIT_PRICE: data.UNIT_PRICE,
+                            CREATE_ID: data.CREATE_BY,
+                            CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
+                    });
+                }
+                
             } else {
-                if(data.ORDER_NO && data.ORDER_PO_ID && data.SIZE_CODE && data.ORDER_QTY!==null){
+                if(data.ORDER_NO && data.ORDER_PO_ID && data.SIZE_CODE && data.ORDER_QTY!==''){
+                    // add data to po size listing log revision
+                    await ModelOrderPOListingSizeLogRevision.create({
+                        ORDER_NO: data.ORDER_NO,
+                        ORDER_PO_ID: data.ORDER_PO_ID,
+                        REV_ID: Number(data.REV_ID),
+                        REV_NOTE: data.REV_NOTE,
+                        SIZE_ID: data.SIZE_ID,
+                        SIZE_CODE: data.SIZE_CODE,
+                        ORDER_QTY: data.ORDER_QTY,
+                        MO_QTY: data.MO_QTY,
+                        UNIT_PRICE: data.UNIT_PRICE,
+                        CREATE_ID: data.CREATE_BY
+                    });
+
                     // buat data po size
                     await OrderPoListingSize.create({
                         MANUFACTURING_COMPANY: data.MANUFACTURING_COMPANY,
@@ -703,12 +772,25 @@ export const postPOSizeListing = async (req, res) => {
                         SIZE_CODE: data.SIZE_CODE,
                         SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
                         ORDER_PO_ID: data.ORDER_PO_ID,
+                        REV_ID: 0,
+                        REV_NOTE: data.REV_NOTE,
                         CREATE_BY: data.CREATE_BY,
+                        CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
                         SUMMIT_FLAG: 1
                     });
                 }
             }
         }
+
+        // trigger bom structure revision
+        await BomStructureModel.update({
+            IS_NOT_ALLOW_REVISION:0
+        },{
+            where: {
+                ORDER_ID: DataPOSize[0].ORDER_NO
+            }
+        })
+
         return res.status(200).json({
             success: 200,
             message: "success post po size"
@@ -1036,7 +1118,6 @@ export const changeMOListingStatus = async(req,res) => {
 export const postMOListing = async (req, res) => {
     try {
         const {DataMOID} = req.body;
-        console.log(DataMOID);
         if (DataMOID.ORDER_MO_ID) {
             await OrderMOListing.update({
                 MO_CODE: DataMOID.MO_CODE,
@@ -1153,7 +1234,6 @@ export const getOrderInventoryDetail = async(req,res) => {
             data: getData
         });
     } catch(err){
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -1575,3 +1655,59 @@ export const postOrderDataRoute = async (req, res) => {
     });
   }
 };
+
+
+
+export const getPOListingSizeLogRevisionByRevID = async(req,res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID } = req.query;
+        if(ORDER_ID && ORDER_PO_ID){
+            const data = await db.query(queryGetLogPOListingSizeRevision, {
+                replacements: {
+                    orderID: ORDER_ID,
+                    orderPOID: ORDER_PO_ID
+                },
+                type: QueryTypes.SELECT
+            });
+             return res.status(200).json({
+                success: true,
+                message: `Success get data po listing size revision log`,
+                data
+            });
+        }
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+            message: "error get order po listing size log revision"
+        });
+    }
+}
+
+
+export const getPOSizeLogRevisionDetailByRevID = async(req,res) => {
+    try {
+        const { ORDER_ID, ORDER_PO_ID, REV_ID } = req.query;
+        if(ORDER_ID && ORDER_PO_ID && REV_ID){
+            const data = await db.query(queryDetailPOSizeRevision, {
+                replacements: {
+                    orderID: ORDER_ID,
+                    orderPOID: ORDER_PO_ID,
+                    revID: REV_ID
+                },
+                type: QueryTypes.SELECT
+            });
+            return res.status(200).json({
+                success: true,
+                message: `Success get data po listing size revision detail`,
+                data
+            });
+        }
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+            message: "error get order po listing size log revision"
+        });
+    }
+}
