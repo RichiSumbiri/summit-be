@@ -97,7 +97,9 @@ export const getAllBomTemplateLists = async (req, res) => {
         const lists = await BomTemplateListModel.findAll({
             where: {
                 ...whereCondition, IS_DELETED: false,
-            }, include: [{
+            },
+            include: [
+                {
                 model: MasterItemIdModel,
                 as: "MASTER_ITEM",
                 attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
@@ -117,7 +119,10 @@ export const getAllBomTemplateLists = async (req, res) => {
             }, {
                 model: Users, as: "UPDATED", attributes: ['USER_NAME']
             },],
+            order: [['BOM_TEMPLATE_LINE_ID', 'ASC']]
         });
+
+
 
         return res.status(200).json({
             success: true, message: "BOM template lists retrieved successfully", data: lists,
@@ -358,7 +363,10 @@ export const updateBomTemplateListStatus = async (req, res) => {
             if (listDetail) request.IS_SPLIT_STATUS = true
             if (STATUS === "Confirmed") {
                 if (!listDetail) {
-                    return res.status(500).json({status: false, message: "Cannot change to confirm because split detail not found "})
+                    return res.status(500).json({
+                        status: false,
+                        message: "Cannot change to confirm because split detail not found "
+                    })
                 }
                 request.APPROVE_BY = UPDATED_ID
                 request.APPROVE_DATE = new Date()
@@ -398,17 +406,18 @@ export const updateBomTemplateListSingle = async (req, res) => {
             });
         }
 
-       if (reqBody?.MASTER_ITEM_ID || reqBody?.VENDOR_ID) {
-           const bomStructureListDetail = await BomTemplateListDetailMod.findOne({
-               where: {
-                   BOM_TEMPLATE_LIST_ID: id,
-                   IS_DELETED: false
-               }
-           })
-           if (bomStructureListDetail) return res.status(500).json({
-               success: false, message: "Cannot modify master item and vendor because BOM structure detail list already exists",
-           });
-       }
+        if (reqBody?.MASTER_ITEM_ID || reqBody?.VENDOR_ID) {
+            const bomStructureListDetail = await BomTemplateListDetailMod.findOne({
+                where: {
+                    BOM_TEMPLATE_LIST_ID: id,
+                    IS_DELETED: false
+                }
+            })
+            if (bomStructureListDetail) return res.status(500).json({
+                success: false,
+                message: "Cannot modify master item and vendor because BOM structure detail list already exists",
+            });
+        }
         await list.update({
             ...reqBody, UPDATED_AT: new Date(), UPDATED_ID: USER_ID
         });
