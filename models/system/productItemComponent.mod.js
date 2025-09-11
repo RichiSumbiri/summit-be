@@ -13,8 +13,12 @@ const ProductItemComponentModel = db.define(
             autoIncrement: true,
             allowNull: false,
         },
-        MASTER_ITEM_COMPONENT_ID: {
+        COMPONENT_ID: {
             type: DataTypes.STRING(12),
+            allowNull: true,
+        },
+        COMPONENT_NAME: {
+            type: DataTypes.STRING(255),
             allowNull: true,
         },
         PRODUCT_ID: {
@@ -64,7 +68,7 @@ ProductItemComponentModel.belongsTo(ProductItemModel, {
 })
 
 ProductItemComponentModel.belongsTo(MasterItemComponent, {
-    foreignKey: "MASTER_ITEM_COMPONENT_ID",
+    foreignKey: "COMPONENT_ID",
     as: "MASTER_ITEM_COMPONENT"
 })
 

@@ -6,12 +6,12 @@ import {Op} from "sequelize";
 
 export const createProductItemComponent = async (req, res) => {
     try {
-        const { MASTER_ITEM_COMPONENT_ID, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
+        const { COMPONENT_ID, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
 
-        if (!MASTER_ITEM_COMPONENT_ID || !PRODUCT_ID) {
+        if (!COMPONENT_ID || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "Master Item Component and Product are required",
+                message: "Component and Product are required",
             });
         }
         const productItem = await ProductItemModel.findOne({
@@ -28,24 +28,24 @@ export const createProductItemComponent = async (req, res) => {
 
         const masterItemComponent = await MasterItemComponent.findOne({
             where: {
-                ID: MASTER_ITEM_COMPONENT_ID
+                ID: COMPONENT_ID
             }
         })
         if (!masterItemComponent) {
             return res.status(400).json({
                 status: false,
-                message: "Master Item Component not found",
+                message: "Component not found",
             })
         }
 
         const alreadyData = await  ProductItemComponentModel.findOne({ where: {
-                MASTER_ITEM_COMPONENT_ID, PRODUCT_ID
+                COMPONENT_ID, PRODUCT_ID
             }})
 
-        if (alreadyData) return res.status(400).json({status: false, message: "Product Item & Master Item Component already exists"})
+        if (alreadyData) return res.status(400).json({status: false, message: "Product Item & Component already exists"})
 
         await ProductItemComponentModel.create({
-            MASTER_ITEM_COMPONENT_ID,
+            COMPONENT_ID,
             PRODUCT_ID,
             IS_ACTIVE,
             CREATED_ID: USER_ID,
@@ -65,14 +65,14 @@ export const createProductItemComponent = async (req, res) => {
 };
 
 export const getAllProductItemComponents = async (req, res) => {
-    const { PRODUCT_ID, MASTER_ITEM_COMPONENT_ID } = req.query
+    const { PRODUCT_ID, COMPONENT_ID } = req.query
 
     const where = { IS_DELETED: false }
     if (PRODUCT_ID) {
         where.PRODUCT_ID = PRODUCT_ID
     }
-    if (MASTER_ITEM_COMPONENT_ID) {
-        where.MASTER_ITEM_COMPONENT_ID = MASTER_ITEM_COMPONENT_ID
+    if (COMPONENT_ID) {
+        where.COMPONENT_ID = COMPONENT_ID
     }
 
     try {
@@ -154,7 +154,7 @@ export const getProductItemComponentById = async (req, res) => {
 export const updateProductItemComponent = async (req, res) => {
     try {
         const { id } = req.params;
-        const { MASTER_ITEM_COMPONENT_ID, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
+        const { COMPONENT_ID, PRODUCT_ID, IS_ACTIVE, USER_ID } = req.body;
 
         const component = await ProductItemComponentModel.findOne({
             where: { ID: id},
@@ -167,10 +167,10 @@ export const updateProductItemComponent = async (req, res) => {
             });
         }
 
-        if (!MASTER_ITEM_COMPONENT_ID || !PRODUCT_ID) {
+        if (!COMPONENT_ID || !PRODUCT_ID) {
             return res.status(400).json({
                 success: false,
-                message: "Master Item Component and Product are required",
+                message: "Component and Product are required",
             });
         }
 
@@ -188,24 +188,24 @@ export const updateProductItemComponent = async (req, res) => {
 
         const masterItemComponent = await MasterItemComponent.findOne({
             where: {
-                ID: MASTER_ITEM_COMPONENT_ID
+                ID: COMPONENT_ID
             }
         })
         if (!masterItemComponent) {
             return res.status(400).json({
                 status: false,
-                message: "Master Item Component not found",
+                message: "Component not found",
             })
         }
 
         const alreadyData = await  ProductItemComponentModel.findOne({ where: {
-                MASTER_ITEM_COMPONENT_ID, PRODUCT_ID, ID: {[Op.ne]: id}
+                COMPONENT_ID, PRODUCT_ID, ID: {[Op.ne]: id}
             }})
 
-        if (alreadyData) return res.status(400).json({status: false, message: "Product Item & Master Item Component already exists"})
+        if (alreadyData) return res.status(400).json({status: false, message: "Product Item & Component already exists"})
 
         await component.update({
-            MASTER_ITEM_COMPONENT_ID,
+            COMPONENT_ID,
             PRODUCT_ID,
             IS_ACTIVE,
             UPDATED_ID: USER_ID,
