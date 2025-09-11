@@ -1121,3 +1121,60 @@ export const ModelOrderRoute = db.define(
       timestamps: false, // karena tidak ada kolom createdAt/updatedAt
     }
   );
+
+
+export const ModelOrderPOListingSizeLogRevision = db.define("order_po_listing_size_log_revision", {
+  ID: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  ORDER_NO: {
+    type: DataTypes.CHAR(10),
+    allowNull: true
+  },
+  ORDER_PO_ID: {
+    type: DataTypes.CHAR(10),
+    allowNull: true
+  },
+  REV_ID: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  REV_NOTE: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  SIZE_ID: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  SIZE_CODE: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  ORDER_QTY: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  MO_QTY: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  UNIT_PRICE: {
+    type: DataTypes.DECIMAL(60,6),
+    allowNull: true
+  },
+  CREATE_ID: {
+    type: DataTypes.STRING(200),
+    allowNull: true
+  },
+  CREATE_DATE: {
+    type: DataTypes.DATE,
+    allowNull: true
+  }
+}, {
+  tableName: "order_po_listing_size_log_revision",
+  timestamps: false
+});
