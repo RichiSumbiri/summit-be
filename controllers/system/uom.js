@@ -127,13 +127,22 @@ export const getAllUomCategories = async (req, res) => {
     if (ITEM_CATEGORY_CODE) where.ITEM_CATEGORY_CODE = ITEM_CATEGORY_CODE
     if (UOM) where.UOM = UOM;
 
-    try {
-        const categories = await UomCategories.findAll({ where });
 
+    try {
+        const response = []
+        const categories = await UomCategories.findAll({ where });
+        for (let i = 0; i < categories.length; i++) {
+            const data = categories[i].dataValues
+            const masterUom = await ModelMasterUOM.findOne({where: {UOM_CODE: data.UOM}})
+            if (!masterUom) {
+                continue
+            }
+            response.push({...data, UOM_DESCRIPTION: masterUom.UOM_DESCRIPTION})
+        }
         return res.status(200).json({
             success: true,
             message: "Kategori UOM berhasil diambil",
-            data: categories,
+            data: response,
         });
     } catch (error) {
         return res.status(500).json({
