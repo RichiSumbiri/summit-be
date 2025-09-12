@@ -32,6 +32,7 @@ export const getAllVendorDetail = async(req,res) => {
 export const postVendorDetail = async(req,res) => {
     try {
         const { dataVendor } = req.body;
+        console.log(dataVendor);
         let actionVendor = null;
         if(!dataVendor.VENDOR_ID || dataVendor.VENDOR_ID==='<< NEW >>'){
             const getLastVDCID = await ModelVendorDetail.findOne({
@@ -138,7 +139,7 @@ export const postVendorDetail = async(req,res) => {
         return res.status(200).json({
             success: true,
             message: "success post vendor detail",
-            data: actionVendor.toJSON()
+            data: (!dataVendor.VENDOR_ID || dataVendor.VENDOR_ID==='<< NEW >>') ? actionVendor.toJSON() : actionVendor
         });
     } catch(err){
         return res.status(500).json({
