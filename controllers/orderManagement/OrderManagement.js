@@ -603,6 +603,7 @@ export const postPOListing = async (req, res) => {
 export const postPOSizeListing = async (req, res) => {
     try {
         const { DataPOSize } = req.body;
+        console.log(DataPOSize);
         for (const data of DataPOSize) {
             const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true});
             if (CheckData) {
@@ -782,12 +783,14 @@ export const postPOSizeListing = async (req, res) => {
             }
         }
 
+        const CheckOrderID = DataPOSize.filter((dd=>dd.ORDER_NO));
+
         // trigger bom structure revision
         await BomStructureModel.update({
             IS_NOT_ALLOW_REVISION:0
         },{
             where: {
-                ORDER_ID: DataPOSize[0].ORDER_NO
+                ORDER_ID: CheckOrderID[0].ORDER_NO
             }
         })
 
