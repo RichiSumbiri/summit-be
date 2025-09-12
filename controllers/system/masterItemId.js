@@ -1042,7 +1042,8 @@ export const getListFGItemIDByProductID = async(req,res) => {
         if(dataRedis){
             dataGMT = JSON.parse(dataRedis);
         } else {
-            dataGMT = await db.query(queryMasterProductIDGMT, { type: QueryTypes.SELECT });
+            // dataGMT = await db.query(queryMasterProductIDGMT, { type: QueryTypes.SELECT });
+            dataGMT = await db.query('SELECT * FROM view_finish_good_product',{ type: QueryTypes.SELECT });
             redisConn.set('list-finish-good-product', JSON.stringify(dataGMT), { EX: 604800 })
         }
         if(dataGMT){

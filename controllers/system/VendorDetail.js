@@ -32,14 +32,15 @@ export const getAllVendorDetail = async(req,res) => {
 export const postVendorDetail = async(req,res) => {
     try {
         const { dataVendor } = req.body;
-        if(!dataVendor.VENDOR_ID){
+        let actionVendor = null;
+        if(!dataVendor.VENDOR_ID || dataVendor.VENDOR_ID==='<< NEW >>'){
             const getLastVDCID = await ModelVendorDetail.findOne({
                 order: [['VENDOR_ID', 'DESC']],
                 raw: true
             }); 
             const newIncrement = !getLastVDCID ? '0000001' : parseInt(getLastVDCID.VENDOR_ID.slice(-7)) + 1;
             const newVDCID = 'VDC' + newIncrement.toString().padStart(7, '0');
-            await ModelVendorDetail.create({
+            actionVendor = await ModelVendorDetail.create({
                 VENDOR_ID: newVDCID,
                 VENDOR_CODE: dataVendor.VENDOR_CODE,
                 VENDOR_NAME: dataVendor.VENDOR_NAME,
@@ -85,7 +86,7 @@ export const postVendorDetail = async(req,res) => {
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss'),
             });
         } else {
-            await ModelVendorDetail.update({
+            actionVendor = await ModelVendorDetail.update({
                 VENDOR_CODE: dataVendor.VENDOR_CODE,
                 VENDOR_NAME: dataVendor.VENDOR_NAME,
                 VENDOR_ACTIVE: dataVendor.VENDOR_ACTIVE,
@@ -137,6 +138,7 @@ export const postVendorDetail = async(req,res) => {
         return res.status(200).json({
             success: true,
             message: "success post vendor detail",
+            data: actionVendor.toJSON()
         });
     } catch(err){
         return res.status(500).json({
@@ -312,6 +314,7 @@ export  const getVendorPurchaseByFilter = async  (req, res) => {
 export const postVendorPurchaseDetail = async(req,res) => {
     try {
         const { dataVPD } = req.body;
+        console.log(dataVPD);
         if(dataVPD.VPD_ID){
             await ModelVendorPurchaseDetail.update({
                 CUSTOMER_ID: dataVPD.CUSTOMER_ID,
