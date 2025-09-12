@@ -361,7 +361,15 @@ export const BomStructureListDetailModel = db.define("bom_structure_list_detail"
     UPDATED_ID: {
         type: DataTypes.INTEGER,
         allowNull: true,
-    }
+    },
+    IS_DELETED: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    DELETED_AT: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
     tableName: 'bom_structure_list_detail',
     timestamps: false,

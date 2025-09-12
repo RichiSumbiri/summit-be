@@ -304,7 +304,7 @@ export const updateBomStructureList = async (req, res) => {
         if (body?.MASTER_ITEM_ID || body?.VENDOR_ID || body?.IS_SPLIT_NO_PO !== undefined || body?.IS_SPLIT_COLOR !== undefined || body?.IS_SPLIT_SIZE !== undefined) {
             const bomStructureListDetailCount = await BomStructureListDetailModel.count({
                 where: {
-                    BOM_STRUCTURE_LIST_ID: id
+                    BOM_STRUCTURE_LIST_ID: id, IS_DELETED: false
                 }
             })
             if (bomStructureListDetailCount) return res.status(500).json({
@@ -447,7 +447,7 @@ export const updateBomStructureListStatus = async (req, res) => {
 
         if (status === "Confirmed") {
             const listDetails = await BomStructureListDetailModel.findAll({
-                where: {BOM_STRUCTURE_LIST_ID: id},
+                where: {BOM_STRUCTURE_LIST_ID: id, IS_DELETED: false},
                 include: [{
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
@@ -748,7 +748,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
             try {
                 if (status === "Confirmed") {
                     const listDetails = await BomStructureListDetailModel.findAll({
-                        where: { BOM_STRUCTURE_LIST_ID: record.ID },
+                        where: { BOM_STRUCTURE_LIST_ID: record.ID, IS_DELETED: false },
                         include: [
                             {
                                 model: BomStructureListModel,

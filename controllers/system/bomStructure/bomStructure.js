@@ -1,7 +1,7 @@
 import BomStructureModel, {
     BomStructureListDetailModel,
     BomStructureListModel,
-    BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel
+    BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel, BomStructureSourcingDetail
 } from "../../../models/system/bomStructure.mod.js";
 import BomTemplateModel, {
     BomTemplateNote,
@@ -364,9 +364,21 @@ export const importBomTemplateListToStructure = async (req, res) => {
 
         for (const item in listBomStructure) {
             const data2 = listBomStructure[item].dataValues
-            await BomStructureListDetailModel.destroy({
+            await BomStructureListDetailModel.update({
+                IS_DELETED: true,
+                DELETED_AT: new Date(),
+            }, {
                 where: {
                     BOM_STRUCTURE_LIST_ID: data2.ID
+                }
+            })
+
+            await BomStructureSourcingDetail.update({
+                IS_DELETED: true,
+                DELETED_AT: new Date(),
+            }, {
+                where: {
+                    BOM_STRUCTURE_LINE_ID: data2.ID
                 }
             })
 

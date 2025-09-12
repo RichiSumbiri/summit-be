@@ -14,7 +14,7 @@ import Users from "../../../models/setup/users.mod.js";
 
 export const getAllBomStructureListDetails = async (req, res) => {
     const { BOM_STRUCTURE_LIST_ID, ITEM_DIMENSION_ID, COLOR_ID, SIZE_ID } = req.query;
-    const where = {};
+    const where = {IS_DELETED: false};
 
     if (BOM_STRUCTURE_LIST_ID) where.BOM_STRUCTURE_LIST_ID = BOM_STRUCTURE_LIST_ID;
     if (ITEM_DIMENSION_ID) where.ITEM_DIMENSION_ID = ITEM_DIMENSION_ID;
@@ -219,7 +219,8 @@ export const revertBomStructureListDetail = async (req, res) => {
         const detailsToRevert = await BomStructureListDetailModel.findAll({
             where: {
                 ID: { [Op.in]: bomStructureListDetail },
-                BOM_STRUCTURE_LIST_ID: bomStructureListId
+                BOM_STRUCTURE_LIST_ID: bomStructureListId,
+                IS_DELETED: false
             }
         });
 
@@ -250,7 +251,7 @@ export const revertBomStructureListDetail = async (req, res) => {
             CREATED_AT: new Date()
         }));
 
-        await BomStructureListDetailModel.destroy({
+        await BomStructureListDetailModel.update({IS_DELETED: true, DELETED_AT: new Date()},{
             where: {
                 ID: { [Op.in]: bomStructureListDetail }
             }
@@ -450,7 +451,7 @@ export const deleteBomStructureListDetail = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const deleted = await BomStructureListDetailModel.destroy({ where: { ID: id } });
+        const deleted = await BomStructureListDetailModel.update({IS_DELETED: true, DELETED_AT: new Date()},{ where: { ID: id } });
         if (!deleted) return res.status(404).json({
             success: false,
             message: "Detail not found",

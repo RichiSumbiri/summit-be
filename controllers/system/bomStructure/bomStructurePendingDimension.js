@@ -350,6 +350,7 @@ export const createPendingDimensionStructure = async (req, res) => {
             const existingDetails = await BomStructureListDetailModel.findAll({
                 where: {
                     BOM_STRUCTURE_LIST_ID,
+                    IS_DELETED: false,
                     [Op.or]: finalRequest.map(r => ({
                         COLOR_ID: r.COLOR_ID,
                         SIZE_ID: r.SIZE_ID,
@@ -564,7 +565,7 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
         }
 
         const existingDetailCount = await BomStructureListDetailModel.count({
-            where: { BOM_STRUCTURE_LIST_ID: id }
+            where: { BOM_STRUCTURE_LIST_ID: id, IS_DELETED: false }
         });
 
         if (existingDetailCount > 0) {
@@ -835,6 +836,7 @@ export const createPendingDimensionFromBomTemplateList = async (req, res) => {
             const existingDetails = await BomStructureListDetailModel.findAll({
                 where: {
                     BOM_STRUCTURE_LIST_ID: id,
+                    IS_DELETED: false,
                     [Op.or]: finalRequest.map(r => ({
                         COLOR_ID: r.COLOR_ID,
                         SIZE_ID: r.SIZE_ID,
