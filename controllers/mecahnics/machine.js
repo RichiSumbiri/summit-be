@@ -164,13 +164,22 @@ export const updateMachineAndStorage = async (req, res) => {
       });
     }
 
+    const limitMachine = Number(storageInventory?.LEVEL) * Number(storageInventory?.POSITION)
+    const countScanMec = machineNos.length
+    if (countScanMec > limitMachine) {
+      return res.status(500).json({
+        success: false,
+        message: `Machine being scanned has exceeded the limit is ${limitMachine}, Current ${countScanMec}`,
+      });
+    }
+
     const machinesInStorage = await MecListMachine.findAll({
       where: { STORAGE_INVENTORY_ID: storageInventory.ID },
-      order: [["SEQ_NO", "DESC"]], 
+      order: [["SEQ_NO", "DESC"]],
     });
 
     let newSeqNo = machinesInStorage.length > 0 ? machinesInStorage[0].SEQ_NO + 1 : 1;
-    
+
     const updatedMachines = [];
     for (const machineNo of machineNos) {
       const downtimeValid = await MecDownTimeModel.findOne({
@@ -191,9 +200,9 @@ export const updateMachineAndStorage = async (req, res) => {
 
       if (!machine) {
         console.warn(`Machine with ID ${machineNo} not found. Skipping...`);
-        continue; 
+        continue;
       }
-      
+
       await machine.update({
         STORAGE_INVENTORY_ID: storageInventory.ID,
         SEQ_NO: newSeqNo,
