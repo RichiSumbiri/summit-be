@@ -382,6 +382,45 @@ export const importBomTemplateListToStructure = async (req, res) => {
                 BOM_STRUCTURE_ID: id,
             }
         })
+
+        const newBomStructureListData = await Promise.all(bomTemplateList.map(async (item, idx) => {
+            const templateData = item.dataValues;
+            const masterItem = await MasterItemIdModel.findByPk(templateData.MASTER_ITEM_ID);
+            if (!masterItem) {
+                throw new Error(`Master Item ${templateData.MASTER_ITEM_ID} not found`);
+            }
+
+            return {
+                COMPANY_ID,
+                BOM_LINE_ID: idx + 1,
+                STATUS: "Open",
+                BOM_STRUCTURE_ID: id,
+                MASTER_ITEM_ID: templateData.MASTER_ITEM_ID,
+                STANDARD_CONSUMPTION_PER_ITEM: parseFloat(templateData.STANDARD_CONSUMER_PER_ITEM) || 0,
+                INTERNAL_CONSUMPTION_PER_ITEM: parseFloat(templateData.INTERNAL_CUSTOMER_PER_ITEM) || 0,
+                BOOKING_CONSUMPTION_PER_ITEM: parseFloat(templateData.COSTING_CONSUMER_PER_ITEM) || 0,
+                PRODUCTION_CONSUMPTION_PER_ITEM: 0,
+                CONSUMPTION_UOM: masterItem.ITEM_UOM_BASE || masterItem.ITEM_UOM_DEFAULT || null,
+                VENDOR_ID: templateData.VENDOR_ID || null,
+                ITEM_POSITION: templateData.ITEM_POSITION || null,
+                NOTE: templateData.NOTE || null,
+                IS_SPLIT_COLOR: templateData.IS_SPLIT_COLOR || false,
+                IS_SPLIT_SIZE: templateData.IS_SPLIT_SIZE || false,
+                IS_SPLIT_NO_PO: templateData.IS_SPLIT_NO_PO || false,
+                IS_SPLIT_STATUS: false,
+                IS_ACTIVE: true,
+                IS_DELETED: false,
+                CREATED_ID: USER_ID,
+                CREATED_AT: new Date(),
+                UPDATED_ID: null,
+                UPDATED_AT: null,
+                DELETED_AT: null
+            }
+        }));
+
+        await BomStructureListModel.bulkCreate(newBomStructureListData, {
+            validate: true
+        });
         return res.status(200).json({success: true, message: "Success import bom structure"})
     } catch (err) {
         return res.status(500).json({status: false, message: "Failed to import bom template list" + err.message})
