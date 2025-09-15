@@ -1,402 +1,414 @@
-import { DataTypes } from "sequelize";
+import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
+import ColorChartMod from "../system/colorChart.mod.js";
+import SizeChartMod from "../system/sizeChart.mod.js";
 
 export const Orders = db.define(
-  "order_detail",
-  {
-    BUYER_CODE: { type: DataTypes.STRING(10), allowNull: false },
-    ORDER_NO: { type: DataTypes.STRING(20), allowNull: false },
-    PRODUCT_TYPE: { type: DataTypes.STRING(20), allowNull: false },
-    BUYER_PO: { type: DataTypes.STRING(200), allowNull: false },
-    MO_NO: { type: DataTypes.STRING(50), allowNull: false },
-    ORDER_VERSION: { type: DataTypes.STRING(10), allowNull: false },
-    SHIPMENT_DATE: { type: DataTypes.DATE, allowNull: false },
-    ORDER_QTY: { type: DataTypes.INTEGER(10), allowNull: false },
-    MOL_STATUS: { type: DataTypes.INTEGER(10)},
-    ORDER_COLOR: { type: DataTypes.STRING(100), allowNull: false },
-    ORDER_SIZE: { type: DataTypes.STRING(20), allowNull: false },
-    ORDER_STYLE: { type: DataTypes.STRING(255), allowNull: false },
-    BARCODE_SERIAL: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      primaryKey: true,
+    "order_detail",
+    {
+        BUYER_CODE: {type: DataTypes.STRING(10), allowNull: false},
+        ORDER_NO: {type: DataTypes.STRING(20), allowNull: false},
+        PRODUCT_TYPE: {type: DataTypes.STRING(20), allowNull: false},
+        BUYER_PO: {type: DataTypes.STRING(200), allowNull: false},
+        MO_NO: {type: DataTypes.STRING(50), allowNull: false},
+        ORDER_VERSION: {type: DataTypes.STRING(10), allowNull: false},
+        SHIPMENT_DATE: {type: DataTypes.DATE, allowNull: false},
+        ORDER_QTY: {type: DataTypes.INTEGER(10), allowNull: false},
+        MOL_STATUS: {type: DataTypes.INTEGER(10)},
+        ORDER_COLOR: {type: DataTypes.STRING(100), allowNull: false},
+        ORDER_SIZE: {type: DataTypes.STRING(20), allowNull: false},
+        ORDER_STYLE: {type: DataTypes.STRING(255), allowNull: false},
+        BARCODE_SERIAL: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+            primaryKey: true,
+        },
+        SITE_LINE: {type: DataTypes.STRING(20), allowNull: false},
+        CREATE_DATE: {type: DataTypes.DATE, allowNull: true},
+        UPDATE_DATE: {type: DataTypes.DATE, allowNull: true},
+        CREATE_BY: {type: DataTypes.BIGINT},
+        UPDATE_BY: {type: DataTypes.BIGINT},
     },
-    SITE_LINE: { type: DataTypes.STRING(20), allowNull: false },
-    CREATE_DATE: { type: DataTypes.DATE, allowNull: true },
-    UPDATE_DATE: { type: DataTypes.DATE, allowNull: true },
-    CREATE_BY: { type: DataTypes.BIGINT },
-    UPDATE_BY: { type: DataTypes.BIGINT },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "CREATE_DATE",
-    updatedAt: "UPDATE_DATE",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "CREATE_DATE",
+        updatedAt: "UPDATE_DATE",
+    }
 );
 
 export const OrderPoListing = db.define(
-  "order_po_listing",
-  {
-    MANUFACTURING_COMPANY: { type: DataTypes.STRING(5), allowNull: true },
-    ORDER_PLACEMENT_COMPANY: { type: DataTypes.STRING(5), allowNull: true },
-    CUSTOMER_ID: { type: DataTypes.STRING(20), allowNull: true },
-    CUSTOMER_NAME: { type: DataTypes.STRING(20), allowNull: true },
-    CUSTOMER_DIVISION: { type: DataTypes.STRING(50), allowNull: true },
-    CUSTOMER_DIVISION_ID: { type: DataTypes.STRING(20), allowNull: true },
-    CUSTOMER_SEASON: { type: DataTypes.STRING(5), allowNull: true },
-    CUSTOMER_SEASON_ID: { type: DataTypes.STRING(20), allowNull: true },
-    CUSTOMER_PROGRAM: { type: DataTypes.STRING(50), allowNull: true },
-    CUSTOMER_PROGRAM_ID: { type: DataTypes.STRING(20), allowNull: true },
-    CUSTOMER_BUY_PLAN: { type: DataTypes.STRING(100), allowNull: true },
-    CUSTOMER_BUYPLAN_ID: { type: DataTypes.STRING(20), allowNull: true },
-    PROJECTION_ORDER_ID: { type: DataTypes.STRING(10), allowNull: true },
-    PROJECTION_ORDER_CODE: { type: DataTypes.STRING(50), allowNull: true },
-    ORDER_TYPE_CODE: { type: DataTypes.STRING(3), allowNull: true },
-    ORDER_NO: { type: DataTypes.STRING(10), allowNull: true },
-    ORDER_REFERENCE_PO_NO: { type: DataTypes.STRING(50), allowNull: true },
-    ORDER_STYLE_DESCRIPTION: { type: DataTypes.STRING(255), allowNull: true },
-    ORDER_PO_ID: { type: DataTypes.STRING(10), allowNull: true, primaryKey: true },
-    PO_STATUS: { type: DataTypes.STRING(100), allowNull: true },
-    MO_AVAILABILITY: { type: DataTypes.BOOLEAN, allowNull: true },
-    MO_NO: { type: DataTypes.STRING(10), allowNull: true },
-    MO_RELEASED_DATE: { type: DataTypes.DATE, allowNull: true },
-    PO_REF_CODE: { type: DataTypes.STRING(255), allowNull: true },
-    PRODUCT_ITEM_ID: { type: DataTypes.STRING(50), allowNull: true },
-    PRODUCT_ITEM_CODE: { type: DataTypes.STRING(50), allowNull: true },
-    PRODUCT_ITEM_DESCRIPTION: { type: DataTypes.STRING(255), allowNull: true },
-    PRODUCT_ID: { type: DataTypes.STRING(10), allowNull: true },
-    PRODUCT_TYPE: { type: DataTypes.STRING(10), allowNull: true },
-    PRODUCT_CATEGORY: { type: DataTypes.STRING(50), allowNull: true },
-    ITEM_COLOR_ID: { type: DataTypes.STRING(50), allowNull: true },
-    ITEM_COLOR_CODE: { type: DataTypes.STRING(50), allowNull: true },
-    ITEM_COLOR_NAME: { type: DataTypes.STRING(50), allowNull: true },
-    ORDER_QTY: { type: DataTypes.INTEGER(100), allowNull: true },
-    MO_QTY: { type: DataTypes.INTEGER(100), allowNull: true },
-    SHIPMENT_PO_QTY: { type: DataTypes.INTEGER(50), allowNull: true },
-    ORDER_UOM: { type: DataTypes.INTEGER(50), allowNull: true },
-    PLAN_MO_QTY_PERCENTAGE: { type: DataTypes.DOUBLE, allowNull: true },
-    SHIPMENT_PO_QTY_VARIANCE: { type: DataTypes.DOUBLE, allowNull: true },
-    PLAN_SHIPMENT_PO_PERCENTAGE: { type: DataTypes.DOUBLE, allowNull: true },
-    SHIPPED_QTY: { type: DataTypes.INTEGER(100), allowNull: true },
-    ORDER_TO_SHIPPED_PERCENTAGE: { type: DataTypes.DOUBLE, allowNull: true },
-    DELIVERY_TERM: { type: DataTypes.STRING(50), allowNull: true },
-    PRICE_TYPE: { type: DataTypes.STRING(50), allowNull: true },
-    UNIT_PRICE: { type: DataTypes.DECIMAL(200, 6), allowNull: true },
-    UNIT_PRICE_FINAL: { type: DataTypes.DECIMAL(200, 6), allowNull: true },
-    MO_COST: { type: DataTypes.DECIMAL(200, 4), allowNull: true },
-    TOTAL_ORDER_COST: { type: DataTypes.DECIMAL(200, 6), allowNull: true },
-    TOTAL_MO_COST: {
-      type: DataTypes.DECIMAL(200, 6),
-      allowNull: true,
+    "order_po_listing",
+    {
+        MANUFACTURING_COMPANY: {type: DataTypes.STRING(5), allowNull: true},
+        ORDER_PLACEMENT_COMPANY: {type: DataTypes.STRING(5), allowNull: true},
+        CUSTOMER_ID: {type: DataTypes.STRING(20), allowNull: true},
+        CUSTOMER_NAME: {type: DataTypes.STRING(20), allowNull: true},
+        CUSTOMER_DIVISION: {type: DataTypes.STRING(50), allowNull: true},
+        CUSTOMER_DIVISION_ID: {type: DataTypes.STRING(20), allowNull: true},
+        CUSTOMER_SEASON: {type: DataTypes.STRING(5), allowNull: true},
+        CUSTOMER_SEASON_ID: {type: DataTypes.STRING(20), allowNull: true},
+        CUSTOMER_PROGRAM: {type: DataTypes.STRING(50), allowNull: true},
+        CUSTOMER_PROGRAM_ID: {type: DataTypes.STRING(20), allowNull: true},
+        CUSTOMER_BUY_PLAN: {type: DataTypes.STRING(100), allowNull: true},
+        CUSTOMER_BUYPLAN_ID: {type: DataTypes.STRING(20), allowNull: true},
+        PROJECTION_ORDER_ID: {type: DataTypes.STRING(10), allowNull: true},
+        PROJECTION_ORDER_CODE: {type: DataTypes.STRING(50), allowNull: true},
+        ORDER_TYPE_CODE: {type: DataTypes.STRING(3), allowNull: true},
+        ORDER_NO: {type: DataTypes.STRING(10), allowNull: true},
+        ORDER_REFERENCE_PO_NO: {type: DataTypes.STRING(50), allowNull: true},
+        ORDER_STYLE_DESCRIPTION: {type: DataTypes.STRING(255), allowNull: true},
+        ORDER_PO_ID: {type: DataTypes.STRING(10), allowNull: true, primaryKey: true},
+        PO_STATUS: {type: DataTypes.STRING(100), allowNull: true},
+        MO_AVAILABILITY: {type: DataTypes.BOOLEAN, allowNull: true},
+        MO_NO: {type: DataTypes.STRING(10), allowNull: true},
+        MO_RELEASED_DATE: {type: DataTypes.DATE, allowNull: true},
+        PO_REF_CODE: {type: DataTypes.STRING(255), allowNull: true},
+        PRODUCT_ITEM_ID: {type: DataTypes.STRING(50), allowNull: true},
+        PRODUCT_ITEM_CODE: {type: DataTypes.STRING(50), allowNull: true},
+        PRODUCT_ITEM_DESCRIPTION: {type: DataTypes.STRING(255), allowNull: true},
+        PRODUCT_ID: {type: DataTypes.STRING(10), allowNull: true},
+        PRODUCT_TYPE: {type: DataTypes.STRING(10), allowNull: true},
+        PRODUCT_CATEGORY: {type: DataTypes.STRING(50), allowNull: true},
+        ITEM_COLOR_ID: {type: DataTypes.STRING(50), allowNull: true},
+        ITEM_COLOR_CODE: {type: DataTypes.STRING(50), allowNull: true},
+        ITEM_COLOR_NAME: {type: DataTypes.STRING(50), allowNull: true},
+        ORDER_QTY: {type: DataTypes.INTEGER(100), allowNull: true},
+        MO_QTY: {type: DataTypes.INTEGER(100), allowNull: true},
+        SHIPMENT_PO_QTY: {type: DataTypes.INTEGER(50), allowNull: true},
+        ORDER_UOM: {type: DataTypes.INTEGER(50), allowNull: true},
+        PLAN_MO_QTY_PERCENTAGE: {type: DataTypes.DOUBLE, allowNull: true},
+        SHIPMENT_PO_QTY_VARIANCE: {type: DataTypes.DOUBLE, allowNull: true},
+        PLAN_SHIPMENT_PO_PERCENTAGE: {type: DataTypes.DOUBLE, allowNull: true},
+        SHIPPED_QTY: {type: DataTypes.INTEGER(100), allowNull: true},
+        ORDER_TO_SHIPPED_PERCENTAGE: {type: DataTypes.DOUBLE, allowNull: true},
+        DELIVERY_TERM: {type: DataTypes.STRING(50), allowNull: true},
+        PRICE_TYPE: {type: DataTypes.STRING(50), allowNull: true},
+        UNIT_PRICE: {type: DataTypes.DECIMAL(200, 6), allowNull: true},
+        UNIT_PRICE_FINAL: {type: DataTypes.DECIMAL(200, 6), allowNull: true},
+        MO_COST: {type: DataTypes.DECIMAL(200, 4), allowNull: true},
+        TOTAL_ORDER_COST: {type: DataTypes.DECIMAL(200, 6), allowNull: true},
+        TOTAL_MO_COST: {
+            type: DataTypes.DECIMAL(200, 6),
+            allowNull: true,
+        },
+        CURRENCY_CODE: {
+            type: DataTypes.STRING(5),
+            allowNull: true,
+        },
+        DELIVERY_LOCATION_ID: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        DELIVERY_LOCATION_NAME: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        COUNTRY: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        PACKING_METHOD: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        DELIVERY_MODE_CODE: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        PO_CREATED_DATE: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        PO_CONFIRMED_DATE: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        TARGET_PCD: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        ORIGINAL_DELIVERY_DATE: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        FINAL_DELIVERY_DATE: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        PLAN_EXFACTORY_DATE: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        PO_EXPIRY_DATE: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        PRODUCTION_MONTH: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        MANUFACTURING_SITE: {
+            type: DataTypes.STRING(15),
+            allowNull: true,
+        },
+        NEW_MANUFACTURING_SITE: {
+            type: DataTypes.STRING(15),
+            allowNull: true,
+        },
+        ORDER_PRODUCT_ITEM_ID: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        ORDER_PRODUCT_ITEM_CODE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        ORDER_PRODUCT_ITEM_DESCRIPTION: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        ORDER_PRODUCT_ITEM_TYPE: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        NEW_TARGET_PCD: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        NEW_FINAL_DELIVERY_DATE: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        NEW_PLAN_EXFACTORY_DATE: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        SUMMIT_FLAG: {type: DataTypes.INTEGER(1), allowNull: true, defaultValue: '0'},
+        SCRAP_PERCENTAGE: {type: DataTypes.DECIMAL(65, 2), defaultValue: 0}
     },
-    CURRENCY_CODE: {
-      type: DataTypes.STRING(5),
-      allowNull: true,
-    },
-    DELIVERY_LOCATION_ID: {
-      type: DataTypes.STRING(10),
-      allowNull: true,
-    },
-    DELIVERY_LOCATION_NAME: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    COUNTRY: {
-      type: DataTypes.STRING(10),
-      allowNull: true,
-    },
-    PACKING_METHOD: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    DELIVERY_MODE_CODE: {
-      type: DataTypes.STRING(10),
-      allowNull: true,
-    },
-    PO_CREATED_DATE: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    PO_CONFIRMED_DATE: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    TARGET_PCD: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    ORIGINAL_DELIVERY_DATE: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    FINAL_DELIVERY_DATE: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    PLAN_EXFACTORY_DATE: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    PO_EXPIRY_DATE: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    PRODUCTION_MONTH: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    MANUFACTURING_SITE: {
-      type: DataTypes.STRING(15),
-      allowNull: true,
-    },
-    NEW_MANUFACTURING_SITE: {
-      type: DataTypes.STRING(15),
-      allowNull: true,
-    },
-    ORDER_PRODUCT_ITEM_ID: {
-      type: DataTypes.STRING(10),
-      allowNull: true,
-    },
-    ORDER_PRODUCT_ITEM_CODE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    ORDER_PRODUCT_ITEM_DESCRIPTION: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    ORDER_PRODUCT_ITEM_TYPE: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-    },
-    NEW_TARGET_PCD: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    NEW_FINAL_DELIVERY_DATE: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    NEW_PLAN_EXFACTORY_DATE: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    SUMMIT_FLAG: { type: DataTypes.INTEGER(1), allowNull: true, defaultValue:'0' },
-  },
-  {
-    freezeTableName: true,
-    createdAt: false,
-    updatedAt: false,
-  }
+    {
+        freezeTableName: true,
+        createdAt: false,
+        updatedAt: false,
+    }
 );
 
 Orders.removeAttribute("id");
 OrderPoListing.removeAttribute("id");
 
+OrderPoListing.belongsTo(ColorChartMod, {
+    foreignKey: "ITEM_COLOR_ID",
+    as: "ITEM_COLOR"
+})
+
 export const OrderPoListingSize = db.define("order_po_listing_size", {
-  ID_POL_SIZE: {
-    type: DataTypes.BIGINT,
-    allowNull: true
-  },
-  MANUFACTURING_COMPANY: {
-    type: DataTypes.STRING(5),
-    allowNull: true
-  },
-  ORDER_PLACEMENT_COMPANY: {
-    type: DataTypes.STRING(5),
-    allowNull: true
-  },
-  CUSTOMER_NAME: {
-    type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  CUSTOMER_DIVISION: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  CUSTOMER_SEASON: {
-    type: DataTypes.STRING(20),
-    allowNull: true
-  },
-  CUSTOMER_PROGRAM: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  CUSTOMER_BUY_PLAN: {
-    type: DataTypes.STRING(100),
-    allowNull: true
-  },
-  ORDER_NO: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  ORDER_REFERENCE_PO_NO: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  ORDER_STYLE_DESCRIPTION: {
-    type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  ORDER_PO_ID: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  PO_STATUS: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
-    defaultValue: "Open"
-  },
-  MO_AVAILABILITY: {
-    type: DataTypes.STRING(50),
-    allowNull: true,
-    defaultValue: "No"
-  },
-  MO_NO: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  MO_RELEASED_DATE: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
-  PO_REF_CODE: {
-    type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  PRODUCT_ITEM_ID: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  PRODUCT_ITEM_CODE: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  PRODUCT_ITEM_DESCRIPTION: {
-    type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  PRODUCT_ID: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  PRODUCT_TYPE: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  PRODUCT_CATEGORY: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  ITEM_COLOR_ID: {
-    type: DataTypes.STRING(100),
-    allowNull: true
-  },
-  ITEM_COLOR_CODE: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  ITEM_COLOR_NAME: {
-    type: DataTypes.STRING(200),
-    allowNull: true
-  },
-  SIZE_ID: {
-    type: DataTypes.STRING(100),
-    allowNull: true
-  },
-  SIZE_CODE: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  ORDER_QTY: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  MO_QTY: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  SHIPMENT_PO_QTY: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  UNIT_PRICE: {
-    type: DataTypes.DECIMAL(65,6),
-    allowNull: true
-  },
-  ORDER_UOM: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  SHIPPED_QTY: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  DELIVERY_LOCATION_ID: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  DELIVERY_LOCATION_NAME: {
-    type: DataTypes.STRING(100),
-    allowNull: true
-  },
-  COUNTRY: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  FINAL_DELIVERY_DATE: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
-  PLAN_EXFACTORY_DATE: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
-  PRODUCTION_MONTH: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
-  MANUFACTURING_SITE: {
-    type: DataTypes.STRING(15),
-    allowNull: true
-  },
-  CREATE_DATE: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  CREATE_BY: {
-    type: DataTypes.BIGINT,
-    allowNull: true
-  },
-  UPDATE_DATE: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  UPDATE_BY: {
-    type: DataTypes.BIGINT,
-    allowNull: true
-  },
-  SUMMIT_FLAG: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    defaultValue: 0
-  },
-  REV_ID: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    defaultValue: 0
-  },
-  REV_NOTE: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  }
+    ID_POL_SIZE: {
+        type: DataTypes.BIGINT,
+        allowNull: true
+    },
+    MANUFACTURING_COMPANY: {
+        type: DataTypes.STRING(5),
+        allowNull: true
+    },
+    ORDER_PLACEMENT_COMPANY: {
+        type: DataTypes.STRING(5),
+        allowNull: true
+    },
+    CUSTOMER_NAME: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    CUSTOMER_DIVISION: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    CUSTOMER_SEASON: {
+        type: DataTypes.STRING(20),
+        allowNull: true
+    },
+    CUSTOMER_PROGRAM: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    CUSTOMER_BUY_PLAN: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    ORDER_NO: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    ORDER_REFERENCE_PO_NO: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    ORDER_STYLE_DESCRIPTION: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    PO_STATUS: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        defaultValue: "Open"
+    },
+    MO_AVAILABILITY: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        defaultValue: "No"
+    },
+    MO_NO: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    MO_RELEASED_DATE: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    PO_REF_CODE: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    PRODUCT_ITEM_ID: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    PRODUCT_ITEM_CODE: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    PRODUCT_ITEM_DESCRIPTION: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    PRODUCT_ID: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    PRODUCT_TYPE: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    PRODUCT_CATEGORY: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    ITEM_COLOR_ID: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    ITEM_COLOR_CODE: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    ITEM_COLOR_NAME: {
+        type: DataTypes.STRING(200),
+        allowNull: true
+    },
+    SIZE_ID: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    SIZE_CODE: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    ORDER_QTY: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    MO_QTY: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    SHIPMENT_PO_QTY: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    UNIT_PRICE: {
+        type: DataTypes.DECIMAL(65, 6),
+        allowNull: true
+    },
+    ORDER_UOM: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    SHIPPED_QTY: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    DELIVERY_LOCATION_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    DELIVERY_LOCATION_NAME: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    COUNTRY: {
+        type: DataTypes.STRING(10),
+        allowNull: true
+    },
+    FINAL_DELIVERY_DATE: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    PLAN_EXFACTORY_DATE: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    PRODUCTION_MONTH: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    MANUFACTURING_SITE: {
+        type: DataTypes.STRING(15),
+        allowNull: true
+    },
+    CREATE_DATE: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    CREATE_BY: {
+        type: DataTypes.BIGINT,
+        allowNull: true
+    },
+    UPDATE_DATE: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    UPDATE_BY: {
+        type: DataTypes.BIGINT,
+        allowNull: true
+    },
+    SUMMIT_FLAG: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0
+    },
+    REV_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0
+    },
+    REV_NOTE: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    }
 }, {
-  tableName: "order_po_listing_size",
-  timestamps: false
+    tableName: "order_po_listing_size",
+    timestamps: false
 });
 
 OrderPoListingSize.removeAttribute("id");
 
+OrderPoListingSize.belongsTo(SizeChartMod, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE"
+})
 
 export const OrderDetailHeader = `SELECT * FROM vieworderdetailheader WHERE UPLOAD_DATE BETWEEN :startDate AND :endDate`;
 export const NewOrderDtlHeader = `SELECT
@@ -466,35 +478,35 @@ NA ON NA.SITE = N.SITE AND NA.LINE = N.LINE
 // NA ON NA.SITE = N.SITE AND NA.LINE = N.LINE`;
 
 export const PoMatrixDelivery = db.define(
-  "po_matrix_delivery",
-  {
-    PDM_ID: {
-      type: DataTypes.BIGINT,
-      primaryKey: true,
-      autoIncrement: true,
+    "po_matrix_delivery",
+    {
+        PDM_ID: {
+            type: DataTypes.BIGINT,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+        SITE_CODE: {type: DataTypes.STRING},
+        PROD_MONTH: {type: DataTypes.STRING},
+        BUYER_CODE: {type: DataTypes.STRING},
+        ORDER_NO: {type: DataTypes.STRING},
+        ORDER_REF_NO: {type: DataTypes.STRING},
+        ORDER_PO_STYLE_REF: {type: DataTypes.STRING},
+        COLOR_CODE: {type: DataTypes.STRING},
+        COLOR_NAME: {type: DataTypes.STRING},
+        PACKING_METHOD: {type: DataTypes.STRING},
+        EX_FACTORY: {type: DataTypes.DATE},
+        SIZE_CODE: {type: DataTypes.STRING},
+        TOTAL_QTY: {type: DataTypes.INTEGER},
+        PDM_ADD_DATE: {type: DataTypes.DATE},
+        PDM_MOD_DATE: {type: DataTypes.DATE},
+        PDM_ADD_ID: {type: DataTypes.BIGINT},
+        PDM_MOD_ID: {type: DataTypes.BIGINT},
     },
-    SITE_CODE: { type: DataTypes.STRING },
-    PROD_MONTH: { type: DataTypes.STRING },
-    BUYER_CODE: { type: DataTypes.STRING },
-    ORDER_NO: { type: DataTypes.STRING },
-    ORDER_REF_NO: { type: DataTypes.STRING },
-    ORDER_PO_STYLE_REF: { type: DataTypes.STRING },
-    COLOR_CODE: { type: DataTypes.STRING },
-    COLOR_NAME: { type: DataTypes.STRING },
-    PACKING_METHOD: { type: DataTypes.STRING },
-    EX_FACTORY: { type: DataTypes.DATE },
-    SIZE_CODE: { type: DataTypes.STRING },
-    TOTAL_QTY: { type: DataTypes.INTEGER },
-    PDM_ADD_DATE: { type: DataTypes.DATE },
-    PDM_MOD_DATE: { type: DataTypes.DATE },
-    PDM_ADD_ID: { type: DataTypes.BIGINT },
-    PDM_MOD_ID: { type: DataTypes.BIGINT },
-  },
-  {
-    freezeTableName: true,
-    createdAt: "PDM_ADD_DATE",
-    updatedAt: "PDM_MOD_DATE",
-  }
+    {
+        freezeTableName: true,
+        createdAt: "PDM_ADD_DATE",
+        updatedAt: "PDM_MOD_DATE",
+    }
 );
 
 export const QueryGetPOMatrix = `SELECT b.ID_CAPACITY, a.PDM_ID, a.SITE_CODE, a.PROD_MONTH, a.BUYER_CODE, a.ORDER_NO, a.ORDER_REF_NO, a.ORDER_PO_STYLE_REF, 
@@ -614,204 +626,204 @@ WHERE a.ORDER_PO_ID = :poId AND a.ITEM_COLOR_CODE = :colorCode AND a.SIZE_CODE =
 AND SUBSTRING(b.BARCODE_SERIAL,1,3) ='SSC' `;
 
 export const OrderPoBuyersAsli = db.define(
-  "order_po_buyer",
-  {
-    VENDOR: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
+    "order_po_buyer",
+    {
+        VENDOR: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        PO_NUMBER: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        PO_ITEM: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        SEGMENT: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        SLOC: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        ARTICLE_TYPE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        ARTICLE_GENERIC: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        ARTICLE: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        QTY: {
+            type: DataTypes.INTEGER(11),
+            allowNull: true,
+        },
+        COLOR_CODE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        COLOR_DESCRIPTION: {
+            type: DataTypes.STRING(150),
+            allowNull: true,
+        },
+        SIZE_CODE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        UPC_CODE: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        PO_PRICE: {
+            type: DataTypes.DOUBLE,
+            allowNull: true,
+        },
+        // DPC: {
+        //   type: DataTypes.STRING(100),
+        //   allowNull: true,
+        // },
+        // ITEM: {
+        //   type: DataTypes.STRING(100),
+        //   allowNull: true,
+        // },
+        FACTORY_NUMBER: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        FACTORY_NAME: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        DESCRIPTION: {
+            type: DataTypes.STRING(200),
+            allowNull: true,
+        },
+        CHAIN_ID: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        FIBER_CONTENT: {
+            type: DataTypes.STRING(200),
+            allowNull: true,
+        },
+        PO_QTY: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        PC_PER_CTN: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        ADD_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        PO_DATE: {
+            type: DataTypes.DATE,
+        },
+        EX_FACTORY: {
+            type: DataTypes.DATE,
+        },
+        createdAt: {
+            type: DataTypes.DATE,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+        },
     },
-    PO_NUMBER: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    PO_ITEM: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    SEGMENT: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    SLOC: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    ARTICLE_TYPE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    ARTICLE_GENERIC: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    ARTICLE: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    QTY: {
-      type: DataTypes.INTEGER(11),
-      allowNull: true,
-    },
-    COLOR_CODE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    COLOR_DESCRIPTION: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-    },
-    SIZE_CODE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    UPC_CODE: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    PO_PRICE: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-    },
-    // DPC: {
-    //   type: DataTypes.STRING(100),
-    //   allowNull: true,
-    // },
-    // ITEM: {
-    //   type: DataTypes.STRING(100),
-    //   allowNull: true,
-    // },
-    FACTORY_NUMBER: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    FACTORY_NAME: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    DESCRIPTION: {
-      type: DataTypes.STRING(200),
-      allowNull: true,
-    },
-    CHAIN_ID: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    FIBER_CONTENT: {
-      type: DataTypes.STRING(200),
-      allowNull: true,
-    },
-    PO_QTY: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    PC_PER_CTN: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    ADD_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    PO_DATE: {
-      type: DataTypes.DATE,
-    },
-    EX_FACTORY: {
-      type: DataTypes.DATE,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-  },
-  {
-    freezeTableName: true,
-  }
+    {
+        freezeTableName: true,
+    }
 );
 
 OrderPoBuyersAsli.removeAttribute("id");
 
 export const OrderPoBuyersDetail = db.define(
-  "order_po_buyer_detail",
-  {
-    VENDOR: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
+    "order_po_buyer_detail",
+    {
+        VENDOR: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        PO_NUMBER: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        PO_ITEM: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        SEGMENT: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        SLOC: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        ARTICLE_TYPE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        ARTICLE_GENERIC: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        ARTICLE: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        QTY: {
+            type: DataTypes.INTEGER(11),
+            allowNull: true,
+        },
+        COLOR_CODE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        COLOR_DESCRIPTION: {
+            type: DataTypes.STRING(150),
+            allowNull: true,
+        },
+        SIZE_CODE: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+        },
+        UPC_CODE: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        PO_QTY: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        PC_PER_PACK: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        ADD_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        PO_DATE: {
+            type: DataTypes.DATE,
+        },
+        createdAt: {
+            type: DataTypes.DATE,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+        },
     },
-    PO_NUMBER: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    PO_ITEM: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    SEGMENT: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    SLOC: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    ARTICLE_TYPE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    ARTICLE_GENERIC: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    ARTICLE: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    QTY: {
-      type: DataTypes.INTEGER(11),
-      allowNull: true,
-    },
-    COLOR_CODE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    COLOR_DESCRIPTION: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-    },
-    SIZE_CODE: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    UPC_CODE: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    PO_QTY: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    PC_PER_PACK: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    ADD_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    PO_DATE: {
-      type: DataTypes.DATE,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-  },
-  {
-    freezeTableName: true,
-  }
+    {
+        freezeTableName: true,
+    }
 );
 
 OrderPoBuyersDetail.removeAttribute("id");

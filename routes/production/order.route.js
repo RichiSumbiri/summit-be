@@ -9,9 +9,10 @@ import {
   deleteOrder,
 } from "../../controllers/production/order/OrderDetail.js";
 import {
+  getAllColorsFromOrderPoListing,
   getBlkNoList,
   getOneDetailPoSize,
-  getOrderPOListing,
+  getOrderPOListing, getOrderPoListingByOrderNo,
   getOrderPOListingSize,
   newOrderPOListing,
   newOrderPOListingSizes,
@@ -40,6 +41,10 @@ router.post("/detail", newOrder);
 router.delete("/detail/delete/:barcodeserial", deleteOrder);
 
 router.get("/polisting", getOrderPOListing);
+router.get("/polisting/items", getAllColorsFromOrderPoListing);
+router.get("/polisting/order", getOrderPoListingByOrderNo);
+
+
 router.post("/polisting", newOrderPOListing);
 
 router.post("/polisting-sizes", newOrderPOListingSizes);
