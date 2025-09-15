@@ -23,9 +23,10 @@ import {
     queryGetOrderInventoryDetail,
     queryGetSizeByGMT,
     queryListOrderPOAlteration,
+    queryRecapToPOMatrixDelivery,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
-import {OrderPoListing, OrderPoListingSize} from "../../models/production/order.mod.js";
+import {OrderPoListing, OrderPoListingSize, PoMatrixDelivery} from "../../models/production/order.mod.js";
 import moment from "moment";
 import MasterItemIdModel, { MasterItemIdAttributesModel } from "../../models/system/masterItemId.mod.js";
 import {
@@ -577,6 +578,7 @@ export const postPOListing = async (req, res) => {
                 SUMMIT_FLAG: 1
             });
 
+            
             // add to log order status change
             await ModelOrderPOListingLogStatus.create({
                 ORDER_ID: DataPOID.ORDER_ID,
@@ -586,11 +588,40 @@ export const postPOListing = async (req, res) => {
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
         }
+
+        console.log(DataPOID);
+
+        // create recap PO Matrix Delivery
+        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_ID }, type: QueryTypes.SELECT });
+        // clean + normalize data
+        const cleanRecap = recapPOMatrix.map(row => ({
+            SITE_CODE: row.SITE_CODE,
+            PROD_MONTH: moment(row.PROD_MONTH, "YYYY-MM").format("MMMM/YYYY"),
+            BUYER_CODE: row.BUYER_CODE,
+            ORDER_NO: row.ORDER_NO,
+            ORDER_REF_NO: row.ORDER_REF_NO,
+            ORDER_PO_STYLE_REF: row.ORDER_PO_STYLE_REF,
+            COLOR_CODE: row.COLOR_CODE,
+            COLOR_NAME: row.COLOR_NAME,
+            PACKING_METHOD: row.PACKING_METHOD,
+            EX_FACTORY: row.EX_FACTORY, // already JS Date, Sequelize will map to DATE
+            SIZE_CODE: row.SIZE_CODE,
+            TOTAL_QTY: Number(row.TOTAL_QTY), // ⚡ convert to number
+            PDM_ADD_DATE: row.PDM_ADD_DATE,
+            PDM_MOD_DATE: row.PDM_MOD_DATE,
+            PDM_MOD_ID: row.PDM_MOD_ID,
+            PDM_ADD_ID: row.PDM_ADD_ID
+        }));
+        await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_ID } });
+        await PoMatrixDelivery.bulkCreate(cleanRecap);
+        console.log(recapPOMatrix);
+
         return res.status(200).json({
             success: true,
             message: "success post po listing"
         });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -603,7 +634,6 @@ export const postPOListing = async (req, res) => {
 export const postPOSizeListing = async (req, res) => {
     try {
         const { DataPOSize } = req.body;
-        console.log(DataPOSize);
         for (const data of DataPOSize) {
             const CheckData = await OrderPoListingSize.findOne({ where: { ORDER_PO_ID: data.ORDER_PO_ID, SIZE_CODE: data.SIZE_CODE }, raw: true});
             if (CheckData) {
@@ -786,19 +816,38 @@ export const postPOSizeListing = async (req, res) => {
         const CheckOrderID = DataPOSize.filter((dd=>dd.ORDER_NO));
 
         // trigger bom structure revision
-        await BomStructureModel.update({
-            IS_NOT_ALLOW_REVISION:0
-        },{
-            where: {
-                ORDER_ID: CheckOrderID[0].ORDER_NO
-            }
-        })
+        await BomStructureModel.update({ IS_NOT_ALLOW_REVISION:0 },{ where: { ORDER_ID: CheckOrderID[0].ORDER_NO }});
 
+        // create recap PO Matrix Delivery
+        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: CheckOrderID[0].ORDER_NO }, type: QueryTypes.SELECT });
+        // clean + normalize data
+        const cleanRecap = recapPOMatrix.map(row => ({
+            SITE_CODE: row.SITE_CODE,
+            PROD_MONTH: moment(row.PROD_MONTH, "YYYY-MM").format("MMMM/YYYY"),
+            BUYER_CODE: row.BUYER_CODE,
+            ORDER_NO: row.ORDER_NO,
+            ORDER_REF_NO: row.ORDER_REF_NO,
+            ORDER_PO_STYLE_REF: row.ORDER_PO_STYLE_REF,
+            COLOR_CODE: row.COLOR_CODE,
+            COLOR_NAME: row.COLOR_NAME,
+            PACKING_METHOD: row.PACKING_METHOD,
+            EX_FACTORY: moment(row.EX_FACTORY).format('YYYY-MM-DD'),
+            SIZE_CODE: row.SIZE_CODE,
+            TOTAL_QTY: Number(row.TOTAL_QTY), 
+            PDM_ADD_DATE: row.PDM_ADD_DATE ? moment(row.PDM_ADD_DATE).format('YYYY-MM-DD HH:mm:ss') : null,
+            PDM_MOD_DATE: row.PDM_MOD_DATE ? moment(row.PDM_MOD_DATE).format('YYYY-MM-DD HH:mm:ss') : null,
+            PDM_MOD_ID: row.PDM_MOD_ID,
+            PDM_ADD_ID: row.PDM_ADD_ID
+        }));
+        await PoMatrixDelivery.destroy({ where: { ORDER_NO: CheckOrderID[0].ORDER_NO } });
+        await PoMatrixDelivery.bulkCreate(cleanRecap);
+        
         return res.status(200).json({
             success: 200,
             message: "success post po size"
         });
     } catch (err) {
+        console.error(err);
         return res.status(500).json({
             success: false,
             error: err,
@@ -1006,21 +1055,34 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
         });
 
+
+        // create recap PO Matrix Delivery
+        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: ORDER_ID }, type: QueryTypes.SELECT });
+        // clean + normalize data
+        const cleanRecap = recapPOMatrix.map(row => ({
+            SITE_CODE: row.SITE_CODE,
+            PROD_MONTH: moment(row.PROD_MONTH, "YYYY-MM").format("MMMM/YYYY"),
+            BUYER_CODE: row.BUYER_CODE,
+            ORDER_NO: row.ORDER_NO,
+            ORDER_REF_NO: row.ORDER_REF_NO,
+            ORDER_PO_STYLE_REF: row.ORDER_PO_STYLE_REF,
+            COLOR_CODE: row.COLOR_CODE,
+            COLOR_NAME: row.COLOR_NAME,
+            PACKING_METHOD: row.PACKING_METHOD,
+            EX_FACTORY: row.EX_FACTORY, // already JS Date, Sequelize will map to DATE
+            SIZE_CODE: row.SIZE_CODE,
+            TOTAL_QTY: Number(row.TOTAL_QTY), // ⚡ convert to number
+            PDM_ADD_DATE: row.PDM_ADD_DATE,
+            PDM_MOD_DATE: row.PDM_MOD_DATE,
+            PDM_MOD_ID: row.PDM_MOD_ID,
+            PDM_ADD_ID: row.PDM_ADD_ID
+        }));
+        await PoMatrixDelivery.destroy({ where: { ORDER_NO: ORDER_ID } });
+        await PoMatrixDelivery.bulkCreate(cleanRecap);
+        
         // update allow revision for bom structure if existing bom structure found
-        const CheckBOM = await BomStructureModel.findOne({
-            where: {
-                ORDER_ID: ORDER_ID
-            }
-        });
-        if(CheckBOM){
-            await BomStructureModel.update({
-                IS_NOT_ALLOW_REVISION: false
-            }, {
-                where: {
-                    ORDER_ID: ORDER_ID
-                }
-            });
-        }
+        const CheckBOM = await BomStructureModel.findOne({ where: { ORDER_ID: ORDER_ID } });
+        if(CheckBOM) await BomStructureModel.update({ IS_NOT_ALLOW_REVISION: false }, { where: { ORDER_ID: ORDER_ID } });
 
         return res.status(200).json({
             success: true,
