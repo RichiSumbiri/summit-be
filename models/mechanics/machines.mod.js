@@ -180,7 +180,15 @@ export const MecDownTimeModel = db.define(
         SCHD_ID: {
             type: DataTypes.INTEGER,
             allowNull: false,
-        }
+        },
+        CREATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        UPDATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
     },
     {
         tableName: "mec_down_time",

@@ -199,6 +199,38 @@ export const getStorageInventoryById = async (req, res) => {
   }
 };
 
+
+export  const getStorageInventoryByIdCountMachine = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const inventory = await StorageInventoryModel.findByPk(id);
+    if (!inventory) return res.status(404).json({
+      success: false,
+      message: "Storage inventory not found",
+    });
+
+    const machineCount = await MecListMachine.count({
+      where: {
+        STORAGE_INVENTORY_ID: id
+      }
+    })
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Storage inventory count machinr",
+      data: machineCount,
+    });
+  } catch (error) {
+    console.error("Error retrieving storage inventory:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve storage inventory: ${error.message}`,
+    });
+  }
+};
+
+
 export const getStorageInventoryBySerialNumber = async (req, res) => {
   try {
     const { serialNumber } = req.params;
