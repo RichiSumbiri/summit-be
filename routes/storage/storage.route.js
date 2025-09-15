@@ -6,7 +6,7 @@ import {
     updateStorageInventory,
     deleteStorageInventory,
     getStorageInventoryBySerialNumber,
-    getStorageInventoryBySitelineId
+    getStorageInventoryBySitelineId, getStorageInventoryByIdCountMachine
 } from "../../controllers/storage/storageInventory.js"
 const router = express.Router();
 

@@ -166,7 +166,7 @@ export const updateMachineAndStorage = async (req, res) => {
 
     const currentMachine = await MecListMachine.count({
       where: {
-        STORAGE_INVENTORY_ID: storageInventory.length
+        STORAGE_INVENTORY_ID: storageInventory.ID
       }
     })
 
