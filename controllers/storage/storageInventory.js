@@ -276,7 +276,7 @@ export const getStorageInventoryBySerialNumber = async (req, res) => {
 export const updateStorageInventory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, RAK_NUMBER, CATEGORY, LEVEL, POSITION, DESCRIPTION } = req.body;
+    const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, RAK_NUMBER, CATEGORY, LEVEL, POSITION } = req.body;
 
 
     const inventory = await StorageInventoryModel.findByPk(id);
@@ -320,7 +320,6 @@ export const updateStorageInventory = async (req, res) => {
       CATEGORY,
       LEVEL,
       POSITION,
-      DESCRIPTION,
       SERIAL_NUMBER,
     });
 
