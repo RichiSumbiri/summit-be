@@ -7,6 +7,21 @@ FROM product_item_component pic
 WHERE pic.IS_ACTIVE = 1 AND pic.PRODUCT_ID = :productId`
 
 
+export const qryListGetServices = `SELECT
+	miis.ID,
+	miis.MASTER_ITEM_ID,
+	miis.MASTER_SERVICE_ID,
+	miis.MASTER_SERVICE_VALUE_ID,
+	sa.ATTRIBUTE_NAME,
+	sav.SERVICE_ATTRIBUTE_VALUE_CODE,
+	sav.SERVICE_ATTRIBUTE_VALUE_NAME 
+FROM
+	master_item_id_service miis 
+LEFT JOIN service_attributes sa  ON sa.SERVICE_ATTRIBUTE_ID = miis.MASTER_SERVICE_ID 
+LEFT JOIN service_attribute_values sav ON sav.SERVICE_ATTRIBUTE_VALUE_ID = miis.MASTER_SERVICE_VALUE_ID 
+WHERE miis.IS_DELETED = 0 AND miis.MASTER_ITEM_ID = :productId`
+
+
 export const qryGetBomRmList = `SELECT
 	bs.ORDER_ID,
 	bs.ID AS BOM_STRUCTURE_ID,
@@ -37,10 +52,7 @@ FROM bom_structure bs
  export const qryGetCompListColor = `SELECT 
 	opl.ITEM_COLOR_ID,
 	opl.ITEM_COLOR_CODE, 
-	opl.ITEM_COLOR_NAME,
-	'' AS DIMD,
-	'' AS MATERIAL_ITEM,
-	'' AS MATERIAL_COLOR
+	opl.ITEM_COLOR_NAME
 FROM order_po_listing opl 
 WHERE opl.ORDER_NO = :orderId
 GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
@@ -83,12 +95,20 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
         type: DataTypes.STRING(100),
         allowNull: true,
       },
+      COMPONENT_TBL_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       COMPONENT_ID: {
         type: DataTypes.STRING(100),
         allowNull: true,
       },
       DIMENSION_ID: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      ITEM_DIMENSION_ID: {
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       MAIN_COMPONENT: {
@@ -105,6 +125,10 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
       },
       MOD_ID: {
         type: DataTypes.BIGINT,
+        allowNull: true,
+      },
+      IS_DELETED: {
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       createdAt: {
@@ -148,10 +172,14 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
     ocd.PRODUCT_ID,
     ocd.COMPONENT_ID,
     ocd.DIMENSION_ID,
+    ocd.MAIN_COMPONENT,
     ocd.ADD_ID,
     ocd.MOD_ID,
+    ocd.IS_ACTIVE,
     mcc.COLOR_CODE,
     mcc.COLOR_DESCRIPTION,
+    mcc2.COLOR_CODE AS DIM_COLOR_CODE,
+    mcc2.COLOR_DESCRIPTION AS DIM_COLOR_DESCRIPTION,
     pic.COMPONENT_NAME,
     mii.ITEM_CODE,
     mii.ITEM_DESCRIPTION
@@ -160,7 +188,9 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
   LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = ocd.ITEM_COLOR_ID  
   LEFT JOIN product_item_component pic ON pic.PRODUCT_ID = ocd.PRODUCT_ID AND pic.COMPONENT_ID = ocd.COMPONENT_ID
   LEFT JOIN master_item_id mii ON mii.ITEM_ID = ocd.MASTER_ITEM_ID
-  WHERE ocd.ORDER_ID  = :orderId
+  LEFT JOIN master_item_dimension mid2 ON mid2.ID = ocd.ITEM_DIMENSION_ID
+  LEFT JOIN master_color_chart mcc2 ON mcc2.COLOR_ID = mid2.COLOR_ID 
+  WHERE ocd.ORDER_ID  = :orderId AND ocd.IS_DELETED = 0
 `
 
 export const qryGetDimByStructure = `SELECT 
