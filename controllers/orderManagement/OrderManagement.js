@@ -589,7 +589,6 @@ export const postPOListing = async (req, res) => {
             });
         }
 
-        console.log(DataPOID);
 
         // create recap PO Matrix Delivery
         const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_ID }, type: QueryTypes.SELECT });
@@ -614,14 +613,12 @@ export const postPOListing = async (req, res) => {
         }));
         await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_ID } });
         await PoMatrixDelivery.bulkCreate(cleanRecap);
-        console.log(recapPOMatrix);
-
+        
         return res.status(200).json({
             success: true,
             message: "success post po listing"
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
