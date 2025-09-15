@@ -596,7 +596,7 @@ export const postPOListing = async (req, res) => {
         // clean + normalize data
         const cleanRecap = recapPOMatrix.map(row => ({
             SITE_CODE: row.SITE_CODE,
-            PROD_MONTH: row.PROD_MONTH,
+            PROD_MONTH: moment(row.PROD_MONTH, "YYYY-MM").format("MMMM/YYYY"),
             BUYER_CODE: row.BUYER_CODE,
             ORDER_NO: row.ORDER_NO,
             ORDER_REF_NO: row.ORDER_REF_NO,
@@ -823,7 +823,7 @@ export const postPOSizeListing = async (req, res) => {
         // clean + normalize data
         const cleanRecap = recapPOMatrix.map(row => ({
             SITE_CODE: row.SITE_CODE,
-            PROD_MONTH: row.PROD_MONTH,
+            PROD_MONTH: moment(row.PROD_MONTH, "YYYY-MM").format("MMMM/YYYY"),
             BUYER_CODE: row.BUYER_CODE,
             ORDER_NO: row.ORDER_NO,
             ORDER_REF_NO: row.ORDER_REF_NO,
@@ -1061,7 +1061,7 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
         // clean + normalize data
         const cleanRecap = recapPOMatrix.map(row => ({
             SITE_CODE: row.SITE_CODE,
-            PROD_MONTH: row.PROD_MONTH,
+            PROD_MONTH: moment(row.PROD_MONTH, "YYYY-MM").format("MMMM/YYYY"),
             BUYER_CODE: row.BUYER_CODE,
             ORDER_NO: row.ORDER_NO,
             ORDER_REF_NO: row.ORDER_REF_NO,
