@@ -164,8 +164,15 @@ export const updateMachineAndStorage = async (req, res) => {
       });
     }
 
-    const limitMachine = Number(storageInventory?.LEVEL) * Number(storageInventory?.POSITION)
+    const currentMachine = await MecListMachine.count({
+      where: {
+        STORAGE_INVENTORY_ID: storageInventory.length
+      }
+    })
+
+    const limitMachine = (Number(storageInventory?.LEVEL) * Number(storageInventory?.POSITION)) - currentMachine
     const countScanMec = machineNos.length
+
     if (countScanMec > limitMachine) {
       return res.status(500).json({
         success: false,
