@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import MasterAttributeValue from "./masterAttributeValue.mod.js";
 
 const ProductItemModel = db.define(
     "product_item",
@@ -68,5 +69,14 @@ const ProductItemModel = db.define(
     }
 );
 
+ProductItemModel.belongsTo(MasterAttributeValue, {
+    foreignKey: "PRODUCT_TYPE_ATTB",
+    as: "PRODUCT_TYPE"
+})
+
+ProductItemModel.belongsTo(MasterAttributeValue, {
+    foreignKey: "PRODUCT_CAT_ATTB",
+    as: "PRODUCT_CAT"
+})
 
 export default ProductItemModel;

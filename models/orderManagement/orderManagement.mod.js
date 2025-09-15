@@ -10,6 +10,7 @@ import {
   CustomerProgramName
 } from "../system/customer.mod.js";
 import { orderitemSMV } from "./orderitemSMV.mod.js";
+import {ModelProjectionOrder} from "./ProjectionOrder.mod.js";
 
 export const ModelOrderPOHeader = db.define('order_po_header', {
   ORDER_ID: {
@@ -187,6 +188,27 @@ ModelOrderPOHeader.belongsTo(CustomerBuyPlan, {
     foreignKey: "CUSTOMER_BUYPLAN_ID",
     as: "CUSTOMER_BUYPLAN"
 })
+ModelOrderPOHeader.belongsTo(ModelProjectionOrder, {
+    foreignKey: "PROJECTION_ORDER_ID",
+    as: "PROJECTION_ORDER"
+})
+
+ModelOrderPOHeader.belongsTo(CustomerDetail, {
+    foreignKey: "CUSTOMER_ID",
+    targetKey: "CTC_ID",
+    as: "customer_detail",
+});
+ModelOrderPOHeader.belongsTo(CustomerProductDivision, {
+    foreignKey: "CUSTOMER_DIVISION_ID",
+    targetKey: "CTPROD_DIVISION_ID",
+    as: "customer_product_division",
+});
+ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
+    foreignKey: "CUSTOMER_SEASON_ID",
+    targetKey: "CTPROD_SESION_ID",
+    as: "customer_product_season",
+});
+
 
 export const ModelOrderPODetail = db.define('order_po_detail', {
     PO_ID: {
@@ -397,21 +419,6 @@ LEFT JOIN (
 WHERE oph.ORDER_STATUS= :orderStatus
 `;
 
-ModelOrderPOHeader.belongsTo(CustomerDetail, {
-  foreignKey: "CUSTOMER_ID",
-  targetKey: "CTC_ID",
-  as: "customer_detail",
-});
-ModelOrderPOHeader.belongsTo(CustomerProductDivision, {
-  foreignKey: "CUSTOMER_DIVISION_ID",
-  targetKey: "CTPROD_DIVISION_ID",
-  as: "customer_product_division",
-});
-ModelOrderPOHeader.belongsTo(CustomerProductSeason, {
-  foreignKey: "CUSTOMER_SEASON_ID",
-  targetKey: "CTPROD_SESION_ID",
-  as: "customer_product_season",
-});
 
 export const queryGetSizeByGMT = `
 SELECT

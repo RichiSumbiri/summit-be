@@ -8,6 +8,7 @@ import BomTemplateModel, {
 } from "../../../models/system/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../../models/orderManagement/orderManagement.mod.js";
 import {
+    CustomerBuyPlan,
     CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName
 } from "../../../models/system/customer.mod.js";
 import Users from "../../../models/setup/users.mod.js";
@@ -15,6 +16,15 @@ import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
 import {Op} from "sequelize";
 import CompanyMod from "../../../models/setup/company.mod.js";
+import {ModelProjectionOrder} from "../../../models/orderManagement/ProjectionOrder.mod.js";
+import ProductItemModel from "../../../models/system/productItem.mod.js";
+import MasterAttributeValue from "../../../models/system/masterAttributeValue.mod.js";
+import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
+import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
+import ColorChartMod from "../../../models/system/colorChart.mod.js";
+import SizeChartMod from "../../../models/system/sizeChart.mod.js";
+import {OrderPoListing} from "../../../models/production/order.mod.js";
+import MasterCompanyModel from "../../../models/setup/company.mod.js";
 
 export const getAllBomStructures = async (req, res) => {
     try {
@@ -105,18 +115,90 @@ export const getBomStructureById = async (req, res) => {
         const {id} = req.params;
 
         const structure = await BomStructureModel.findOne({
-            where: {ID: id, IS_DELETED: false}, include: [{
-                model: BomTemplateModel, as: "BOM_TEMPLATE", include: [{
-                    model: CustomerDetail, as: "CUSTOMER"
+            where: {ID: id, IS_DELETED: false},
+            include: [
+                {model: CompanyMod, as: "COMPANY", attributes: ['ID', 'NAME', 'CODE']},
+                {
+                    model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], include: [{
+                        model: MasterItemIdModel,
+                        as: "MASTER_ITEM",
+                        attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]
+                    }]
                 }, {
-                    model: CustomerProductDivision, as: "CUSTOMER_DIVISION"
+                    model: BomStructureRevModel,
+                    as: "REV",
+                    attributes: ["ID", "TITLE", "SEQUENCE"]
                 }, {
-                    model: CustomerProductSeason, as: "CUSTOMER_SESSION"
-                },]
-            }, {
-                model: ModelOrderPOHeader, as: "ORDER"
-            }]
-        });
+                    model: ModelOrderPOHeader,
+                    as: "ORDER",
+                    attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID", "CUSTOMER_BUYPLAN_ID", "ORDER_CONFIRMED_DATE", "PROJECTION_ORDER_ID", "PRODUCT_ID"],
+                    required: false,
+                    duplicating: false,
+                    include: [
+                        {
+                            model: MasterItemIdModel,
+                            as: "ITEM",
+                            attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
+                        },
+                            {
+                            model: CustomerDetail,
+                            as: "CUSTOMER",
+                            attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
+                            required: false
+                        },
+                        {
+                            model: CustomerProductDivision,
+                            as: "CUSTOMER_DIVISION",
+                            attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
+                            required: false
+                        },
+                        {
+                            model: CustomerProductSeason,
+                            as: "CUSTOMER_SEASON",
+                            attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
+                            required: false
+                        },
+                        {
+                            model: CustomerProgramName,
+                            as: "CUSTOMER_PROGRAM",
+                            attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
+                            required: false
+                        },
+                        {
+                            model: CustomerBuyPlan,
+                            as: "CUSTOMER_BUYPLAN",
+                            attributes: ["CTBUYPLAN_ID", "CTBUYPLAN_CODE", "CTBUYPLAN_NAME"],
+                            required: false
+                        }, {
+                            model: ModelProjectionOrder,
+                            as: "PROJECTION_ORDER",
+                            attributes: ["PRJ_ID", "PRJ_CODE", "PRJ_DESCRIPTION"],
+                            required: false
+                        },
+                        {
+                            model: ProductItemModel,
+                            as: "PRODUCT",
+                            attributes: ['PRODUCT_TYPE_ATTB', 'PRODUCT_CAT_ATTB'],
+                            include: [
+                                {
+                                    model: MasterAttributeValue,
+                                    as: "PRODUCT_TYPE",
+                                    attributes: ["ID", "NAME", "CODE"]
+                                },
+                                {
+                                    model: MasterAttributeValue,
+                                    as: "PRODUCT_CAT",
+                                    attributes: ["ID", "NAME", "CODE"]
+                                },
+                            ]
+                        }
+                    ]
+                }, {
+                    model: Users, as: "CREATED", attributes: ['USER_NAME'], required: false
+                }, {
+                    model: Users, as: "UPDATED", attributes: ['USER_NAME'], required: false
+                }]
+        })
 
         if (!structure) {
             return res.status(404).json({
@@ -131,11 +213,12 @@ export const getBomStructureById = async (req, res) => {
             }
         })
 
+
         return res.status(200).json({
             success: true,
             message: "BOM structure retrieved successfully",
             data: {
-                ...structure,
+                ...structure.toJSON(),
                 NOTE: noteBomStructure?.NOTE ?? "",
             },
         });
@@ -438,6 +521,102 @@ export const importBomTemplateListToStructure = async (req, res) => {
         return res.status(500).json({status: false, message: "Failed to import bom template list" + err.message})
     }
 }
+
+export const getBomStructureListDetailsByBomId = async (req, res) => {
+    const { BOM_STRUCTURE_ID, ITEM_TYPE_ID } = req.query;
+
+    if (!BOM_STRUCTURE_ID) {
+        return res.status(400).json({
+            success: false,
+            message: "BOM_STRUCTURE_ID is required"
+        });
+    }
+
+    try {
+        const details = await BomStructureListDetailModel.findAll({
+            where: {
+                IS_DELETED: false
+            },
+            include: [
+                {
+                    model: BomStructureListModel,
+                    as: 'BOM_STRUCTURE_LIST',
+                    attributes: ['ID', 'BOM_LINE_ID', 'STATUS', 'COMPANY_ID', 'CONSUMPTION_UOM', 'ITEM_POSITION', 'NOTE', 'CREATED_AT', 'UPDATED_AT'],
+                    where: {
+                        IS_DELETED: false,
+                        ...(BOM_STRUCTURE_ID ? { BOM_STRUCTURE_ID } : {})
+                    },
+                    required: true,
+                    include: [
+                        {
+                            model: MasterItemIdModel,
+                            as: 'MASTER_ITEM',
+                            attributes: ['ITEM_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_TYPE_ID'],
+                            where: {
+                                IS_DELETED: false,
+                                ...(ITEM_TYPE_ID ? { ITEM_TYPE_ID } : {}),
+                            }
+                        },
+                        {
+                            model: ModelVendorDetail,
+                            as: 'VENDOR',
+                            attributes: ['VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+                        },
+                        {
+                            model: MasterCompanyModel, as: "COMPANY", attributes: ["CODE"]
+                        },
+                        {
+                            model: Users,
+                            as: "CREATED",
+                            attributes: ['USER_NAME']
+                        },
+                        {
+                            model: Users,
+                            as: "UPDATED",
+                            attributes: ['USER_NAME']
+                        },
+                    ]
+                },
+                {
+                    model: MasterItemDimensionModel,
+                    as: 'ITEM_DIMENSION',
+                    attributes: ['DIMENSION_ID', 'COLOR_ID', 'SIZE_ID', 'SERIAL_NO'],
+                    include: [
+                        {
+                            model: ColorChartMod,
+                            as: 'MASTER_COLOR',
+                            attributes: ['COLOR_CODE', 'COLOR_DESCRIPTION']
+                        },
+                        {
+                            model: SizeChartMod,
+                            as: 'MASTER_SIZE',
+                            attributes: ['SIZE_CODE', 'SIZE_DESCRIPTION']
+                        }
+                    ]
+                },
+                {
+                    model: OrderPoListing,
+                    as: 'ORDER_PO',
+                    attributes: ['ORDER_PO_ID', 'PO_REF_CODE', 'DELIVERY_LOCATION_NAME', 'DELIVERY_TERM', 'DELIVERY_MODE_CODE']
+                }
+            ],
+        });
+
+
+
+        return res.status(200).json({
+            success: true,
+            message: "BOM Structure List Details retrieved successfully",
+            data: details
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve BOM structure details: ${err.message}`
+        });
+    }
+};
 
 
 export const updateBomStructure = async (req, res) => {

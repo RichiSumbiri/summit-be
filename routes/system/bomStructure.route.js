@@ -3,7 +3,7 @@ import {
     createBomStructure,
     deleteBomStructure,
     getAllBomStructures,
-    getBomStructureById, importBomTemplateListToStructure,
+    getBomStructureById, getBomStructureListDetailsByBomId, importBomTemplateListToStructure,
     updateBomStructure,
 } from "../../controllers/system/bomStructure/bomStructure.js";
 
@@ -55,6 +55,8 @@ router.get("/master/:id", getBomStructureById);
 router.post("/master/", createBomStructure);
 router.put("/master/:id", updateBomStructure);
 router.delete("/master/:id", deleteBomStructure);
+router.get("/master-list", getBomStructureListDetailsByBomId);
+
 
 router.get("/list", getAllBomStructureList);
 router.get("/list/:id", getBomStructureListById);
