@@ -237,7 +237,15 @@ export const  BomStructureListModel = db.define(
         CONSUMPTION_UOM: {
             type: DataTypes.STRING(20),
             allowNull: true
-        }
+        },
+        APPROVE_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        APPROVE_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
     },
     {
         tableName: 'bom_structure_list',
@@ -629,6 +637,21 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
       type: DataTypes.DECIMAL(65,2),
       defaultValue: 0
     },
+    ORDER_PO_ID: {
+        type: DataTypes.STRING(20),
+    },
+    CONFIRMED_GRN_QTY: {
+        type: DataTypes.DECIMAL(65,2),
+        defaultValue: 0
+    },
+    GRN_VARIANCE: {
+        type: DataTypes.DECIMAL(65,2),
+        defaultValue: 0
+    },
+    UNCONFIRMED_GRN_QTY: {
+        type: DataTypes.DECIMAL(65,2),
+        defaultValue: 0
+    },
     CREATED_ID: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -852,6 +875,11 @@ BomStructureListModel.belongsTo(Users, {
     foreignKey: "UPDATED_ID",
     as: "UPDATED"
 })
+BomStructureListModel.belongsTo(Users, {
+    foreignKey: "APPROVE_ID",
+    as: "APPROVE"
+})
+
 
 BomStructureNoteModel.belongsTo(BomStructureModel, {
     foreignKey: "BOM_STRUCTURE_ID",

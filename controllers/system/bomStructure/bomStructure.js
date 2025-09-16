@@ -575,6 +575,11 @@ export const getBomStructureListDetailsByBomId = async (req, res) => {
                             as: "UPDATED",
                             attributes: ['USER_NAME']
                         },
+                        {
+                            model: Users,
+                            as: "APPROVE",
+                            attributes: ['USER_NAME']
+                        },
                     ]
                 },
                 {
@@ -597,8 +602,18 @@ export const getBomStructureListDetailsByBomId = async (req, res) => {
                 {
                     model: OrderPoListing,
                     as: 'ORDER_PO',
-                    attributes: ['ORDER_PO_ID', 'PO_REF_CODE', 'DELIVERY_LOCATION_NAME', 'DELIVERY_TERM', 'DELIVERY_MODE_CODE']
-                }
+                    attributes: ['ORDER_PO_ID', 'PO_REF_CODE', 'DELIVERY_LOCATION_NAME', 'DELIVERY_TERM', 'DELIVERY_MODE_CODE', 'COUNTRY']
+                },
+                {
+                    model: ColorChartMod,
+                    as: "COLOR",
+                    attributes: ['COLOR_ID', 'COLOR_CODE', 'COLOR_DESCRIPTION']
+                },
+                {
+                    model: SizeChartMod,
+                    as: "SIZE",
+                    attributes: ['SIZE_ID', 'SIZE_CODE', 'SIZE_DESCRIPTION']
+                },
             ],
         });
 

@@ -445,7 +445,11 @@ export const updateBomStructureListStatus = async (req, res) => {
             });
         }
 
+        const singeAdd = {}
+
         if (status === "Confirmed") {
+            singeAdd.APPROVE_ID = UPDATED_ID
+            singeAdd.APPROVE_AT = new Date()
             const listDetails = await BomStructureListDetailModel.findAll({
                 where: {BOM_STRUCTURE_LIST_ID: id, IS_DELETED: false},
                 include: [{
@@ -674,7 +678,8 @@ export const updateBomStructureListStatus = async (req, res) => {
         await record.update({
             STATUS: status,
             UPDATED_AT: new Date(),
-            UPDATED_ID
+            UPDATED_ID,
+            ...singeAdd
         });
 
         return res.status(200).json({
@@ -746,7 +751,11 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
 
         for (const record of records) {
             try {
+                const singeAdd = {}
+
                 if (status === "Confirmed") {
+                    singeAdd.APPROVE_ID = UPDATED_ID
+                    singeAdd.APPROVE_AT = new Date()
                     const listDetails = await BomStructureListDetailModel.findAll({
                         where: { BOM_STRUCTURE_LIST_ID: record.ID, IS_DELETED: false },
                         include: [
@@ -972,7 +981,8 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                 await record.update({
                     STATUS: status,
                     UPDATED_AT: new Date(),
-                    UPDATED_ID: UPDATED_ID || null
+                    UPDATED_ID: UPDATED_ID || null,
+                    ...singeAdd
                 });
 
                 updatedCount++;

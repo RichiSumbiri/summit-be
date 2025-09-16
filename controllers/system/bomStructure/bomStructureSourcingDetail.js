@@ -13,7 +13,7 @@ import {MasterItemCategories} from "../../../models/setup/ItemCategories.mod.js"
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import {MIN_ALLOWED_VALUE} from "../../../util/enum.js";
-import {Op} from "sequelize";
+import {DataTypes, Op} from "sequelize";
 
 export const getAllSourcingDetails = async (req, res) => {
     const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, ITEM_TYPE_ID} = req.query;
@@ -273,7 +273,11 @@ export const createSourcingDetail = async (req, res) => {
         PURCHASE_QTY = 0,
         UNCONFIRM_PO_QTY = 0,
         PENDING_PURCHASE_ORDER_QTY = 0,
-        CREATED_ID,
+        ORDER_PO_ID,
+    CONFIRMED_GRN_QTY,
+    GRN_VARIANCE,
+    UNCONFIRMED_GRN_QTY,
+        CREATED_ID
     } = req.body;
 
     try {
@@ -317,6 +321,10 @@ export const createSourcingDetail = async (req, res) => {
             PURCHASE_QTY,
             UNCONFIRM_PO_QTY,
             PENDING_PURCHASE_ORDER_QTY,
+            ORDER_PO_ID,
+            CONFIRMED_GRN_QTY,
+            GRN_VARIANCE,
+            UNCONFIRMED_GRN_QTY,
             IS_ACTIVE: false,
             CREATED_ID: CREATED_ID,
             CREATED_AT: new Date()
