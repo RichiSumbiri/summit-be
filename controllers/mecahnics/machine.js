@@ -98,6 +98,10 @@ export const postMachine = async (req, res) => {
         message: "error No Data For Post machine",
       });
 
+    if (!data?.STATUS) {
+      data.STATUS = "NORMAL"
+    }
+
     await MecListMachine.create(data);
 
     return res.status(200).json({
