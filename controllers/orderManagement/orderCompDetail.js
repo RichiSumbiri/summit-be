@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
-import { OrderComponentDetail, qryGetBomRmList, qryGetCompListColor, qryGetDimByStructure, qryGetListCompDetail, qryListGetServices, qryListOrderCompDetail } from "../../models/orderManagement/orderCompDetail.mod.js";
+import { OrderComponentDetail, OrderComponentService, qryGetBomRmList, qryGetCompListColor, qryGetDimByStructure, qryGetListCompDetail, qryGetService, qryListGetServices, qryListOrderCompDetail } from "../../models/orderManagement/orderCompDetail.mod.js";
 
 export const createOrderCompDetail = async (req, res) => {
     try {
@@ -80,6 +80,29 @@ export const getListCompDetail = async (req, res) => {
             success: false,
             error: err,
             message: "error get order component detail",
+        });
+    }
+}
+
+
+export const getListService = async (req, res) => {
+    try {
+        const {orderId} = req.params;
+        const getList = await db.query(qryGetService, {
+            replacements: {
+                orderId: orderId
+            }, type: QueryTypes.SELECT
+        });
+        return res.status(200).json({
+            success: true,
+            message: "success get component services result",
+            data: getList
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get component Service result",
         });
     }
 }
@@ -340,6 +363,7 @@ export const setActived = async (req, res) => {
 }
 
 
+
 export const setComponentDim = async (req, res) => {
     try {
         const data = req.body;
@@ -378,6 +402,159 @@ export const setComponentDim = async (req, res) => {
             success: false,
             error: err,
             message: "error set Dimension Component",
+        });
+    }
+}
+
+
+
+export const createOrderCompService = async (req, res) => {
+    try {
+
+        const {ORDER_ID, SERVICE_ID,  COMPONENT_ID} = req.body
+
+        const findComp = await OrderComponentDetail.findAll({
+                where: {
+                    ORDER_ID: ORDER_ID,
+                    COMPONENT_ID: COMPONENT_ID,
+                    IS_DELETED : 0,
+                },
+                raw: true
+            })
+        
+        if(findComp.length === 0){
+            return res.status(404).json({message: "Component Detail not found"})
+        }
+
+        const structurService = findComp.map(item => ({
+            ORDER_COMP_DETAIL_ID : item.ID,
+            ORDER_ID: item.ORDER_ID,
+            SERVICE_ID : SERVICE_ID
+        }))
+
+        for (const item of structurService) {
+
+            const checkExist = await OrderComponentService.findOne({
+                where : {
+                  ORDER_ID: item.ORDER_ID,
+                  ORDER_COMP_DETAIL_ID : item.ORDER_COMP_DETAIL_ID
+                },
+                raw: true
+            })
+            
+            if(!checkExist){
+               await OrderComponentService.create(item)
+            }
+
+        }
+
+        //check apakah exist 
+
+        return res.status(200).json({message : 'Success add component services'})
+
+
+
+    } catch (err) {
+        console.log(err);
+        
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error add component services",
+        });
+    }
+}
+
+
+export const setActivedServices = async (req, res) => {
+    try {
+        const data = req.body;
+        if(data.length === 0){
+            return res.status(400).json({
+                success: false,
+                error: err,
+                message: "no data component service selected",
+            });
+
+        }else{
+           
+            for (const item of data) {
+                const findData = await OrderComponentService.findOne({
+                    where: {
+                        ID: item.ID
+                    }})
+                if(findData){
+                    const statusActive = findData.IS_ACTIVE === 1 ? 0 : 1
+                    await OrderComponentService.update({IS_ACTIVE : statusActive, MOD_ID : item.MOD_ID},{
+                    where: {
+                        ID: item.ID
+                    }})
+
+                }
+
+            }
+            
+
+                return res.status(200).json({
+                success: true,
+                message: "success set active deactive service Component",
+            });
+        }
+
+
+    } catch (err) {
+        console.log(err);
+        
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error set active deactive services",
+        });
+    }
+}
+
+
+export const chgFlagStatus = async (req, res) => {
+    try {
+        const {rowId, userId} = req.body;
+        if(!rowId){
+            return res.status(400).json({
+                success: false,
+                error: err,
+                message: "no row checked",
+            });
+
+        }else{
+           
+            const findData = await OrderComponentService.findOne({
+                where: {
+                    ID: rowId
+                }})
+
+
+            if(findData){
+                const statusActive = findData.SERVICE_FLAG === 1 ? 0 : 1
+                await OrderComponentService.update({SERVICE_FLAG : statusActive, MOD_ID : userId},{
+                where: {
+                    ID: rowId
+                }})
+
+            }
+
+        }
+        return res.status(200).json({
+            success: true,
+            message: "success set active deactive service Component",
+        });
+
+
+    } catch (err) {
+        console.log(err);
+        
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error set active deactive services",
         });
     }
 }

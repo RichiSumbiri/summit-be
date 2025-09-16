@@ -176,20 +176,32 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
     ocd.ADD_ID,
     ocd.MOD_ID,
     ocd.IS_ACTIVE,
+    oph.ITEM_ID,
     mcc.COLOR_CODE,
     mcc.COLOR_DESCRIPTION,
     mcc2.COLOR_CODE AS DIM_COLOR_CODE,
     mcc2.COLOR_DESCRIPTION AS DIM_COLOR_DESCRIPTION,
     pic.COMPONENT_NAME,
     mii.ITEM_CODE,
-    mii.ITEM_DESCRIPTION
+    mii.ITEM_DESCRIPTION,
+	ocs.SERVICE_FLAG,
+    ocs.IS_SUBCON,
+    ocs.SUBCON_NAME,
+	sa.ATTRIBUTE_NAME,
+	sav.SERVICE_ATTRIBUTE_VALUE_CODE,
+	sav.SERVICE_ATTRIBUTE_VALUE_NAME
   FROM
     order_component_detail ocd 
   LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = ocd.ITEM_COLOR_ID  
+  LEFT JOIN order_po_header oph ON oph.ORDER_ID = ocd.ORDER_ID 
   LEFT JOIN product_item_component pic ON pic.PRODUCT_ID = ocd.PRODUCT_ID AND pic.COMPONENT_ID = ocd.COMPONENT_ID
   LEFT JOIN master_item_id mii ON mii.ITEM_ID = ocd.MASTER_ITEM_ID
   LEFT JOIN master_item_dimension mid2 ON mid2.ID = ocd.ITEM_DIMENSION_ID
   LEFT JOIN master_color_chart mcc2 ON mcc2.COLOR_ID = mid2.COLOR_ID 
+  LEFT JOIN order_component_service ocs ON ocd.ID = ocs.ORDER_COMP_DETAIL_ID AND ocd.IS_ACTIVE = 1 
+  LEFT JOIN master_item_id_service miis ON miis.ID = ocs.SERVICE_ID 
+  LEFT JOIN service_attributes sa  ON sa.SERVICE_ATTRIBUTE_ID = miis.MASTER_SERVICE_ID 
+  LEFT JOIN service_attribute_values sav ON sav.SERVICE_ATTRIBUTE_VALUE_ID = miis.MASTER_SERVICE_VALUE_ID 
   WHERE ocd.ORDER_ID  = :orderId AND ocd.IS_DELETED = 0
 `
 
@@ -211,3 +223,136 @@ LEFT JOIN master_item_dimension mid2 ON mid2.ID = bsld.ITEM_DIMENSION_ID
 LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = mid2.COLOR_ID 
 WHERE bsl.MASTER_ITEM_ID = :itemId
 GROUP BY bsld.BOM_STRUCTURE_LIST_ID, bsld.ITEM_DIMENSION_ID, mid2.COLOR_ID`
+
+
+
+// models/order_component_service.js
+export const OrderComponentService = db.define(
+    "order_component_service",
+    {
+      ID: {
+        type: DataTypes.BIGINT,
+        primaryKey: true,
+        autoIncrement: true, // sesuaikan: true kalau ID auto increment, false kalau manual
+      },
+      ORDER_ID: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      SERVICE_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      // MASTER_ITEM_ID: {
+      //   type: DataTypes.STRING(100),
+      //   allowNull: true,
+      // },
+      // MASTER_SERVICE_ID: {
+      //   type: DataTypes.STRING(100),
+      //   allowNull: true,
+      // },
+      // MASTER_SERVICE_VALUE_ID: {
+      //   type: DataTypes.STRING(100),
+      //   allowNull: true,
+      // },
+      ORDER_COMP_DETAIL_ID: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+      },
+      SERVICE_FLAG: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+      },
+      IS_ACTIVE: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+      },
+      IS_DELETED: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      SERVICE_REMARK: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      IS_SUBCON: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      SUBCON_ID: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      SUBCON_NAME: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      ITEM_SERVICE_NOTE: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      ADD_ID: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+      },
+      MOD_ID: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+    },
+    {
+      tableName: "order_component_service",
+      timestamps: true, // Sequelize akan otomatis handle createdAt & updatedAt
+      freezeTableName: true,
+    }
+  );
+
+
+  export const qryGetService = `SELECT
+	ocs.ID,
+	ocs.ORDER_ID,
+	ocs.SERVICE_ID,
+	ocs.ORDER_COMP_DETAIL_ID,
+	ocs.SERVICE_FLAG,
+	ocs.IS_ACTIVE,
+	ocs.IS_DELETED,
+	ocs.SERVICE_REMARK,
+	ocs.IS_SUBCON,
+	ocs.SUBCON_ID,
+	ocs.SUBCON_NAME,
+	ocs.ITEM_SERVICE_NOTE,
+	ocd.MAIN_COMPONENT,
+	ocd.MASTER_ITEM_ID,
+ 	ocd.DIMENSION_ID,
+  mcc.COLOR_CODE,
+  mcc.COLOR_DESCRIPTION,
+  pic.COMPONENT_NAME,
+  mii.ITEM_CODE,
+  mii.ITEM_DESCRIPTION,
+	sa.ATTRIBUTE_NAME,
+	sav.SERVICE_ATTRIBUTE_VALUE_CODE,
+	sav.SERVICE_ATTRIBUTE_VALUE_NAME,
+  mcc2.COLOR_CODE AS DIM_COLOR_CODE,
+  mcc2.COLOR_DESCRIPTION AS DIM_COLOR_DESCRIPTION
+FROM
+	order_component_service ocs 
+LEFT JOIN order_component_detail ocd ON ocd.ID = ocs.ORDER_COMP_DETAIL_ID AND ocd.IS_DELETED = 0
+LEFT JOIN master_item_id_service miis ON miis.ID = ocs.SERVICE_ID 
+LEFT JOIN service_attributes sa  ON sa.SERVICE_ATTRIBUTE_ID = miis.MASTER_SERVICE_ID 
+LEFT JOIN service_attribute_values sav ON sav.SERVICE_ATTRIBUTE_VALUE_ID = miis.MASTER_SERVICE_VALUE_ID 
+LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = ocd.ITEM_COLOR_ID  
+LEFT JOIN product_item_component pic ON pic.PRODUCT_ID = ocd.PRODUCT_ID AND pic.COMPONENT_ID = ocd.COMPONENT_ID
+LEFT JOIN master_item_id mii ON mii.ITEM_ID = ocd.MASTER_ITEM_ID
+LEFT JOIN master_item_dimension mid2 ON mid2.ID = ocd.ITEM_DIMENSION_ID
+LEFT JOIN master_color_chart mcc2 ON mcc2.COLOR_ID = mid2.COLOR_ID 
+WHERE ocs.ORDER_ID = :orderId 
+
+`
