@@ -98,7 +98,7 @@ export const postMachine = async (req, res) => {
         message: "error No Data For Post machine",
       });
 
-    if (!data?.STATUS) {
+    if (data?.STATUS && !["NORMAL", "BROKEN", "ON_FIX"].includes(data.STATUS)) {
       data.STATUS = "NORMAL"
     }
 
