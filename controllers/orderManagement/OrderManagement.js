@@ -24,6 +24,7 @@ import {
     queryGetSizeByGMT,
     queryListOrderPOAlteration,
     queryRecapPOListingDetail,
+    queryRecapPOListingSize,
     queryRecapToPOMatrixDelivery,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
@@ -1781,7 +1782,7 @@ export const getReportPOListing = async(req,res) => {
     try {
         const { FilterPO } = req.body;
         const poStatusList = `(${FilterPO.LIST_STATUS.map(s => `'${s.STATUS}'`).join(',')})`;
-        let additionalQuery = queryRecapPOListingDetail + ` `;
+        let additionalQuery =  ` `;
 
         // check manufacturing company
         if(FilterPO.MANUFACTURING_COMPANY!=='---') additionalQuery = additionalQuery + ` AND opl.MANUFACTURING_COMPANY = '${FilterPO.MANUFACTURING_COMPANY}' `;
@@ -1820,12 +1821,13 @@ export const getReportPOListing = async(req,res) => {
         if(FilterPO.PRODUCT_ID!=='---') additionalQuery = additionalQuery + ` AND oph.PRODUCT_ID = '${FilterPO.PRODUCT_ID}' `;
 
         // get data based on query
-        const data = await db.query(additionalQuery, { type: QueryTypes.SELECT });
-        
+        const dataPODetail = await db.query(queryRecapPOListingDetail + additionalQuery, { type: QueryTypes.SELECT });
+        const dataPOSizeDetail = await db.query(queryRecapPOListingSize + additionalQuery, { type: QueryTypes.SELECT });
         return res.status(200).json({
                 success: true,
                 message: `Success get data po listing size revision detail`,
-                data
+                dataPODetail,
+                dataPOSizeDetail
             });
     } catch(err){
         console.error(err);
