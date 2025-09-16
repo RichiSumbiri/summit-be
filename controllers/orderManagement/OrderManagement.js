@@ -23,6 +23,8 @@ import {
     queryGetOrderInventoryDetail,
     queryGetSizeByGMT,
     queryListOrderPOAlteration,
+    queryRecapPOListingDetail,
+    queryRecapPOListingSize,
     queryRecapToPOMatrixDelivery,
     querySupplyChainPlanningByOrderID
 } from "../../models/orderManagement/orderManagement.mod.js";
@@ -1770,6 +1772,69 @@ export const getPOSizeLogRevisionDetailByRevID = async(req,res) => {
             success: false,
             error: err.message,
             message: "error get order po listing size log revision"
+        });
+    }
+}
+
+
+
+export const getReportPOListing = async(req,res) => {
+    try {
+        const { FilterPO } = req.body;
+        const poStatusList = `(${FilterPO.LIST_STATUS.map(s => `'${s.STATUS}'`).join(',')})`;
+        let additionalQuery =  ` `;
+
+        // check manufacturing company
+        if(FilterPO.MANUFACTURING_COMPANY!=='---') additionalQuery = additionalQuery + ` AND opl.MANUFACTURING_COMPANY = '${FilterPO.MANUFACTURING_COMPANY}' `;
+        
+        // check manufacturing site
+        if(FilterPO.MANUFACTURING_SITE!=='---') additionalQuery = additionalQuery + ` AND opl.MANUFACTURING_SITE = '${FilterPO.MANUFACTURING_SITE}' `;
+        
+        // check mo availability
+        additionalQuery = additionalQuery + `AND opl.MO_AVAILABILITY = '${FilterPO.MO_AVAILABILITY}'`;
+
+        // check filter date range type
+        if(FilterPO.DATE_RANGE_TYPE!=='---') additionalQuery = additionalQuery + ` AND opl.${FilterPO.DATE_RANGE_TYPE} BETWEEN '${FilterPO.DATE_FROM}' AND '${FilterPO.DATE_TO}' `;
+        
+        // check order type
+        if(FilterPO.ORDER_TYPE_CODE!=='---') additionalQuery = additionalQuery + ` AND opl.ORDER_TYPE_CODE = '${FilterPO.ORDER_TYPE_CODE}' `;
+
+        // check po status
+        additionalQuery = additionalQuery + ` AND opl.PO_STATUS IN${poStatusList} `;
+
+        // check production month
+        if(FilterPO.PRODUCTION_MONTH!=='---') additionalQuery = additionalQuery + ` AND opl.PRODUCTION_MONTH = '${moment(FilterPO.PRODUCTION_MONTH, "YYYY-MM").format("MMMM/YYYY")}' `;
+
+        // check projection order
+        if(FilterPO.PROJECTION_ORDER_ID!=='---') additionalQuery = additionalQuery + ` AND oph.PROJECTION_ORDER_ID = '${FilterPO.PROJECTION_ORDER_ID}' `;
+
+        // check customer id
+        if(FilterPO.CUSTOMER_ID!=='---') additionalQuery = additionalQuery + ` AND oph.CUSTOMER_ID = '${FilterPO.CUSTOMER_ID}' `;
+
+        // check customer division id
+        if(FilterPO.CUSTOMER_DIVISION_ID!=='---') additionalQuery = additionalQuery + ` AND oph.CUSTOMER_DIVISION_ID = '${FilterPO.CUSTOMER_DIVISION_ID}' `;
+
+        // check customer season
+        if(FilterPO.CUSTOMER_SEASON_ID!=='---') additionalQuery = additionalQuery + ` AND oph.CUSTOMER_SEASON_ID = '${FilterPO.CUSTOMER_SEASON_ID}' `;
+
+        // check product id
+        if(FilterPO.PRODUCT_ID!=='---') additionalQuery = additionalQuery + ` AND oph.PRODUCT_ID = '${FilterPO.PRODUCT_ID}' `;
+
+        // get data based on query
+        const dataPODetail = await db.query(queryRecapPOListingDetail + additionalQuery, { type: QueryTypes.SELECT });
+        const dataPOSizeDetail = await db.query(queryRecapPOListingSize + additionalQuery, { type: QueryTypes.SELECT });
+        return res.status(200).json({
+                success: true,
+                message: `Success get data po listing size revision detail`,
+                dataPODetail,
+                dataPOSizeDetail
+            });
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+            message: "error get report po listing"
         });
     }
 }

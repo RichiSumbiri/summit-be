@@ -8,7 +8,7 @@ import {
     getOrderHeaderLogStatus,
     getOrderInventoryDetail,
     getOrderPOAlteration,
-    getPOListingSizeByPOID, getPOListingSizeLogRevisionByRevID, getPOSizeListingCheck, getPOSizeLogRevisionDetailByRevID, postOrderPOAlteration, postPOListing, postPOSizeListing,
+    getPOListingSizeByPOID, getPOListingSizeLogRevisionByRevID, getPOSizeListingCheck, getPOSizeLogRevisionDetailByRevID, getReportPOListing, postOrderPOAlteration, postPOListing, postPOSizeListing,
     postUpdateOrderPOIDStatus
 } from "../../controllers/orderManagement/OrderManagement.js";
 const router = express.Router();
@@ -35,5 +35,6 @@ router.get("/order-execute-info", getOrderExecuteInfo);
 router.get("/order-alteration", getOrderPOAlteration);
 router.post("/order-alteration", postOrderPOAlteration);
 
+router.post("/report-po-listing", getReportPOListing);
 
 export default router;
