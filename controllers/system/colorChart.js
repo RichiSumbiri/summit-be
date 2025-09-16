@@ -5,10 +5,11 @@ import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {successResponse, errorResponse} from "../helpers/responseHelper.js";
-import {Op, Sequelize} from "sequelize";
+import {Op, QueryTypes, Sequelize} from "sequelize";
 import Users from "../../models/setup/users.mod.js";
 import {getPagination} from "../util/Query.js";
 import colorItemCategory from "../../models/system/colorItemCategory.mod.js";
+import db from "../../config/database.js";
 
 export const getColors = async (req, res) => {
     try {
@@ -319,32 +320,53 @@ export const createFGColorChart = async (req, res) => {
 export const getAllFGColorCharts = async (req, res) => {
     try {
         const {MASTER_ITEM_ID} = req.query;
-
+        let additionalQuery = '';
         const where = {IS_DELETED: false};
         if (MASTER_ITEM_ID) {
             where.MASTER_ITEM_ID = MASTER_ITEM_ID;
+            additionalQuery = additionalQuery + `WHERE fcc.MASTER_ITEM_ID = '${MASTER_ITEM_ID}'`;
         }
 
-        const entries = await FGColorChartModel.findAll({
-            where,
-            include: [
-                {
-                    model: colorChart,
-                    as: "COLOR",
-                    attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
-                },
-                {
-                    model: Users,
-                    as: "CREATED",
-                    attributes: ['USER_NAME']
-                },
-                {
-                    model: Users,
-                    as: "UPDATED",
-                    attributes: ['USER_NAME']
-                }
-            ],
-        });
+        const querySQL = `SELECT
+            fcc.ID,
+            fcc.MASTER_ITEM_ID,
+            fcc.COLOR_ID,
+            mcc.COLOR_CODE,
+            mcc.COLOR_DESCRIPTION,
+            fcc.CREATED_AT,
+            fcc.UPDATED_AT,
+            fcc.IS_DELETED,
+            fcc.DELETED_AT,
+            fcc.CREATED_ID,
+            fcc.UPDATED_ID
+        FROM
+            fg_color_chart fcc
+        LEFT JOIN master_color_chart mcc ON mcc.COLOR_ID = fcc.COLOR_ID 
+        LEFT JOIN xref_user_web xuw ON xuw.USER_ID = fcc.CREATED_ID 
+        LEFT JOIN xref_user_web xuw2 ON xuw2.USER_ID = fcc.UPDATED_ID 
+        `;
+        const entries = await db.query(querySQL + additionalQuery, { type: QueryTypes.SELECT });
+        // const entries = await FGColorChartModel.findAll({
+        //     where,
+        //     include: [
+        //         {
+        //             model: colorChart,
+        //             as: "COLOR",
+        //             attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION", "IS_ACTIVE", "CREATED_AT", "UPDATED_AT"],
+        //         },
+        //         {
+        //             model: Users,
+        //             as: "CREATED",
+        //             attributes: ['USER_NAME']
+        //         },
+        //         {
+        //             model: Users,
+        //             as: "UPDATED",
+        //             attributes: ['USER_NAME']
+        //         }
+        //     ],
+        //     attributes: ["FG_COLOR_ID", "MASTER_ITEM_ID", "COLOR_ID"],
+        // });
 
         return res.status(200).json({
             success: true,
