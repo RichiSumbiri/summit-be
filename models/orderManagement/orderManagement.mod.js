@@ -390,7 +390,8 @@ SELECT
 	oph.CREATE_DATE,
 	oph.UPDATE_BY,
 	xuw2.USER_NAME AS UPDATE_NAME,
-	oph.UPDATE_DATE
+	oph.UPDATE_DATE,
+  oph.COMPONENT_STATUS
 FROM
 	order_po_header oph
 LEFT JOIN master_company mc ON mc.CODE = oph.ORDER_PLACEMENT_COMPANY 
