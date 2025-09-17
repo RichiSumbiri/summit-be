@@ -321,6 +321,7 @@ export const getAllFGColorCharts = async (req, res) => {
     try {
         const {MASTER_ITEM_ID} = req.query;
         const where = {IS_DELETED: false};
+
         if (MASTER_ITEM_ID) {
             where.MASTER_ITEM_ID = MASTER_ITEM_ID;
         }
@@ -344,7 +345,7 @@ export const getAllFGColorCharts = async (req, res) => {
                     attributes: ['USER_NAME']
                 }
             ],
-            attributes: ["FG_COLOR_ID", "MASTER_ITEM_ID", "COLOR_ID"],
+            attributes: ["MASTER_ITEM_ID", "COLOR_ID"],
         });
 
         return res.status(200).json({
