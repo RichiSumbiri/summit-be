@@ -1,6 +1,7 @@
 import { QueryTypes } from "sequelize";
 import db from "../../config/database.js";
 import { OrderComponentDetail, OrderComponentService, qryGetBomRmList, qryGetCompListColor, qryGetDimByStructure, qryGetListCompDetail, qryGetService, qryListGetServices, qryListOrderCompDetail } from "../../models/orderManagement/orderCompDetail.mod.js";
+import { ModelOrderPOHeader } from "../../models/orderManagement/orderManagement.mod.js";
 
 export const createOrderCompDetail = async (req, res) => {
     try {
@@ -149,6 +150,35 @@ export const getListOrderCompDetail = async (req, res) => {
             success: false,
             error: err,
             message: "error get order component detail",
+        });
+    }
+}
+
+export const confirmComponent = async (req, res) => {
+    try {
+        const {orderId} = req.params;
+
+        console.log(orderId);
+
+        await ModelOrderPOHeader.update({
+        COMPONENT_STATUS : 1
+        }, {
+            where: {
+                ORDER_ID: orderId,
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "success Confirm Compponent",
+        });
+    } catch (err) {
+        console.log(err);
+        
+        return res.status(500).json({
+            success: false,
+            error: err,
+            message: "error get  Confirm Compponent",
         });
     }
 }

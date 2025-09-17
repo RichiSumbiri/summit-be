@@ -176,6 +176,7 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
     ocd.ADD_ID,
     ocd.MOD_ID,
     ocd.IS_ACTIVE,
+    mic.ITEM_CATEGORY_DESCRIPTION,
     oph.ITEM_ID,
     mcc.COLOR_CODE,
     mcc.COLOR_DESCRIPTION,
@@ -196,6 +197,7 @@ GROUP BY opl.ITEM_COLOR_ID, opl.ITEM_COLOR_CODE, opl.ITEM_COLOR_NAME`
   LEFT JOIN order_po_header oph ON oph.ORDER_ID = ocd.ORDER_ID 
   LEFT JOIN product_item_component pic ON pic.PRODUCT_ID = ocd.PRODUCT_ID AND pic.COMPONENT_ID = ocd.COMPONENT_ID
   LEFT JOIN master_item_id mii ON mii.ITEM_ID = ocd.MASTER_ITEM_ID
+  LEFT JOIN master_item_category mic ON mic.ITEM_CATEGORY_CODE = ocd.ITEM_CATEGORY_CODE 
   LEFT JOIN master_item_dimension mid2 ON mid2.ID = ocd.ITEM_DIMENSION_ID
   LEFT JOIN master_color_chart mcc2 ON mcc2.COLOR_ID = mid2.COLOR_ID 
   LEFT JOIN order_component_service ocs ON ocd.ID = ocs.ORDER_COMP_DETAIL_ID AND ocd.IS_ACTIVE = 1 
