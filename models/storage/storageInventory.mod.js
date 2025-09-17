@@ -4,7 +4,7 @@ import BuildingModel from "../list/buildings.mod.js";
 import BuildingRoomModel from "../list/buildingRoom.mod.js";
 
 const StorageInventoryModel = db.define(
-  "storage_inventory",
+  "storage_inventory_1",
   {
     ID: {
       type: DataTypes.INTEGER,
@@ -54,7 +54,7 @@ const StorageInventoryModel = db.define(
       }
   },
   {
-    tableName: "storage_inventory",
+    tableName: "storage_inventory_1",
     timestamps: false, 
   }
 );
