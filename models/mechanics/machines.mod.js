@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 
 export const MecListMachine = db.define(
-  "mec_item_master_1",
+  "mec_item_master",
   {
     MACHINE_ID: {
       type: DataTypes.STRING(255),
@@ -124,7 +124,7 @@ MecListMachine.belongsTo(MacTypeOfMachine, {
 })
 
 export const MecDownTimeModel = db.define(
-    "mec_down_time_1",
+    "mec_down_time",
     {
         ID: {
             type: DataTypes.INTEGER,
@@ -216,7 +216,7 @@ a.STATUS
 -- a.MACHINE_NO_BC,
 -- a.MACHINE_KODE_DOC,
 -- a.MACHINE_DOK_DATE
-FROM mec_item_master_1 a 
+FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 ORDER BY a.updatedAt DESC`;
@@ -239,7 +239,7 @@ a.STATUS
 -- a.MACHINE_NO_BC,
 -- a.MACHINE_KODE_DOC,
 -- a.MACHINE_DOK_DATE
-FROM mec_item_master_1 a 
+FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 WHERE a.DEPARTMENT_ID = :departmentId
@@ -263,7 +263,7 @@ a.STORAGE_INVENTORY_ID,
 a.MACHINE_STATUS,
 a.STATUS,
 ROUND(d.BALANCE,2) BALANCE
-FROM mec_item_master_1_1 a 
+FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 LEFT JOIN (
@@ -325,14 +325,14 @@ export const MacItemIn = db.define(
 export const qryListInbyDate = `SELECT a.LOG_ID,
 a.MACHINE_ID, b.MACHINE_TYPE, c.TYPE_DESCRIPTION, b.MACHINE_DESCRIPTION, b.MACHINE_MODEL, ROUND(a.MACHINE_QTY,2) MACHINE_QTY, DATE(a.createdAt) INPUT_DATE
 FROM  mec_item_in a 
-LEFT JOIN mec_item_master_1 b ON b.MACHINE_ID = a.MACHINE_ID
+LEFT JOIN mec_item_master b ON b.MACHINE_ID = a.MACHINE_ID
 LEFT JOIN mec_type_of_machine c ON c.TYPE_ID = b.MACHINE_TYPE
 WHERE DATE(a.createdAt) = :date`;
 
 export const qryListOut = `SELECT a.LOG_ID,
 a.PART_ID, a.MACHINE_ID, a.NIK, a.NAME, a.DEPARTEMEN, a.REASON, a.SCRAP, c.TYPE_DESCRIPTION, b.MACHINE_DESCRIPTION, c.TYPE_ID, ROUND(a.PART_QTY,2) PART_QTY, time(a.createdAt) ADD_TIME
 FROM mec_part_used a 
-LEFT JOIN mec_item_master_1 b ON b.MACHINE_ID = a.PART_ID
+LEFT JOIN mec_item_master b ON b.MACHINE_ID = a.PART_ID
 LEFT JOIN mec_type_of_machine c ON c.TYPE_ID = b.MACHINE_TYPE
 WHERE DATE(a.createdAt) = :date`;
 
@@ -353,7 +353,7 @@ a.MACHINE_MODEL,
 a.STORAGE_INVENTORY_ID,
 a.MACHINE_STATUS,
 a.STATUS
-FROM mec_item_master_1 a 
+FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 WHERE a.MACHINE_TYPE NOT IN (50, 62) AND a.MACHINE_ID = :macId`;
@@ -426,7 +426,7 @@ a.STORAGE_INVENTORY_ID,
 a.MACHINE_MODEL,
 a.MACHINE_STATUS,
 a.STATUS
-FROM mec_item_master_1 a 
+FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 WHERE a.MACHINE_TYPE IN (50, 62)
@@ -452,7 +452,7 @@ ROUND(d.BALANCE,2) BALANCE,
 ROUND(e.PART_IN,2) TOTAL_IN,
 ROUND(e.PART_OUT,2) TOTAL_OUT,
 ROUND(((d.BALANCE+IFNULL(e.PART_IN,0))-IFNULL(e.PART_OUT,0)),2) BALANCE_AKHIR
-FROM mec_item_master_1 a 
+FROM mec_item_master a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 LEFT JOIN (
@@ -514,7 +514,7 @@ FROM (
 	FROM mec_part_used b WHERE DATE(b.createdAt) BETWEEN :startDate AND :endDate
 	GROUP BY b.MACHINE_ID,  DATE(b.createdAt) 
 ) n
-LEFT JOIN mec_item_master_1 a ON a.MACHINE_ID = n.MACHINE_ID
+LEFT JOIN mec_item_master a ON a.MACHINE_ID = n.MACHINE_ID
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 GROUP BY n.MACHINE_ID, n.TRANSACTION_DATE`;
