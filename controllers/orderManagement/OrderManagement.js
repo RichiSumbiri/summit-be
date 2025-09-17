@@ -1382,6 +1382,12 @@ export const getOrderExecuteInfo = async(req,res) => {
             TNAValidationStatus = ListTNACompleted.length === ListTNAStatus.length ? 1 : 0;
         }
 
+        // Check Component Status
+        const CurrentCompStatus = await ModelOrderPOHeader.findOne({where: {ORDER_ID: ORDER_ID}, raw: true});
+        if(CurrentCompStatus){
+            CompValidationStatus = CurrentCompStatus.COMPONENT_STATUS;
+        }
+
         // Check Order Route
         const CurrentOrderRoute = await ModelOrderRoute.findAll({where: {ORDER_ID: ORDER_ID}, raw: true});
         if(CurrentOrderRoute.length>0){
