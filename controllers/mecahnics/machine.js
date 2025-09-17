@@ -168,20 +168,22 @@ export const updateMachineAndStorage = async (req, res) => {
       });
     }
 
-    const currentMachine = await MecListMachine.count({
-      where: {
-        STORAGE_INVENTORY_ID: storageInventory.ID
+    if (storageInventory.CATEGORY === "LINE") {
+      const currentMachine = await MecListMachine.count({
+        where: {
+          STORAGE_INVENTORY_ID: storageInventory.ID
+        }
+      })
+
+      const limitMachine = (Number(storageInventory?.LEVEL) * Number(storageInventory?.POSITION)) - currentMachine
+      const countScanMec = machineNos.length
+
+      if (countScanMec > limitMachine) {
+        return res.status(500).json({
+          success: false,
+          message: `Machine being scanned has exceeded the limit is ${limitMachine}, Current ${countScanMec}`,
+        });
       }
-    })
-
-    const limitMachine = (Number(storageInventory?.LEVEL) * Number(storageInventory?.POSITION)) - currentMachine
-    const countScanMec = machineNos.length
-
-    if (countScanMec > limitMachine) {
-      return res.status(500).json({
-        success: false,
-        message: `Machine being scanned has exceeded the limit is ${limitMachine}, Current ${countScanMec}`,
-      });
     }
 
     const machinesInStorage = await MecListMachine.findAll({
