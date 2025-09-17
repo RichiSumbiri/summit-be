@@ -26,6 +26,8 @@ import {
   getAllDownTimeWithOutput,
   getMecDownTimeValidation,
   updateSequenceByStorageAndMachineBulk,
+  postListLampu,
+  getListLampu,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
@@ -64,5 +66,6 @@ router.get(
   getMecRepSaldoAwl
 );
 router.get("/report-detail/:startDate/:endDate", getDtlMecTrans);
-
+router.post('/line-lamp', postListLampu)
+router.get('/line-lamp', getListLampu)
 export default router;
