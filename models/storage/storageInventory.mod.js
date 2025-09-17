@@ -4,7 +4,7 @@ import BuildingModel from "../list/buildings.mod.js";
 import BuildingRoomModel from "../list/buildingRoom.mod.js";
 
 const StorageInventoryModel = db.define(
-  "storage_inventory",
+  "storage_inventory_1",
   {
     ID: {
       type: DataTypes.INTEGER,
@@ -54,10 +54,50 @@ const StorageInventoryModel = db.define(
       }
   },
   {
-    tableName: "storage_inventory",
+    tableName: "storage_inventory_1",
     timestamps: false, 
   }
 );
+
+export const StorageInventoryNodeModel = db.define(
+    "storage_inventory_node",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        POSITION: {
+            type: DataTypes.ENUM('LEFT', 'RIGHT'),
+            defaultValue: 'LEFT',
+            allowNull: false,
+        },
+        STORAGE_INVENTORY_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        SEQUENCE: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1,
+            allowNull: false,
+        },
+        CREATED_AT: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+            allowNull: false,
+        },
+        CREATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        }
+    },
+    {
+        tableName: 'storage_inventory_node',
+        timestamps: false,
+    }
+);
+
+
 
 StorageInventoryModel.belongsTo(BuildingModel, {
   foreignKey: "BUILDING_ID",

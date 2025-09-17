@@ -20,7 +20,7 @@ import {
 } from "../../models/mechanics/machines.mod.js";
 import { QueryTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
-import StorageInventoryModel from "../../models/storage/storageInventory.mod.js";
+import StorageInventoryModel, {StorageInventoryNodeModel} from "../../models/storage/storageInventory.mod.js";
 import StorageInventoryLogModel from "../../models/storage/storageInvnetoryLog.mod.js";
 import {LogDailyOutput} from "../../models/planning/dailyPlan.mod.js";
 import Users from "../../models/setup/users.mod.js";
@@ -148,15 +148,22 @@ export const updateMachine = async (req, res) => {
 export const updateMachineAndStorage = async (req, res) => {
   try {
     const { serialNumberInventory } = req.params;
-    const { machineNos, userId } = req.body; 
+    const { machineNos, userId } = req.body;
 
-    if (!Array.isArray(machineNos) || machineNos.length === 0 || !serialNumberInventory) {
+    if (!serialNumberInventory) {
       return res.status(400).json({
         success: false,
-        message: "Machine numbers must be an array and serial number inventory must be provided",
+        message: "Serial number inventory is required",
       });
     }
-    
+
+    if (!Array.isArray(machineNos) || machineNos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "machineNos must be a non-empty array",
+      });
+    }
+
     const storageInventory = await StorageInventoryModel.findOne({
       where: { SERIAL_NUMBER: serialNumberInventory },
     });
@@ -168,87 +175,129 @@ export const updateMachineAndStorage = async (req, res) => {
       });
     }
 
-    if (storageInventory.CATEGORY === "LINE") {
-      const currentMachine = await MecListMachine.count({
-        where: {
-          STORAGE_INVENTORY_ID: storageInventory.ID
-        }
-      })
-
-      const limitMachine = (Number(storageInventory?.LEVEL) * Number(storageInventory?.POSITION)) - currentMachine
-      const countScanMec = machineNos.length
-
-      if (countScanMec > limitMachine) {
-        return res.status(500).json({
-          success: false,
-          message: `Machine being scanned has exceeded the limit is ${limitMachine}, Current ${countScanMec}`,
-        });
-      }
+    if (storageInventory.CATEGORY !== "LINE") {
+      return res.status(400).json({
+        success: false,
+        message: "Only storage with category 'LINE' can assign machines to nodes",
+      });
     }
 
-    const machinesInStorage = await MecListMachine.findAll({
+    const totalCapacity = Number(storageInventory.LEVEL) * Number(storageInventory.POSITION);
+    const requestedCount = machineNos.length;
+
+    const allNodes = await StorageInventoryNodeModel.findAll({
       where: { STORAGE_INVENTORY_ID: storageInventory.ID },
-      order: [["SEQ_NO", "DESC"]],
+      order: [['SEQUENCE', 'ASC']],
+      include: [
+        {
+          model: MecListMachine,
+          as: 'MACHINE',
+          attributes: ['MACHINE_ID'],
+          required: false
+        }
+      ]
     });
 
-    let newSeqNo = machinesInStorage.length > 0 ? machinesInStorage[0].SEQ_NO + 1 : 1;
+    const availableLeftNodes = allNodes
+        .filter(node => node.POSITION === 'LEFT' && !node.MACHINE)
+        .sort((a, b) => a.SEQUENCE - b.SEQUENCE);
 
-    const updatedMachines = [];
-    for (const machineNo of machineNos) {
-      const downtimeValid = await MecDownTimeModel.findOne({
+    const availableRightNodes = allNodes
+        .filter(node => node.POSITION === 'RIGHT' && !node.MACHINE)
+        .sort((a, b) => a.SEQUENCE - b.SEQUENCE);
+
+    if (requestedCount > allNodes.length) {
+      return res.status(400).json({
+        success: false,
+        message: `Not enough slots. Total capacity: ${allNodes.length}, Requested: ${requestedCount}`,
+      });
+    }
+
+    const assignments = [];
+    const usedNodeIds = new Set();
+
+    for (const item of machineNos) {
+      const { MACHINE_ID, POSITION: requestedPosition } = item;
+
+      const activeDowntime = await MecDownTimeModel.findOne({
         where: {
-          MACHINE_ID: machineNo,
+          MACHINE_ID,
           IS_COMPLETE: false
         }
-      })
-      if (downtimeValid) {
-        return res.status(500).json({
+      });
+
+      if (activeDowntime) {
+        return res.status(400).json({
           success: false,
-          message: `the machine cannot be moved because it is in downtime mode`,
+          message: `Machine ${MACHINE_ID} cannot be moved because it is in downtime mode`,
         });
       }
+
+      let targetNodes = requestedPosition === 'RIGHT'
+          ? [...availableRightNodes, ...availableLeftNodes]
+          : [...availableLeftNodes, ...availableRightNodes];
+
+      const availableTarget = targetNodes.find(node => !usedNodeIds.has(node.ID));
+
+      if (!availableTarget) {
+        return res.status(400).json({
+          success: false,
+          message: `No available node found for machine ${MACHINE_ID}. All slots may be occupied.`,
+        });
+      }
+
+      usedNodeIds.add(availableTarget.ID);
+
+      assignments.push({
+        machineId: MACHINE_ID,
+        nodeId: availableTarget.ID,
+        sequence: availableTarget.SEQUENCE,
+        position: availableTarget.POSITION
+      });
+    }
+
+    const updatedMachines = [];
+
+    for (const assignment of assignments) {
       const machine = await MecListMachine.findOne({
-        where: { MACHINE_ID: machineNo },
+        where: { MACHINE_ID: assignment.machineId }
       });
 
       if (!machine) {
-        console.warn(`Machine with ID ${machineNo} not found. Skipping...`);
+        console.warn(`Machine ${assignment.machineId} not found`);
         continue;
       }
 
+
       await machine.update({
         STORAGE_INVENTORY_ID: storageInventory.ID,
-        SEQ_NO: newSeqNo,
+        STORAGE_INVENTORY_NODE_ID: assignment?.nodeId,
+        SEQ_NO: assignment.sequence + 1
+      });
+
+      await StorageInventoryLogModel.create({
+        STORAGE_INVENTORY_ID: storageInventory.ID,
+        MACHINE_ID: assignment.machineId,
+        USER_ADD_ID: userId,
+        DESCRIPTION: 'ASSIGNED TO NODE',
+        STORAGE_INVENTORY_NODE_ID: assignment?.nodeId
       });
 
       updatedMachines.push({
         MACHINE_ID: machine.MACHINE_ID,
         STORAGE_INVENTORY_ID: storageInventory.ID,
-        SEQ_NO: newSeqNo,
-      });
-
-      StorageInventoryLogModel.create({
-        STORAGE_INVENTORY_ID: storageInventory.ID,
-        MACHINE_ID: machineNo,
-        USER_ADD_ID: userId,
-        DESCRIPTION: 'CHANGE TO STORAGE'
-      })
-
-      newSeqNo++;
-    }
-
-    if (updatedMachines.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No valid machines found to update",
+        STORAGE_INVENTORY_NODE_ID: assignment.nodeId,
+        SEQ_NO: assignment.sequence + 1,
+        POSITION: assignment.position
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Machines and storage updated successfully",
-      data: updatedMachines,
+      message: "Machines assigned to storage nodes successfully",
+      data: updatedMachines
     });
+
   } catch (error) {
     console.error("Error updating machines and storage:", error);
     return res.status(500).json({
@@ -802,7 +851,6 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
   try {
     const { storageInventoryId } = req.params;
 
-
     if (!storageInventoryId) {
       return res.status(400).json({
         success: false,
@@ -810,28 +858,57 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
       });
     }
 
-
-    const machines = await MecListMachine.findAll({
-      where: { STORAGE_INVENTORY_ID: storageInventoryId },
-      include: [
+    const nodeLeft = await StorageInventoryNodeModel.findAll(
         {
-          model: MacTypeOfMachine,
-          as: "MEC_TYPE_OF_MACHINE",
-          attributes: ["TYPE_DESCRIPTION", "COLOR"]
-        }
-      ],
-      order: [["SEQ_NO"]]
-    });
+          where: {STORAGE_INVENTORY_ID: storageInventoryId, POSITION: 'LEFT'},
+          order: [['SEQUENCE', 'ASC']],
+          include: [
+            {
+              model: MecListMachine,
+              as: 'MACHINE',
+              attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
+              required: false,
+              include: [
+                {
+                  model: MacTypeOfMachine,
+                  as: 'MEC_TYPE_OF_MACHINE',
+                  attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+                }
+              ]
+            }
+          ]
+        })
 
-
+    const nodeRight = await StorageInventoryNodeModel.findAll(
+        {
+          where: {STORAGE_INVENTORY_ID: storageInventoryId, POSITION: 'RIGHT'},
+          order: [['SEQUENCE', 'ASC']],
+          include: [
+            {
+              model: MecListMachine,
+              as: 'MACHINE',
+              attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
+              required: false,
+              include: [
+                {
+                  model: MacTypeOfMachine,
+                  as: 'MEC_TYPE_OF_MACHINE',
+                  attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+                }
+              ]
+            }
+          ]
+        })
 
     return res.status(200).json({
       success: true,
-      message: "Machines retrieved successfully",
-      data: machines,
+      message: "Machines and node structure retrieved successfully",
+      data: {
+        NODE_LEFT: nodeLeft,
+        NODE_RIGHT: nodeRight,
+      },
     });
   } catch (error) {
-    console.error("Error retrieving machines by storage inventory ID:", error);
     return res.status(500).json({
       success: false,
       message: `Failed to retrieve machines: ${error.message}`,

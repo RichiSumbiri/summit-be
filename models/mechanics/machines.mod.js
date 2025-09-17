@@ -1,130 +1,135 @@
-import { DataTypes } from "sequelize";
+import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
+import {StorageInventoryNodeModel} from "../storage/storageInventory.mod.js";
 
 export const MecListMachine = db.define(
-  "mec_item_master",
-  {
-    MACHINE_ID: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      primaryKey: true,
+    "mec_item_master_1",
+    {
+        MACHINE_ID: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            primaryKey: true,
+        },
+        MACHINE_TYPE: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
+        MACHINE_DESCRIPTION: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_SERIAL: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_UOM: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_SECTION: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_BRAND: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_MODEL: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_CATEGORY: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_KODE_DOC: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_NO_BC: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_DOK_DATE: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        MACHINE_STATUS: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_ADD_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
+        MACHINE_MOD_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
+        STORAGE_INVENTORY_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        STORAGE_INVENTORY_NODE_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        DEPARTMENT_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        SEQ_NO: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        STATUS: {
+            type: DataTypes.ENUM('NORMAL', 'BROKEN', 'ON_FIX'),
+            defaultValue: 'NORMAL'
+        },
+        IS_REPLACE: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        }
     },
-    MACHINE_TYPE: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-    MACHINE_DESCRIPTION: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_SERIAL: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_UOM: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_SECTION: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_BRAND: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_MODEL: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_CATEGORY: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_KODE_DOC: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_NO_BC: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_DOK_DATE: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    MACHINE_STATUS: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_ADD_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-    MACHINE_MOD_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-    STORAGE_INVENTORY_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    DEPARTMENT_ID: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    SEQ_NO: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    STATUS: {
-      type: DataTypes.ENUM('NORMAL', 'BROKEN', 'ON_FIX'),
-      defaultValue: 'NORMAL'
-    },
-      IS_REPLACE: {
-          type: DataTypes.BOOLEAN,
-          defaultValue: false
-      }
-  },
-  {
-    freezeTableName: true,
-  }
+    {
+        freezeTableName: true,
+    }
 );
 
 export const MacTypeOfMachine = db.define(
-  "mec_type_of_machine",
-  {
-    TYPE_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: false,
-      primaryKey: true,
+    "mec_type_of_machine",
+    {
+        TYPE_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: false,
+            primaryKey: true,
+        },
+        TYPE_DESCRIPTION: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        COLOR: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        CATEGORY: {
+            type: DataTypes.ENUM('PRODUCTION', 'SPERPART', 'MACHINE'),
+            allowNull: true,
+        }
     },
-    TYPE_DESCRIPTION: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    COLOR: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-      CATEGORY: {
-          type: DataTypes.ENUM('PRODUCTION', 'SPERPART', 'MACHINE'),
-          allowNull: true,
-      }
-  },
-  {
-    freezeTableName: true,
-    timestamps: false, // Disable timestamps if you don't need `createdAt`/`updatedAt`
-  }
+    {
+        freezeTableName: true,
+        timestamps: false, // Disable timestamps if you don't need `createdAt`/`updatedAt`
+    }
 );
 
 MecListMachine.belongsTo(MacTypeOfMachine, {
-  foreignKey: "MACHINE_TYPE",
-  as: "MEC_TYPE_OF_MACHINE"
+    foreignKey: "MACHINE_TYPE",
+    as: "MEC_TYPE_OF_MACHINE"
 })
 
 export const MecDownTimeModel = db.define(
-    "mec_down_time",
+    "mec_down_time_1",
     {
         ID: {
             type: DataTypes.INTEGER,
@@ -152,6 +157,10 @@ export const MecDownTimeModel = db.define(
             allowNull: false,
         },
         STORAGE_INVENTORY_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        STORAGE_INVENTORY_NODE_ID: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
@@ -191,10 +200,15 @@ export const MecDownTimeModel = db.define(
         },
     },
     {
-        tableName: "mec_down_time",
+        tableName: "mec_down_time_1",
         timestamps: false,
     }
 );
+
+MecListMachine.belongsTo(StorageInventoryNodeModel, {
+    foreignKey: 'STORAGE_INVENTORY_NODE_ID',
+    as: 'NODE'
+});
 
 // Define any associations or hooks here if needed
 
@@ -209,14 +223,14 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
-a.STORAGE_INVENTORY_ID,
+a.STORAGE_INVENTORY_NODE_ID,
 a.IS_REPLACE,
 a.MACHINE_STATUS,
 a.STATUS
 -- a.MACHINE_NO_BC,
 -- a.MACHINE_KODE_DOC,
 -- a.MACHINE_DOK_DATE
-FROM mec_item_master a 
+FROM mec_item_master_1 a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 ORDER BY a.updatedAt DESC`;
@@ -232,14 +246,14 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
-a.STORAGE_INVENTORY_ID,
+a.STORAGE_INVENTORY_NODE_ID,
 a.IS_REPLACE,
 a.MACHINE_STATUS,
 a.STATUS
 -- a.MACHINE_NO_BC,
 -- a.MACHINE_KODE_DOC,
 -- a.MACHINE_DOK_DATE
-FROM mec_item_master a 
+FROM mec_item_master_1 a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 WHERE a.DEPARTMENT_ID = :departmentId
@@ -259,11 +273,11 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
-a.STORAGE_INVENTORY_ID,
+a.STORAGE_INVENTORY_NODE_ID,
 a.MACHINE_STATUS,
 a.STATUS,
 ROUND(d.BALANCE,2) BALANCE
-FROM mec_item_master a 
+FROM mec_item_master_1_1 a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 LEFT JOIN (
@@ -285,54 +299,54 @@ LEFT JOIN (
 WHERE  a.MACHINE_ID = :macId`;
 
 export const MacItemIn = db.define(
-  "mec_item_in",
-  {
-    MACHINE_ID: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      primaryKey: true,
+    "mec_item_in",
+    {
+        MACHINE_ID: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            primaryKey: true,
+        },
+        MACHINE_KODE_DOC: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_NO_BC: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        MACHINE_DOK_DATE: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        MACHINE_QTY: {
+            type: DataTypes.DECIMAL,
+            allowNull: true,
+        },
+        MACHINE_ADD_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
+        MACHINE_MOD_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
     },
-    MACHINE_KODE_DOC: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_NO_BC: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    MACHINE_DOK_DATE: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    MACHINE_QTY: {
-      type: DataTypes.DECIMAL,
-      allowNull: true,
-    },
-    MACHINE_ADD_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-    MACHINE_MOD_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-  },
-  {
-    freezeTableName: true,
-  }
+    {
+        freezeTableName: true,
+    }
 );
 
 export const qryListInbyDate = `SELECT a.LOG_ID,
 a.MACHINE_ID, b.MACHINE_TYPE, c.TYPE_DESCRIPTION, b.MACHINE_DESCRIPTION, b.MACHINE_MODEL, ROUND(a.MACHINE_QTY,2) MACHINE_QTY, DATE(a.createdAt) INPUT_DATE
 FROM  mec_item_in a 
-LEFT JOIN mec_item_master b ON b.MACHINE_ID = a.MACHINE_ID
+LEFT JOIN mec_item_master_1 b ON b.MACHINE_ID = a.MACHINE_ID
 LEFT JOIN mec_type_of_machine c ON c.TYPE_ID = b.MACHINE_TYPE
 WHERE DATE(a.createdAt) = :date`;
 
 export const qryListOut = `SELECT a.LOG_ID,
 a.PART_ID, a.MACHINE_ID, a.NIK, a.NAME, a.DEPARTEMEN, a.REASON, a.SCRAP, c.TYPE_DESCRIPTION, b.MACHINE_DESCRIPTION, c.TYPE_ID, ROUND(a.PART_QTY,2) PART_QTY, time(a.createdAt) ADD_TIME
 FROM mec_part_used a 
-LEFT JOIN mec_item_master b ON b.MACHINE_ID = a.PART_ID
+LEFT JOIN mec_item_master_1 b ON b.MACHINE_ID = a.PART_ID
 LEFT JOIN mec_type_of_machine c ON c.TYPE_ID = b.MACHINE_TYPE
 WHERE DATE(a.createdAt) = :date`;
 
@@ -350,66 +364,66 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
-a.STORAGE_INVENTORY_ID,
+a.STORAGE_INVENTORY_NODE_ID,
 a.MACHINE_STATUS,
 a.STATUS
-FROM mec_item_master a 
+FROM mec_item_master_1 a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 WHERE a.MACHINE_TYPE NOT IN (50, 62) AND a.MACHINE_ID = :macId`;
 
 export const MacPartOut = db.define(
-  "mec_part_used",
-  {
-    LOG_ID: {
-      type: DataTypes.BIGINT,
-      autoIncrement: true,
-      primaryKey: true,
+    "mec_part_used",
+    {
+        LOG_ID: {
+            type: DataTypes.BIGINT,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        PART_ID: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+        },
+        MACHINE_ID: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+        },
+        NIK: {
+            type: DataTypes.STRING(255),
+        },
+        NAME: {
+            type: DataTypes.STRING(255),
+        },
+        DEPARTEMEN: {
+            type: DataTypes.STRING(255),
+        },
+        REASON: {
+            type: DataTypes.STRING(255),
+        },
+        SCRAP: {
+            type: DataTypes.STRING(255),
+        },
+        SITELINE: {
+            type: DataTypes.STRING(255),
+        },
+        SCH_ID: {
+            type: DataTypes.STRING(255),
+        },
+        PART_QTY: {
+            type: DataTypes.DECIMAL,
+        },
+        ADD_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
+        MOD_ID: {
+            type: DataTypes.BIGINT(20),
+            allowNull: true,
+        },
     },
-    PART_ID: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    MACHINE_ID: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    NIK: {
-      type: DataTypes.STRING(255),
-    },
-    NAME: {
-      type: DataTypes.STRING(255),
-    },
-    DEPARTEMEN: {
-      type: DataTypes.STRING(255),
-    },
-    REASON: {
-      type: DataTypes.STRING(255),
-    },
-    SCRAP: {
-      type: DataTypes.STRING(255),
-    },
-    SITELINE: {
-      type: DataTypes.STRING(255),
-    },
-    SCH_ID: {
-      type: DataTypes.STRING(255),
-    },
-    PART_QTY: {
-      type: DataTypes.DECIMAL,
-    },
-    ADD_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-    MOD_ID: {
-      type: DataTypes.BIGINT(20),
-      allowNull: true,
-    },
-  },
-  {
-    freezeTableName: true,
-  }
+    {
+        freezeTableName: true,
+    }
 );
 
 export const qryGetSPartNeedle = `SELECT a.MACHINE_ID,
@@ -422,11 +436,11 @@ a.MACHINE_SECTION,
 c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
-a.STORAGE_INVENTORY_ID,
+a.STORAGE_INVENTORY_NODE_ID,
 a.MACHINE_MODEL,
 a.MACHINE_STATUS,
 a.STATUS
-FROM mec_item_master a 
+FROM mec_item_master_1 a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 WHERE a.MACHINE_TYPE IN (50, 62)
@@ -444,7 +458,7 @@ a.MACHINE_SECTION,
 c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
-a.STORAGE_INVENTORY_ID,
+a.STORAGE_INVENTORY_NODE_ID,
 a.MACHINE_MODEL,
 a.MACHINE_STATUS,
 a.STATUS,
@@ -452,7 +466,7 @@ ROUND(d.BALANCE,2) BALANCE,
 ROUND(e.PART_IN,2) TOTAL_IN,
 ROUND(e.PART_OUT,2) TOTAL_OUT,
 ROUND(((d.BALANCE+IFNULL(e.PART_IN,0))-IFNULL(e.PART_OUT,0)),2) BALANCE_AKHIR
-FROM mec_item_master a 
+FROM mec_item_master_1 a 
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 LEFT JOIN (
@@ -514,7 +528,7 @@ FROM (
 	FROM mec_part_used b WHERE DATE(b.createdAt) BETWEEN :startDate AND :endDate
 	GROUP BY b.MACHINE_ID,  DATE(b.createdAt) 
 ) n
-LEFT JOIN mec_item_master a ON a.MACHINE_ID = n.MACHINE_ID
+LEFT JOIN mec_item_master_1 a ON a.MACHINE_ID = n.MACHINE_ID
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 GROUP BY n.MACHINE_ID, n.TRANSACTION_DATE`;

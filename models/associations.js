@@ -17,6 +17,8 @@ import ColorChartMod from "./system/colorChart.mod.js";
 import BomTemplateListModel from "./system/bomTemplateList.mod.js";
 import MasterCompanyModel from "./setup/company.mod.js";
 import {ModelVendorDetail} from "./system/VendorDetail.mod.js";
+import {MecListMachine} from "./mechanics/machines.mod.js";
+import {StorageInventoryNodeModel} from "./storage/storageInventory.mod.js";
 
 MasterAttributeSetting.hasMany(MasterAttributeValue, {
   foreignKey: "MASTER_ATTRIBUTE_ID",
@@ -62,4 +64,11 @@ orderitemSMV.belongsTo(ModelOrderPOHeader, {
   foreignKey: "ORDER_ID",
   targetKey: "ORDER_ID",
   as: "ORDER_HEADER",
+});
+
+
+
+StorageInventoryNodeModel.hasOne(MecListMachine, {
+  foreignKey: 'STORAGE_INVENTORY_NODE_ID',
+  as: 'MACHINE'
 });

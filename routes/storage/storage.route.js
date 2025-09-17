@@ -6,7 +6,10 @@ import {
     updateStorageInventory,
     deleteStorageInventory,
     getStorageInventoryBySerialNumber,
-    getStorageInventoryBySitelineId, getStorageInventoryByIdCountMachine
+    getStorageInventoryBySitelineId,
+    getStorageInventoryByIdCountMachine,
+    createStorageInventoryNode,
+    getAllStorageInventoryNodes, getStorageInventoryNodeById, updateStorageInventoryNode, deleteStorageInventoryNode
 } from "../../controllers/storage/storageInventory.js"
 const router = express.Router();
 
@@ -18,6 +21,12 @@ router.get("/inventory-serial/:serialNumber", getStorageInventoryBySerialNumber)
 router.get("/inventory-serial-count/:id", getStorageInventoryByIdCountMachine);
 router.put("/inventory/:id", updateStorageInventory);
 router.delete("/inventory/:id", deleteStorageInventory);
+
+router.post("/inventory-node", createStorageInventoryNode);
+router.get("/inventory-node", getAllStorageInventoryNodes);
+router.get("/inventory-node/:id", getStorageInventoryNodeById);
+router.put("/inventory-node/:id", updateStorageInventoryNode);
+router.delete("/inventory-node/:id", deleteStorageInventoryNode);
 export default router;
 
 
