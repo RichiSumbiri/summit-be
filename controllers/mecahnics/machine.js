@@ -17,6 +17,7 @@ import {
   qryListInbyDate,
   qryListOut,
   qryMecStockMain, MecDownTimeModel,
+  ListLamp,
 } from "../../models/mechanics/machines.mod.js";
 import { QueryTypes, Op } from "sequelize";
 import { dbSPL } from "../../config/dbAudit.js";
@@ -1095,3 +1096,78 @@ export const getAllDownTimeWithOutput = async (req, res) => {
     });
   }
 };
+
+
+export const postListLampu = async (req, res) => {
+  try {
+    const { mac, ip_address, id_siteline } = req.body;
+
+    // Validasi input
+    if (!mac || !ip_address || !id_siteline) {
+      return res.status(400).json({
+        success: false,
+        message: "MAC, IP Address, dan ID Siteline harus diisi",
+      });
+    }
+
+    // Cek apakah MAC sudah ada
+    const existMac = await ListLamp.findOne({ where: { MAC: mac } });
+    if (existMac) {
+      return res.status(400).json({
+        success: false,
+        message: `MAC ${mac} sudah digunakan`,
+      });
+    }
+
+    // Cek apakah IP Address sudah ada
+    const existIP = await ListLamp.findOne({ where: { IP_ADDRESS: ip_address } });
+    if (existIP) {
+      return res.status(400).json({
+        success: false,
+        message: `IP Address ${ip_address} sudah digunakan`,
+      });
+    }
+
+    // Cek apakah ID Siteline sudah ada
+    const existSiteline = await ListLamp.findOne({ where: { ID_SITELINE: id_siteline } });
+    if (existSiteline) {
+      return res.status(400).json({
+        success: false,
+        message: `ID Siteline ${id_siteline} sudah digunakan`,
+      });
+    }
+
+    // Jika semua aman → simpan data baru
+    const newLamp = await ListLamp.create({
+      MAC: mac,
+      IP_ADDRESS: ip_address,
+      ID_SITELINE: id_siteline,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Data lampu berhasil ditambahkan",
+      data: newLamp,
+    });
+  } catch (error) {
+    console.error("Error creating list lamp record:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to create list lamp record: ${error.message}`,
+    });
+  }
+};
+
+
+export const getListLampu = async (req, res) => {
+  try {
+    const getAllLampu = await ListLamp.findAll({})
+
+    res.json({data: getAllLampu})
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Failed to get lampu: ${error.message}`,
+    });
+  }
+}

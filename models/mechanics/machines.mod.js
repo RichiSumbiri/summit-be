@@ -518,3 +518,36 @@ LEFT JOIN mec_item_master a ON a.MACHINE_ID = n.MACHINE_ID
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
 GROUP BY n.MACHINE_ID, n.TRANSACTION_DATE`;
+
+
+
+export const ListLamp = db.define(
+  "list_lamp",
+  {
+    MAC: {
+      type: DataTypes.STRING(100),
+      primaryKey: true,
+      allowNull: false,
+    },
+    IP_ADDRESS: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    ID_SITELINE: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true, // Sequelize otomatis handle createdAt & updatedAt
+  }
+);

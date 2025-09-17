@@ -158,7 +158,6 @@ export const confirmComponent = async (req, res) => {
     try {
         const {orderId} = req.params;
 
-        console.log(orderId);
 
         await ModelOrderPOHeader.update({
         COMPONENT_STATUS : 1
