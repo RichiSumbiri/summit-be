@@ -31,7 +31,7 @@ const StorageInventoryLogModel = db.define(
         },
         STORAGE_INVENTORY_NODE_ID: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
         }
     },
     {

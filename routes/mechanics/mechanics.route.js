@@ -27,7 +27,7 @@ import {
   getMecDownTimeValidation,
   updateSequenceByStorageAndMachineBulk,
   postListLampu,
-  getListLampu,
+  getListLampu, assignMachineToStorage,
 } from "../../controllers/mecahnics/machine.js";
 const router = express.Router();
 
@@ -38,6 +38,8 @@ router.get('/storage/:storageInventoryId', getMachinesByStorageInventoryId);
 router.get("/type-machines", getListTypeMec);
 router.post("/machines", postMachine);
 router.patch("/machines", updateMachine);
+
+router.post("/machines/assign-location", assignMachineToStorage);
 router.put("/storage/change-location/:serialNumberInventory", updateMachineAndStorage);
 router.patch("/storage/change-sequence/:storageInventoryId", updateSequenceByStorageAndMachine);
 router.put("/storage/change-sequence/:storageInventoryId/bulk", updateSequenceByStorageAndMachineBulk);

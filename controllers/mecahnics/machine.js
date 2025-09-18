@@ -50,6 +50,140 @@ export const getOneMachine = async (req, res) => {
   }
 };
 
+export const assignMachineToStorage = async (req, res) => {
+  try {
+    const { storageInventoryId, machines } = req.body;
+
+    if (!storageInventoryId) {
+      return res.status(400).json({
+        success: false,
+        message: "Storage Inventory ID is required",
+      });
+    }
+
+    if (!Array.isArray(machines) || machines.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid machines array is required",
+      });
+    }
+
+    const targetStorage = await StorageInventoryModel.findByPk(storageInventoryId);
+
+    if (!targetStorage) {
+      return res.status(404).json({
+        success: false,
+        message: "Target storage not found",
+      });
+    }
+
+    let nodeMap = new Map();
+
+    if (targetStorage.CATEGORY === "LINE") {
+      const nodes = await StorageInventoryNodeModel.findAll({
+        where: { STORAGE_INVENTORY_ID: storageInventoryId },
+        order: [['SEQUENCE', 'ASC']],
+        include: [
+          {
+            model: MecListMachine,
+            as: 'MACHINE',
+            attributes: ['MACHINE_ID'],
+            required: false,
+            where: {
+              MACHINE_ID: { [Op.notIn]: machines.map(m => m.machineId) }
+            }
+          }
+        ]
+      });
+
+      const availableNodes = nodes.filter(node => !node.MACHINE);
+
+      if (availableNodes.length < machines.length) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough slots in ${targetStorage.DESCRIPTION}. Required: ${machines.length}, Available: ${availableNodes.length}`,
+        });
+      }
+
+      nodeMap = new Map(
+          machines.map((machine, index) => [
+            machine.machineId,
+            {
+              nodeId: availableNodes[index].ID,
+              seqNo: availableNodes[index].SEQUENCE + 1
+            }
+          ])
+      );
+    }
+
+
+    for (const machineData of machines) {
+      const machineId = machineData.machineId;
+
+      const machine = await MecListMachine.findOne({
+        where: { MACHINE_ID: machineId }
+      });
+
+      if (!machine) {
+        console.warn(`Machine ${machineId} not found`);
+        continue;
+      }
+
+      const activeDowntime = await MecDownTimeModel.findOne({
+        where: {
+          MACHINE_ID: machineId,
+          IS_COMPLETE: false
+        }
+      });
+
+      if (activeDowntime) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot move machine ${machineId}: it is in downtime mode`,
+        });
+      }
+
+      const updateData = {
+        STORAGE_INVENTORY_ID: targetStorage.ID,
+        ...((targetStorage.CATEGORY === "LINE" && nodeMap.has(machineId)) && {
+          STORAGE_INVENTORY_NODE_ID: nodeMap.get(machineId).nodeId,
+          SEQ_NO: nodeMap.get(machineId).seqNo
+        })
+      };
+
+      if (machine.STORAGE_INVENTORY_ID && machine.STORAGE_INVENTORY_ID !== targetStorage.ID) {
+        await StorageInventoryLogModel.create({
+          STORAGE_INVENTORY_ID: machine.STORAGE_INVENTORY_ID,
+          MACHINE_ID: machineId,
+          DESCRIPTION: 'REMOVED FROM STORAGE',
+          USER_ADD_ID: req.body.userId || null
+        });
+      }
+
+      await machine.update(updateData);
+
+      await StorageInventoryLogModel.create({
+        STORAGE_INVENTORY_ID: targetStorage.ID,
+        STORAGE_INVENTORY_NODE_ID: updateData.STORAGE_INVENTORY_NODE_ID || null,
+        MACHINE_ID: machineId,
+        DESCRIPTION: 'ASSIGNED TO STORAGE',
+        USER_ADD_ID: req.body.userId || null
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Machines assigned to storage successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Failed to assign machines: ${error.message}`,
+    });
+  }
+};
+
 export const getListMachine = async (req, res) => {
   const { departmentId } = req.query;
 
@@ -80,7 +214,6 @@ export const getListMachine = async (req, res) => {
       listSection: listSection,
     });
   } catch (error) {
-    console.log(error);
     res.status(404).json({
       success: false,
       data: error,
@@ -215,6 +348,8 @@ export const updateMachine = async (req, res) => {
     });
   }
 };
+
+
 
 export const updateMachineAndStorage = async (req, res) => {
   try {
