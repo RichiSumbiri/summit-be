@@ -419,42 +419,42 @@ export const getAllPODetailHeader = async (req, res) => {
 export const postPOListing = async (req, res) => {
     try {
         const { DataPOID } = req.body;
-
+        
         // CHECK MASTER ORDER TYPE
-            const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_ID).substring(0,3) }});
+        const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_NO).substring(0,3) }});
             
-            // CHECK BOM TEMPLATE BASE ON GMT & ORDER TYPE
-            const getBOMTemplateID = await BomTemplateModel.findOne({
-                where: {
-                    MASTER_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
-                    CUSTOMER_ID: DataPOID.CUSTOMER_ID,
-                    ORDER_TYPE_ID: getMasterOrderType.TYPE_ID
-                },
-                raw: true
+        // CHECK BOM TEMPLATE BASE ON GMT & ORDER TYPE
+        const getBOMTemplateID = await BomTemplateModel.findOne({
+            where: {
+                MASTER_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
+                CUSTOMER_ID: DataPOID.CUSTOMER_ID,
+                ORDER_TYPE_ID: getMasterOrderType.TYPE_ID
+            },
+            raw: true
+        });
+
+        if(!getBOMTemplateID){
+            return res.status(400).json({
+                success: true,
+                message: "Please create BOM Template for Item " + DataPOID.PRODUCT_ITEM_ID
             });
+        }
 
-            if(!getBOMTemplateID){
-                return res.status(400).json({
-                    success: true,
-                    message: "Please create BOM Template for Item " + DataPOID.PRODUCT_ITEM_ID
-                });
+        // CHECK BOM TEMPLATE COLOR
+        const getBOMTemplateColor = await BomTemplateColor.findOne({
+            where: {
+                BOM_TEMPLATE_ID: getBOMTemplateID.ID,
+                REV_ID: getBOMTemplateID.LAST_REV_ID,
+                COLOR_ID: DataPOID.ITEM_COLOR_ID
             }
+        });
 
-            // CHECK BOM TEMPLATE COLOR
-            const getBOMTemplateColor = await BomTemplateColor.findOne({
-                where: {
-                    BOM_TEMPLATE_ID: getBOMTemplateID.ID,
-                    REV_ID: getBOMTemplateID.LAST_REV_ID,
-                    COLOR_ID: DataPOID.ITEM_COLOR_ID
-                }
+        if(!getBOMTemplateColor){
+            return res.status(400).json({
+                success: true,
+                message: `Please add color ${DataPOID.ITEM_COLOR_CODE} to BOM Template ${DataPOID.PRODUCT_ITEM_ID}`
             });
-
-            if(!getBOMTemplateColor){
-                return res.status(400).json({
-                    success: true,
-                    message: `Please add color ${DataPOID.ITEM_COLOR_CODE} to BOM Template ${DataPOID.PRODUCT_ITEM_ID}`
-                });
-            }
+        }
 
 
         if (DataPOID.ORDER_PO_ID) {
@@ -500,11 +500,11 @@ export const postPOListing = async (req, res) => {
                 UNIT_PRICE_FINAL: DataPOID.UNIT_PRICE,
                 MO_COST: DataPOID.MO_COST,
                 ORDER_UOM: DataPOID.ORDER_UOM,
-                ORDER_QTY: DataPOID.ORDER_QTY,
-                MO_QTY: DataPOID.MO_QTY,
+                ORDER_QTY: parseInt(DataPOID.ORDER_QTY),
+                MO_QTY: parseInt(DataPOID.MO_QTY),
                 TOTAL_ORDER_COST: parseFloat(DataPOID.UNIT_PRICE) * parseInt(DataPOID.ORDER_QTY),
                 TOTAL_MO_COST: parseFloat(DataPOID.UNIT_PRICE) * parseInt(DataPOID.MO_QTY),
-                SCRAP_PERCENTAGE: DataPOID.SCRAP_PERCENTAGE,
+                SCRAP_PERCENTAGE: parseFloat(DataPOID.SCRAP_PERCENTAGE),
                 CURRENCY_CODE: DataPOID.CURRENCY_CODE,
                 NOTE_REMARKS: DataPOID.NOTE_REMARKS,
                 DELIVERY_TERM: DataPOID.SHIPPING_TERMS_CODE,
@@ -512,8 +512,7 @@ export const postPOListing = async (req, res) => {
                 UPDATE_BY: DataPOID.CREATE_BY
             }, {
                 where: {
-                    ORDER_PO_ID: DataPOID.ORDER_PO_ID,
-                    ORDER_NO: DataPOID.ORDER_ID
+                    ORDER_PO_ID: DataPOID.ORDER_PO_ID
                 }
             });
         } else {
@@ -567,11 +566,11 @@ export const postPOListing = async (req, res) => {
                 UNIT_PRICE_FINAL: DataPOID.UNIT_PRICE,
                 MO_COST: DataPOID.MO_COST,
                 ORDER_UOM: DataPOID.ORDER_UOM,
-                ORDER_QTY: DataPOID.ORDER_QTY,
-                MO_QTY: DataPOID.MO_QTY,
+                ORDER_QTY: parseInt(DataPOID.ORDER_QTY),
+                MO_QTY: parseInt(DataPOID.MO_QTY),
                 TOTAL_ORDER_COST: parseFloat(DataPOID.UNIT_PRICE) * parseInt(DataPOID.ORDER_QTY),
                 TOTAL_MO_COST: parseFloat(DataPOID.UNIT_PRICE) * parseInt(DataPOID.MO_QTY),
-                SCRAP_PERCENTAGE: DataPOID.SCRAP_PERCENTAGE,
+                SCRAP_PERCENTAGE: parseInt(DataPOID.SCRAP_PERCENTAGE),
                 NOTE_REMARKS: DataPOID.NOTE_REMARKS,
                 CURRENCY_CODE: DataPOID.CURRENCY_CODE,
                 DELIVERY_TERM: DataPOID.SHIPPING_TERMS_CODE,
@@ -593,7 +592,7 @@ export const postPOListing = async (req, res) => {
 
 
         // create recap PO Matrix Delivery
-        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_ID }, type: QueryTypes.SELECT });
+        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_NO }, type: QueryTypes.SELECT });
         // clean + normalize data
         const cleanRecap = recapPOMatrix.map(row => ({
             SITE_CODE: row.SITE_CODE,
@@ -607,13 +606,13 @@ export const postPOListing = async (req, res) => {
             PACKING_METHOD: row.PACKING_METHOD,
             EX_FACTORY: row.EX_FACTORY, // already JS Date, Sequelize will map to DATE
             SIZE_CODE: row.SIZE_CODE,
-            TOTAL_QTY: Number(row.TOTAL_QTY), // ⚡ convert to number
+            TOTAL_QTY: parseInt(row.TOTAL_QTY), // ⚡ convert to number
             PDM_ADD_DATE: row.PDM_ADD_DATE,
             PDM_MOD_DATE: row.PDM_MOD_DATE,
             PDM_MOD_ID: row.PDM_MOD_ID,
             PDM_ADD_ID: row.PDM_ADD_ID
         }));
-        await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_ID } });
+        await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_NO } });
         await PoMatrixDelivery.bulkCreate(cleanRecap);
         
         return res.status(200).json({
@@ -666,7 +665,7 @@ export const postPOSizeListing = async (req, res) => {
                         PRODUCT_ID: data.PRODUCT_ID,
                         PRODUCT_TYPE: data.PRODUCT_TYPE,
                         PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
-                        ORDER_QTY: data.ORDER_QTY==='' ? null:data.ORDER_QTY,
+                        ORDER_QTY: data.ORDER_QTY==='' ? null : data.ORDER_QTY,
                         MO_QTY: data.MO_QTY==='' ? null:data.MO_QTY,
                         SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
                         ORDER_UOM: data.ORDER_UOM,
@@ -681,7 +680,7 @@ export const postPOSizeListing = async (req, res) => {
                         MANUFACTURING_SITE: data.MANUFACTURING_SITE,
                         SIZE_ID: data.SIZE_ID,
                         SIZE_DESCRIPTION: data.SIZE_DESCRIPTION,
-                        REV_ID: data.PO_STATUS==='Open' ? Number(CheckData.REV_ID) : Number(CheckData.REV_ID) + 1,
+                        REV_ID: data.PO_STATUS==='Open' ? parseInt(CheckData.REV_ID) : parseInt(CheckData.REV_ID) + 1,
                         REV_NOTE: data.REV_NOTE,
                         UPDATE_BY: data.UPDATE_BY,
                         UPDATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -696,7 +695,7 @@ export const postPOSizeListing = async (req, res) => {
 
                 // check po status
                 if(data.PO_STATUS==='Open'){
-                    if(Number(data.ORDER_QTY)!==0 || Number(data.MO_QTY)!==0){
+                    if(parseInt(data.ORDER_QTY)!==0 || parseInt(data.MO_QTY)!==0){
                         // update existing po size listing log revision
                         await ModelOrderPOListingSizeLogRevision.update({
                                 REV_NOTE: data.REV_NOTE,
@@ -709,7 +708,7 @@ export const postPOSizeListing = async (req, res) => {
                             where: {
                                 ORDER_NO: data.ORDER_NO,
                                 ORDER_PO_ID: data.ORDER_PO_ID,
-                                REV_ID: Number(data.REV_ID),
+                                REV_ID: parseInt(data.REV_ID),
                                 SIZE_ID: data.SIZE_ID,
                                 SIZE_CODE: data.SIZE_CODE
                             }
@@ -720,7 +719,7 @@ export const postPOSizeListing = async (req, res) => {
                             where: {
                                 ORDER_NO: data.ORDER_NO,
                                 ORDER_PO_ID: data.ORDER_PO_ID,
-                                REV_ID: Number(data.REV_ID),
+                                REV_ID: parseInt(data.REV_ID),
                                 SIZE_ID: data.SIZE_ID,
                                 SIZE_CODE: data.SIZE_CODE
                             }
@@ -731,12 +730,12 @@ export const postPOSizeListing = async (req, res) => {
                     await ModelOrderPOListingSizeLogRevision.create({
                             ORDER_NO: data.ORDER_NO,
                             ORDER_PO_ID: data.ORDER_PO_ID,
-                            REV_ID: Number(data.REV_ID) + 1,
+                            REV_ID: parseInt(data.REV_ID) + 1,
                             REV_NOTE: data.REV_NOTE,
                             SIZE_ID: data.SIZE_ID,
                             SIZE_CODE: data.SIZE_CODE,
-                            ORDER_QTY: data.ORDER_QTY,
-                            MO_QTY: data.MO_QTY,
+                            ORDER_QTY: parseInt(data.ORDER_QTY),
+                            MO_QTY: parseInt(data.MO_QTY),
                             UNIT_PRICE: data.UNIT_PRICE,
                             CREATE_ID: data.CREATE_BY,
                             CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -749,12 +748,12 @@ export const postPOSizeListing = async (req, res) => {
                     await ModelOrderPOListingSizeLogRevision.create({
                         ORDER_NO: data.ORDER_NO,
                         ORDER_PO_ID: data.ORDER_PO_ID,
-                        REV_ID: Number(data.REV_ID),
+                        REV_ID: parseInt(data.REV_ID),
                         REV_NOTE: data.REV_NOTE,
                         SIZE_ID: data.SIZE_ID,
                         SIZE_CODE: data.SIZE_CODE,
-                        ORDER_QTY: data.ORDER_QTY,
-                        MO_QTY: data.MO_QTY,
+                        ORDER_QTY: parseInt(data.ORDER_QTY),
+                        MO_QTY: parseInt(data.MO_QTY),
                         UNIT_PRICE: data.UNIT_PRICE,
                         CREATE_ID: data.CREATE_BY
                     });
@@ -785,11 +784,11 @@ export const postPOSizeListing = async (req, res) => {
                         PRODUCT_ID: data.PRODUCT_ID,
                         PRODUCT_TYPE: data.PRODUCT_TYPE,
                         PRODUCT_CATEGORY: data.PRODUCT_CATEGORY,
-                        ORDER_QTY: data.ORDER_QTY,
-                        MO_QTY: data.MO_QTY,
-                        SHIPMENT_PO_QTY: data.SHIPMENT_PO_QTY,
+                        ORDER_QTY: parseInt(data.ORDER_QTY),
+                        MO_QTY: parseInt(data.MO_QTY),
+                        SHIPMENT_PO_QTY: parseInt(data.SHIPMENT_PO_QTY),
                         ORDER_UOM: data.ORDER_UOM,
-                        SHIPPED_QTY: data.SHIPPED_QTY,
+                        SHIPPED_QTY: parseInt(data.SHIPPED_QTY),
                         UNIT_PRICE: data.UNIT_PRICE,
                         DELIVERY_LOCATION_ID: data.DELIVERY_LOCATION_ID,
                         DELIVERY_LOCATION_NAME: data.DELIVERY_LOCATION_NAME,
@@ -832,7 +831,7 @@ export const postPOSizeListing = async (req, res) => {
             PACKING_METHOD: row.PACKING_METHOD,
             EX_FACTORY: moment(row.EX_FACTORY).format('YYYY-MM-DD'),
             SIZE_CODE: row.SIZE_CODE,
-            TOTAL_QTY: Number(row.TOTAL_QTY), 
+            TOTAL_QTY: parseInt(row.TOTAL_QTY), 
             PDM_ADD_DATE: row.PDM_ADD_DATE ? moment(row.PDM_ADD_DATE).format('YYYY-MM-DD HH:mm:ss') : null,
             PDM_MOD_DATE: row.PDM_MOD_DATE ? moment(row.PDM_MOD_DATE).format('YYYY-MM-DD HH:mm:ss') : null,
             PDM_MOD_ID: row.PDM_MOD_ID,
@@ -1070,7 +1069,7 @@ export const postUpdateOrderPOIDStatus = async (req, res) => {
             PACKING_METHOD: row.PACKING_METHOD,
             EX_FACTORY: row.EX_FACTORY, // already JS Date, Sequelize will map to DATE
             SIZE_CODE: row.SIZE_CODE,
-            TOTAL_QTY: Number(row.TOTAL_QTY), // ⚡ convert to number
+            TOTAL_QTY: parseInt(row.TOTAL_QTY), // ⚡ convert to number
             PDM_ADD_DATE: row.PDM_ADD_DATE,
             PDM_MOD_DATE: row.PDM_MOD_DATE,
             PDM_MOD_ID: row.PDM_MOD_ID,
