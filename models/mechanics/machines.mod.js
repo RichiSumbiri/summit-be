@@ -213,7 +213,7 @@ MecListMachine.belongsTo(StorageInventoryNodeModel, {
 // Define any associations or hooks here if needed
 
 export const qryGetAllMachine = `SELECT a.MACHINE_ID,
-a.MACHINE_TYPE, 
+a.MACHINE_TYPE,
 b.TYPE_DESCRIPTION,
 a.MACHINE_DESCRIPTION,
 a.MACHINE_SERIAL,
@@ -223,16 +223,21 @@ c.SECTION_NAME,
 c.SECTION_CATEGORY,
 a.MACHINE_BRAND,
 a.MACHINE_MODEL,
+a.STORAGE_INVENTORY_ID,
 a.STORAGE_INVENTORY_NODE_ID,
 a.IS_REPLACE,
 a.MACHINE_STATUS,
-a.STATUS
+a.STATUS,
+s.DESCRIPTION AS 'STORAGE_DESCRIPTION',
+bb.CODE AS 'BUILDING_CODE'
 -- a.MACHINE_NO_BC,
 -- a.MACHINE_KODE_DOC,
 -- a.MACHINE_DOK_DATE
-FROM mec_item_master a 
+FROM mec_item_master a
 LEFT JOIN mec_type_of_machine b ON b.TYPE_ID = a.MACHINE_TYPE
 LEFT JOIN item_section c ON c.SECTION_ID = a.MACHINE_SECTION
+LEFT JOIN storage_inventory s ON s.ID = a.STORAGE_INVENTORY_ID
+LEFT JOIN buildings bb ON s.BUILDING_ID = bb.ID
 ORDER BY a.updatedAt DESC`;
 
 export const qryGetAllMachineByDepartment = `SELECT a.MACHINE_ID,
