@@ -16,9 +16,19 @@ import {MIN_ALLOWED_VALUE} from "../../../util/enum.js";
 import {DataTypes, Op} from "sequelize";
 
 export const getAllSourcingDetails = async (req, res) => {
-    const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, ITEM_TYPE_ID} = req.query;
+    const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query;
 
     const where = {IS_DELETED: false};
+    const where2 = {}
+
+    if (ITEM_TYPE_ID) {
+        where2.ITEM_TYPE_ID = ITEM_TYPE_ID
+    }
+
+    if (ITEM_CATEGORY_ID) {
+        where2.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
+    }
+
 
     if (BOM_STRUCTURE_LINE_ID) where.BOM_STRUCTURE_LINE_ID = BOM_STRUCTURE_LINE_ID;
     if (ITEM_DIMENSION_ID) where.ITEM_DIMENSION_ID = ITEM_DIMENSION_ID;
@@ -69,13 +79,14 @@ export const getAllSourcingDetails = async (req, res) => {
                         {
                             model: CompanyMod,
                             as: "COMPANY",
-                            attributes: ['CODE', 'NAME']
+                            where: COMPANY_ID ? {ID: COMPANY_ID} : undefined,
+                            attributes: ['ID', 'CODE', 'NAME']
                         },
                         {
                             model: MasterItemIdModel,
                             as: "MASTER_ITEM",
                             required: true,
-                            where: ITEM_TYPE_ID ? {ITEM_TYPE_ID} : undefined,
+                            where: where2,
                             attributes: ['ITEM_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID'],
                             include: [
                                 {
