@@ -62,7 +62,7 @@ export const createStorageInventory = async (req, res) => {
             DESCRIPTION,
             SERIAL_NUMBER,
         });
-        const countLocation = Number(newInventory.POSITION) * Number(newInventory.LEVEL)
+        const countLocation = Number(newInventory.LEVEL) * Number(newInventory.POSITION)
 
         if (CATEGORY === "LINE") {
             for (let i = 0; i < countLocation; i++) {
@@ -176,7 +176,12 @@ export const getAllStorageInventory = async (req, res) => {
                     ]
                 })
 
-            listStorage.push({...data.dataValues, NODE_LEFT: nodeLeft ?? [], NODE_RIGHT: nodeRight ?? []})
+            const left = nodeLeft ?? []
+            const right = nodeRight ?? []
+
+
+
+            listStorage.push({...data.dataValues, NODE_LEFT: left, NODE_RIGHT: right, MACHINE_AVAILABLE: (!!(left.find((item) => item.MACHINE !== null) || right.find((item) => item.MACHINE !== null))) })
         }
 
         return res.status(200).json({
@@ -335,8 +340,8 @@ export const getStorageInventoryBySerialNumber = async (req, res) => {
 
 export const updateStorageInventory = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, RAK_NUMBER, CATEGORY, LEVEL, POSITION, DESCRIPTION} = req.body;
+        const { id } = req.params;
+        const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, RAK_NUMBER, CATEGORY, LEVEL, POSITION, DESCRIPTION } = req.body;
 
         const inventory = await StorageInventoryModel.findByPk(id);
 
@@ -346,9 +351,6 @@ export const updateStorageInventory = async (req, res) => {
                 message: "Storage inventory not found",
             });
         }
-
-        const oldLevel = inventory.LEVEL;
-        const oldPosition = inventory.POSITION;
 
         let building = null;
         if (BUILDING_ID) {
@@ -372,19 +374,33 @@ export const updateStorageInventory = async (req, res) => {
             }
         }
 
-        let  newPosition = POSITION ? parseInt(POSITION) : parseInt(inventory.POSITION);
+        let newLevel = LEVEL ? parseInt(LEVEL) : parseInt(inventory.LEVEL);
+        let newPosition = POSITION ? parseInt(POSITION) : parseInt(inventory.POSITION);
+
         if (CATEGORY === "LINE") {
-            newPosition = 2
+            newPosition = 2;
         }
-        const newLevel = LEVEL ? parseInt(LEVEL) : parseInt(inventory.LEVEL);
 
         const newCount = newLevel * newPosition;
+        const existingNodes = await StorageInventoryNodeModel.findAll({
+            where: { STORAGE_INVENTORY_ID: inventory.ID },
+            attributes: ['ID', 'SEQUENCE']
+        });
 
-        const oldLevelNum = parseInt(oldLevel);
-        const oldPositionNum = parseInt(oldPosition);
-        const oldCount = oldLevelNum * oldPositionNum;
+        const usedNodeIds = existingNodes.map(n => n.ID);
+        const usedNodeCount = await MecListMachine.count({
+            where: {
+                STORAGE_INVENTORY_NODE_ID: usedNodeIds
+            }
+        });
 
-        const SERIAL_NUMBER = `${(building?.CODE || inventory.Building.CODE)}-${(room?.CODE || inventory.Room.CODE)}-${(RAK_NUMBER || inventory.RAK_NUMBER)}-${newLevel}-${newPosition}`;
+        if (newCount < usedNodeCount) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot reduce size: ${usedNodeCount} node(s) are currently in use by machines. Minimum required nodes is ${usedNodeCount}.`,
+            });
+        }
+
 
         await inventory.update({
             UNIT_ID: UNIT_ID !== undefined ? UNIT_ID : inventory.UNIT_ID,
@@ -395,13 +411,12 @@ export const updateStorageInventory = async (req, res) => {
             LEVEL: newLevel,
             POSITION: newPosition,
             DESCRIPTION: DESCRIPTION !== undefined ? DESCRIPTION : inventory.DESCRIPTION,
-            SERIAL_NUMBER
         });
 
-        if (CATEGORY === "LINE") {
-            if (newCount > oldCount) {
+        if (CATEGORY === "LINE" || inventory.CATEGORY === "LINE") {
+            if (newCount > existingNodes.length) {
                 const newNodes = [];
-                for (let i = oldCount; i < newCount; i++) {
+                for (let i = existingNodes.length; i < newCount; i++) {
                     newNodes.push({
                         POSITION: i % 2 === 0 ? 'RIGHT' : 'LEFT',
                         STORAGE_INVENTORY_ID: inventory.ID,
@@ -413,43 +428,45 @@ export const updateStorageInventory = async (req, res) => {
                 if (newNodes.length > 0) {
                     await StorageInventoryNodeModel.bulkCreate(newNodes);
                 }
-            } else if (newCount < oldCount) {
+            } else if (newCount < existingNodes.length) {
                 const nodesToDelete = await StorageInventoryNodeModel.findAll({
                     where: {
                         STORAGE_INVENTORY_ID: inventory.ID,
-                        SEQUENCE: {[Op.gte]: newCount}
+                        SEQUENCE: { [Op.gte]: newCount }
                     },
                     order: [['SEQUENCE', 'DESC']]
                 });
 
-                if (nodesToDelete.length > 0) {
-                    const machineCount = await MecListMachine.count({
-                        where: {
-                            STORAGE_INVENTORY_NODE_ID: nodesToDelete.map(n => n.ID)
-                        }
-                    })
-                    if (machineCount > 0) {
-                        return res.status(500).json({
-                            success: false,
-                            message: `Cannot reduce size: ${machineCount} machine(s) are still assigned to nodes that will be removed.`,
-                        });
+                const nodeIdsToDelete = nodesToDelete.map(n => n.ID);
+                const machineCountOnDeleteNodes = await MecListMachine.count({
+                    where: {
+                        STORAGE_INVENTORY_NODE_ID: nodeIdsToDelete
                     }
-                    await StorageInventoryNodeModel.destroy({
-                        where: {
-                            ID: nodesToDelete.map(n => n.ID)
-                        }
+                });
+
+                if (machineCountOnDeleteNodes > 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Cannot remove ${nodesToDelete.length} node(s): ${machineCountOnDeleteNodes} machine(s) are still assigned to these nodes.`,
                     });
                 }
+
+                await StorageInventoryNodeModel.destroy({
+                    where: {
+                        ID: nodeIdsToDelete
+                    }
+                });
             }
         }
 
         return res.status(200).json({
             success: true,
             message: "Storage inventory updated successfully",
-            data: inventory
+            data: inventory.reload()
         });
 
     } catch (error) {
+        console.error("Error updating storage inventory:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update storage inventory: ${error.message}`,

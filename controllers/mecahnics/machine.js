@@ -376,80 +376,120 @@ export const updateSequenceByStorageAndMachine = async (req, res) => {
 };
 
 export const updateSequenceByStorageAndMachineBulk = async (req, res) => {
+  const { storageInventoryId } = req.params;
+  const { reorderData } = req.body;
+
+  if (!storageInventoryId) {
+    return res.status(400).json({
+      success: false,
+      message: "Storage inventory ID is required",
+    });
+  }
+
+  if (!Array.isArray(reorderData)) {
+    return res.status(400).json({
+      success: false,
+      message: "reorderData must be an array",
+    });
+  }
+
+  if (reorderData.length === 0) {
+    return res.status(200).json({
+      success: true,
+      message: "No changes to apply",
+    });
+  }
+
   try {
-    const { storageInventoryId } = req.params;
-    const { reorderData } = req.body;
-
-    if (!storageInventoryId || !Array.isArray(reorderData) || reorderData.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Storage inventory ID and valid reorder data array must be provided",
-      });
-    }
-
-    const machinesInStorage = await MecListMachine.findAll({
+    const allNodes = await StorageInventoryNodeModel.findAll({
       where: { STORAGE_INVENTORY_ID: storageInventoryId },
-      order: [["SEQ_NO", "ASC"]],
+      order: [['SEQUENCE', 'ASC']],
+      attributes: ['ID', 'SEQUENCE']
     });
 
-    if (machinesInStorage.length !== reorderData.length) {
-      return res.status(400).json({
+    const nodeMap = new Map(allNodes.map(n => [n.ID, n.SEQUENCE]));
+
+    if (allNodes.length === 0) {
+      return res.status(404).json({
         success: false,
-        message: "Reorder data must include all machines in the storage",
+        message: "No nodes found for this storage inventory",
       });
     }
 
+    const currentMachines = await MecListMachine.findAll({
+      where: { STORAGE_INVENTORY_ID: storageInventoryId }
+    });
+
+    const machineMap = new Map(currentMachines.map(m => [m.MACHINE_ID, m]));
+
+    const validNodeIds = new Set(nodeMap.keys());
     for (const item of reorderData) {
-      if (!item.machineId || !item.newSeqNo) {
+      if (!item.nodeId) {
         return res.status(400).json({
           success: false,
-          message: "Each reorder item must have machineId and newSeqNo",
+          message: "Each item must have a nodeId"
         });
       }
-
-      if (item.newSeqNo < 1 || item.newSeqNo > machinesInStorage.length) {
+      if (!validNodeIds.has(item.nodeId)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid sequence number ${item.newSeqNo}. It must be between 1 and ${machinesInStorage.length}`,
-        });
-      }
-
-      const machineExists = machinesInStorage.some(
-          (machine) => machine.MACHINE_ID === item.machineId
-      );
-      if (!machineExists) {
-        return res.status(404).json({
-          success: false,
-          message: `Machine ${item.machineId} not found in storage`,
+          message: `Node ${item.nodeId} does not belong to storage ${storageInventoryId}`
         });
       }
     }
 
+
     await MecListMachine.sequelize.transaction(async (t) => {
-      for (const item of reorderData) {
+      const updates = [];
+
+      for (const { nodeId, machineId } of reorderData) {
+        const nodeSequence = nodeMap.get(nodeId);
+
+        if (machineId) {
+          updates.push({
+            MACHINE_ID: machineId,
+            STORAGE_INVENTORY_NODE_ID: nodeId,
+            SEQ_NO: nodeSequence + 1
+          });
+        }
+      }
+
+      for (const update of updates) {
         await MecListMachine.update(
-            { SEQ_NO: item.newSeqNo },
             {
-              where: {
-                MACHINE_ID: item.machineId,
-                STORAGE_INVENTORY_ID: storageInventoryId,
-              },
-              transaction: t,
+              STORAGE_INVENTORY_NODE_ID: update.STORAGE_INVENTORY_NODE_ID,
+              SEQ_NO: update.SEQ_NO
+            },
+            {
+              where: { MACHINE_ID: update.MACHINE_ID },
+              transaction: t
             }
         );
+      }
+
+      for (const {nodeId, machineId} of reorderData) {
+        if (machineId) {
+          await StorageInventoryLogModel.create({
+            STORAGE_INVENTORY_ID: storageInventoryId,
+            STORAGE_INVENTORY_NODE_ID: nodeId,
+            MACHINE_ID: machineId,
+            USER_ADD_ID: req.body.userId || null,
+            DESCRIPTION: machineId ? 'REASSIGN TO NODE' : 'UNASSIGN FROM NODE'
+          }, { transaction: t });
+        }
       }
     });
 
     return res.status(200).json({
       success: true,
-      message: "Sequence updated successfully",
-      data: reorderData,
+      message: "Machine assignments updated successfully",
+      data: reorderData
     });
+
   } catch (error) {
-    console.error("Error updating sequence:", error);
     return res.status(500).json({
       success: false,
-      message: `Failed to update sequence: ${error.message}`,
+      message: `Failed to update assignments: ${error.message}`,
     });
   }
 };
@@ -1179,7 +1219,6 @@ export const postListLampu = async (req, res) => {
   try {
     const { mac, ip_address, id_siteline } = req.body;
 
-    // Validasi input
     if (!mac || !ip_address || !id_siteline) {
       return res.status(400).json({
         success: false,
@@ -1187,7 +1226,6 @@ export const postListLampu = async (req, res) => {
       });
     }
 
-    // Cek apakah MAC sudah ada
     const existMac = await ListLamp.findOne({ where: { MAC: mac } });
     if (existMac) {
       return res.status(400).json({
@@ -1196,7 +1234,6 @@ export const postListLampu = async (req, res) => {
       });
     }
 
-    // Cek apakah IP Address sudah ada
     const existIP = await ListLamp.findOne({ where: { IP_ADDRESS: ip_address } });
     if (existIP) {
       return res.status(400).json({
@@ -1205,7 +1242,6 @@ export const postListLampu = async (req, res) => {
       });
     }
 
-    // Cek apakah ID Siteline sudah ada
     const existSiteline = await ListLamp.findOne({ where: { ID_SITELINE: id_siteline } });
     if (existSiteline) {
       return res.status(400).json({
@@ -1214,7 +1250,6 @@ export const postListLampu = async (req, res) => {
       });
     }
 
-    // Jika semua aman → simpan data baru
     const newLamp = await ListLamp.create({
       MAC: mac,
       IP_ADDRESS: ip_address,
