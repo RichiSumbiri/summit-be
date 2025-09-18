@@ -345,7 +345,6 @@ export const getAllFGColorCharts = async (req, res) => {
                     attributes: ['USER_NAME']
                 }
             ],
-            attributes: ["MASTER_ITEM_ID", "COLOR_ID"],
         });
 
         return res.status(200).json({
