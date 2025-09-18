@@ -2,7 +2,7 @@ import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
 
 const StorageInventoryLogModel = db.define(
-    "storage_inventory_log_1",
+    "storage_inventory_log",
     {
         ID: {
             type: DataTypes.INTEGER,
@@ -35,7 +35,7 @@ const StorageInventoryLogModel = db.define(
         }
     },
     {
-        tableName: "storage_inventory_log_1",
+        tableName: "storage_inventory_log",
         timestamps: false,
     }
 );

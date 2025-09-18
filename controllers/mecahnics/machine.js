@@ -118,30 +118,100 @@ export const postMachine = async (req, res) => {
   }
 };
 
-//untuk UPDATE machine
+
 export const updateMachine = async (req, res) => {
   try {
     const data = req.body;
-    if (!data)
+    if (!data || !data.MACHINE_ID) {
+      return res.status(400).json({
+        success: false,
+        message: "No data or MACHINE_ID provided",
+      });
+    }
+
+    const machine = await MecListMachine.findOne({
+      where: { MACHINE_ID: data.MACHINE_ID },
+    });
+
+    if (!machine) {
       return res.status(404).json({
         success: false,
-        message: "error No Data For Post machine",
+        message: "Machine not found",
       });
+    }
 
-    await MecListMachine.update(data, {
-      where: {
-        MACHINE_ID: data.MACHINE_ID,
-      },
-    });
+    let storageInventoryId = data.STORAGE_INVENTORY_ID || machine.STORAGE_INVENTORY_ID;
+
+    if (!storageInventoryId) {
+      await machine.update(data);
+      return res.status(200).json({
+        success: true,
+        message: "Machine updated successfully (no storage assignment)",
+      });
+    }
+
+    const storage = await StorageInventoryModel.findByPk(storageInventoryId);
+    if (!storage) {
+      return res.status(404).json({
+        success: false,
+        message: "Storage not found",
+      });
+    }
+
+    if (storage.CATEGORY === "LINE") {
+      const storageNodeId = data.STORAGE_INVENTORY_NODE_ID;
+
+      if (!storageNodeId) {
+        const availableNode = await StorageInventoryNodeModel.findOne({
+          where: { STORAGE_INVENTORY_ID: storageInventoryId },
+          include: [
+            {
+              model: MecListMachine,
+              as: 'MACHINE',
+              required: false,
+              where: { MACHINE_ID: { [Op.not]: data.MACHINE_ID } }
+            }
+          ],
+          order: [['SEQUENCE', 'ASC']],
+        });
+
+        if (!availableNode) {
+          return res.status(400).json({
+            success: false,
+            message: "Cannot assign machine: all nodes are occupied",
+          });
+        }
+
+        data.STORAGE_INVENTORY_NODE_ID = availableNode.ID;
+        data.SEQ_NO = availableNode.SEQUENCE + 1;
+      } else {
+        const validNode = await StorageInventoryNodeModel.findOne({
+          where: {
+            ID: storageNodeId,
+            STORAGE_INVENTORY_ID: storageInventoryId
+          }
+        });
+
+        if (!validNode) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid node ID or does not belong to this storage",
+          });
+        }
+      }
+    }
+
+    await machine.update(data);
 
     return res.status(200).json({
       success: true,
-      message: "Data Update Success",
+      message: "Machine updated and assigned to node successfully",
     });
+
   } catch (error) {
-    res.status(404).json({
+    return res.status(500).json({
       success: false,
-      message: "error processing request post list machine",
+      message: `Failed to update machine: ${error.message}`,
     });
   }
 };
