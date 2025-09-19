@@ -382,6 +382,7 @@ export const updateMachineAndStorage = async (req, res) => {
             });
         }
 
+        console.log("RUn 1")
         if (storageInventory.CATEGORY === "LINE") {
             const requestedCount = machineNos.length;
 
@@ -499,7 +500,7 @@ export const updateMachineAndStorage = async (req, res) => {
             });
         } else {
             const updatedMachines = [];
-
+            console.log("RUn 2")
             for (const item of machineNos) {
                 const {MACHINE_ID} = item;
 
@@ -526,6 +527,8 @@ export const updateMachineAndStorage = async (req, res) => {
                     continue;
                 }
 
+                console.log("RUn 3")
+
                 await machine.update({
                     STORAGE_INVENTORY_ID: storageInventory.ID,
                     STORAGE_INVENTORY_NODE_ID: null,
@@ -549,16 +552,15 @@ export const updateMachineAndStorage = async (req, res) => {
                 });
             }
 
+            console.log("RUn 4")
+
             return res.status(200).json({
                 success: true,
                 message: "Machines assigned to storage nodes successfully",
                 data: updatedMachines
             });
         }
-
-
     } catch (error) {
-        console.error("Error updating machines and storage:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update machines and storage: ${error.message}`,
