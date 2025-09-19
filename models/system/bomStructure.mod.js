@@ -615,6 +615,11 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         defaultValue: 0.00,
         allowNull: true,
     },
+    CONFIRM_PO_QTY: {
+        type: DataTypes.DECIMAL(65, 2),
+        defaultValue: 0.00,
+        allowNull: true,
+    },
     UNCONFIRM_PO_QTY: {
         type: DataTypes.DECIMAL(65, 2),
         defaultValue: 0.00,
