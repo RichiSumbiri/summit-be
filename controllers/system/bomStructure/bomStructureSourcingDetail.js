@@ -14,6 +14,9 @@ import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import {MIN_ALLOWED_VALUE} from "../../../util/enum.js";
 import {DataTypes, Op} from "sequelize";
+import { CustomerBuyPlan, CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName } from "../../../models/system/customer.mod.js";
+import { ModelOrderPOHeader } from "../../../models/orderManagement/orderManagement.mod.js";
+import { OrderPoListing } from "../../../models/production/order.mod.js";
 
 export const getAllSourcingDetails = async (req, res) => {
     const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query;
@@ -67,12 +70,77 @@ export const getAllSourcingDetails = async (req, res) => {
                         {
                             model: BomStructureModel,
                             as: "BOM_STRUCTURE",
-                            attributes: ['ID', 'LAST_REV_ID', 'IS_ACTIVE'],
+                            attributes: ['ID', 'LAST_REV_ID', 'IS_ACTIVE', 'ORDER_ID'],
                             include: [
                                 {
                                     model: BomStructureRevModel,
                                     as: "REV",
                                     attributes: ['TITLE', 'DESCRIPTION', 'SEQUENCE']
+                                },
+                                {
+                                    model: ModelOrderPOHeader,
+                                    as: "ORDER",
+                                    attributes: ['ORDER_ID', 'CUSTOMER_ID'],
+                                    include: [
+                                        {
+                                            model: CustomerDetail,
+                                            as: "CUSTOMER", 
+                                            attributes: [
+                                                'CTC_ID',
+                                                'CTC_CODE',
+                                                'CTC_NAME',
+                                                'CTC_COMPANY_NAME',
+                                                'CTC_CREDIT_LIMIT',
+                                                'CTC_TITLE_OF_PERSON',
+                                                'CTC_NAME_OF_PERSON',
+                                                'CTC_POSITION_PERSON',
+                                                'CTC_PHONE1',
+                                                'CTC_PHONE2',
+                                                'CTC_FAX',
+                                                'CTC_EMAIL',
+                                                'CTC_SITE',
+                                                'CTC_ADDRESS1',
+                                                'CTC_ADDRESS2',
+                                                'CTC_CITY',
+                                                'CTC_PROVINCE',
+                                                'CTC_POS_CODE',
+                                                'CTC_COUNTRY_ID',
+                                                'CTC_CLASS',
+                                                'CTC_ACTIVE',
+                                                'CTC_SHIP_TERM_CODE',
+                                                'CTC_SHIP_VIA',
+                                                'CTC_PAY_LEADTIME',
+                                                'CTC_FOB_POINT_CODE',
+                                                'CTC_CURRENCY',
+                                                'CTC_PAY_METHODE',
+                                                'IS_DELETE',
+                                                'ADD_ID',
+                                                'MOD_ID',
+                                                'createdAt',
+                                                'updatedAt'
+                                            ],
+                                        },
+                                        { 
+                                            model: CustomerProductSeason,
+                                            as: "CUSTOMER_SEASON",
+                                            attributes: ['CTPROD_SESION_ID', 'CTPROD_SESION_CODE', 'CTPROD_SESION_NAME']
+                                        },
+                                        { 
+                                            model: CustomerProductDivision,
+                                            as: "CUSTOMER_DIVISION",
+                                            attributes: ['CTPROD_DIVISION_ID', 'CTPROD_DIVISION_CODE', 'CTPROD_DIVISION_NAME']
+                                        },
+                                        { 
+                                            model: CustomerProgramName,
+                                            as: "CUSTOMER_PROGRAM",
+                                            attributes: ['CTPROG_ID', 'CTPROG_CODE', 'CTPROG_NAME']
+                                        },
+                                        {
+                                            model: CustomerBuyPlan,
+                                            as: "CUSTOMER_BUYPLAN",
+                                            attributes: ['CTBUYPLAN_ID', 'CTBUYPLAN_CODE', 'CTBUYPLAN_NAME']
+                                        }
+                                    ]
                                 }
                             ]
                         },
