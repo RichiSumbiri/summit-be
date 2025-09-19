@@ -17,6 +17,7 @@ import {DataTypes, Op} from "sequelize";
 import { CustomerBuyPlan, CustomerDetail, CustomerProductDivision, CustomerProductSeason, CustomerProgramName } from "../../../models/system/customer.mod.js";
 import { ModelOrderPOHeader } from "../../../models/orderManagement/orderManagement.mod.js";
 import { OrderPoListing } from "../../../models/production/order.mod.js";
+import { ModelProjectionOrder } from "../../../models/orderManagement/ProjectionOrder.mod.js";
 
 export const getAllSourcingDetails = async (req, res) => {
     const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, IS_APPROVE, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query;
@@ -85,8 +86,20 @@ export const getAllSourcingDetails = async (req, res) => {
                                 {
                                     model: ModelOrderPOHeader,
                                     as: "ORDER",
-                                    attributes: ['ORDER_ID', 'CUSTOMER_ID'],
+                                    attributes: ['ORDER_ID','ORDER_TYPE_CODE', 'CUSTOMER_ID','ORDER_REFERENCE_PO_NO','ORDER_STYLE_DESCRIPTION'],
                                     include: [
+                                        {
+                                            model: ModelProjectionOrder,
+                                            as:"PROJECTION_ORDER",
+                                            attributes: ['PRJ_ID','PRJ_CODE','PRJ_DESCRIPTION']
+                                        },
+                                        { 
+                                            model: OrderPoListing,
+                                            as:"PO_LISTING",
+                                            attributes: [
+                                                'ORDER_PO_ID', 'PRODUCTION_MONTH',
+                                            ],
+                                        },
                                         {
                                             model: CustomerDetail,
                                             as: "CUSTOMER", 
@@ -184,7 +197,7 @@ export const getAllSourcingDetails = async (req, res) => {
                 {
                     model: ModelVendorDetail,
                     as: "VENDOR",
-                    attributes: ['VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
+                    attributes: ['VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE', 'VENDOR_ADDRESS_1']
                 },
                 {
                     model: Users,

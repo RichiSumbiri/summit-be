@@ -2,6 +2,7 @@ import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
 import ColorChartMod from "../system/colorChart.mod.js";
 import SizeChartMod from "../system/sizeChart.mod.js";
+import { ModelOrderPOHeader } from "../orderManagement/orderManagement.mod.js";
 
 export const Orders = db.define(
     "order_detail",
@@ -196,10 +197,18 @@ export const OrderPoListing = db.define(
 Orders.removeAttribute("id");
 OrderPoListing.removeAttribute("id");
 
+ModelOrderPOHeader.belongsTo(OrderPoListing, {
+    foreignKey: "ORDER_ID",
+    targetKey:"ORDER_NO",
+    as: "PO_LISTING"
+})
+
 OrderPoListing.belongsTo(ColorChartMod, {
     foreignKey: "ITEM_COLOR_ID",
     as: "ITEM_COLOR"
-})
+});
+
+
 
 export const OrderPoListingSize = db.define("order_po_listing_size", {
     ID_POL_SIZE: {
