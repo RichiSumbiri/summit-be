@@ -85,8 +85,15 @@ export const getAllSourcingDetails = async (req, res) => {
                                 {
                                     model: ModelOrderPOHeader,
                                     as: "ORDER",
-                                    attributes: ['ORDER_ID', 'CUSTOMER_ID'],
+                                    attributes: ['ORDER_ID', 'CUSTOMER_ID','ORDER_REFERENCE_PO_NO','ORDER_STYLE_DESCRIPTION'],
                                     include: [
+                                        { 
+                                            model: OrderPoListing,
+                                            as:"PO_LISTING",
+                                            attributes: [
+                                                'ORDER_PO_ID', 'PRODUCTION_MONTH',
+                                            ],
+                                        },
                                         {
                                             model: CustomerDetail,
                                             as: "CUSTOMER", 
