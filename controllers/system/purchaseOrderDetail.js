@@ -1,11 +1,11 @@
 import PurchaseOrderDetailModel from "../../models/system/purchaseOrderDetail.mod.js";
-
+import {PurchaseOrderModel} from "../../models/system/purchaseOrder.mod.js";
 
 export const createPurchaseOrderDetail = async (req, res) => {
     try {
         const {
             MPO_ID,
-            REV_ID,
+            REV_ID = 0,
             BOM_STRUCTURE_LINE_ID,
             ORDER_NO,
             PURCHASE_ORDER_QTY,
@@ -18,6 +18,13 @@ export const createPurchaseOrderDetail = async (req, res) => {
             CREATE_BY,
             UPDATE_BY,
         } = req.body;
+
+        if (!MPO_ID || !BOM_STRUCTURE_LINE_ID) {
+            return res.status(400).json({status: false, message: "Field are required"})
+        }
+
+        const purchaseOrder = await PurchaseOrderModel.findOne({where: {MPO_ID}})
+        if (!purchaseOrder) return res.status(404).json({status: false, message: "Purchase Order not found"})
 
         await PurchaseOrderDetailModel.create({
             MPO_ID,
@@ -120,14 +127,20 @@ export const updatePurchaseOrderDetail = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        const detail = await PurchaseOrderDetailModel.findByPk(id);
+        if (!MPO_ID || !BOM_STRUCTURE_LINE_ID) {
+            return res.status(400).json({status: false, message: "Field are required"})
+        }
 
+        const detail = await PurchaseOrderDetailModel.findByPk(id);
         if (!detail) {
             return res.status(404).json({
                 success: false,
                 message: "Purchase Order Detail not found",
             });
         }
+
+        const purchaseOrder = await PurchaseOrderModel.findOne({where: {MPO_ID}})
+        if (!purchaseOrder) return res.status(404).json({status: false, message: "Purchase Order not found"})
 
         await detail.update({
             MPO_ID,
@@ -163,7 +176,6 @@ export const deletePurchaseOrderDetail = async (req, res) => {
         const { id } = req.params;
 
         const detail = await PurchaseOrderDetailModel.findByPk(id);
-
         if (!detail) {
             return res.status(404).json({
                 success: false,
@@ -172,7 +184,6 @@ export const deletePurchaseOrderDetail = async (req, res) => {
         }
 
         await detail.destroy();
-
         return res.status(200).json({
             success: true,
             message: "Purchase Order Detail deleted successfully",

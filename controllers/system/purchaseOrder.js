@@ -1,9 +1,9 @@
 import {PurchaseOrderModel, PurchaseOrderRevModel} from "../../models/system/purchaseOrder.mod.js";
+import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
 
 export const createPurchaseOrder = async (req, res) => {
     try {
         const {
-            MPO_ID,
             REV_ID = 0,
             MPO_DATE,
             MPO_STATUS,
@@ -28,12 +28,19 @@ export const createPurchaseOrder = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        if (!MPO_ID) {
+        if (!COUNTRY_ID || !WAREHOUSE_ID || !VENDOR_ID || !VENDOR_SHIPPER_LOCATION_ID || !COMPANY_ID || !UNIT_ID || !PAYMENT_TERM_ID) {
             return res.status(400).json({
-                success: false,
-                message: "MPO_ID is required",
-            });
+                status: false,
+                message: "Field are required"
+            })
         }
+
+        const getLastID = await PurchaseOrderModel.findOne({
+            order: [['MPO_ID', 'DESC']],
+            raw: true
+        });
+        const newIncrement = !getLastID ? '0000001' : Number(getLastID.ID.slice(-7)) + 1;
+        const MPO_ID = 'MPO' + newIncrement.toString().padStart(7, '0');
 
         await PurchaseOrderModel.create({
             MPO_ID,
