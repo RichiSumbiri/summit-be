@@ -41,7 +41,6 @@ export const getOneMachine = async (req, res) => {
             data: findOneMech,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             data: error,
@@ -245,7 +244,6 @@ export const postMachine = async (req, res) => {
             message: "Data Create Success",
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request post list machine",
@@ -382,7 +380,6 @@ export const updateMachineAndStorage = async (req, res) => {
             });
         }
 
-        console.log("RUn 1")
         if (storageInventory.CATEGORY === "LINE") {
             const requestedCount = machineNos.length;
 
@@ -500,7 +497,6 @@ export const updateMachineAndStorage = async (req, res) => {
             });
         } else {
             const updatedMachines = [];
-            console.log("RUn 2")
             for (const item of machineNos) {
                 const {MACHINE_ID} = item;
 
@@ -527,7 +523,6 @@ export const updateMachineAndStorage = async (req, res) => {
                     continue;
                 }
 
-                console.log("RUn 3")
 
                 await machine.update({
                     STORAGE_INVENTORY_ID: storageInventory.ID,
@@ -552,7 +547,6 @@ export const updateMachineAndStorage = async (req, res) => {
                 });
             }
 
-            console.log("RUn 4")
 
             return res.status(200).json({
                 success: true,
@@ -801,7 +795,6 @@ export const deleteMachine = async (req, res) => {
                 message: "Data Delete Success",
             });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request delete list machine",
@@ -820,7 +813,6 @@ export const getListTypeMec = async (req, res) => {
             listType: listType,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             data: error,
@@ -843,7 +835,6 @@ export const getOneMachForIN = async (req, res) => {
             data: oneMach,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             data: error,
@@ -869,7 +860,6 @@ export const postMachItemIn = async (req, res) => {
             message: "Data Post In Success",
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request post itemIN",
@@ -913,7 +903,6 @@ export const delMachItemIn = async (req, res) => {
             message: "Success Delete",
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request Delete itemIN",
@@ -935,7 +924,6 @@ export const getMacItemIn = async (req, res) => {
             data: listData,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request get itemIN",
@@ -957,7 +945,6 @@ export const getMacItemOut = async (req, res) => {
             data: listData,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request get out",
@@ -979,7 +966,6 @@ export const getEmploye = async (req, res) => {
             data: listData,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request get employe ",
@@ -1001,7 +987,6 @@ export const getMachineNo = async (req, res) => {
             data: listData,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request get machine no",
@@ -1026,7 +1011,6 @@ export const postMacPartOut = async (req, res) => {
             message: "Data Post In Success",
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request post OUT",
@@ -1070,7 +1054,6 @@ export const delMachItemOut = async (req, res) => {
             message: "Success Delete",
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             message: "error processing request Delete itemIN",
@@ -1089,7 +1072,6 @@ export const getPartNNeedle = async (req, res) => {
             data: listMach,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             data: error,
@@ -1113,7 +1095,6 @@ export const getMecRepSaldoAwl = async (req, res) => {
             data: listMach,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             data: error,
@@ -1137,7 +1118,6 @@ export const getDtlMecTrans = async (req, res) => {
             data: listMach,
         });
     } catch (error) {
-        console.log(error);
         res.status(404).json({
             success: false,
             data: error,
