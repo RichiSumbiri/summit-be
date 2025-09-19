@@ -93,16 +93,10 @@ export const getAllSourcingDetails = async (req, res) => {
                                             as:"PROJECTION_ORDER",
                                             attributes: ['PRJ_ID','PRJ_CODE','PRJ_DESCRIPTION']
                                         },
-                                        { 
-                                            model: OrderPoListing,
-                                            as:"PO_LISTING",
-                                            attributes: [
-                                                'ORDER_PO_ID', 'PRODUCTION_MONTH',
-                                            ],
-                                        },
+
                                         {
                                             model: CustomerDetail,
-                                            as: "CUSTOMER", 
+                                            as: "CUSTOMER",
                                             attributes: [
                                                 'CTC_ID',
                                                 'CTC_CODE',
@@ -213,10 +207,27 @@ export const getAllSourcingDetails = async (req, res) => {
             order: [['ID', 'DESC']]
         });
 
+
+
         return res.status(200).json({
             success: true,
             message: "Sourcing detail data retrieved successfully",
-            data: details,
+            data: await Promise.all(details.map(async (item) => {
+                const orderPoListing = await OrderPoListing.findAll({where: {ORDER_NO: item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.ORDER_ID}, attributes: ['PRODUCTION_MONTH'], limit: 1})
+                return{
+                    ...item.dataValues,
+                    BOM_STRUCTURE_LINE: {
+                        ...item.BOM_STRUCTURE_LINE.dataValues,
+                        BOM_STRUCTURE: {
+                            ...item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.dataValues,
+                            ORDER: {
+                                ...item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.ORDER.dataValues,
+                                PO_LISTING: orderPoListing[0].dataValues
+                            }
+                        }
+                    }
+                }
+            }))
         });
     } catch (error) {
         return res.status(500).json({
