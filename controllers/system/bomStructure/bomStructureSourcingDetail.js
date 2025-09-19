@@ -16,7 +16,7 @@ import {MIN_ALLOWED_VALUE} from "../../../util/enum.js";
 import {DataTypes, Op} from "sequelize";
 
 export const getAllSourcingDetails = async (req, res) => {
-    const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query;
+    const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, IS_APPROVE, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query;
 
     const where = {IS_DELETED: false};
     const where2 = {}
@@ -29,6 +29,11 @@ export const getAllSourcingDetails = async (req, res) => {
         where2.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
     }
 
+    if (IS_APPROVE) {
+        where.APPROVE_PURCHASE_QUANTITY =  {
+            [Op.ne]: 0
+        }
+    }
 
     if (BOM_STRUCTURE_LINE_ID) where.BOM_STRUCTURE_LINE_ID = BOM_STRUCTURE_LINE_ID;
     if (ITEM_DIMENSION_ID) where.ITEM_DIMENSION_ID = ITEM_DIMENSION_ID;
@@ -367,19 +372,25 @@ export const updateSourcingDetail = async (req, res) => {
                 message: "Sourcing detail not found",
             });
         }
+
+
+        const PLAN_PURCHASE_QTY = updateData.PLAN_PURCHASE_QTY ?? detail.PLAN_PURCHASE_QTY
+
+        if (PLAN_PURCHASE_QTY < detail.APPROVE_PURCHASE_QUANTITY) {
+            return res.status(404).json({
+                success: false,
+                message: "Plan purchase quantity cannot be smaller than the plan approve quantity",
+            });
+        }
         const COST_PER_ITEM = updateData.COST_PER_ITEM ?? detail.COST_PER_ITEM
         const FINANCE_COST = updateData.FINANCE_COST ?? detail.FINANCE_COST
         const FREIGHT_COST = updateData.FREIGHT_COST ?? detail.FREIGHT_COST
         const OTHER_COST = updateData.OTHER_COST ?? detail.OTHER_COST
-        const PLAN_PURCHASE_QTY = updateData.PLAN_PURCHASE_QTY ?? detail.PLAN_PURCHASE_QTY
+
         const REQUIRE_QTY = updateData.REQUIRE_QTY ?? detail.REQUIRE_QTY
         const TOTAL_ITEM_COST = Number(COST_PER_ITEM) + Number(FINANCE_COST) + Number(FREIGHT_COST) + Number(OTHER_COST)
         const PLAN_PURCHASE_COST = Number(PLAN_PURCHASE_QTY) * Number(TOTAL_ITEM_COST);
-        let PENDING_APPROVE_PURCHASE_QUANTITY = detail.PENDING_APPROVE_PURCHASE_QUANTITY
-
-        if (Number(detail.PENDING_APPROVE_PURCHASE_QUANTITY) <= 0.00) {
-            PENDING_APPROVE_PURCHASE_QUANTITY = Number(PLAN_PURCHASE_QTY)
-        }
+        const PENDING_APPROVE_PURCHASE_QUANTITY = Number(PLAN_PURCHASE_QTY) - Number(detail.APPROVE_PURCHASE_QUANTITY)
 
         const IS_APPROVAL_SECTION = updateData.IS_APPROVAL_SECTION !== undefined ? updateData.IS_APPROVAL_SECTION : detail.IS_APPROVAL_SECTION
 
@@ -448,7 +459,6 @@ export const unApproveSourcingDetail = async (req, res) => {
             TOTAL_APPROVE_PURCHASE_QUANTITY: Number(detail.COST_PER_ITEM) * APPROVE_PURCHASE_QUANTITY,
             PENDING_APPROVE_PURCHASE_QUANTITY,
             PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / detail.PLAN_PURCHASE_QTY) * 100,
-            IS_APPROVE: false,
             IS_APPROVAL_SECTION: false,
             APPROVAL_QTY: 0,
             PENDING_PURCHASE_ORDER_QTY: APPROVE_PURCHASE_QUANTITY,
@@ -534,7 +544,6 @@ export const approveSourcingDetail = async (req, res) => {
                 PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / Number(sourcing.PLAN_PURCHASE_QTY)) * 100,
                 IS_APPROVAL_SECTION: false,
                 APPROVAL_QTY: 0,
-                IS_APPROVE: true,
                 AVAILABLE_UNAPPROVED_QTY: APPROVE_PURCHASE_QUANTITY,
                 PENDING_PURCHASE_ORDER_QTY: APPROVE_PURCHASE_QUANTITY,
                 UPDATED_ID: USER_ID,

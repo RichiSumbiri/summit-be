@@ -600,10 +600,6 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
-    IS_APPROVE: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
     APPROVAL_QTY: {
         type: DataTypes.DECIMAL(65, 2),
         defaultValue: 0.00,
