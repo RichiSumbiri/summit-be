@@ -1,5 +1,10 @@
 import {PurchaseOrderModel, PurchaseOrderRevModel} from "../../models/system/purchaseOrder.mod.js";
-import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import {ListCountry} from "../../models/list/referensiList.mod.js";
+import {ModelWarehouseDetail} from "../../models/setup/WarehouseDetail.mod.js";
+import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system/VendorDetail.mod.js";
+import MasterUnitModel from "../../models/setup/unit.mod.js";
+import MasterCompanyModel from "../../models/setup/company.mod.js";
+import {MasterPayMethode} from "../../models/system/finance.mod.js";
 
 export const createPurchaseOrder = async (req, res) => {
     try {
@@ -25,7 +30,6 @@ export const createPurchaseOrder = async (req, res) => {
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
             CREATE_BY,
-            UPDATE_BY,
         } = req.body;
 
         if (!COUNTRY_ID || !WAREHOUSE_ID || !VENDOR_ID || !VENDOR_SHIPPER_LOCATION_ID || !COMPANY_ID || !UNIT_ID || !PAYMENT_TERM_ID) {
@@ -66,8 +70,7 @@ export const createPurchaseOrder = async (req, res) => {
             TAX_PERCENTAGE,
             CREATE_BY,
             CREATE_DATE: new Date(),
-            UPDATE_BY,
-            UPDATE_DATE: new Date(),
+
         });
 
         return res.status(201).json({
@@ -83,15 +86,60 @@ export const createPurchaseOrder = async (req, res) => {
 };
 
 export const getAllPurchaseOrders = async (req, res) => {
-    const { UNIT_ID, VENDOR_ID, MPO_STATUS } = req.query;
+    const {UNIT_ID, REV_ID, VENDOR_ID, MPO_STATUS} = req.query;
 
     try {
         const where = {};
+        if (REV_ID) where.REV_ID = REV_ID;
         if (UNIT_ID) where.UNIT_ID = UNIT_ID;
         if (VENDOR_ID) where.VENDOR_ID = VENDOR_ID;
         if (MPO_STATUS) where.MPO_STATUS = MPO_STATUS;
 
-        const purchaseOrders = await PurchaseOrderModel.findAll({ where });
+        const purchaseOrders = await PurchaseOrderModel.findAll({
+            where,
+            include: [
+                {
+                    model: PurchaseOrderRevModel,
+                    as: "REV",
+                    attributes: ["NAME", "DESCRIPTION", "SEQUENCE"]
+                },
+                {
+                    model: ListCountry,
+                    as: "COUNTRY",
+                    attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
+                },
+                {
+                    model: ModelWarehouseDetail,
+                    as: "WAREHOUSE",
+                    attributes: ["WHI_CODE", "WHI_NAME"]
+                },
+                {
+                    model: ModelVendorDetail,
+                    as: "VENDOR",
+                    attributes: ["VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME", "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1", "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE", "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME", "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2", "VENDOR_CONTACT_EMAIL"]
+                },
+                {
+                    model: ModelVendorShipperLocation,
+                    as: "VENDOR_SHIPPER_LOCATION",
+                    attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
+                },
+                {
+                    model: MasterUnitModel,
+                    as: "UNIT",
+                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
+                },
+                {
+                    model: MasterCompanyModel,
+                    as: "COMPANY",
+                    attributes: ["NAME", "CODE"]
+                },
+                {
+                    model: MasterPayMethode,
+                    as: "PAYMENT_TERM",
+                    attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
+                },
+            ]
+        });
 
         return res.status(200).json({
             success: true,
@@ -108,9 +156,55 @@ export const getAllPurchaseOrders = async (req, res) => {
 
 export const getPurchaseOrderById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
-        const purchaseOrder = await PurchaseOrderModel.findByPk(id);
+        const purchaseOrder = await PurchaseOrderModel.findOne({
+            where: {
+                MPO_ID: id
+            },
+            include: [
+                {
+                    model: PurchaseOrderRevModel,
+                    as: "REV",
+                    attributes: ["NAME", "DESCRIPTION", "SEQUENCE"]
+                },
+                {
+                    model: ListCountry,
+                    as: "COUNTRY",
+                    attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
+                },
+                {
+                    model: ModelWarehouseDetail,
+                    as: "WAREHOUSE",
+                    attributes: ["WHI_CODE", "WHI_NAME"]
+                },
+                {
+                    model: ModelVendorDetail,
+                    as: "VENDOR",
+                    attributes: ["VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME", "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1", "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE", "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME", "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2", "VENDOR_CONTACT_EMAIL"]
+                },
+                {
+                    model: ModelVendorShipperLocation,
+                    as: "VENDOR_SHIPPER_LOCATION",
+                    attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
+                },
+                {
+                    model: MasterUnitModel,
+                    as: "UNIT",
+                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
+                },
+                {
+                    model: MasterCompanyModel,
+                    as: "COMPANY",
+                    attributes: ["NAME", "CODE"]
+                },
+                {
+                    model: MasterPayMethode,
+                    as: "PAYMENT_TERM",
+                    attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
+                },
+            ]
+        });
 
         if (!purchaseOrder) {
             return res.status(404).json({
@@ -134,7 +228,7 @@ export const getPurchaseOrderById = async (req, res) => {
 
 export const updatePurchaseOrder = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
         const {
             REV_ID,
             MPO_DATE,
@@ -207,7 +301,7 @@ export const updatePurchaseOrder = async (req, res) => {
 
 export const deletePurchaseOrder = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const purchaseOrder = await PurchaseOrderModel.findByPk(id);
 
@@ -234,7 +328,7 @@ export const deletePurchaseOrder = async (req, res) => {
 
 export const createPurchaseOrderRev = async (req, res) => {
     try {
-        const { NAME, DESCRIPTION, SEQUENCE, CREATED_ID } = req.body;
+        const {NAME, DESCRIPTION, SEQUENCE, CREATED_ID} = req.body;
 
         await PurchaseOrderRevModel.create({
             NAME,
@@ -274,7 +368,7 @@ export const getAllPurchaseOrderRevs = async (req, res) => {
 
 export const getPurchaseOrderRevById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const record = await PurchaseOrderRevModel.findByPk(id);
 
@@ -300,8 +394,8 @@ export const getPurchaseOrderRevById = async (req, res) => {
 
 export const updatePurchaseOrderRev = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { NAME, DESCRIPTION, SEQUENCE, CREATED_ID } = req.body;
+        const {id} = req.params;
+        const {NAME, DESCRIPTION, SEQUENCE, CREATED_ID} = req.body;
 
         const record = await PurchaseOrderRevModel.findByPk(id);
 
@@ -334,7 +428,7 @@ export const updatePurchaseOrderRev = async (req, res) => {
 
 export const deletePurchaseOrderRev = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const record = await PurchaseOrderRevModel.findByPk(id);
 

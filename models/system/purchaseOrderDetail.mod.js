@@ -1,6 +1,7 @@
 
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
+import {PurchaseOrderModel} from "./purchaseOrder.mod.js";
 
 const PurchaseOrderDetailModel = db.define(
     "purchase_order_detail",
@@ -76,5 +77,10 @@ const PurchaseOrderDetailModel = db.define(
         timestamps: false,
     }
 );
+
+PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
+    foreignKey: "MPO_ID",
+    as: "MPO"
+})
 
 export default PurchaseOrderDetailModel;

@@ -1,5 +1,11 @@
 import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
+import {ListCountry} from "../list/referensiList.mod.js";
+import {ModelWarehouseDetail} from "../setup/WarehouseDetail.mod.js";
+import {ModelVendorDetail, ModelVendorShipperLocation} from "./VendorDetail.mod.js";
+import MasterCompanyModel from "../setup/company.mod.js";
+import MasterUnitModel from "../setup/unit.mod.js";
+import {MasterPayMethode} from "./finance.mod.js";
 
 export const PurchaseOrderRevModel = db.define(
     "purchase_order_rev",
@@ -147,3 +153,45 @@ export const PurchaseOrderModel = db.define(
         timestamps: false,
     }
 );
+
+
+
+PurchaseOrderModel.belongsTo(PurchaseOrderRevModel, {
+    foreignKey: "REV_ID",
+    as: "REV"
+})
+
+PurchaseOrderModel.belongsTo(ListCountry, {
+    foreignKey: "COUNTRY_ID",
+    as: "COUNTRY"
+})
+
+PurchaseOrderModel.belongsTo(ModelWarehouseDetail, {
+    foreignKey: "WAREHOUSE_ID",
+    as: "WAREHOUSE"
+})
+
+PurchaseOrderModel.belongsTo(ModelVendorDetail, {
+    foreignKey: "VENDOR_ID",
+    as: "VENDOR"
+})
+
+PurchaseOrderModel.belongsTo(ModelVendorShipperLocation, {
+    foreignKey: "VENDOR_SHIPPER_LOCATION_ID",
+    as: "VENDOR_SHIPPER_LOCATION"
+})
+
+PurchaseOrderModel.belongsTo(MasterUnitModel, {
+    foreignKey: "UNIT_ID",
+    as: "UNIT"
+})
+
+PurchaseOrderModel.belongsTo(MasterCompanyModel, {
+    foreignKey: "COMPANY_ID",
+    as: "COMPANY"
+})
+
+PurchaseOrderModel.belongsTo(MasterPayMethode, {
+    foreignKey: "PAYMENT_TERM_ID",
+    as: "PAYMENT_TERM"
+})
