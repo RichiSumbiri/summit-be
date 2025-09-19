@@ -55,7 +55,6 @@ import orderManagementRoute from "./orderManagement/index.route.js";
 import tnaRoute from "./tna/index.route.js";
 import finance from "./finance/index.js";
 import purchaseOrderRoute from "./system/purchaseOrder.route.js";
-import purchaseOrderDetailRoute from "./system/purchaseOrderDetail.route.js";
 
 import "../models/associations.js"
 
@@ -115,7 +114,6 @@ router.use("/order-management", orderManagementRoute)
 router.use("/tna", tnaRoute)
 router.use("/finance", finance)
 router.use("/purchase", purchaseOrderRoute)
-router.use("/purchase-detail", purchaseOrderDetailRoute)
 
 router.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));

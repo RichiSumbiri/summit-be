@@ -4,6 +4,11 @@ import {
     getAllPurchaseOrders,
     getPurchaseOrderById, getPurchaseOrderRevById, updatePurchaseOrder, updatePurchaseOrderRev
 } from "../../controllers/system/purchaseOrder.js";
+import {
+    createPurchaseOrderDetail, deletePurchaseOrderDetail,
+    getAllPurchaseOrderDetails,
+    getPurchaseOrderDetailById, updatePurchaseOrderDetail
+} from "../../controllers/system/purchaseOrderDetail.js";
 
 const router = express.Router();
 
@@ -19,5 +24,12 @@ router.get("/rev", getAllPurchaseOrderRevs);
 router.get("/rev/:id", getPurchaseOrderRevById);
 router.put("/rev/:id", updatePurchaseOrderRev);
 router.delete("/rev/:id", deletePurchaseOrderRev);
+
+router.post("/detail", createPurchaseOrderDetail);
+router.get("/detail", getAllPurchaseOrderDetails);
+router.get("/detail/:id", getPurchaseOrderDetailById);
+router.put("/detail/:id", updatePurchaseOrderDetail);
+router.delete("/detail/:id", deletePurchaseOrderDetail);
+
 
 export default router
