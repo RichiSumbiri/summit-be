@@ -35,7 +35,7 @@ export const createPurchaseOrder = async (req, res) => {
             });
         }
 
-        const newPurchaseOrder = await PurchaseOrderModel.create({
+        await PurchaseOrderModel.create({
             MPO_ID,
             REV_ID,
             MPO_DATE,
@@ -66,10 +66,8 @@ export const createPurchaseOrder = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Purchase Order created successfully",
-            data: newPurchaseOrder,
         });
     } catch (error) {
-        console.error("Error creating purchase order:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create purchase order: ${error.message}`,
@@ -94,7 +92,6 @@ export const getAllPurchaseOrders = async (req, res) => {
             data: purchaseOrders,
         });
     } catch (error) {
-        console.error("Error retrieving purchase orders:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve purchase orders: ${error.message}`,
@@ -121,7 +118,6 @@ export const getPurchaseOrderById = async (req, res) => {
             data: purchaseOrder,
         });
     } catch (error) {
-        console.error("Error retrieving purchase order:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve purchase order: ${error.message}`,
@@ -193,10 +189,8 @@ export const updatePurchaseOrder = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Purchase Order updated successfully",
-            data: purchaseOrder,
         });
     } catch (error) {
-        console.error("Error updating purchase order:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update purchase order: ${error.message}`,
@@ -224,7 +218,6 @@ export const deletePurchaseOrder = async (req, res) => {
             message: "Purchase Order deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting purchase order:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete purchase order: ${error.message}`,
@@ -236,7 +229,7 @@ export const createPurchaseOrderRev = async (req, res) => {
     try {
         const { NAME, DESCRIPTION, SEQUENCE, CREATED_ID } = req.body;
 
-        const newRecord = await PurchaseOrderRevModel.create({
+        await PurchaseOrderRevModel.create({
             NAME,
             DESCRIPTION,
             SEQUENCE,
@@ -246,10 +239,8 @@ export const createPurchaseOrderRev = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Purchase Order Revision created successfully",
-            data: newRecord,
         });
     } catch (error) {
-        console.error("Error creating purchase order revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create purchase order revision: ${error.message}`,
@@ -267,7 +258,6 @@ export const getAllPurchaseOrderRevs = async (req, res) => {
             data: records,
         });
     } catch (error) {
-        console.error("Error retrieving purchase order revisions:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve purchase order revisions: ${error.message}`,
@@ -294,7 +284,6 @@ export const getPurchaseOrderRevById = async (req, res) => {
             data: record,
         });
     } catch (error) {
-        console.error("Error retrieving purchase order revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve purchase order revision: ${error.message}`,
@@ -329,7 +318,6 @@ export const updatePurchaseOrderRev = async (req, res) => {
             data: record,
         });
     } catch (error) {
-        console.error("Error updating purchase order revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update purchase order revision: ${error.message}`,
@@ -357,7 +345,6 @@ export const deletePurchaseOrderRev = async (req, res) => {
             message: "Purchase Order Revision deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting purchase order revision:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete purchase order revision: ${error.message}`,

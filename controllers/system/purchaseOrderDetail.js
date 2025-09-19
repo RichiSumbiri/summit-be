@@ -19,7 +19,7 @@ export const createPurchaseOrderDetail = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        const newDetail = await PurchaseOrderDetailModel.create({
+        await PurchaseOrderDetailModel.create({
             MPO_ID,
             REV_ID,
             BOM_STRUCTURE_LINE_ID,
@@ -40,10 +40,8 @@ export const createPurchaseOrderDetail = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Purchase Order Detail created successfully",
-            data: newDetail,
         });
     } catch (error) {
-        console.error("Error creating purchase order detail:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create purchase order detail: ${error.message}`,
@@ -69,7 +67,6 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
             data: details,
         });
     } catch (error) {
-        console.error("Error retrieving purchase order details:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve purchase order details: ${error.message}`,
@@ -97,7 +94,6 @@ export const getPurchaseOrderDetailById = async (req, res) => {
             data: detail,
         });
     } catch (error) {
-        console.error("Error retrieving purchase order detail:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve purchase order detail: ${error.message}`,
@@ -152,10 +148,8 @@ export const updatePurchaseOrderDetail = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Purchase Order Detail updated successfully",
-            data: detail,
         });
     } catch (error) {
-        console.error("Error updating purchase order detail:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update purchase order detail: ${error.message}`,
@@ -184,7 +178,6 @@ export const deletePurchaseOrderDetail = async (req, res) => {
             message: "Purchase Order Detail deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting purchase order detail:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete purchase order detail: ${error.message}`,
