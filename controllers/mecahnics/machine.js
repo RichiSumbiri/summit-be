@@ -1138,47 +1138,72 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
             });
         }
 
-        const nodeLeft = await StorageInventoryNodeModel.findAll(
-            {
-                where: {STORAGE_INVENTORY_ID: storageInventoryId, POSITION: 'LEFT'},
-                order: [['SEQUENCE', 'ASC']],
-                include: [
-                    {
-                        model: MecListMachine,
-                        as: 'MACHINE',
-                        attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
-                        required: false,
-                        include: [
-                            {
-                                model: MacTypeOfMachine,
-                                as: 'MEC_TYPE_OF_MACHINE',
-                                attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
-                            }
-                        ]
-                    }
-                ]
-            })
+        const inventoryStorage = await StorageInventoryModel.findByPk(storageInventoryId)
+        if (!inventoryStorage) return res.status(404).json({status: false, message: "Storage inventory not found"})
 
-        const nodeRight = await StorageInventoryNodeModel.findAll(
-            {
-                where: {STORAGE_INVENTORY_ID: storageInventoryId, POSITION: 'RIGHT'},
-                order: [['SEQUENCE', 'ASC']],
+        let nodeLeft = []
+        let nodeRight = []
+        let listMachine = []
+
+        if (inventoryStorage.CATEGORY === "STORAGE")  {
+            listMachine = await MecListMachine.findAll({
+                where: {
+                    STORAGE_INVENTORY_ID: storageInventoryId
+                },
                 include: [
                     {
-                        model: MecListMachine,
-                        as: 'MACHINE',
-                        attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
-                        required: false,
-                        include: [
-                            {
-                                model: MacTypeOfMachine,
-                                as: 'MEC_TYPE_OF_MACHINE',
-                                attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
-                            }
-                        ]
+                        model: MacTypeOfMachine,
+                        as: 'MEC_TYPE_OF_MACHINE',
+                        attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
                     }
                 ]
             })
+        } else {
+            nodeLeft = await StorageInventoryNodeModel.findAll(
+                {
+                    where: {STORAGE_INVENTORY_ID: storageInventoryId, POSITION: 'LEFT'},
+                    order: [['SEQUENCE', 'ASC']],
+                    include: [
+                        {
+                            model: MecListMachine,
+                            as: 'MACHINE',
+                            attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
+                            required: false,
+                            include: [
+                                {
+                                    model: MacTypeOfMachine,
+                                    as: 'MEC_TYPE_OF_MACHINE',
+                                    attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+                                }
+                            ]
+                        }
+                    ]
+                })
+
+            nodeRight = await StorageInventoryNodeModel.findAll(
+                {
+                    where: {STORAGE_INVENTORY_ID: storageInventoryId, POSITION: 'RIGHT'},
+                    order: [['SEQUENCE', 'ASC']],
+                    include: [
+                        {
+                            model: MecListMachine,
+                            as: 'MACHINE',
+                            attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
+                            required: false,
+                            include: [
+                                {
+                                    model: MacTypeOfMachine,
+                                    as: 'MEC_TYPE_OF_MACHINE',
+                                    attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+                                }
+                            ]
+                        }
+                    ]
+                })
+        }
+
+
+
 
         return res.status(200).json({
             success: true,
@@ -1186,6 +1211,7 @@ export const getMachinesByStorageInventoryId = async (req, res) => {
             data: {
                 NODE_LEFT: nodeLeft,
                 NODE_RIGHT: nodeRight,
+                LIST_MACHINE: listMachine
             },
         });
     } catch (error) {

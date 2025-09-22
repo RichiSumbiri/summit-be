@@ -109,9 +109,7 @@ export const getAllStorageInventory = async (req, res) => {
         if (BUILDING_ROOM_ID) whereCondition.BUILDING_ROOM_ID = BUILDING_ROOM_ID;
         if (CATEGORY) whereCondition.CATEGORY = CATEGORY;
 
-
         const listStorage = []
-
         const inventories = await StorageInventoryModel.findAll({
             where: {
                 IS_DELETE: false,
@@ -132,56 +130,66 @@ export const getAllStorageInventory = async (req, res) => {
         });
 
         for (let i = 0; i < inventories.length; i++) {
-            const data = inventories[i]
+            const data = inventories[i].dataValues
 
-            const nodeLeft = await StorageInventoryNodeModel.findAll(
-                {
-                    where: {STORAGE_INVENTORY_ID: data.ID, POSITION: 'LEFT'},
-                    order: [['SEQUENCE', 'ASC']],
-                    include: [
-                        {
-                            model: MecListMachine,
-                            as: 'MACHINE',
-                            attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
-                            required: false,
-                            include: [
-                                {
-                                    model: MacTypeOfMachine,
-                                    as: 'MEC_TYPE_OF_MACHINE',
-                                    attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
-                                }
-                            ]
-                        }
-                    ]
+            if (data.CATEGORY === "STORAGE") {
+                const listMachine = await MecListMachine.count({
+                    where: {
+                        STORAGE_INVENTORY_ID: data.ID
+                    }
                 })
+                listStorage.push({...data, NODE_LEFT: [], NODE_RIGHT: [], MACHINE_AVAILABLE: !!listMachine})
+            } else {
+                const nodeLeft = await StorageInventoryNodeModel.findAll(
+                    {
+                        where: {STORAGE_INVENTORY_ID: data.ID, POSITION: 'LEFT'},
+                        order: [['SEQUENCE', 'ASC']],
+                        include: [
+                            {
+                                model: MecListMachine,
+                                as: 'MACHINE',
+                                attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
+                                required: false,
+                                include: [
+                                    {
+                                        model: MacTypeOfMachine,
+                                        as: 'MEC_TYPE_OF_MACHINE',
+                                        attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+                const nodeRight = await StorageInventoryNodeModel.findAll(
+                    {
+                        where: {STORAGE_INVENTORY_ID: data.ID, POSITION: 'RIGHT'},
+                        order: [['SEQUENCE', 'ASC']],
+                        include: [
+                            {
+                                model: MecListMachine,
+                                as: 'MACHINE',
+                                attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
+                                required: false,
+                                include: [
+                                    {
+                                        model: MacTypeOfMachine,
+                                        as: 'MEC_TYPE_OF_MACHINE',
+                                        attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
+                                    }
+                                ]
+                            }
+                        ]
+                    })
 
-            const nodeRight = await StorageInventoryNodeModel.findAll(
-                {
-                    where: {STORAGE_INVENTORY_ID: data.ID, POSITION: 'RIGHT'},
-                    order: [['SEQUENCE', 'ASC']],
-                    include: [
-                        {
-                            model: MecListMachine,
-                            as: 'MACHINE',
-                            attributes: ['MACHINE_ID', 'MACHINE_DESCRIPTION', 'MACHINE_SERIAL', 'STATUS'],
-                            required: false,
-                            include: [
-                                {
-                                    model: MacTypeOfMachine,
-                                    as: 'MEC_TYPE_OF_MACHINE',
-                                    attributes: ['TYPE_ID', 'TYPE_DESCRIPTION', 'COLOR', 'CATEGORY'],
-                                }
-                            ]
-                        }
-                    ]
+                const left = nodeLeft ?? []
+                const right = nodeRight ?? []
+                listStorage.push({
+                    ...data,
+                    NODE_LEFT: left,
+                    NODE_RIGHT: right,
+                    MACHINE_AVAILABLE: (!!(left.find((item) => item.MACHINE !== null) || right.find((item) => item.MACHINE !== null)))
                 })
-
-            const left = nodeLeft ?? []
-            const right = nodeRight ?? []
-
-
-
-            listStorage.push({...data.dataValues, NODE_LEFT: left, NODE_RIGHT: right, MACHINE_AVAILABLE: (!!(left.find((item) => item.MACHINE !== null) || right.find((item) => item.MACHINE !== null))) })
+            }
         }
 
         return res.status(200).json({
@@ -340,8 +348,8 @@ export const getStorageInventoryBySerialNumber = async (req, res) => {
 
 export const updateStorageInventory = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, RAK_NUMBER, CATEGORY, LEVEL, POSITION, DESCRIPTION } = req.body;
+        const {id} = req.params;
+        const {UNIT_ID, BUILDING_ID, BUILDING_ROOM_ID, RAK_NUMBER, CATEGORY, LEVEL, POSITION, DESCRIPTION} = req.body;
 
         const inventory = await StorageInventoryModel.findByPk(id);
 
@@ -383,7 +391,7 @@ export const updateStorageInventory = async (req, res) => {
 
         const newCount = newLevel * newPosition;
         const existingNodes = await StorageInventoryNodeModel.findAll({
-            where: { STORAGE_INVENTORY_ID: inventory.ID },
+            where: {STORAGE_INVENTORY_ID: inventory.ID},
             attributes: ['ID', 'SEQUENCE']
         });
 
@@ -432,7 +440,7 @@ export const updateStorageInventory = async (req, res) => {
                 const nodesToDelete = await StorageInventoryNodeModel.findAll({
                     where: {
                         STORAGE_INVENTORY_ID: inventory.ID,
-                        SEQUENCE: { [Op.gte]: newCount }
+                        SEQUENCE: {[Op.gte]: newCount}
                     },
                     order: [['SEQUENCE', 'DESC']]
                 });

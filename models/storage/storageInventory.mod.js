@@ -40,7 +40,7 @@ const StorageInventoryModel = db.define(
       allowNull: true,
     },
     CATEGORY: {
-      type: DataTypes.ENUM('ROOM', 'LINE'),
+      type: DataTypes.ENUM('ROOM', 'LINE', 'STORAGE'),
       allowNull: true,
       defaultValue: 'ROOM'
     },
