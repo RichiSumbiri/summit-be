@@ -102,10 +102,18 @@ export const ModelCategorySkills = dbSPL.define('master_skills_category', {
     last_update_date: {
       type: DataTypes.DATEONLY,
       allowNull: true,
+    },
+    createdAt : {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updatedAt : {
+      type: DataTypes.DATE,
+      allowNull: true,
     }
   }, {
     tableName: 'sumbiri_employee_skills',
-    timestamps: false
+    timestamps: true
   });
 
 
