@@ -362,7 +362,7 @@ export const postUserToRole = async (req, res) => {
     })
 
     if(findAccessRole.length === 0){
-      return res.status(404).json({message: 'No Data Access In Role'})
+      return res.status(404).json({message: 'No Data Access In Role, Pls Setting Auttorization First'})
     }
 
     const newAccsUser = findAccessRole.map(item => ({...item, USER_ID: USER_ID}))

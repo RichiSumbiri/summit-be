@@ -316,3 +316,53 @@ export const ModelLogRecapMatrixSkill = dbSPL.define('sumbiri_log_matrix_skill',
     tableName: 'sumbiri_log_matrix_skill',
     timestamps: false
   });
+
+
+
+
+  export const queryMatrixSkillMonitoring = `WITH base_emp AS (
+	SELECT 
+	      se.Nik, 
+		  se.NamaLengkap,
+		  se.IDDepartemen,
+		  se.IDSubDepartemen,
+		  se.IDSection,
+		  se.IDPosisi,
+		  se.TanggalMasuk,
+		  se.TanggalKeluar,
+		  se.JenisKelamin,
+		  se.StatusKaryawan,
+	  	  md.NameDept AS Departemen,
+	  	  ms2.Name AS SubDepartemen,
+		  ms3.Name AS Section,
+	  	  mp2.Name AS NamePosisi,
+	      msd.Name subDeptName,
+      md.NameDept
+	FROM sumbiri_employee se
+	LEFT JOIN master_department md ON md.IdDept = se.IDDepartemen
+	LEFT JOIN master_subdepartment msd ON msd.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN master_subdepartment ms2 ON ms2.IDSubDept = se.IDSubDepartemen
+	LEFT JOIN master_section ms3 ON ms3.IDSection = se.IDSection
+	LEFT JOIN master_position mp2 ON mp2.IDPosition = se.IDPosisi
+	WHERE se.CancelMasuk = 'N'
+	  AND se.TanggalMasuk <= LAST_DAY(:endDate)
+	  AND (se.TanggalKeluar IS NULL OR se.TanggalKeluar >= :startDate)
+    -- AND se.IDDepartemen = '100103'
+), matrix_emp AS (
+	SELECT 
+		be.*,
+		ses.skill_id,
+		ses.sub_skill_id,
+		DATE(ses.createdAt) createdAt,
+		DATE(ses.updatedAt) updatedAt,
+		ms.skill_name
+	FROM sumbiri_employee_skills ses
+	LEFT JOIN master_skills ms ON ms.skill_id = ses.skill_id
+	LEFT JOIN master_skills_sub mss ON mss.sub_skill_id = ses.sub_skill_id
+	LEFT JOIN master_skills_category msc ON msc.skill_category_id = ms.skill_category_id
+	JOIN base_emp be ON be.Nik = ses.Nik
+  GROUP BY be.Nik, ses.skill_id 
+) 
+SELECT 
+	me.*
+FROM matrix_emp me`

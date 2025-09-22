@@ -1,8 +1,9 @@
 import moment from "moment";
-import { ModelCategorySkills, ModelLogRecapMatrixSkill, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
+import { ModelCategorySkills, ModelLogRecapMatrixSkill, ModelMasterSkill, ModelMasterSubSkill, queryGetEmpSkillByNIK, queryGetEmpSkillDataAll, queryGetEmpSkillDataByCategory, queryGetEmpSkillDataPaginated, queryMatrixSkillMonitoring, SumbiriEmployeeSkills } from "../../models/hr/skills.js";
 import { dbSPL } from "../../config/dbAudit.js";
 import { QueryTypes } from "sequelize";
 import { modelMasterSubDepartment, sqlFindEmpByDeptSection, sqlFindEmpByDeptSubSection } from "../../models/hr/employe.mod.js";
+import { getUniqueAttribute } from "../util/Utility.js";
 
 
 export const getCategorySkills = async (req, res) => {
@@ -810,6 +811,68 @@ export const getLogMatrixSkillDaily = async(req,res) => {
         return res.status(404).json({
             success: false,
             message: "fail get daily log matrix skill"
+        });
+    }
+}
+
+
+
+
+export const getAllMonitoringSkill = async (req, res) => {
+    try {
+        const {monthYear} = req.params
+        const momentPeriod = moment(monthYear, "YYYY-MM");
+
+        // 🔹 Konversi ke awal & akhir bulan
+        const momenStart = momentPeriod.clone().startOf("month");
+        const momentEnd = momentPeriod.clone().endOf("month");
+
+        const startDate = momenStart.format("YYYY-MM-DD");
+        const endDate = momentEnd.format("YYYY-MM-DD");
+
+        const dataSkillMonitor = await dbSPL.query(queryMatrixSkillMonitoring, {
+            replacements: {startDate, endDate   }, 
+            type: QueryTypes.SELECT
+        })
+
+        if(dataSkillMonitor.length === 0){
+                return res.status(404).json({
+                    success: false,
+                    message: "No Data Employe matrix skill"
+                });
+        }
+
+        const uniqEmp = [...new Map(dataSkillMonitor.map(item => [item.Nik, item])).values() ];
+
+        
+        const skillBeforeMonth = dataSkillMonitor.filter(item => {
+            const addDate =  moment(item.createdAt, 'YYYY-MM-DD')
+            return addDate.isBefore(momenStart)
+            
+        })
+
+        const currentSkillMonth = dataSkillMonitor.filter(item => {
+            const addDate = moment(item.createdAt, 'YYYY-MM-DD');
+            return addDate.isBetween(momenStart, momentEnd, null, '[]'); 
+            // [] = inklusif (>= start, <= end)
+        });
+
+        
+        const empSkilMonitoring = uniqEmp.map(({ skill_name, ...item }) => {
+            const skillBefore = skillBeforeMonth.filter(skill => skill.Nik === item.Nik)
+            const stringBeforeSkill = skillBefore.length > 0 ? skillBefore.map(skill => skill.skill_name).join(", ") : ''
+
+            const currentSkill = currentSkillMonth.filter(skill => skill.Nik === item.Nik)
+            const stringCurrentSkill = currentSkill.length > 0 ? currentSkill.map(skill => skill.skill_name).join(", ") : ''
+
+            return {...item, stringBeforeSkill, stringCurrentSkill}
+        })
+
+        return res.status(200).json({data : empSkilMonitoring})
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "fail get matrix skill monitoring"
         });
     }
 }
