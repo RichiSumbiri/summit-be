@@ -127,6 +127,13 @@ export const assignMachineToStorage = async (req, res) => {
                 continue;
             }
 
+            if (machine.IS_REPLACE) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Cannot move the machine because it is currently under repair`,
+                });
+            }
+
             const activeDowntime = await MecDownTimeModel.findOne({
                 where: {
                     MACHINE_ID: machineId,
@@ -464,6 +471,14 @@ export const updateMachineAndStorage = async (req, res) => {
                 if (!machine) {
                     console.warn(`Machine ${assignment.machineId} not found`);
                     continue;
+                }
+
+
+                if (machine.IS_REPLACE) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Cannot move the machine because it is currently under repair`,
+                    });
                 }
 
 
