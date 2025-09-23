@@ -1,3 +1,4 @@
+import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 
 export const getAllMasterItemType = async(req, res) => {
@@ -43,9 +44,20 @@ export const getMasterItemType = async(req, res) => {
             whereCondition.ITEM_TYPE_STOCK = ITEM_TYPE_STOCK
         }
 
+        const attributes = req.query.IS_DROPDOWN ? ["ITEM_TYPE_ID", "ITEM_TYPE_CODE", "ITEM_TYPE_DESCRIPTION"] : undefined; 
+
 
         const getData = await MasterItemTypes.findAll({
-            where: whereCondition
+            where: whereCondition,
+            include: [
+                {
+                    model: MasterItemGroup,
+                    as: "ITEM_GROUP",
+                    required: true,
+                    attributes: ["ITEM_GROUP_CODE", "ITEM_GROUP_DESCRIPTION"],
+                },
+            ],
+            attributes
         });
         if(getData){
             return res.status(200).json({

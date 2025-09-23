@@ -1,4 +1,7 @@
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
+import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
+import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
+import { ModelMasterUOM } from "../../models/system/uom.mod.js";
 
 export const getAllMasterItemCategory = async(req, res) => {
     try {
@@ -40,11 +43,41 @@ export const getMasterItemCategory = async(req, res) => {
             ITEM_TYPE_ID: id
         }
 
+        const attributes = req.query.IS_DROPDOWN ? [
+            "ITEM_CATEGORY_ID", 
+            "ITEM_CATEGORY_CODE", 
+            "ITEM_CATEGORY_DESCRIPTION", 
+            "ITEM_CATEGORY_INSPECTION_FLAG", 
+            "ITEM_CATEGORY_LOTSERIAL_FLAG"
+        ] : undefined; 
+
         if (ITEM_CATEGORY_INSPECTION_FLAG) {
             whereCondition.ITEM_CATEGORY_INSPECTION_FLAG = ITEM_CATEGORY_INSPECTION_FLAG
         }
         const getData = await MasterItemCategories.findAll({
-            where: whereCondition
+            where: whereCondition,
+            attributes,
+            include: [
+                {
+                    model: MasterItemTypes,
+                    as: "ITEM_TYPE",
+                    required: true,
+                    attributes: ["ITEM_TYPE_DESCRIPTION"],
+                    include: [
+                        {
+                            model: MasterItemGroup,
+                            as: "ITEM_GROUP",
+                            required: true,
+                            attributes: ["ITEM_GROUP_DESCRIPTION"],
+                        },
+                    ],
+                },
+                {
+                    model: ModelMasterUOM,
+                    as: "UOM",
+                    required: true,
+                },
+            ],
         });
         if(getData){
             return res.status(200).json({

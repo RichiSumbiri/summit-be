@@ -19,3 +19,22 @@ const generateCustomId = async (model, fieldName, prefix, whereCondition = {}) =
 };
 
 export default generateCustomId;
+
+export const generateSequentialId = async (model, columnName, whereCondition = {}) => {
+  const lastRecord = await model.findOne({
+    where: whereCondition,
+    order: [[columnName, "DESC"]],
+    paranoid: false,
+  });
+
+  let nextId = 1;
+
+  if (lastRecord) {
+    const lastId = parseInt(lastRecord[columnName], 10);
+    if (!isNaN(lastId)) {
+      nextId = lastId + 1;
+    }
+  }
+
+  return nextId;
+};

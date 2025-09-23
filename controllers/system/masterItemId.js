@@ -253,13 +253,16 @@ export const updateCloneItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const {search, ITEM_ID, ITEM_CATEGORY_ID, IGNORE_ID} = req.query;
+        const {search, ITEM_ID, ITEM_CATEGORY_ID, IGNORE_ID, IS_FILTER} = req.query;
 
         const whereCondition = {IS_DELETED: false}
+
+        const attributes = IS_FILTER ? ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"] : undefined;
 
         if (ITEM_ID) {
             whereCondition.ITEM_ID = { [Op.like]: `%${ITEM_ID}%` }
         }
+
         if (ITEM_CATEGORY_ID) {
             whereCondition.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
         }
@@ -269,7 +272,6 @@ export const getAllItems = async (req, res) => {
                 [Op.not]:IGNORE_ID
             }
         }
-
 
         if (search) {
             whereCondition[Op.or] = [
@@ -281,6 +283,7 @@ export const getAllItems = async (req, res) => {
 
         const items = await MasterItemIdModel.findAll({
             where: whereCondition,
+            attributes: attributes,
             include: [
                 {
                     model: MasterItemGroup,

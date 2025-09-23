@@ -733,8 +733,11 @@ export const getListProgramName = async (req, res) => {
     try {
         const { custId } = req.params;
 
+        const attributes = req.query.is_dropdown === 'true' ? ['CTPROG_ID', 'CTPROG_CODE', 'CTPROG_NAME'] : undefined;
+
         const programs = await CustomerProgramName.findAll({
             where: { CTC_ID: custId, IS_DELETE: { [Op.or]: [0, null] } },
+            attributes,
             order: [["CTPROG_ID", "ASC"]],
             raw: true
         });
