@@ -38,8 +38,9 @@ export const getAllBomStructures = async (req, res) => {
         if (LAST_REV_ID) where.LAST_REV_ID = LAST_REV_ID
 
         const structures = await BomStructureModel.findAll({
-            where, include: [{model: CompanyMod, as: "COMPANY", attributes: ['ID', 'NAME', 'CODE']}, {
-                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], include: [{
+            where, include: [
+                {model: CompanyMod, as: "COMPANY", attributes: ['ID', 'NAME', 'CODE']}, {
+                model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID", "MASTER_ITEM_ID"], include: [{
                     model: MasterItemIdModel,
                     as: "MASTER_ITEM",
                     attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]

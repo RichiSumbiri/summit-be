@@ -2,6 +2,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import {PurchaseOrderModel} from "./purchaseOrder.mod.js";
+import {BomStructureListModel} from "./bomStructure.mod.js";
 
 const PurchaseOrderDetailModel = db.define(
     "purchase_order_detail",
@@ -81,6 +82,26 @@ const PurchaseOrderDetailModel = db.define(
 PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
     foreignKey: "MPO_ID",
     as: "MPO"
+})
+
+// PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
+//     foreignKey: "MPO_ID",
+//     as: "MPO"
+// })
+//
+// PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
+//     foreignKey: "MPO_ID",
+//     as: "MPO"
+// })
+//
+// PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
+//     foreignKey: "MPO_ID",
+//     as: "MPO"
+// })
+
+PurchaseOrderDetailModel.belongsTo(BomStructureListModel, {
+    foreignKey: "BOM_STRUCTURE_LINE_ID",
+    as: "BOM_STRUCTURE_LIST"
 })
 
 export default PurchaseOrderDetailModel;

@@ -6,6 +6,20 @@ import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system
 import MasterUnitModel from "../../models/setup/unit.mod.js";
 import MasterCompanyModel from "../../models/setup/company.mod.js";
 import {MasterPayMethode} from "../../models/system/finance.mod.js";
+import BomStructureModel, {BomStructureListModel} from "../../models/system/bomStructure.mod.js";
+import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
+import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
+import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
+import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import Users from "../../models/setup/users.mod.js";
+import {ModelOrderPOHeader} from "../../models/orderManagement/orderManagement.mod.js";
+import {
+    CustomerDetail,
+    CustomerProductDivision,
+    CustomerProductSeason,
+    CustomerProgramName
+} from "../../models/system/customer.mod.js";
 
 export const createPurchaseOrderDetail = async (req, res) => {
     try {
@@ -144,43 +158,83 @@ export const getPurchaseOrderDetailById = async (req, res) => {
                 {
                     model: PurchaseOrderModel,
                     as: "MPO",
-                    attributes: ["REV_ID", "COUNTRY_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID", "PAYMENT_TERM_ID"],
+                    attributes: ["REV_ID", "COUNTRY_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID", "PAYMENT_TERM_ID"]
+                },
+                {
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LIST",
+                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
                     include: [
                         {
-                            model: PurchaseOrderRevModel,
-                            as: "REV",
-                            attributes: ["NAME", "DESCRIPTION", "SEQUENCE"]
+                            model: BomStructureModel,
+                            as: "BOM_STRUCTURE",
+                            attributes: ["ID", "LAST_REV_ID", "STATUS_STRUCTURE"],
+                            required: false,
+                            include: [
+                                {
+                                    model: ModelOrderPOHeader,
+                                    as: "ORDER",
+                                    attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
+                                    required: false,
+                                    duplicating: false,
+                                    include: [{
+                                        model: MasterItemIdModel,
+                                        as: "ITEM",
+                                        attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"]
+                                    }, {
+                                        model: CustomerDetail,
+                                        as: "CUSTOMER",
+                                        attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
+                                        required: false
+                                    }, {
+                                        model: CustomerProductDivision,
+                                        as: "CUSTOMER_DIVISION",
+                                        attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
+                                        required: false
+                                    }, {
+                                        model: CustomerProductSeason,
+                                        as: "CUSTOMER_SEASON",
+                                        attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
+                                        required: false
+                                    }, {
+                                        model: CustomerProgramName,
+                                        as: "CUSTOMER_PROGRAM",
+                                        attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
+                                        required: false
+                                    }]
+                                }
+                            ]
                         },
                         {
-                            model: ListCountry,
-                            as: "COUNTRY",
-                            attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
-                        },
-                        {
-                            model: ModelWarehouseDetail,
-                            as: "WAREHOUSE",
-                            attributes: ["WHI_CODE", "WHI_NAME"]
+                            model: MasterItemIdModel,
+                            as: "MASTER_ITEM",
+                            attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"],
+                            include: [
+                                {
+                                    model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                                },
+                                {
+                                    model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                                },
+                                {
+                                    model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                                }
+                            ]
                         },
                         {
                             model: ModelVendorDetail,
                             as: "VENDOR",
-                            attributes: ["VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME", "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1", "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE", "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME", "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2", "VENDOR_CONTACT_EMAIL"]
+                            attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
                         },
                         {
-                            model: ModelVendorShipperLocation,
-                            as: "VENDOR_SHIPPER_LOCATION",
-                            attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
+                            model: Users, as: "CREATED", attributes: ["USER_NAME"], required: false
                         },
                         {
-                            model: MasterCompanyModel,
-                            as: "COMPANY",
-                            attributes: ["NAME", "CODE"]
+                            model: Users, as: "UPDATED", attributes: ["USER_NAME"], required: false
                         },
                         {
-                            model: MasterPayMethode,
-                            as: "PAYMENT_TERM",
-                            attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
-                        },
+                            model: MasterCompanyModel, as: "COMPANY", attributes: ["CODE"]
+                        }
                     ]
                 }
             ]

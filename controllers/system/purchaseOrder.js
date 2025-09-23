@@ -196,7 +196,7 @@ export const getPurchaseOrderById = async (req, res) => {
                 {
                     model: MasterCompanyModel,
                     as: "COMPANY",
-                    attributes: ["NAME", "CODE"]
+                    attributes: ["NAME", "CODE", "EMAIL", "FAX", "NO_TEL", "ADDRESS"]
                 },
                 {
                     model: MasterPayMethode,
