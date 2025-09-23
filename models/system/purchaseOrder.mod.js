@@ -103,9 +103,13 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.STRING(10),
             allowNull: true,
         },
-        UNIT_ID: {
+        NOTIFY_UNIT_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
+        },
+        DELIVERY_UNIT_ID: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1
         },
         CURRENCY_CODE: {
             type: DataTypes.STRING(5),
