@@ -2,7 +2,7 @@ import MasterUnitModel from "../../models/setup/unit.mod.js";
 
 export const createUnit = async (req, res) => {
     try {
-        const { UNIT_CODE, UNIT_NAME, UNIT_LOCATION, COMPANY_ID } = req.body;
+        const { UNIT_CODE, UNIT_NAME, UNIT_LOCATION, UNIT_PHONE, UNIT_FAX, UNIT_EMAIL, COMPANY_ID } = req.body;
 
         if (!UNIT_CODE || !UNIT_NAME || !COMPANY_ID) {
             return res.status(400).json({
@@ -26,6 +26,7 @@ export const createUnit = async (req, res) => {
             UNIT_CODE,
             UNIT_NAME,
             UNIT_LOCATION,
+            UNIT_PHONE, UNIT_FAX, UNIT_EMAIL,
             COMPANY_ID,
             UNIT_CREATE_DATE: new Date(),
         });
@@ -36,7 +37,6 @@ export const createUnit = async (req, res) => {
             newUnit,
         });
     } catch (error) {
-        console.error("Error creating unit:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to create unit: ${error.message}`,
@@ -63,7 +63,6 @@ export const getAllUnits = async (req, res) => {
             data: units,
         });
     } catch (error) {
-        console.error("Error retrieving units:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve units: ${error.message}`,
@@ -90,7 +89,6 @@ export const getUnitById = async (req, res) => {
             data: unit,
         });
     } catch (error) {
-        console.error("Error retrieving unit:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to retrieve unit: ${error.message}`,
@@ -101,7 +99,7 @@ export const getUnitById = async (req, res) => {
 export const updateUnit = async (req, res) => {
     try {
         const { id } = req.params;
-        const { UNIT_CODE, UNIT_NAME, UNIT_LOCATION, COMPANY_ID } = req.body;
+        const { UNIT_CODE, UNIT_NAME, UNIT_LOCATION, UNIT_PHONE, UNIT_FAX, UNIT_EMAIL, COMPANY_ID } = req.body;
 
         const unit = await MasterUnitModel.findByPk(id);
 
@@ -130,6 +128,7 @@ export const updateUnit = async (req, res) => {
             UNIT_NAME,
             COMPANY_ID,
             UNIT_LOCATION,
+            UNIT_PHONE, UNIT_FAX, UNIT_EMAIL,
             UNIT_CREATE_DATE: new Date(),
         });
 
@@ -139,7 +138,6 @@ export const updateUnit = async (req, res) => {
             data: unit,
         });
     } catch (error) {
-        console.error("Error updating unit:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to update unit: ${error.message}`,
@@ -167,7 +165,6 @@ export const deleteUnit = async (req, res) => {
             message: "Unit deleted successfully",
         });
     } catch (error) {
-        console.error("Error deleting unit:", error);
         return res.status(500).json({
             success: false,
             message: `Failed to delete unit: ${error.message}`,

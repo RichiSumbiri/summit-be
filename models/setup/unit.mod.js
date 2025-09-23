@@ -21,11 +21,23 @@ const MasterUnitModel = db.define(
             allowNull: false,
         },
         UNIT_LOCATION: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(255),
             allowNull: true,
         },
         UNIT_CREATE_DATE: {
             type: DataTypes.DATE,
+            allowNull: true,
+        },
+        UNIT_PHONE: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        UNIT_FAX: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        UNIT_EMAIL: {
+            type: DataTypes.STRING(255),
             allowNull: true,
         },
         COMPANY_ID: {
