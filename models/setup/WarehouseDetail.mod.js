@@ -126,6 +126,7 @@ export const ModelWarehouseDetail = db.define('warehouse_detail', {
 	wd.WHI_LTC_ID,
 	m4.LTC_NAME,
 	wd.WHI_SITE_ID,
+  wd.WHI_UNIT_ID,
 	wd.WHI_DEPT_ID,
 	wd.WHI_ACTIVE,
 	wd.WHI_CP_NAME,
