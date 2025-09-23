@@ -82,7 +82,7 @@ export const postMasterWarehouseDetail = async(req,res) => {
                 order: [['WHI_ID', 'DESC']],
                 raw: true
             }); 
-            const newIncrement = !getLastWHID ? '0000001': (getLastWHID.WHI_ID.slice(-7)) + 1;
+            const newIncrement = !getLastWHID ? '0000001': parseInt(getLastWHID.WHI_ID.slice(-7)) + 1;
             const newWHID = 'WHI' + newIncrement.toString().padStart(7, '0');
             CreatedData = await ModelWarehouseDetail.create({
                 WHI_ID: newWHID,
@@ -90,6 +90,7 @@ export const postMasterWarehouseDetail = async(req,res) => {
                 WHI_NAME: DataWarehouse.WHI_NAME,
                 WHI_STOCKHOLDING_COMPANY_ID: DataWarehouse.WHI_STOCKHOLDING_COMPANY_ID,
                 WHI_OPERATING_COMPANY_ID: DataWarehouse.WHI_OPERATING_COMPANY_ID,
+                WHI_UNIT_ID: DataWarehouse.WHI_UNIT_ID,
                 WHI_SITE_ID: DataWarehouse.WHI_SITE_ID,
                 WHI_DEPT_ID: DataWarehouse.WHI_DEPT_ID,
                 WHC_ID: DataWarehouse.WHC_ID,
@@ -127,6 +128,7 @@ export const postMasterWarehouseDetail = async(req,res) => {
                 WHI_NAME: DataWarehouse.WHI_NAME,
                 WHI_STOCKHOLDING_COMPANY_ID: DataWarehouse.WHI_STOCKHOLDING_COMPANY_ID,
                 WHI_OPERATING_COMPANY_ID: DataWarehouse.WHI_OPERATING_COMPANY_ID,
+                WHI_UNIT_ID: DataWarehouse.WHI_UNIT_ID,
                 WHI_SITE_ID: DataWarehouse.WHI_SITE_ID,
                 WHI_DEPT_ID: DataWarehouse.WHI_DEPT_ID,
                 WHC_ID: DataWarehouse.WHC_ID,

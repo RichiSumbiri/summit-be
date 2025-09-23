@@ -32,6 +32,11 @@ export const ModelWarehouseDetail = db.define('warehouse_detail', {
       type: DataTypes.STRING(20),
       allowNull: false,
     },
+    WHI_UNIT_ID: {
+      type: DataTypes.INTEGER(20),
+      allowNull: false,
+      defaultValue:'1',
+    },
     WHI_DEPT_ID: {
       type: DataTypes.STRING(100),
       allowNull: true,
