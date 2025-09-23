@@ -22,7 +22,8 @@ export const createPurchaseOrder = async (req, res) => {
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
-            UNIT_ID,
+            NOTIFY_UNIT_ID,
+            DELIVERY_UNIT_ID,
             CURRENCY_CODE,
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
@@ -32,7 +33,7 @@ export const createPurchaseOrder = async (req, res) => {
             CREATE_BY,
         } = req.body;
 
-        if (!COUNTRY_ID || !WAREHOUSE_ID || !VENDOR_ID || !VENDOR_SHIPPER_LOCATION_ID || !COMPANY_ID || !UNIT_ID || !PAYMENT_TERM_ID) {
+        if (!COUNTRY_ID || !WAREHOUSE_ID || !VENDOR_ID || !VENDOR_SHIPPER_LOCATION_ID || !COMPANY_ID || !NOTIFY_UNIT_ID || !DELIVERY_UNIT_ID || !PAYMENT_TERM_ID) {
             return res.status(400).json({
                 status: false,
                 message: "Field are required"
@@ -61,7 +62,8 @@ export const createPurchaseOrder = async (req, res) => {
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
-            UNIT_ID,
+            NOTIFY_UNIT_ID,
+            DELIVERY_UNIT_ID,
             CURRENCY_CODE,
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
@@ -243,7 +245,8 @@ export const updatePurchaseOrder = async (req, res) => {
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
-            UNIT_ID,
+            NOTIFY_UNIT_ID,
+            DELIVERY_UNIT_ID,
             CURRENCY_CODE,
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
@@ -276,7 +279,8 @@ export const updatePurchaseOrder = async (req, res) => {
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
-            UNIT_ID,
+            NOTIFY_UNIT_ID,
+            DELIVERY_UNIT_ID,
             CURRENCY_CODE,
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
