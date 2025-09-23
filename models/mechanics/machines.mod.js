@@ -86,10 +86,6 @@ export const MecListMachine = db.define(
             type: DataTypes.ENUM('NORMAL', 'BROKEN', 'ON_FIX'),
             defaultValue: 'NORMAL'
         },
-        IS_REPLACE: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        }
     },
     {
         freezeTableName: true,
@@ -225,7 +221,6 @@ a.MACHINE_BRAND,
 a.MACHINE_MODEL,
 a.STORAGE_INVENTORY_ID,
 a.STORAGE_INVENTORY_NODE_ID,
-a.IS_REPLACE,
 a.MACHINE_STATUS,
 a.STATUS,
 s.DESCRIPTION AS 'STORAGE_DESCRIPTION',
@@ -253,7 +248,6 @@ a.MACHINE_BRAND,
 a.MACHINE_MODEL,
 a.STORAGE_INVENTORY_ID,
 a.STORAGE_INVENTORY_NODE_ID,
-a.IS_REPLACE,
 a.MACHINE_STATUS,
 a.STATUS,
 s.DESCRIPTION AS 'STORAGE_DESCRIPTION',

@@ -127,7 +127,7 @@ export const assignMachineToStorage = async (req, res) => {
                 continue;
             }
 
-            if (machine.IS_REPLACE) {
+            if (machine.STATUS !== "NORMAL") {
                 return res.status(400).json({
                     success: false,
                     message: `Cannot move the machine because it is currently under repair`,
@@ -473,14 +473,12 @@ export const updateMachineAndStorage = async (req, res) => {
                     continue;
                 }
 
-
-                if (machine.IS_REPLACE) {
+                if (machine.STATUS !== "NORMAL") {
                     return res.status(400).json({
                         success: false,
                         message: `Cannot move the machine because it is currently under repair`,
                     });
                 }
-
 
                 await machine.update({
                     STORAGE_INVENTORY_ID: storageInventory.ID,
