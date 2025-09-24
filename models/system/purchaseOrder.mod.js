@@ -186,8 +186,13 @@ PurchaseOrderModel.belongsTo(ModelVendorShipperLocation, {
 })
 
 PurchaseOrderModel.belongsTo(MasterUnitModel, {
-    foreignKey: "UNIT_ID",
-    as: "UNIT"
+    foreignKey: "NOTIFY_UNIT_ID",
+    as: "NOTIFY_UNIT"
+})
+
+PurchaseOrderModel.belongsTo(MasterUnitModel, {
+    foreignKey: "DELIVERY_UNIT_ID",
+    as: "DELIVERY_UNIT"
 })
 
 PurchaseOrderModel.belongsTo(MasterCompanyModel, {

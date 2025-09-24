@@ -127,7 +127,12 @@ export const getAllPurchaseOrders = async (req, res) => {
                 },
                 {
                     model: MasterUnitModel,
-                    as: "UNIT",
+                    as: "NOTIFY_UNIT",
+                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
+                },
+                {
+                    model: MasterUnitModel,
+                    as: "DELIVERY_UNIT",
                     attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
                 },
                 {
