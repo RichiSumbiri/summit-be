@@ -420,6 +420,8 @@ export const postPOListing = async (req, res) => {
     try {
         const { DataPOID } = req.body;
         
+        console.log(DataPOID);
+
         // CHECK MASTER ORDER TYPE
         const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_ID).substring(0,3) }});
             
@@ -590,7 +592,7 @@ export const postPOListing = async (req, res) => {
             });
         }
 
-
+        
         // create recap PO Matrix Delivery
         const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_ID }, type: QueryTypes.SELECT });
         // clean + normalize data
@@ -612,7 +614,7 @@ export const postPOListing = async (req, res) => {
             PDM_MOD_ID: row.PDM_MOD_ID,
             PDM_ADD_ID: row.PDM_ADD_ID
         }));
-        await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_NO } });
+        await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_ID } });
         await PoMatrixDelivery.bulkCreate(cleanRecap);
         
         return res.status(200).json({
