@@ -465,7 +465,7 @@ export const postPOListing = async (req, res) => {
                 MANUFACTURING_SITE: DataPOID.MANUFACTURING_SITE,
                 ORDER_PLACEMENT_COMPANY: DataPOID.ORDER_PLACEMENT_COMPANY,
                 ORDER_TYPE_CODE: DataPOID.ORDER_TYPE_CODE,
-                ORDER_NO: DataPOID.ORDER_ID,
+                // ORDER_NO: DataPOID.ORDER_ID,
                 ORDER_REFERENCE_PO_NO: DataPOID.ORDER_REFERENCE_PO_NO,
                 ORDER_STYLE_DESCRIPTION: DataPOID.ORDER_STYLE_DESCRIPTION,
                 PRODUCT_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
