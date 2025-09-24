@@ -97,12 +97,12 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
                 {
                     model: PurchaseOrderModel,
                     as: "MPO",
-                    attributes: ["REV_ID", "COUNTRY_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID", "PAYMENT_TERM_ID"],
+                    attributes: ["REV_ID", "COUNTRY_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID", "PAYMENT_TERM_ID"]
                 },
                 {
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
-                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID", "COMPANY_ID"],
+                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
                     include: [
                         {
                             model: BomStructureModel,
@@ -113,7 +113,7 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
                                 {
                                     model: ModelOrderPOHeader,
                                     as: "ORDER",
-                                    attributes: ["ORDER_ID", "ORDER_NO", "PO_REF_CODE", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
+                                    attributes: ["ORDER_ID", "ORDER_TYPE_CODE", "ORDER_STATUS", "ORDER_PLACEMENT_COMPANY", "ORDER_REFERENCE_PO_NO", "ORDER_STYLE_DESCRIPTION", "PRICE_TYPE_CODE", "ORDER_UOM", "CONTRACT_NO", "NOTE_REMARKS", "ITEM_ID", "CUSTOMER_ID", "CUSTOMER_DIVISION_ID", "CUSTOMER_SEASON_ID", "CUSTOMER_PROGRAM_ID", "CUSTOMER_BUYPLAN_ID"],
                                     required: false,
                                     duplicating: false,
                                     include: [{
@@ -175,6 +175,23 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
                             model: MasterCompanyModel, as: "COMPANY", attributes: ["CODE"]
                         }
                     ]
+                },
+                {
+                    model: MasterItemDimensionModel,
+                    as: "ITEM_DIMENSION",
+                    attributes: ["ID", "DIMENSION_ID", "SERIAL_NO", "MASTER_ITEM_ID", "COLOR_ID", "SIZE_ID"],
+                    include: [
+                        {
+                            model: ColorChartMod,
+                            as: "MASTER_COLOR",
+                            attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                        },
+                        {
+                            model: SizeChartMod,
+                            as: "MASTER_SIZE",
+                            attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+                        },
+                    ],
                 }
             ]
         });
@@ -208,7 +225,7 @@ export const getPurchaseOrderDetailById = async (req, res) => {
                 {
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
-                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "", "VENDOR_ID"],
+                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
                     include: [
                         {
                             model: BomStructureModel,
