@@ -144,21 +144,6 @@ export const getAllPurchaseOrders = async (req, res) => {
                     attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
                 },
                 {
-                    model: MasterUnitModel,
-                    as: "INVOICE_UNIT",
-                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
-                },
-                {
-                    model: MasterUnitModel,
-                    as: "DELIVERY_UNIT",
-                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
-                },
-                {
-                    model: MasterCompanyModel,
-                    as: "COMPANY",
-                    attributes: ["NAME", "CODE"]
-                },
-                {
                     model: MasterPayMethode,
                     as: "PAYMENT_TERM",
                     attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
@@ -173,13 +158,18 @@ export const getAllPurchaseOrders = async (req, res) => {
                     as: "UPDATED",
                     attributes: ["USER_NAME"]
                 },
-            ]
+            ],
+            order: [['MPO_ID', 'ASC']]
         });
 
         return res.status(200).json({
             success: true,
             message: "Purchase Orders retrieved successfully",
-            data: purchaseOrders,
+            data: purchaseOrders.map((item) => ({
+                ...item.dataValues,
+                VENDOR_DETAIL: JSON.parse(item.VENDOR_DETAIL),
+                INVOICE_DETAIL: JSON.parse(item.INVOICE_DETAIL)
+            })),
         });
     } catch (error) {
         return res.status(500).json({
@@ -224,21 +214,6 @@ export const getPurchaseOrderById = async (req, res) => {
                     attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
                 },
                 {
-                    model: MasterUnitModel,
-                    as: "INVOICE_UNIT",
-                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
-                },
-                {
-                    model: MasterUnitModel,
-                    as: "DELIVERY_UNIT",
-                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION", "UNIT_PHONE", "UNIT_FAX", "UNIT_EMAIL"]
-                },
-                {
-                    model: MasterCompanyModel,
-                    as: "COMPANY",
-                    attributes: ["NAME", "CODE", "EMAIL", "FAX", "NO_TEL", "ADDRESS"]
-                },
-                {
                     model: MasterPayMethode,
                     as: "PAYMENT_TERM",
                     attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
@@ -266,7 +241,11 @@ export const getPurchaseOrderById = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Purchase Order retrieved successfully",
-            data: purchaseOrder,
+            data: {
+                ...purchaseOrder.dataValues,
+                VENDOR_DETAIL: JSON.parse(purchaseOrder.VENDOR_DETAIL),
+                INVOICE_DETAIL: JSON.parse(purchaseOrder.INVOICE_DETAIL)
+            },
         });
     } catch (error) {
         return res.status(500).json({
@@ -292,6 +271,8 @@ export const updatePurchaseOrder = async (req, res) => {
             PORT_DISCHARGE,
             WAREHOUSE_ID,
             VENDOR_ID,
+            VENDOR_DETAIL,
+            INVOICE_DETAIL,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
             INVOICE_UNIT_ID,
@@ -334,6 +315,8 @@ export const updatePurchaseOrder = async (req, res) => {
             DELIVERY_TERM,
             COUNTRY_ID,
             PORT_DISCHARGE,
+            VENDOR_DETAIL: JSON.stringify(VENDOR_DETAIL),
+            INVOICE_DETAIL: JSON.stringify(INVOICE_DETAIL),
             WAREHOUSE_ID,
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,

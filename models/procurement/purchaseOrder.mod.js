@@ -233,6 +233,7 @@ PurchaseOrderModel.belongsTo(PurchaseOrderRevModel, {
 
 PurchaseOrderModel.belongsTo(ListCountry, {
     foreignKey: "COUNTRY_ID",
+    targetKey: "COUNTRY_CODE",
     as: "COUNTRY"
 })
 
