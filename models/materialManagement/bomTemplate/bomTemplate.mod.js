@@ -1,11 +1,11 @@
 import { DataTypes } from "sequelize";
-import db from "../../config/database.js";
-import MasterItemIdModel from "./masterItemId.mod.js";
-import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "./customer.mod.js";
-import {MasterOrderType} from "../setup/orderType.mod.js";
-import Users from "../setup/users.mod.js";
-import ColorChartMod from "./colorChart.mod.js";
-import SizeChartMod from "./sizeChart.mod.js";
+import db from "../../../config/database.js";
+import MasterItemIdModel from "../../system/masterItemId.mod.js";
+import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "../../system/customer.mod.js";
+import {MasterOrderType} from "../../setup/orderType.mod.js";
+import Users from "../../setup/users.mod.js";
+import ColorChartMod from "../../system/colorChart.mod.js";
+import SizeChartMod from "../../system/sizeChart.mod.js";
 
 const BomTemplateModel = db.define(
     "bom_template",

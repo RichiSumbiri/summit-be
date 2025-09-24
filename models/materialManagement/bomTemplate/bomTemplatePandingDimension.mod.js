@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import db from "../../config/database.js";
+import db from "../../../config/database.js";
 import BomTemplateListModel from "./bomTemplateList.mod.js";
 import {BomTemplateColor, BomTemplateSize} from "./bomTemplate.mod.js";
 

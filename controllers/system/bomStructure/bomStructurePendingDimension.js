@@ -10,7 +10,7 @@ import BomStructureModel from "../../../models/system/bomStructure.mod.js";
 import {Op} from "sequelize";
 import {OrderPoListing, OrderPoListingSize} from "../../../models/production/order.mod.js";
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
-import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
+import BomTemplateListModel from "../../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
 import {MIN_ALLOWED_VALUE} from "../../../util/enum.js";
 
 export const getAllPendingDimensionStructure = async (req, res) => {

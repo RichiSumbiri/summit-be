@@ -1,5 +1,5 @@
-import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
-import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import BomTemplateListModel from "../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
+import BomTemplateModel from "../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
@@ -7,9 +7,9 @@ import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
 import {where} from "sequelize";
 import Users from "../../models/setup/users.mod.js";
-import BomTemplateListDetail from "../../models/system/bomTemplateListDetail.mod.js";
+import BomTemplateListDetail from "../../models/materialManagement/bomTemplate/bomTemplateListDetail.mod.js";
 import {BomStructureListDetailModel} from "../../models/system/bomStructure.mod.js";
-import BomTemplateListDetailMod from "../../models/system/bomTemplateListDetail.mod.js";
+import BomTemplateListDetailMod from "../../models/materialManagement/bomTemplate/bomTemplateListDetail.mod.js";
 
 export const createBomTemplateList = async (req, res) => {
     try {

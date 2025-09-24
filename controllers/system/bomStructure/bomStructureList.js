@@ -2,7 +2,7 @@ import BomStructureModel, {
     BomStructureListDetailModel,
     BomStructureListModel, BomStructureSourcingDetail
 } from "../../../models/system/bomStructure.mod.js";
-import BomTemplateModel from "../../../models/system/bomTemplate.mod.js";
+import BomTemplateModel from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../../models/setup/ItemTypes.mod.js";
@@ -10,7 +10,7 @@ import {MasterItemCategories} from "../../../models/setup/ItemCategories.mod.js"
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import MasterCompanyModel from "../../../models/setup/company.mod.js";
-import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
+import BomTemplateListModel from "../../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
 import {Op} from "sequelize";
 
 export const getAllBomStructureList = async (req, res) => {

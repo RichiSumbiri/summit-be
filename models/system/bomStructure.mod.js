@@ -1,6 +1,6 @@
 import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
-import BomTemplateModel from "./bomTemplate.mod.js";
+import BomTemplateModel from "../materialManagement/bomTemplate/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../orderManagement/orderManagement.mod.js";
 import Users from "../setup/users.mod.js";
 import MasterItemIdModel from "./masterItemId.mod.js";
@@ -9,7 +9,7 @@ import MasterCompanyModel from "../setup/company.mod.js";
 import SizeChartMod from "./sizeChart.mod.js";
 import ColorChartMod from "./colorChart.mod.js";
 import {OrderPoListing} from "../production/order.mod.js";
-import BomTemplateListModel from "./bomTemplateList.mod.js";
+import BomTemplateListModel from "../materialManagement/bomTemplate/bomTemplateList.mod.js";
 import MasterItemDimensionModel from "./masterItemDimention.mod.js";
 
 export const BomStructureRevModel = db.define("bom_structure_rev", {

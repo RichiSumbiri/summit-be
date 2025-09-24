@@ -6,7 +6,7 @@ import BomStructureModel, {
 } from "../../../models/system/bomStructure.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import {Op} from "sequelize";
-import BomTemplateModel from "../../../models/system/bomTemplate.mod.js";
+import BomTemplateModel from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../../models/orderManagement/orderManagement.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import {
