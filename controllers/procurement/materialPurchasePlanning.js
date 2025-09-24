@@ -66,7 +66,14 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                     CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
                 });
                 // update on bom structure sourcing
-                await BomStructureSourcingDetail.update({ UNCONFIRM_PO_QTY: mdm.PURCHASE_QTY }, { where: { ID: mdm.ID }})
+                await BomStructureSourcingDetail.update({ 
+                    UNCONFIRM_PO_QTY: mdm.PURCHASE_QTY,
+                    PENDING_PURCHASE_ORDER_QTY: parseFloat(mdm.APPROVE_PURCHASE_QUANTITY) - parseFloat(mdm.CONFIRM_PO_QTY) - parseFloat(mdm.UNCONFIRM_PO_QTY) - parseFloat(mdm.PURCHASE_QTY)
+                }, { 
+                    where: { 
+                        ID: mdm.ID 
+                    }
+                })
             }
            
         } else {
