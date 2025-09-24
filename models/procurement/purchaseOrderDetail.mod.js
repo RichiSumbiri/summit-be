@@ -3,6 +3,7 @@ import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import {PurchaseOrderModel} from "./purchaseOrder.mod.js";
 import {BomStructureListModel} from "../system/bomStructure.mod.js";
+import MasterItemDimensionModel from "../system/masterItemDimention.mod.js";
 
 const PurchaseOrderDetailModel = db.define(
     "purchase_order_detail",
@@ -21,6 +22,10 @@ const PurchaseOrderDetailModel = db.define(
             allowNull: true,
         },
         BOM_STRUCTURE_LINE_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        ITEM_DIMENSION_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
         },
@@ -84,20 +89,11 @@ PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
     as: "MPO"
 })
 
-// PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
-//     foreignKey: "MPO_ID",
-//     as: "MPO"
-// })
-//
-// PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
-//     foreignKey: "MPO_ID",
-//     as: "MPO"
-// })
-//
-// PurchaseOrderDetailModel.belongsTo(PurchaseOrderModel, {
-//     foreignKey: "MPO_ID",
-//     as: "MPO"
-// })
+PurchaseOrderDetailModel.belongsTo(MasterItemDimensionModel, {
+    foreignKey: "ITEM_DIMENSION_ID",
+    as: "ITEM_DIMENSION"
+})
+
 
 PurchaseOrderDetailModel.belongsTo(BomStructureListModel, {
     foreignKey: "BOM_STRUCTURE_LINE_ID",

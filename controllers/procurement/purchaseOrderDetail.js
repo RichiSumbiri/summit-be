@@ -20,6 +20,9 @@ import {
     CustomerProductSeason,
     CustomerProgramName
 } from "../../models/system/customer.mod.js";
+import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
+import ColorChartMod from "../../models/system/colorChart.mod.js";
+import SizeChartMod from "../../models/system/sizeChart.mod.js";
 
 export const createPurchaseOrderDetail = async (req, res) => {
     try {
@@ -32,6 +35,7 @@ export const createPurchaseOrderDetail = async (req, res) => {
             UNIT_COST,
             FINANCE_COST,
             FREIGHT_COST,
+            ITEM_DIMENSION_ID,
             OTHER_COST,
             TOTAL_UNIT_COST,
             TOTAL_PURCHASE_COST,
@@ -53,6 +57,7 @@ export const createPurchaseOrderDetail = async (req, res) => {
             ORDER_NO,
             PURCHASE_ORDER_QTY,
             UNIT_COST,
+            ITEM_DIMENSION_ID,
             FINANCE_COST,
             FREIGHT_COST,
             OTHER_COST,
@@ -203,7 +208,7 @@ export const getPurchaseOrderDetailById = async (req, res) => {
                 {
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
-                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
+                    attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "", "VENDOR_ID"],
                     include: [
                         {
                             model: BomStructureModel,
@@ -276,6 +281,23 @@ export const getPurchaseOrderDetailById = async (req, res) => {
                             model: MasterCompanyModel, as: "COMPANY", attributes: ["CODE"]
                         }
                     ]
+                },
+                {
+                    model: MasterItemDimensionModel,
+                    as: "ITEM_DIMENSION",
+                    attributes: ["ID", "DIMENSION_ID", "SERIAL_NO", "MASTER_ITEM_ID", "COLOR_ID", "SIZE_ID"],
+                    include: [
+                        {
+                            model: ColorChartMod,
+                            as: "MASTER_COLOR",
+                            attributes: ["COLOR_ID", "COLOR_CODE", "COLOR_DESCRIPTION"],
+                        },
+                        {
+                            model: SizeChartMod,
+                            as: "MASTER_SIZE",
+                            attributes: ["SIZE_ID", "SIZE_CODE", "SIZE_DESCRIPTION"],
+                        },
+                    ],
                 }
             ]
         });
@@ -310,6 +332,7 @@ export const updatePurchaseOrderDetail = async (req, res) => {
             BOM_STRUCTURE_LINE_ID,
             ORDER_NO,
             PURCHASE_ORDER_QTY,
+            ITEM_DIMENSION_ID,
             UNIT_COST,
             FINANCE_COST,
             FREIGHT_COST,
@@ -338,6 +361,7 @@ export const updatePurchaseOrderDetail = async (req, res) => {
             MPO_ID,
             REV_ID,
             BOM_STRUCTURE_LINE_ID,
+            ITEM_DIMENSION_ID,
             ORDER_NO,
             PURCHASE_ORDER_QTY,
             UNIT_COST,
