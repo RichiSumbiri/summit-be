@@ -17,9 +17,11 @@ import {
     getAllPurchaseOrderDetails,
     getPurchaseOrderDetailById, updatePurchaseOrderDetail
 } from "../../controllers/procurement/purchaseOrderDetail.js";
+import { postMaterialPurchaseOrder } from "../../controllers/procurement/materialPurchasePlanning.js";
 
 const router = express.Router();
 
+router.post("/mpo", postMaterialPurchaseOrder);
 
 router.post("/order", createPurchaseOrder);
 router.get("/order", getAllPurchaseOrders);
