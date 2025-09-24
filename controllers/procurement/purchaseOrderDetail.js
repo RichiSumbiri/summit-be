@@ -7,7 +7,7 @@ import MasterUnitModel from "../../models/setup/unit.mod.js";
 import MasterCompanyModel from "../../models/setup/company.mod.js";
 import {MasterPayMethode} from "../../models/system/finance.mod.js";
 import BomStructureModel, {BomStructureListModel} from "../../models/system/bomStructure.mod.js";
-import BomTemplateModel from "../../models/system/bomTemplate.mod.js";
+import BomTemplateModel from "../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";

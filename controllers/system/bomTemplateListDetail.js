@@ -1,12 +1,12 @@
-import BomTemplateListDetail from "../../models/system/bomTemplateListDetail.mod.js";
-import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
+import BomTemplateListDetail from "../../models/materialManagement/bomTemplate/bomTemplateListDetail.mod.js";
+import BomTemplateListModel from "../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
 import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
-import BomTemplateModel, {BomTemplateColor, BomTemplateSize} from "../../models/system/bomTemplate.mod.js";
+import BomTemplateModel, {BomTemplateColor, BomTemplateSize} from "../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
-import BomTemplatePendingDimension from "../../models/system/bomTemplatePandingDimension.mod.js";
+import BomTemplatePendingDimension from "../../models/materialManagement/bomTemplate/bomTemplatePandingDimension.mod.js";
 import {DataTypes} from "sequelize";
 import {MIN_ALLOWED_VALUE} from "../../util/enum.js";
 

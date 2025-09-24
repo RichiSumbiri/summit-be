@@ -44,7 +44,7 @@ import Users from "../../models/setup/users.mod.js";
 import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
 import { MasterItemTypes } from "../../models/setup/ItemTypes.mod.js";
 import { MasterItemCategories } from "../../models/setup/ItemCategories.mod.js";
-import BomTemplateModel, { BomTemplateColor } from "../../models/system/bomTemplate.mod.js";
+import BomTemplateModel, { BomTemplateColor } from "../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterCompanyModel from "../../models/setup/company.mod.js";
 import { MasterOrderType } from "../../models/setup/orderType.mod.js";
 // import { queryGetItemMasterAttribute } from "../../models/system/masterItemAttribute.mod.js";

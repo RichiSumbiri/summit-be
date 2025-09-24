@@ -5,7 +5,7 @@ import BomStructureModel, {
 } from "../../../models/system/bomStructure.mod.js";
 import BomTemplateModel, {
     BomTemplateNote,
-} from "../../../models/system/bomTemplate.mod.js";
+} from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import {ModelOrderPOHeader} from "../../../models/orderManagement/orderManagement.mod.js";
 import {
     CustomerBuyPlan,
@@ -13,7 +13,7 @@ import {
 } from "../../../models/system/customer.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
-import BomTemplateListModel from "../../../models/system/bomTemplateList.mod.js";
+import BomTemplateListModel from "../../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
 import {Op} from "sequelize";
 import CompanyMod from "../../../models/setup/company.mod.js";
 import {ModelProjectionOrder} from "../../../models/orderManagement/ProjectionOrder.mod.js";

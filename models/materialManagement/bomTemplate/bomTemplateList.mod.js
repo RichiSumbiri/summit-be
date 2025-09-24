@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
-import db from "../../config/database.js";
-import MasterItemIdModel from "./masterItemId.mod.js";
-import {ModelVendorDetail} from "./VendorDetail.mod.js";
-import Users from "../setup/users.mod.js";
+import db from "../../../config/database.js";
+import MasterItemIdModel from "../../system/masterItemId.mod.js";
+import {ModelVendorDetail} from "../../system/VendorDetail.mod.js";
+import Users from "../../setup/users.mod.js";
 import BomTemplateModel, {BomTemplateRevModel} from "./bomTemplate.mod.js";
 
 const BomTemplateListModel = db.define(

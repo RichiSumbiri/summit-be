@@ -1,9 +1,9 @@
 import { DataTypes } from "sequelize";
-import db from "../../config/database.js";
-import MasterItemDimensionModel from "./masterItemDimention.mod.js";
+import db from "../../../config/database.js";
+import MasterItemDimensionModel from "../../system/masterItemDimention.mod.js";
 import BomTemplateListModel from "./bomTemplateList.mod.js";
-import ColorChartMod from "./colorChart.mod.js";
-import SizeChartMod from "./sizeChart.mod.js";
+import ColorChartMod from "../../system/colorChart.mod.js";
+import SizeChartMod from "../../system/sizeChart.mod.js";
 
 const BomTemplateListDetail = db.define(
     "bom_template_list_detail",

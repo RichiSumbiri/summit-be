@@ -2,13 +2,13 @@ import BomTemplateModel, {
     BomTemplateColor, BomTemplateNote,
     BomTemplateRevModel,
     BomTemplateSize
-} from "../../models/system/bomTemplate.mod.js";
+} from "../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {CustomerDetail, CustomerProductDivision, CustomerProductSeason} from "../../models/system/customer.mod.js";
-import BomTemplateListModel from "../../models/system/bomTemplateList.mod.js";
+import BomTemplateListModel from "../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
 import {MasterOrderType} from "../../models/setup/orderType.mod.js";
 import sizeChart, {FGSizeChartModel} from "../../models/system/sizeChart.mod.js";
 import Users from "../../models/setup/users.mod.js";
@@ -16,7 +16,7 @@ import colorChart, {FGColorChartModel} from "../../models/system/colorChart.mod.
 import {Op, where} from "sequelize";
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
-import BomTemplateListDetail from "../../models/system/bomTemplateListDetail.mod.js";
+import BomTemplateListDetail from "../../models/materialManagement/bomTemplate/bomTemplateListDetail.mod.js";
 
 export const createBomTemplate = async (req, res) => {
     try {

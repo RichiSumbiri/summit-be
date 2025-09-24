@@ -54,7 +54,7 @@ import uploadImageRoute from "./auth/uploadImage.route.js";
 import orderManagementRoute from "./orderManagement/index.route.js";
 import tnaRoute from "./tna/index.route.js";
 import finance from "./finance/index.js";
-import purchaseOrderRoute from "./system/purchaseOrder.route.js";
+import purchaseOrderRoute from "./procurement/purchaseOrder.route.js";
 import materialManagementRoute from "./materialManagement/rmLabDipStrikeOff/rmLabDipStrikeOff.route.js";
 
 import "../models/associations.js"
