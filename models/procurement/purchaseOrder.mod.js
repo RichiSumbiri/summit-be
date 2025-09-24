@@ -103,7 +103,7 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.STRING(10),
             allowNull: true,
         },
-        NOTIFY_UNIT_ID: {
+        INVOICE_UNIT_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
         },
@@ -186,7 +186,7 @@ PurchaseOrderModel.belongsTo(ModelVendorShipperLocation, {
 })
 
 PurchaseOrderModel.belongsTo(MasterUnitModel, {
-    foreignKey: "NOTIFY_UNIT_ID",
+    foreignKey: "INVOICE_UNIT_ID",
     as: "NOTIFY_UNIT"
 })
 
