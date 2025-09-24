@@ -16,6 +16,7 @@ import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
 import {DataTypes} from "sequelize";
+import SizeChartMod from "../../models/system/sizeChart.mod.js";
 
 export const createPurchaseOrder = async (req, res) => {
     try {
@@ -520,7 +521,7 @@ export const deletePurchaseOrderRev = async (req, res) => {
 
 export const createPurchaseOrderMoq = async (req, res) => {
     try {
-        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, PO_QTY, NOTE, MIN_QTY } = req.body;
+        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, SIZE_ID, PO_QTY, NOTE, MIN_QTY } = req.body;
 
         if (!CATEGORY) {
             return res.status(400).json({
@@ -533,7 +534,7 @@ export const createPurchaseOrderMoq = async (req, res) => {
             CATEGORY,
             MASTER_ITEM_ID,
             NOTE,
-            COLOR_ID,
+            COLOR_ID, SIZE_ID,
             PO_QTY,
             MIN_QTY,
         });
@@ -564,6 +565,11 @@ export const getAllPurchaseOrderMoqs = async (req, res) => {
                     model: ColorChartMod,
                     as: "COLOR",
                     attributes: ["COLOR_CODE", "COLOR_DESCRIPTION"]
+                },
+                {
+                    model: SizeChartMod,
+                    as: "SIZE",
+                    attributes: ["SIZE_CODE", "SIZE_DESCRIPTION"]
                 },
                 {
                     model: MasterItemIdModel,
@@ -602,6 +608,11 @@ export const getPurchaseOrderMoqById = async (req, res) => {
                 attributes: ["COLOR_CODE", "COLOR_DESCRIPTION"]
             },
                 {
+                    model: SizeChartMod,
+                    as: "SIZE",
+                    attributes: ["SIZE_CODE", "SIZE_DESCRIPTION"]
+                },
+                {
                     model: MasterItemIdModel,
                     as: "MASTER_ITEM",
                     attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
@@ -637,7 +648,7 @@ export const getPurchaseOrderMoqById = async (req, res) => {
 export const updatePurchaseOrderMoq = async (req, res) => {
     try {
         const { id } = req.params;
-        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, NOTE, PO_QTY, MIN_QTY } = req.body;
+        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, SIZE_ID, NOTE, PO_QTY, MIN_QTY } = req.body;
 
         const moq = await PurchaseOrderMoqModel.findByPk(id);
 
@@ -651,7 +662,7 @@ export const updatePurchaseOrderMoq = async (req, res) => {
         await moq.update({
             CATEGORY,
             MASTER_ITEM_ID,
-            COLOR_ID,
+            COLOR_ID, SIZE_ID,
             NOTE,
             PO_QTY,
             MIN_QTY,

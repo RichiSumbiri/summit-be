@@ -9,6 +9,7 @@ import {MasterPayMethode} from "../system/finance.mod.js";
 import Users from "../setup/users.mod.js";
 import ColorChartMod from "../system/colorChart.mod.js";
 import MasterItemIdModel from "../system/masterItemId.mod.js";
+import SizeChartMod from "../system/sizeChart.mod.js";
 
 export const PurchaseOrderRevModel = db.define(
     "purchase_order_rev",
@@ -201,6 +202,10 @@ export  const PurchaseOrderMoqModel = db.define(
             type: DataTypes.STRING(20),
             allowNull: true,
         },
+        SIZE_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
         PO_QTY: {
             type: DataTypes.DECIMAL(65, 2),
             defaultValue: 0,
@@ -281,6 +286,11 @@ PurchaseOrderModel.belongsTo(Users, {
 PurchaseOrderMoqModel.belongsTo(ColorChartMod, {
     foreignKey: "COLOR_ID",
     as: "COLOR"
+})
+
+PurchaseOrderMoqModel.belongsTo(SizeChartMod, {
+    foreignKey: "SIZE_ID",
+    as: "SIZE"
 })
 
 PurchaseOrderMoqModel.belongsTo(MasterItemIdModel, {
