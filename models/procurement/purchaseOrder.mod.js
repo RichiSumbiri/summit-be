@@ -151,13 +151,9 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.DECIMAL(60, 2),
             allowNull: true,
         },
-        ACCEPT_MOQ: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        },
-        MOQ_REMAKE: {
+        MOQ_NOTE: {
             type: DataTypes.STRING(255),
-            allowNull: false,
+            allowNull: true,
         },
         CREATE_BY: {
             type: DataTypes.STRING(100),
@@ -213,12 +209,10 @@ export  const PurchaseOrderMoqModel = db.define(
         PO_QTY: {
             type: DataTypes.DECIMAL(65, 2),
             defaultValue: 0,
-            allowNull: false,
         },
         MIN_QTY: {
             type: DataTypes.INTEGER,
             defaultValue: 0,
-            allowNull: false,
         },
         NOTE: {
             type: DataTypes.STRING(255),

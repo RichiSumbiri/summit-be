@@ -44,7 +44,7 @@ export const createPurchaseOrder = async (req, res) => {
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
             ACCEPT_MOQ,
-            MOQ_REMAKE,
+            MOQ_NOTE,
             CREATE_BY,
         } = req.body;
 
@@ -76,7 +76,7 @@ export const createPurchaseOrder = async (req, res) => {
             PORT_DISCHARGE,
             WAREHOUSE_ID,
             ACCEPT_MOQ,
-            MOQ_REMAKE,
+            MOQ_NOTE,
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
@@ -301,7 +301,7 @@ export const updatePurchaseOrder = async (req, res) => {
             PAYMENT_REFERENCE,
             NOTE,
             ACCEPT_MOQ,
-            MOQ_REMAKE,
+            MOQ_NOTE,
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
             UPDATE_BY,
@@ -345,7 +345,7 @@ export const updatePurchaseOrder = async (req, res) => {
             PAYMENT_REFERENCE,
             NOTE,
             ACCEPT_MOQ,
-            MOQ_REMAKE,
+            MOQ_NOTE,
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
             UPDATE_BY,
@@ -559,7 +559,6 @@ export const getAllPurchaseOrderMoqs = async (req, res) => {
         if (CATEGORY) where.CATEGORY = CATEGORY;
         if (MASTER_ITEM_ID) where.MASTER_ITEM_ID = MASTER_ITEM_ID;
         if (PURCHASE_ORDER_ID) where.PURCHASE_ORDER_ID = PURCHASE_ORDER_ID;
-
 
         const moqs = await PurchaseOrderMoqModel.findAll({
             where, include: [
