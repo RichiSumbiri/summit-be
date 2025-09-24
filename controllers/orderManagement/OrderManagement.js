@@ -420,10 +420,11 @@ export const postPOListing = async (req, res) => {
     try {
         const { DataPOID } = req.body;
         
-        console.log(DataPOID);
+        const ORDER_ID = DataPOID.ORDER_ID ?? DataPOID.ORDER_NO;
 
+        
         // CHECK MASTER ORDER TYPE
-        const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_ID).substring(0,3) }});
+        const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(ORDER_ID).substring(0,3) }});
             
         // CHECK BOM TEMPLATE BASE ON GMT & ORDER TYPE
         const getBOMTemplateID = await BomTemplateModel.findOne({
@@ -465,7 +466,7 @@ export const postPOListing = async (req, res) => {
                 MANUFACTURING_SITE: DataPOID.MANUFACTURING_SITE,
                 ORDER_PLACEMENT_COMPANY: DataPOID.ORDER_PLACEMENT_COMPANY,
                 ORDER_TYPE_CODE: DataPOID.ORDER_TYPE_CODE,
-                // ORDER_NO: DataPOID.ORDER_ID,
+                // ORDER_NO: ORDER_ID,
                 ORDER_REFERENCE_PO_NO: DataPOID.ORDER_REFERENCE_PO_NO,
                 ORDER_STYLE_DESCRIPTION: DataPOID.ORDER_STYLE_DESCRIPTION,
                 PRODUCT_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
@@ -529,7 +530,7 @@ export const postPOListing = async (req, res) => {
                 MANUFACTURING_SITE: DataPOID.MANUFACTURING_SITE,
                 ORDER_PLACEMENT_COMPANY: DataPOID.ORDER_PLACEMENT_COMPANY,
                 ORDER_TYPE_CODE: DataPOID.ORDER_TYPE_CODE,
-                ORDER_NO: DataPOID.ORDER_ID,
+                ORDER_NO: ORDER_ID,
                 ORDER_REFERENCE_PO_NO: DataPOID.ORDER_REFERENCE_PO_NO,
                 ORDER_STYLE_DESCRIPTION: DataPOID.ORDER_STYLE_DESCRIPTION,
                 PRODUCT_ITEM_ID: DataPOID.PRODUCT_ITEM_ID,
@@ -584,7 +585,7 @@ export const postPOListing = async (req, res) => {
             
             // add to log order status change
             await ModelOrderPOListingLogStatus.create({
-                ORDER_ID: DataPOID.ORDER_ID,
+                ORDER_ID: ORDER_ID,
                 ORDER_PO_ID: newPOID,
                 PO_STATUS: 'Open',
                 CREATE_BY: DataPOID.CREATE_BY,
@@ -594,7 +595,7 @@ export const postPOListing = async (req, res) => {
 
         
         // create recap PO Matrix Delivery
-        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_ID }, type: QueryTypes.SELECT });
+        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: ORDER_ID }, type: QueryTypes.SELECT });
         // clean + normalize data
         const cleanRecap = recapPOMatrix.map(row => ({
             SITE_CODE: row.SITE_CODE,
@@ -614,7 +615,7 @@ export const postPOListing = async (req, res) => {
             PDM_MOD_ID: row.PDM_MOD_ID,
             PDM_ADD_ID: row.PDM_ADD_ID
         }));
-        await PoMatrixDelivery.destroy({ where: { ORDER_NO: DataPOID.ORDER_ID } });
+        await PoMatrixDelivery.destroy({ where: { ORDER_NO: ORDER_ID } });
         await PoMatrixDelivery.bulkCreate(cleanRecap);
         
         return res.status(200).json({
@@ -702,9 +703,9 @@ export const postPOSizeListing = async (req, res) => {
                         // update existing po size listing log revision
                         await ModelOrderPOListingSizeLogRevision.update({
                                 REV_NOTE: data.REV_NOTE,
-                                ORDER_QTY: data.ORDER_QTY,
-                                MO_QTY: data.MO_QTY,
-                                UNIT_PRICE: data.UNIT_PRICE,
+                                ORDER_QTY: parseInt(data.ORDER_QTY),
+                                MO_QTY: parseInt(data.MO_QTY),
+                                UNIT_PRICE: parseFloat(data.UNIT_PRICE),
                                 CREATE_ID: data.CREATE_BY,
                                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
                         }, {
