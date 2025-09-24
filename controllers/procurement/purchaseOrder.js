@@ -127,7 +127,7 @@ export const getAllPurchaseOrders = async (req, res) => {
                 },
                 {
                     model: MasterUnitModel,
-                    as: "NOTIFY_UNIT",
+                    as: "INVOICE_UNIT",
                     attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
                 },
                 {
@@ -197,7 +197,7 @@ export const getPurchaseOrderById = async (req, res) => {
                 },
                 {
                     model: MasterUnitModel,
-                    as: "NOTIFY_UNIT",
+                    as: "INVOICE_UNIT",
                     attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
                 },
                 {
