@@ -95,6 +95,10 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.STRING(10),
             allowNull: true,
         },
+        VENDOR_DETAIL: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
         VENDOR_SHIPPER_LOCATION_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
