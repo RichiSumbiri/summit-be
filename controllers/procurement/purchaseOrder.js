@@ -521,7 +521,7 @@ export const deletePurchaseOrderRev = async (req, res) => {
 
 export const createPurchaseOrderMoq = async (req, res) => {
     try {
-        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, SIZE_ID, PO_QTY, NOTE, MIN_QTY } = req.body;
+        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, PURCHASE_ORDER_ID, SIZE_ID, PO_QTY, NOTE, MIN_QTY } = req.body;
 
         if (!CATEGORY) {
             return res.status(400).json({
@@ -534,7 +534,7 @@ export const createPurchaseOrderMoq = async (req, res) => {
             CATEGORY,
             MASTER_ITEM_ID,
             NOTE,
-            COLOR_ID, SIZE_ID,
+            COLOR_ID, PURCHASE_ORDER_ID, SIZE_ID,
             PO_QTY,
             MIN_QTY,
         });
@@ -552,12 +552,14 @@ export const createPurchaseOrderMoq = async (req, res) => {
 };
 
 export const getAllPurchaseOrderMoqs = async (req, res) => {
-    const { CATEGORY, MASTER_ITEM_ID } = req.query;
+    const { CATEGORY, MASTER_ITEM_ID, PURCHASE_ORDER_ID } = req.query;
 
     try {
         const where = {};
         if (CATEGORY) where.CATEGORY = CATEGORY;
         if (MASTER_ITEM_ID) where.MASTER_ITEM_ID = MASTER_ITEM_ID;
+        if (PURCHASE_ORDER_ID) where.PURCHASE_ORDER_ID = PURCHASE_ORDER_ID;
+
 
         const moqs = await PurchaseOrderMoqModel.findAll({
             where, include: [
@@ -648,7 +650,7 @@ export const getPurchaseOrderMoqById = async (req, res) => {
 export const updatePurchaseOrderMoq = async (req, res) => {
     try {
         const { id } = req.params;
-        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, SIZE_ID, NOTE, PO_QTY, MIN_QTY } = req.body;
+        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID,PURCHASE_ORDER_ID, SIZE_ID, NOTE, PO_QTY, MIN_QTY } = req.body;
 
         const moq = await PurchaseOrderMoqModel.findByPk(id);
 
@@ -662,7 +664,7 @@ export const updatePurchaseOrderMoq = async (req, res) => {
         await moq.update({
             CATEGORY,
             MASTER_ITEM_ID,
-            COLOR_ID, SIZE_ID,
+            COLOR_ID,PURCHASE_ORDER_ID, SIZE_ID,
             NOTE,
             PO_QTY,
             MIN_QTY,

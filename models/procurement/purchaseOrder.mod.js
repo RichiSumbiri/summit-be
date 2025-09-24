@@ -206,6 +206,10 @@ export  const PurchaseOrderMoqModel = db.define(
             type: DataTypes.STRING(20),
             allowNull: true,
         },
+        PURCHASE_ORDER_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
         PO_QTY: {
             type: DataTypes.DECIMAL(65, 2),
             defaultValue: 0,
