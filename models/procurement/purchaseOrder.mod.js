@@ -107,6 +107,10 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.STRING(10),
             allowNull: true,
         },
+        INVOICE_DETAIL: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+        },
         INVOICE_UNIT_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
