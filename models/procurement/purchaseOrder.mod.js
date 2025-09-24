@@ -138,6 +138,10 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.TEXT,
             allowNull: true,
         },
+        MOQ_VALIDATION_STATUS: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
         SURCHARGE_AMOUNT: {
             type: DataTypes.DECIMAL(60, 6),
             allowNull: true,

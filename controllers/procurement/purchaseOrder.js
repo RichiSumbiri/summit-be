@@ -31,6 +31,7 @@ export const createPurchaseOrder = async (req, res) => {
             PORT_DISCHARGE,
             WAREHOUSE_ID,
             VENDOR_ID,
+            MOQ_VALIDATION_STATUS,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
             INVOICE_UNIT_ID,
@@ -63,6 +64,7 @@ export const createPurchaseOrder = async (req, res) => {
         await PurchaseOrderModel.create({
             MPO_ID,
             REV_ID,
+            MOQ_VALIDATION_STATUS,
             MPO_DATE,
             MPO_STATUS,
             MPO_ETD,
@@ -276,12 +278,13 @@ export const getPurchaseOrderById = async (req, res) => {
 export const updatePurchaseOrder = async (req, res) => {
     try {
         const {id} = req.params;
+        const {REV_ID} = req.query
         const {
-            REV_ID,
             MPO_DATE,
             MPO_STATUS,
             MPO_ETD,
             MPO_ETA,
+            MOQ_VALIDATION_STATUS,
             DELIVERY_MODE_CODE,
             DELIVERY_TERM,
             COUNTRY_ID,
@@ -303,7 +306,14 @@ export const updatePurchaseOrder = async (req, res) => {
             UPDATE_BY,
         } = req.body;
 
-        const purchaseOrder = await PurchaseOrderModel.findByPk(id);
+        if (REV_ID === undefined) {
+            return res.status(404).json({
+                success: false,
+                message: "Revision id is required",
+            });
+        }
+
+        const purchaseOrder = await PurchaseOrderModel.findOne({where: {MPO_ID: id, REV_ID}});
 
         if (!purchaseOrder) {
             return res.status(404).json({
@@ -312,9 +322,10 @@ export const updatePurchaseOrder = async (req, res) => {
             });
         }
 
+
         await purchaseOrder.update({
-            REV_ID,
             MPO_DATE,
+            MOQ_VALIDATION_STATUS,
             MPO_STATUS,
             MPO_ETD,
             MPO_ETA,
