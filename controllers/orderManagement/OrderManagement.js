@@ -421,7 +421,7 @@ export const postPOListing = async (req, res) => {
         const { DataPOID } = req.body;
         
         // CHECK MASTER ORDER TYPE
-        const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_NO).substring(0,3) }});
+        const getMasterOrderType = await MasterOrderType.findOne({ where: { TYPE_CODE:(DataPOID.ORDER_ID).substring(0,3) }});
             
         // CHECK BOM TEMPLATE BASE ON GMT & ORDER TYPE
         const getBOMTemplateID = await BomTemplateModel.findOne({
@@ -592,7 +592,7 @@ export const postPOListing = async (req, res) => {
 
 
         // create recap PO Matrix Delivery
-        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_NO }, type: QueryTypes.SELECT });
+        const recapPOMatrix = await db.query(queryRecapToPOMatrixDelivery, { replacements: { orderID: DataPOID.ORDER_ID }, type: QueryTypes.SELECT });
         // clean + normalize data
         const cleanRecap = recapPOMatrix.map(row => ({
             SITE_CODE: row.SITE_CODE,
@@ -620,6 +620,7 @@ export const postPOListing = async (req, res) => {
             message: "success post po listing"
         });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             error: err,
