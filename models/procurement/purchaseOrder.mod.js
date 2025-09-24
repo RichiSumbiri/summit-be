@@ -2,10 +2,10 @@ import {DataTypes} from "sequelize";
 import db from "../../config/database.js";
 import {ListCountry} from "../list/referensiList.mod.js";
 import {ModelWarehouseDetail} from "../setup/WarehouseDetail.mod.js";
-import {ModelVendorDetail, ModelVendorShipperLocation} from "./VendorDetail.mod.js";
+import {ModelVendorDetail, ModelVendorShipperLocation} from "../system/VendorDetail.mod.js";
 import MasterCompanyModel from "../setup/company.mod.js";
 import MasterUnitModel from "../setup/unit.mod.js";
-import {MasterPayMethode} from "./finance.mod.js";
+import {MasterPayMethode} from "../system/finance.mod.js";
 
 export const PurchaseOrderRevModel = db.define(
     "purchase_order_rev",

@@ -1,4 +1,4 @@
-import {PurchaseOrderModel, PurchaseOrderRevModel} from "../../models/system/purchaseOrder.mod.js";
+import {PurchaseOrderModel, PurchaseOrderRevModel} from "../../models/procurement/purchaseOrder.mod.js";
 import {ListCountry} from "../../models/list/referensiList.mod.js";
 import {ModelWarehouseDetail} from "../../models/setup/WarehouseDetail.mod.js";
 import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system/VendorDetail.mod.js";

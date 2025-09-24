@@ -3,12 +3,12 @@ import {
     createPurchaseOrder, createPurchaseOrderRev, deletePurchaseOrder, deletePurchaseOrderRev, getAllPurchaseOrderRevs,
     getAllPurchaseOrders,
     getPurchaseOrderById, getPurchaseOrderRevById, updatePurchaseOrder, updatePurchaseOrderRev
-} from "../../controllers/system/purchaseOrder.js";
+} from "../../controllers/procurement/purchaseOrder.js";
 import {
     createPurchaseOrderDetail, deletePurchaseOrderDetail,
     getAllPurchaseOrderDetails,
     getPurchaseOrderDetailById, updatePurchaseOrderDetail
-} from "../../controllers/system/purchaseOrderDetail.js";
+} from "../../controllers/procurement/purchaseOrderDetail.js";
 
 const router = express.Router();
 
