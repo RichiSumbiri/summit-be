@@ -6,6 +6,9 @@ import {ModelVendorDetail, ModelVendorShipperLocation} from "../system/VendorDet
 import MasterCompanyModel from "../setup/company.mod.js";
 import MasterUnitModel from "../setup/unit.mod.js";
 import {MasterPayMethode} from "../system/finance.mod.js";
+import Users from "../setup/users.mod.js";
+import ColorChartMod from "../system/colorChart.mod.js";
+import MasterItemIdModel from "../system/masterItemId.mod.js";
 
 export const PurchaseOrderRevModel = db.define(
     "purchase_order_rev",
@@ -135,6 +138,14 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.DECIMAL(60, 2),
             allowNull: true,
         },
+        ACCEPT_MOQ: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        MOQ_REMAKE: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+        },
         CREATE_BY: {
             type: DataTypes.STRING(100),
             allowNull: true,
@@ -158,6 +169,46 @@ export const PurchaseOrderModel = db.define(
     }
 );
 
+export  const PurchaseOrderMoqModel = db.define(
+    "purchase_order_moq",
+    {
+        ID: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        CATEGORY: {
+            type: DataTypes.ENUM("ORDER", "COLOR", "SIZE"),
+            allowNull: false,
+        },
+        MASTER_ITEM_ID: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        COLOR_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        PO_QTY: {
+            type: DataTypes.DECIMAL(65, 2),
+            defaultValue: 0,
+            allowNull: false,
+        },
+        MIN_QTY: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
+        NOTE: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+    },
+    {
+        tableName: "purchase_order_moq",
+        timestamps: false,
+    }
+);
 
 
 PurchaseOrderModel.belongsTo(PurchaseOrderRevModel, {
@@ -203,4 +254,24 @@ PurchaseOrderModel.belongsTo(MasterCompanyModel, {
 PurchaseOrderModel.belongsTo(MasterPayMethode, {
     foreignKey: "PAYMENT_TERM_ID",
     as: "PAYMENT_TERM"
+})
+
+PurchaseOrderModel.belongsTo(Users, {
+    foreignKey: "CREATE_BY",
+    as: "CREATED"
+})
+
+PurchaseOrderModel.belongsTo(Users, {
+    foreignKey: "UPDATE_BY",
+    as: "UPDATED"
+})
+
+PurchaseOrderMoqModel.belongsTo(ColorChartMod, {
+    foreignKey: "COLOR_ID",
+    as: "COLOR"
+})
+
+PurchaseOrderMoqModel.belongsTo(MasterItemIdModel, {
+    foreignKey: "MASTER_ITEM_ID",
+    as: "MASTER_ITEM"
 })

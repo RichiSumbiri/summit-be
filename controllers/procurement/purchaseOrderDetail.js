@@ -295,7 +295,7 @@ export const getPurchaseOrderDetailById = async (req, res) => {
                             model: Users, as: "UPDATED", attributes: ["USER_NAME"], required: false
                         },
                         {
-                            model: MasterCompanyModel, as: "COMPANY", attributes: ["CODE"]
+                            model: MasterCompanyModel, as: "COMPANY", attributes: ["CODE", "NAME"]
                         }
                     ]
                 },

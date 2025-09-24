@@ -1,10 +1,21 @@
-import {PurchaseOrderModel, PurchaseOrderRevModel} from "../../models/procurement/purchaseOrder.mod.js";
+import {
+    PurchaseOrderModel,
+    PurchaseOrderMoqModel,
+    PurchaseOrderRevModel
+} from "../../models/procurement/purchaseOrder.mod.js";
 import {ListCountry} from "../../models/list/referensiList.mod.js";
 import {ModelWarehouseDetail} from "../../models/setup/WarehouseDetail.mod.js";
 import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system/VendorDetail.mod.js";
 import MasterUnitModel from "../../models/setup/unit.mod.js";
 import MasterCompanyModel from "../../models/setup/company.mod.js";
 import {MasterPayMethode} from "../../models/system/finance.mod.js";
+import Users from "../../models/setup/users.mod.js";
+import ColorChartMod from "../../models/system/colorChart.mod.js";
+import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
+import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
+import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
+import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
+import {DataTypes} from "sequelize";
 
 export const createPurchaseOrder = async (req, res) => {
     try {
@@ -30,6 +41,8 @@ export const createPurchaseOrder = async (req, res) => {
             NOTE,
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
+            ACCEPT_MOQ,
+            MOQ_REMAKE,
             CREATE_BY,
         } = req.body;
 
@@ -59,6 +72,8 @@ export const createPurchaseOrder = async (req, res) => {
             COUNTRY_ID,
             PORT_DISCHARGE,
             WAREHOUSE_ID,
+            ACCEPT_MOQ,
+            MOQ_REMAKE,
             VENDOR_ID,
             VENDOR_SHIPPER_LOCATION_ID,
             COMPANY_ID,
@@ -145,6 +160,16 @@ export const getAllPurchaseOrders = async (req, res) => {
                     as: "PAYMENT_TERM",
                     attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
                 },
+                {
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ["USER_NAME"]
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ["USER_NAME"]
+                },
             ]
         });
 
@@ -203,7 +228,7 @@ export const getPurchaseOrderById = async (req, res) => {
                 {
                     model: MasterUnitModel,
                     as: "DELIVERY_UNIT",
-                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION"]
+                    attributes: ["UNIT_CODE", "UNIT_NAME", "UNIT_LOCATION", "UNIT_PHONE", "UNIT_FAX", "UNIT_EMAIL"]
                 },
                 {
                     model: MasterCompanyModel,
@@ -214,6 +239,16 @@ export const getPurchaseOrderById = async (req, res) => {
                     model: MasterPayMethode,
                     as: "PAYMENT_TERM",
                     attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
+                },
+                {
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ["USER_NAME"]
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ["USER_NAME"]
                 },
             ]
         });
@@ -261,6 +296,8 @@ export const updatePurchaseOrder = async (req, res) => {
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
             NOTE,
+            ACCEPT_MOQ,
+            MOQ_REMAKE,
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
             UPDATE_BY,
@@ -295,6 +332,8 @@ export const updatePurchaseOrder = async (req, res) => {
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
             NOTE,
+            ACCEPT_MOQ,
+            MOQ_REMAKE,
             SURCHARGE_AMOUNT,
             TAX_PERCENTAGE,
             UPDATE_BY,
@@ -463,6 +502,185 @@ export const deletePurchaseOrderRev = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Failed to delete purchase order revision: ${error.message}`,
+        });
+    }
+};
+
+
+export const createPurchaseOrderMoq = async (req, res) => {
+    try {
+        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, PO_QTY, NOTE, MIN_QTY } = req.body;
+
+        if (!CATEGORY) {
+            return res.status(400).json({
+                success: false,
+                message: "CATEGORY is required and must be one of: ORDER, COLOR, SIZE",
+            });
+        }
+
+        await PurchaseOrderMoqModel.create({
+            CATEGORY,
+            MASTER_ITEM_ID,
+            NOTE,
+            COLOR_ID,
+            PO_QTY,
+            MIN_QTY,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Purchase Order MOQ created successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to create purchase order MOQ: ${error.message}`,
+        });
+    }
+};
+
+export const getAllPurchaseOrderMoqs = async (req, res) => {
+    const { CATEGORY, MASTER_ITEM_ID } = req.query;
+
+    try {
+        const where = {};
+        if (CATEGORY) where.CATEGORY = CATEGORY;
+        if (MASTER_ITEM_ID) where.MASTER_ITEM_ID = MASTER_ITEM_ID;
+
+        const moqs = await PurchaseOrderMoqModel.findAll({
+            where, include: [
+                {
+                    model: ColorChartMod,
+                    as: "COLOR",
+                    attributes: ["COLOR_CODE", "COLOR_DESCRIPTION"]
+                },
+                {
+                    model: MasterItemIdModel,
+                    as: "MASTER_ITEM",
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
+                    include: [{
+                        model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                    }, {
+                        model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                    }, {
+                        model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                    }]
+                }
+            ]});
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase Order MOQs retrieved successfully",
+            data: moqs,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve purchase order MOQs: ${error.message}`,
+        });
+    }
+};
+
+export const getPurchaseOrderMoqById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const moq = await PurchaseOrderMoqModel.findOne({where: {ID: id}, include: [{
+                model: ColorChartMod,
+                as: "COLOR",
+                attributes: ["COLOR_CODE", "COLOR_DESCRIPTION"]
+            },
+                {
+                    model: MasterItemIdModel,
+                    as: "MASTER_ITEM",
+                    attributes: ['ITEM_GROUP_ID', 'ITEM_TYPE_ID', 'ITEM_CATEGORY_ID', 'ITEM_CODE', 'ITEM_DESCRIPTION', 'ITEM_UOM_BASE'],
+                    include: [{
+                        model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
+                    }, {
+                        model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
+                    }, {
+                        model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                    }]
+                }]});
+
+        if (!moq) {
+            return res.status(404).json({
+                success: false,
+                message: "Purchase Order MOQ not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase Order MOQ retrieved successfully",
+            data: moq,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve purchase order MOQ: ${error.message}`,
+        });
+    }
+};
+
+export const updatePurchaseOrderMoq = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, NOTE, PO_QTY, MIN_QTY } = req.body;
+
+        const moq = await PurchaseOrderMoqModel.findByPk(id);
+
+        if (!moq) {
+            return res.status(404).json({
+                success: false,
+                message: "Purchase Order MOQ not found",
+            });
+        }
+
+        await moq.update({
+            CATEGORY,
+            MASTER_ITEM_ID,
+            COLOR_ID,
+            NOTE,
+            PO_QTY,
+            MIN_QTY,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase Order MOQ updated successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update purchase order MOQ: ${error.message}`,
+        });
+    }
+};
+
+export const deletePurchaseOrderMoq = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const moq = await PurchaseOrderMoqModel.findByPk(id);
+
+        if (!moq) {
+            return res.status(404).json({
+                success: false,
+                message: "Purchase Order MOQ not found",
+            });
+        }
+
+        await moq.destroy();
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase Order MOQ deleted successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to delete purchase order MOQ: ${error.message}`,
         });
     }
 };

@@ -1,8 +1,16 @@
 import express from "express";
 import {
-    createPurchaseOrder, createPurchaseOrderRev, deletePurchaseOrder, deletePurchaseOrderRev, getAllPurchaseOrderRevs,
+    createPurchaseOrder,
+    createPurchaseOrderMoq,
+    createPurchaseOrderRev,
+    deletePurchaseOrder, deletePurchaseOrderMoq,
+    deletePurchaseOrderRev, getAllPurchaseOrderMoqs,
+    getAllPurchaseOrderRevs,
     getAllPurchaseOrders,
-    getPurchaseOrderById, getPurchaseOrderRevById, updatePurchaseOrder, updatePurchaseOrderRev
+    getPurchaseOrderById, getPurchaseOrderMoqById,
+    getPurchaseOrderRevById,
+    updatePurchaseOrder, updatePurchaseOrderMoq,
+    updatePurchaseOrderRev
 } from "../../controllers/procurement/purchaseOrder.js";
 import {
     createPurchaseOrderDetail, deletePurchaseOrderDetail,
@@ -31,5 +39,10 @@ router.get("/detail/:id", getPurchaseOrderDetailById);
 router.put("/detail/:id", updatePurchaseOrderDetail);
 router.delete("/detail/:id", deletePurchaseOrderDetail);
 
+router.post("/moq", createPurchaseOrderMoq);
+router.get("/moq", getAllPurchaseOrderMoqs);
+router.get("/moq/:id", getPurchaseOrderMoqById);
+router.put("/moq/:id", updatePurchaseOrderMoq);
+router.delete("/moq/:id", deletePurchaseOrderMoq);
 
 export default router
