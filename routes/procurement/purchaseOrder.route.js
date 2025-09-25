@@ -13,7 +13,7 @@ import {
     updatePurchaseOrderRev, updatePurchaseOrderStatus
 } from "../../controllers/procurement/purchaseOrder.js";
 import {
-    createPurchaseOrderDetail, deletePurchaseOrderDetail,
+    createPurchaseOrderDetail, createPurchaseOrderDetailBulk, deletePurchaseOrderDetail,
     getAllPurchaseOrderDetails,
     getPurchaseOrderDetailById, updatePurchaseOrderDetail
 } from "../../controllers/procurement/purchaseOrderDetail.js";
@@ -37,6 +37,7 @@ router.put("/rev/:id", updatePurchaseOrderRev);
 router.delete("/rev/:id", deletePurchaseOrderRev);
 
 router.post("/detail", createPurchaseOrderDetail);
+router.post("/detail/bulk", createPurchaseOrderDetailBulk);
 router.get("/detail", getAllPurchaseOrderDetails);
 router.get("/detail/:id", getPurchaseOrderDetailById);
 router.put("/detail/:id", updatePurchaseOrderDetail);

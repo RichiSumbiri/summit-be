@@ -18,20 +18,16 @@ import { CustomerBuyPlan, CustomerDetail, CustomerProductDivision, CustomerProdu
 import { ModelOrderPOHeader } from "../../../models/orderManagement/orderManagement.mod.js";
 import { OrderPoListing } from "../../../models/production/order.mod.js";
 import { ModelProjectionOrder } from "../../../models/orderManagement/ProjectionOrder.mod.js";
+import PurchaseOrderDetailModel from "../../../models/procurement/purchaseOrderDetail.mod.js";
 
 export const getAllSourcingDetails = async (req, res) => {
-    const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, IS_APPROVE, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID} = req.query;
+    const {BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, BOM_STRUCTURE_ID, IS_APPROVE, COMPANY_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, MPO_ID} = req.query;
 
     const where = {IS_DELETED: false};
     const where2 = {}
 
-    if (ITEM_TYPE_ID) {
-        where2.ITEM_TYPE_ID = ITEM_TYPE_ID
-    }
-
-    if (ITEM_CATEGORY_ID) {
-        where2.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
-    }
+    if (ITEM_TYPE_ID) where2.ITEM_TYPE_ID = ITEM_TYPE_ID
+    if (ITEM_CATEGORY_ID) where2.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
 
     if (IS_APPROVE) {
         where.APPROVE_PURCHASE_QUANTITY =  {
@@ -42,7 +38,10 @@ export const getAllSourcingDetails = async (req, res) => {
     if (BOM_STRUCTURE_LINE_ID) where.BOM_STRUCTURE_LINE_ID = BOM_STRUCTURE_LINE_ID;
     if (ITEM_DIMENSION_ID) where.ITEM_DIMENSION_ID = ITEM_DIMENSION_ID;
 
+
+
     try {
+        const response = []
         const details = await BomStructureSourcingDetail.findAll({
             where,
             include: [
@@ -207,15 +206,29 @@ export const getAllSourcingDetails = async (req, res) => {
             order: [['ID', 'DESC']]
         });
 
+        for (let i = 0; i < details.length; i++) {
+            const data = details[i].dataValues
+            if (MPO_ID) {
+                const prdOdrDtl = await PurchaseOrderDetailModel.findOne({where: {MPO_ID, BOM_STRUCTURE_LINE_ID: data.BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID: data.ITEM_DIMENSION_ID}})
+                data.IS_SELECTED = false
+                data.DEFAULT_VALUE = 0
 
+                if (prdOdrDtl) {
+                    data.IS_SELECTED = true
+                    data.DEFAULT_VALUE = prdOdrDtl.PURCHASE_ORDER_QTY
+                }
+            }
+
+            response.push(data)
+        }
 
         return res.status(200).json({
             success: true,
             message: "Sourcing detail data retrieved successfully",
-            data: await Promise.all(details.map(async (item) => {
+            data: await Promise.all(response.map(async (item) => {
                 const orderPoListing = await OrderPoListing.findAll({where: {ORDER_NO: item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.ORDER_ID}, attributes: ['PRODUCTION_MONTH'], limit: 1})
                 return{
-                    ...item.dataValues,
+                    ...item,
                     BOM_STRUCTURE_LINE: {
                         ...item.BOM_STRUCTURE_LINE.dataValues,
                         BOM_STRUCTURE: {
