@@ -1,5 +1,5 @@
 import moment from "moment";
-import { PurchaseOrderModel } from "../../models/procurement/purchaseOrder.mod.js";
+import {PurchaseOrderModel, PurchaseOrderMoqModel} from "../../models/procurement/purchaseOrder.mod.js";
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
 import { BomStructureSourcingDetail } from "../../models/system/bomStructure.mod.js";
 
@@ -9,14 +9,16 @@ import { BomStructureSourcingDetail } from "../../models/system/bomStructure.mod
 export const postMaterialPurchaseOrder = async(req,res) => {
     try {
         const { DataMPO } = req.body;
+
+
         if(DataMPO.MPO_ID===''){
             // check latest number of mpo
             const LatestMPO = await PurchaseOrderModel.findAll({ order: [['MPO_ID', 'DESC']], limit:1, raw: true });
             const newIncrement = LatestMPO.length===0 ? '0000001': parseInt(LatestMPO[0].MPO_ID.slice(-7)) + 1;
             const MPOID = `MPO${newIncrement.toString().padStart(7, '0')}`;
-            
+
             // create header mpo
-            await PurchaseOrderModel.create({
+            const headeMpo = await PurchaseOrderModel.create({
                 MPO_ID: MPOID,
                 REV_ID: 0,
                 MPO_DATE: DataMPO.MPO_DATE,
@@ -46,10 +48,72 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
 
+            const moqValidation = DataMPO?.MOQ_VALIDATION
+            if (moqValidation) {
+                if (moqValidation?.MIN_ORDER_QTY) {
+                    if (!Array.isArray(moqValidation?.MIN_ORDER_QTY)) {
+                        return res.status(400).json({
+                            success: false,
+                            message: "Min order quantity must be array"
+                        });
+                    }
+                    for (const item of moqValidation?.MIN_ORDER_QTY) {
+                        await PurchaseOrderMoqModel.create({
+                            CATEGORY: "ORDER",
+                            MASTER_ITEM_ID: item.MASTER_ITEM_ID,
+                            PO_QTY: Number(item.PURCHASE_QTY_SUM),
+                            MIN_QTY: Number(item.MIN_ORDER_QTY),
+                            NOTE: "",
+                            PURCHASE_ORDER_ID: headeMpo.MPO_ID
+                        })
+                    }
+                }
+                if (moqValidation?.MIN_COLOR_QTY) {
+                    if (!Array.isArray(moqValidation?.MIN_COLOR_QTY)) {
+                        return res.status(400).json({
+                            success: false,
+                            message: "Min Color quantity must be array"
+                        });
+                    }
+                    for (const item of moqValidation?.MIN_COLOR_QTY) {
+                        await PurchaseOrderMoqModel.create({
+                            CATEGORY: "COLOR",
+                            MASTER_ITEM_ID: item.MASTER_ITEM_ID,
+                            PO_QTY: Number(item.PURCHASE_QTY_SUM),
+                            MIN_QTY: Number(item.MIN_ORDER_QTY),
+                            NOTE: "",
+                            COLOR_ID: item.COLOR_ID,
+                            PURCHASE_ORDER_ID: headeMpo.MPO_ID
+                        })
+                    }
+                }
+                if (moqValidation?.MIN_SIZE_QTY) {
+                    if (!Array.isArray(moqValidation?.MIN_SIZE_QTY)) {
+                        return res.status(400).json({
+                            success: false,
+                            message: "Min Size quantity must be array"
+                        });
+                    }
+                    for (const item of moqValidation?.MIN_SIZE_QTY) {
+                        await PurchaseOrderMoqModel.create({
+                            CATEGORY: "SIZE",
+                            MASTER_ITEM_ID: item.MASTER_ITEM_ID,
+                            PO_QTY: Number(item.PURCHASE_QTY_SUM),
+                            MIN_QTY: Number(item.MIN_ORDER_QTY),
+                            NOTE: "",
+                            SIZE_ID: item.SIZE_ID,
+                            PURCHASE_ORDER_ID: headeMpo.MPO_ID
+                        })
+                    }
+                }
+            }
+
+
+
             // create detail mpo
             for(const mdm of DataMPO.MPO_DETAIL_MATERIAL){
                 // update on purchase order detail
-                await PurchaseOrderDetailModel.create({
+                 await PurchaseOrderDetailModel.create({
                     MPO_ID: MPOID,
                     REV_ID: 0,
                     BOM_STRUCTURE_LINE_ID: mdm.BOM_STRUCTURE_LINE_ID,
@@ -61,21 +125,21 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                     OTHER_COST: mdm.OTHER_COST,
                     TOTAL_UNIT_COST: mdm.TOTAL_ITEM_COST,
                     TOTAL_PURCHASE_COST: mdm.TOTAL_PURCHASE_COST,
-                    ITEM_DIMENSION_ID: mdm.ITEM_DIMENSION.DIMENSION_ID,
+                    ITEM_DIMENSION_ID: mdm.ITEM_DIMENSION_ID,
                     CREATE_BY: DataMPO.CREATE_BY,
                     CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
                 });
                 // update on bom structure sourcing
-                await BomStructureSourcingDetail.update({ 
+                await BomStructureSourcingDetail.update({
                     UNCONFIRM_PO_QTY: mdm.PURCHASE_QTY,
                     PENDING_PURCHASE_ORDER_QTY: parseFloat(mdm.APPROVE_PURCHASE_QUANTITY) - parseFloat(mdm.CONFIRM_PO_QTY) - parseFloat(mdm.UNCONFIRM_PO_QTY) - parseFloat(mdm.PURCHASE_QTY)
-                }, { 
-                    where: { 
-                        ID: mdm.ID 
+                }, {
+                    where: {
+                        ID: mdm.ID
                     }
                 })
             }
-           
+
         } else {
             await PurchaseOrderModel.update({
                 REV_ID: 0,
@@ -104,7 +168,7 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 TAX_PERCENTAGE: DataMPO.TAX_PERCENTAGE,
                 CREATE_BY: DataMPO.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
-            }, { 
+            }, {
                 where: {
                     MPO_ID: DataMPO.MPO_ID
                 }
