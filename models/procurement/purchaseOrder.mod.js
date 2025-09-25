@@ -64,7 +64,7 @@ export const PurchaseOrderModel = db.define(
             allowNull: true,
         },
         MPO_STATUS: {
-            type: DataTypes.ENUM("Open", "Confirmed", "Cancel", "Deleted"),
+            type: DataTypes.ENUM("Open", "Confirmed", "Closed", "Deleted"),
             allowNull: true,
         },
         MPO_ETD: {

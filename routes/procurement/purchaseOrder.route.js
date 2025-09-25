@@ -10,7 +10,7 @@ import {
     getPurchaseOrderById, getPurchaseOrderMoqById,
     getPurchaseOrderRevById,
     updatePurchaseOrder, updatePurchaseOrderMoq,
-    updatePurchaseOrderRev
+    updatePurchaseOrderRev, updatePurchaseOrderStatus
 } from "../../controllers/procurement/purchaseOrder.js";
 import {
     createPurchaseOrderDetail, deletePurchaseOrderDetail,
@@ -27,6 +27,7 @@ router.post("/order", createPurchaseOrder);
 router.get("/order", getAllPurchaseOrders);
 router.get("/order/:id", getPurchaseOrderById);
 router.put("/order/:id", updatePurchaseOrder);
+router.patch("/order/:id", updatePurchaseOrderStatus);
 router.delete("/order/:id", deletePurchaseOrder);
 
 router.post("/rev", createPurchaseOrderRev);

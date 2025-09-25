@@ -347,6 +347,44 @@ export const updatePurchaseOrder = async (req, res) => {
     }
 };
 
+export const updatePurchaseOrderStatus = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {STATUS, UPDATE_BY} = req.body;
+
+        if (!STATUS) {
+            return res.status(400).json({
+                success: false,
+                message: "Status can't empty",
+            });
+        }
+
+        const purchaseOrder = await PurchaseOrderModel.findByPk(id)
+        if (!purchaseOrder) {
+            return res.status(404).json({
+                success: false,
+                message: "Purchase Order not found",
+            });
+        }
+
+        await purchaseOrder.update({
+            MPO_STATUS: STATUS,
+            UPDATE_BY,
+            UPDATE_DATE: new Date(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase Order updated successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to update purchase order: ${error.message}`,
+        });
+    }
+};
+
 export const deletePurchaseOrder = async (req, res) => {
     try {
         const {id} = req.params;
@@ -504,7 +542,7 @@ export const deletePurchaseOrderRev = async (req, res) => {
 
 export const createPurchaseOrderMoq = async (req, res) => {
     try {
-        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID, PURCHASE_ORDER_ID, SIZE_ID, PO_QTY, NOTE, MIN_QTY } = req.body;
+        const {CATEGORY, MASTER_ITEM_ID, COLOR_ID, PURCHASE_ORDER_ID, SIZE_ID, PO_QTY, NOTE, MIN_QTY} = req.body;
 
         if (!CATEGORY) {
             return res.status(400).json({
@@ -535,7 +573,7 @@ export const createPurchaseOrderMoq = async (req, res) => {
 };
 
 export const getAllPurchaseOrderMoqs = async (req, res) => {
-    const { CATEGORY, MASTER_ITEM_ID, PURCHASE_ORDER_ID } = req.query;
+    const {CATEGORY, MASTER_ITEM_ID, PURCHASE_ORDER_ID} = req.query;
 
     try {
         const where = {};
@@ -567,7 +605,8 @@ export const getAllPurchaseOrderMoqs = async (req, res) => {
                         model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
                     }]
                 }
-            ]});
+            ]
+        });
 
         return res.status(200).json({
             success: true,
@@ -584,9 +623,10 @@ export const getAllPurchaseOrderMoqs = async (req, res) => {
 
 export const getPurchaseOrderMoqById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
-        const moq = await PurchaseOrderMoqModel.findOne({where: {ID: id}, include: [{
+        const moq = await PurchaseOrderMoqModel.findOne({
+            where: {ID: id}, include: [{
                 model: ColorChartMod,
                 as: "COLOR",
                 attributes: ["COLOR_CODE", "COLOR_DESCRIPTION"]
@@ -607,7 +647,8 @@ export const getPurchaseOrderMoqById = async (req, res) => {
                     }, {
                         model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
                     }]
-                }]});
+                }]
+        });
 
         if (!moq) {
             return res.status(404).json({
@@ -631,8 +672,8 @@ export const getPurchaseOrderMoqById = async (req, res) => {
 
 export const updatePurchaseOrderMoq = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { CATEGORY, MASTER_ITEM_ID, COLOR_ID,PURCHASE_ORDER_ID, SIZE_ID, NOTE, PO_QTY, MIN_QTY } = req.body;
+        const {id} = req.params;
+        const {CATEGORY, MASTER_ITEM_ID, COLOR_ID, PURCHASE_ORDER_ID, SIZE_ID, NOTE, PO_QTY, MIN_QTY} = req.body;
 
         const moq = await PurchaseOrderMoqModel.findByPk(id);
 
@@ -646,7 +687,7 @@ export const updatePurchaseOrderMoq = async (req, res) => {
         await moq.update({
             CATEGORY,
             MASTER_ITEM_ID,
-            COLOR_ID,PURCHASE_ORDER_ID, SIZE_ID,
+            COLOR_ID, PURCHASE_ORDER_ID, SIZE_ID,
             NOTE,
             PO_QTY,
             MIN_QTY,
@@ -666,7 +707,7 @@ export const updatePurchaseOrderMoq = async (req, res) => {
 
 export const deletePurchaseOrderMoq = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
 
         const moq = await PurchaseOrderMoqModel.findByPk(id);
 
