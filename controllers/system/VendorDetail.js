@@ -1,6 +1,7 @@
 import moment from "moment";
 import { ModelVendorDetail, ModelVendorPurchaseDetail, ModelVendorShipperLocation, queryGetVendorPurchaseDetailByVDC } from "../../models/system/VendorDetail.mod.js";
 import db from "../../config/database.js";
+import { redisConn } from "../../config/dbAudit.js";
 import {Op, QueryTypes} from "sequelize";
 import {buildMediaUrl} from "../../util/general.js";
 import {MasterItemCategories} from "../../models/setup/ItemCategories.mod.js";
@@ -9,9 +10,17 @@ import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import { toDecimal } from "../../util/general.js";
 
+
 export const getAllVendorDetail = async(req,res) => {
    try {
-        const data = await ModelVendorDetail.findAll({raw:true});
+        let data=[];
+        const dataRedis = await redisConn.get('list-vendor-detail');
+        if(dataRedis){
+            data = JSON.parse(dataRedis);
+        } else {
+            data = await ModelVendorDetail.findAll({raw:true});
+            redisConn.set('list-fob-point', JSON.stringify(data), { EX: 604800 })
+        }
         if(data){
             return res.status(200).json({
                 success: true,
@@ -32,7 +41,6 @@ export const getAllVendorDetail = async(req,res) => {
 export const postVendorDetail = async(req,res) => {
     try {
         const { dataVendor } = req.body;
-        console.log(dataVendor);
         let actionVendor = null;
         if(!dataVendor.VENDOR_ID || dataVendor.VENDOR_ID==='<< NEW >>'){
             const getLastVDCID = await ModelVendorDetail.findOne({
@@ -136,6 +144,7 @@ export const postVendorDetail = async(req,res) => {
                 }
             });
         }
+        await redisConn.del('list-vendor-detail');
         return res.status(200).json({
             success: true,
             message: "success post vendor detail",
@@ -315,7 +324,6 @@ export  const getVendorPurchaseByFilter = async  (req, res) => {
 export const postVendorPurchaseDetail = async(req,res) => {
     try {
         const { dataVPD } = req.body;
-        console.log(dataVPD);
         if(dataVPD.VPD_ID){
             await ModelVendorPurchaseDetail.update({
                 CUSTOMER_ID: dataVPD.CUSTOMER_ID,
