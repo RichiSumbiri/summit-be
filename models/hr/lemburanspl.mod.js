@@ -157,6 +157,7 @@ AND ssm.spl_date BETWEEN :startTgl AND :endTgl
 
 export const queryLemburanDetail      = `
 SELECT
+	id_splinsert AS ID,
 	spl_number AS SPLNumber,
 	Nik AS Nik,
 	nama AS NamaLengkap,
