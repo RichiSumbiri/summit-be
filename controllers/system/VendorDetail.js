@@ -19,7 +19,7 @@ export const getAllVendorDetail = async(req,res) => {
             data = JSON.parse(dataRedis);
         } else {
             data = await ModelVendorDetail.findAll({raw:true});
-            redisConn.set('list-fob-point', JSON.stringify(data), { EX: 604800 })
+            redisConn.set('list-vendor-detail', JSON.stringify(data), { EX: 604800 })
         }
         if(data){
             return res.status(200).json({
