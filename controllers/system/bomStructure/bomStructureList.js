@@ -654,11 +654,6 @@ export const updateBomStructureListStatus = async (req, res) => {
                             TOTAL_APPROVE_PURCHASE_QUANTITY: safeValue(detail.TOTAL_APPROVE_PURCHASE_QUANTITY, 6),
                             IS_APPROVAL_SECTION: false,
                             APPROVAL_QTY: 0.00,
-                            STOCK_ALLOCATE_QTY: safeValue(detail.STOCK_ALLOCATE_QTY, 2),
-                            PURCHASE_QTY: safeValue(detail.PURCHASE_QTY, 2),
-                            CONFIRM_PO_QTY: safeValue(detail.CONFIRM_PO_QTY, 2),
-                            UNCONFIRM_PO_QTY: safeValue(detail.UNCONFIRM_PO_QTY, 2),
-                            PENDING_PURCHASE_ORDER_QTY: safeValue(detail.PENDING_PURCHASE_ORDER_QTY, 2),
                             IS_ACTIVE: detail.IS_ACTIVE === true,
                             UPDATED_ID: detail.UPDATED_ID || null,
                             UPDATED_AT: new Date()
@@ -672,7 +667,6 @@ export const updateBomStructureListStatus = async (req, res) => {
                         throw err;
                     }
                 });
-
                 await Promise.all(updatePromises);
             }
         }
