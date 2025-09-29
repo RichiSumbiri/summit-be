@@ -1,5 +1,8 @@
 import moment from "moment";
-import {PurchaseOrderModel, PurchaseOrderMoqModel} from "../../models/procurement/purchaseOrder.mod.js";
+import {
+    PurchaseOrderModel,
+    PurchaseOrderNotesModel
+} from "../../models/procurement/purchaseOrder.mod.js";
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
 import { BomStructureSourcingDetail } from "../../models/system/bomStructure.mod.js";
 
@@ -23,13 +26,6 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 REV_ID: 0,
                 MPO_DATE: DataMPO.MPO_DATE,
                 MPO_STATUS: 'Open',
-                MPO_ETD: DataMPO.DELIVERY_ETD_DATE,
-                MPO_ETA: DataMPO.DELIVERY_ETA_DATE,
-                DELIVERY_MODE_CODE: DataMPO.DELIVERY_MODE_CODE,
-                DELIVERY_TERM: DataMPO.DELIVERY_TERM,
-                COUNTRY_ID: DataMPO.COUNTRY_ID,
-                PORT_DISCHARGE: DataMPO.DELIVERY_PORT_DISCHARGE,
-                WAREHOUSE_ID: DataMPO.DELIVERY_WAREHOUSE_ID,
                 VENDOR_ID: DataMPO.VENDOR_DETAIL.VENDOR_ID,
                 VENDOR_DETAIL: JSON.stringify(DataMPO.VENDOR_DETAIL),
                 VENDOR_SHIPPER_LOCATION_ID: DataMPO.VENDOR_SHIPPER_LOCATION_ID,
@@ -38,15 +34,29 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 INVOICE_UNIT_ID: DataMPO.INVOICE_UNIT_ID,
                 DELIVERY_UNIT_ID: DataMPO.DELIVERY_UNIT_ID,
                 CURRENCY_CODE: DataMPO.CURRENCY_CODE,
-                PAYMENT_TERM_ID: DataMPO.PAYMENT_TERM_ID,
-                PAYMENT_REFERENCE: DataMPO.PAYMENT_REFERENCE,
-                NOTE: DataMPO.NOTE,
                 MOQ_VALIDATION_STATUS: DataMPO.MOQ_VALIDATION_STATUS,
                 SURCHARGE_AMOUNT: DataMPO.SURCHARGE_AMOUNT,
                 TAX_PERCENTAGE: DataMPO.TAX_PERCENTAGE,
                 CREATE_BY: DataMPO.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
             });
+
+            await PurchaseOrderNotesModel.create({
+                PURCHASE_ORDER_ID: MPOID,
+                REV_ID: 0,
+                MPO_ETD: DataMPO.DELIVERY_ETD_DATE,
+                MPO_ETA: DataMPO.DELIVERY_ETA_DATE,
+                DELIVERY_MODE_CODE: DataMPO.DELIVERY_MODE_CODE,
+                DELIVERY_TERM: DataMPO.DELIVERY_TERM,
+                COUNTRY_ID: DataMPO.COUNTRY_ID,
+                PORT_DISCHARGE: DataMPO.DELIVERY_PORT_DISCHARGE,
+                WAREHOUSE_ID: DataMPO.DELIVERY_WAREHOUSE_ID,
+                PAYMENT_TERM_ID: DataMPO.PAYMENT_TERM_ID,
+                PAYMENT_REFERENCE: DataMPO.PAYMENT_REFERENCE,
+                NOTE: DataMPO.NOTE,
+                CREATED_AT: new Date(),
+                CREATED_ID: DataMPO.CREATE_BY
+            })
 
             const moqValidation = DataMPO?.MOQ_VALIDATION
             if (moqValidation) {
@@ -57,16 +67,6 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                             message: "Min order quantity must be array"
                         });
                     }
-                    for (const item of moqValidation?.MIN_ORDER_QTY) {
-                        await PurchaseOrderMoqModel.create({
-                            CATEGORY: "ORDER",
-                            MASTER_ITEM_ID: item.MASTER_ITEM_ID,
-                            PO_QTY: Number(item.PURCHASE_QTY_SUM),
-                            MIN_QTY: Number(item.MIN_ORDER_QTY),
-                            NOTE: "",
-                            PURCHASE_ORDER_ID: headeMpo.MPO_ID
-                        })
-                    }
                 }
                 if (moqValidation?.MIN_COLOR_QTY) {
                     if (!Array.isArray(moqValidation?.MIN_COLOR_QTY)) {
@@ -74,17 +74,6 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                             success: false,
                             message: "Min Color quantity must be array"
                         });
-                    }
-                    for (const item of moqValidation?.MIN_COLOR_QTY) {
-                        await PurchaseOrderMoqModel.create({
-                            CATEGORY: "COLOR",
-                            MASTER_ITEM_ID: item.MASTER_ITEM_ID,
-                            PO_QTY: Number(item.PURCHASE_QTY_SUM),
-                            MIN_QTY: Number(item.MIN_ORDER_QTY),
-                            NOTE: "",
-                            COLOR_ID: item.COLOR_ID,
-                            PURCHASE_ORDER_ID: headeMpo.MPO_ID
-                        })
                     }
                 }
                 if (moqValidation?.MIN_SIZE_QTY) {
@@ -94,17 +83,7 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                             message: "Min Size quantity must be array"
                         });
                     }
-                    for (const item of moqValidation?.MIN_SIZE_QTY) {
-                        await PurchaseOrderMoqModel.create({
-                            CATEGORY: "SIZE",
-                            MASTER_ITEM_ID: item.MASTER_ITEM_ID,
-                            PO_QTY: Number(item.PURCHASE_QTY_SUM),
-                            MIN_QTY: Number(item.MIN_ORDER_QTY),
-                            NOTE: "",
-                            SIZE_ID: item.SIZE_ID,
-                            PURCHASE_ORDER_ID: headeMpo.MPO_ID
-                        })
-                    }
+
                 }
             }
 
@@ -139,7 +118,6 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                     }
                 })
             }
-
         } else {
             await PurchaseOrderModel.update({
                 REV_ID: 0,
@@ -171,6 +149,26 @@ export const postMaterialPurchaseOrder = async(req,res) => {
             }, {
                 where: {
                     MPO_ID: DataMPO.MPO_ID
+                }
+            })
+
+            await PurchaseOrderNotesModel.update({
+                MPO_ETD: DataMPO.DELIVERY_ETD_DATE,
+                MPO_ETA: DataMPO.DELIVERY_ETA_DATE,
+                DELIVERY_MODE_CODE: DataMPO.DELIVERY_MODE_CODE,
+                DELIVERY_TERM: DataMPO.DELIVERY_TERM,
+                COUNTRY_ID: DataMPO.COUNTRY_ID,
+                PORT_DISCHARGE: DataMPO.DELIVERY_PORT_DISCHARGE,
+                WAREHOUSE_ID: DataMPO.DELIVERY_WAREHOUSE_ID,
+                PAYMENT_TERM_ID: DataMPO.PAYMENT_TERM_ID,
+                PAYMENT_REFERENCE: DataMPO.PAYMENT_REFERENCE,
+                NOTE: DataMPO.NOTE,
+                UPDATED_AT: new Date(),
+                UPDATED_ID: DataMPO.CREATE_BY
+            }, {
+                where: {
+                    PURCHASE_ORDER_ID: DataMPO.MPO_ID,
+                    REV_ID: 0
                 }
             })
         }

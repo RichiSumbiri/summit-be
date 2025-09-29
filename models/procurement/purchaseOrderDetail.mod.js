@@ -13,6 +13,10 @@ const PurchaseOrderDetailModel = db.define(
             autoIncrement: true,
             primaryKey: true,
         },
+        BOM_SOURCING_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
         MPO_ID: {
             type: DataTypes.STRING(10),
             allowNull: true,
@@ -97,7 +101,7 @@ PurchaseOrderDetailModel.belongsTo(MasterItemDimensionModel, {
 
 PurchaseOrderDetailModel.belongsTo(BomStructureListModel, {
     foreignKey: "BOM_STRUCTURE_LINE_ID",
-    as: "BOM_STRUCTURE_LIST"
+    as: "BOM_STRUCTURE_LINE"
 })
 
 export default PurchaseOrderDetailModel;

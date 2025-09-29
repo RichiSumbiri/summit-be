@@ -1,15 +1,15 @@
 import express from "express";
 import {
     createPurchaseOrder,
-    createPurchaseOrderMoq,
+    createPurchaseOrderNote,
     createPurchaseOrderRev,
-    deletePurchaseOrder, deletePurchaseOrderMoq,
-    deletePurchaseOrderRev, getAllPurchaseOrderMoqs,
+    deletePurchaseOrder, deletePurchaseOrderNote,
+    deletePurchaseOrderRev, getAllPurchaseOrderNotes,
     getAllPurchaseOrderRevs,
     getAllPurchaseOrders,
-    getPurchaseOrderById, getPurchaseOrderMoqById,
+    getPurchaseOrderById, getPurchaseOrderNoteById,
     getPurchaseOrderRevById,
-    updatePurchaseOrder, updatePurchaseOrderMoq,
+    updatePurchaseOrder, updatePurchaseOrderNote,
     updatePurchaseOrderRev, updatePurchaseOrderStatus
 } from "../../controllers/procurement/purchaseOrder.js";
 import {
@@ -43,10 +43,11 @@ router.get("/detail/:id", getPurchaseOrderDetailById);
 router.put("/detail/:id", updatePurchaseOrderDetail);
 router.delete("/detail/:id", deletePurchaseOrderDetail);
 
-router.post("/moq", createPurchaseOrderMoq);
-router.get("/moq", getAllPurchaseOrderMoqs);
-router.get("/moq/:id", getPurchaseOrderMoqById);
-router.put("/moq/:id", updatePurchaseOrderMoq);
-router.delete("/moq/:id", deletePurchaseOrderMoq);
+
+router.post("/note", createPurchaseOrderNote);
+router.get("/note", getAllPurchaseOrderNotes);
+router.get("/note/:id", getPurchaseOrderNoteById);
+router.put("/note/:id", updatePurchaseOrderNote);
+router.delete("/note/:id", deletePurchaseOrderNote);
 
 export default router

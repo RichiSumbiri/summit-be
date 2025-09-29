@@ -1,5 +1,9 @@
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
-import {PurchaseOrderModel, PurchaseOrderRevModel} from "../../models/procurement/purchaseOrder.mod.js";
+import {
+    PurchaseOrderModel,
+    PurchaseOrderNotesModel,
+    PurchaseOrderRevModel
+} from "../../models/procurement/purchaseOrder.mod.js";
 import {ListCountry} from "../../models/list/referensiList.mod.js";
 import {ModelWarehouseDetail} from "../../models/setup/WarehouseDetail.mod.js";
 import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system/VendorDetail.mod.js";
@@ -113,22 +117,23 @@ export const createPurchaseOrderDetail = async (req, res) => {
 };
 
 export const createPurchaseOrderDetailBulk = async (req, res) => {
+    const {MPO_ID, REV_ID = 0} = req.query
+    const arrayOrderDetail = req.body
+
+    if (!Array.isArray(arrayOrderDetail)) return res.status(400).json({
+        success: false, message: `Request must be array`,
+    });
+
+    if (!MPO_ID) return res.status(400).json({
+        success: false, message: `MPO must be required`,
+    });
+
     try {
-
-        const arrayOrderDetail = req.body
-        if (!Array.isArray(arrayOrderDetail)) {
-            return res.status(400).json({
-                success: false, message: `Request must be array`,
-            });
-        }
-
-        let mpoId = ""
         const notDeleteIds = []
         const createData = []
+
         for (let i = 0; i < arrayOrderDetail.length; i++) {
             const {
-                MPO_ID,
-                REV_ID = 0,
                 BOM_STRUCTURE_LINE_ID,
                 ORDER_NO,
                 PURCHASE_ORDER_QTY,
@@ -143,7 +148,7 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
                 UPDATE_BY
             } = arrayOrderDetail[i];
 
-            if (!MPO_ID || !BOM_STRUCTURE_LINE_ID) {
+            if (!BOM_STRUCTURE_LINE_ID) {
                 return res.status(400).json({status: false, message: "Field are required"})
             }
 
@@ -152,7 +157,7 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
 
             const data = await PurchaseOrderDetailModel.findOne({
                 where: {
-                    BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, MPO_ID
+                    BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID, MPO_ID, REV_ID
                 }
             })
 
@@ -164,8 +169,6 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
             if (!bomSourcingDetail) return res.status(404).json({
                 status: false, message: "Purchase Order Detail not found"
             })
-            mpoId = MPO_ID
-
             if (data) {
                 const PENDING_PURCHASE_ORDER_QTY = Number(bomSourcingDetail?.APPROVE_PURCHASE_QUANTITY) - Number(PURCHASE_ORDER_QTY)
                 if (PENDING_PURCHASE_ORDER_QTY < 0) {
@@ -175,8 +178,7 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
                 }
 
                 await bomSourcingDetail.update({
-                    UNCONFIRM_PO_QTY: Number(PURCHASE_ORDER_QTY),
-                    PENDING_PURCHASE_ORDER_QTY
+                    UNCONFIRM_PO_QTY: Number(PURCHASE_ORDER_QTY), PENDING_PURCHASE_ORDER_QTY
                 })
 
                 await data.update({
@@ -219,7 +221,7 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
 
         const roleback = await PurchaseOrderDetailModel.findAll({
             where: {
-                MPO_ID: mpoId, ID: {[Op.notIn]: notDeleteIds}
+                MPO_ID, REV_ID, ID: {[Op.notIn]: notDeleteIds}
             }
         })
 
@@ -286,22 +288,23 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
 
 
 export const getAllPurchaseOrderDetails = async (req, res) => {
-    const {MPO_ID, REV_ID, ORDER_NO} = req.query;
+    const {MPO_ID, REV_ID = 0, ORDER_NO} = req.query;
 
     try {
-        const where = {};
+        const where = {
+            REV_ID
+        };
         if (MPO_ID) where.MPO_ID = MPO_ID;
-        if (REV_ID) where.REV_ID = REV_ID;
         if (ORDER_NO) where.ORDER_NO = ORDER_NO;
 
         const details = await PurchaseOrderDetailModel.findAll({
             where, include: [{
                 model: PurchaseOrderModel,
                 as: "MPO",
-                attributes: ["REV_ID", "COUNTRY_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID", "PAYMENT_TERM_ID"]
+                attributes: ["REV_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID"]
             }, {
                 model: BomStructureListModel,
-                as: "BOM_STRUCTURE_LIST",
+                as: "BOM_STRUCTURE_LINE",
                 attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
                 include: [{
                     model: BomStructureModel,
@@ -349,7 +352,7 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
                     }, {
                         model: MasterItemTypes, as: "ITEM_TYPE", attributes: ['ITEM_TYPE_CODE']
                     }, {
-                        model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE']
+                        model: MasterItemCategories, as: "ITEM_CATEGORY", attributes: ['ITEM_CATEGORY_CODE', 'ITEM_CATEGORY_DESCRIPTION']
                     }]
                 }, {
                     model: ModelVendorDetail,
@@ -376,8 +379,8 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
             }]
         });
         return res.status(200).json({
-            success: true, message: "Purchase Order Details retrieved successfully", data: details,
-        });
+            success: true, message: "Purchase Order Details retrieved successfully", data: details
+        })
     } catch (error) {
         return res.status(500).json({
             success: false, message: `Failed to retrieve purchase order details: ${error.message}`,
@@ -389,12 +392,11 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
 export const getPurchaseOrderDetailById = async (req, res) => {
     try {
         const {id} = req.params;
-
         const detail = await PurchaseOrderDetailModel.findOne({
             where: {ID: id}, include: [{
                 model: PurchaseOrderModel,
                 as: "MPO",
-                attributes: ["REV_ID", "COUNTRY_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID", "PAYMENT_TERM_ID"]
+                attributes: ["REV_ID", "WAREHOUSE_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID"]
             }, {
                 model: BomStructureListModel,
                 as: "BOM_STRUCTURE_LIST",

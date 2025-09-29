@@ -27,6 +27,10 @@ export const PurchaseOrderRevModel = db.define(
             type: DataTypes.STRING(200),
             allowNull: true,
         },
+        MPO_ID: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
         SEQUENCE: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -67,34 +71,6 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.ENUM("Open", "Confirmed", "Closed", "Deleted"),
             allowNull: true,
         },
-        MPO_ETD: {
-            type: DataTypes.DATEONLY,
-            allowNull: true,
-        },
-        MPO_ETA: {
-            type: DataTypes.DATEONLY,
-            allowNull: true,
-        },
-        DELIVERY_MODE_CODE: {
-            type: DataTypes.STRING(10),
-            allowNull: true,
-        },
-        DELIVERY_TERM: {
-            type: DataTypes.STRING(10),
-            allowNull: true,
-        },
-        COUNTRY_ID: {
-            type: DataTypes.STRING(3),
-            allowNull: true,
-        },
-        PORT_DISCHARGE: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-        },
-        WAREHOUSE_ID: {
-            type: DataTypes.STRING(10),
-            allowNull: true,
-        },
         VENDOR_ID: {
             type: DataTypes.STRING(10),
             allowNull: true,
@@ -125,18 +101,6 @@ export const PurchaseOrderModel = db.define(
         },
         CURRENCY_CODE: {
             type: DataTypes.STRING(5),
-            allowNull: true,
-        },
-        PAYMENT_TERM_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        PAYMENT_REFERENCE: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-        },
-        NOTE: {
-            type: DataTypes.TEXT,
             allowNull: true,
         },
         MOQ_VALIDATION_STATUS: {
@@ -178,74 +142,99 @@ export const PurchaseOrderModel = db.define(
     }
 );
 
-export  const PurchaseOrderMoqModel = db.define(
-    "purchase_order_moq",
+export const PurchaseOrderNotesModel = db.define(
+    "purchase_order_notes",
     {
         ID: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
         },
-        CATEGORY: {
-            type: DataTypes.ENUM("ORDER", "COLOR", "SIZE"),
-            allowNull: false,
-        },
-        MASTER_ITEM_ID: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-        },
-        COLOR_ID: {
-            type: DataTypes.STRING(20),
-            allowNull: true,
-        },
-        SIZE_ID: {
-            type: DataTypes.STRING(20),
-            allowNull: true,
-        },
         PURCHASE_ORDER_ID: {
             type: DataTypes.STRING(20),
-            allowNull: true,
+            allowNull: false,
         },
-        PO_QTY: {
-            type: DataTypes.DECIMAL(65, 2),
-            defaultValue: 0,
-        },
-        MIN_QTY: {
+        REV_ID: {
             type: DataTypes.INTEGER,
             defaultValue: 0,
+            allowNull: true,
+        },
+        MPO_ETD: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        MPO_ETA: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        DELIVERY_MODE_CODE: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        DELIVERY_TERM: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        COUNTRY_ID: {
+            type: DataTypes.STRING(3),
+            allowNull: true,
+        },
+        PORT_DISCHARGE: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        DELIVERY_UNIT_ID: {
+            type: DataTypes.STRING(2),
+            defaultValue: "1",
+            allowNull: true,
+        },
+        WAREHOUSE_ID: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
+        PAYMENT_TERM_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        PAYMENT_REFERENCE: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
         },
         NOTE: {
-            type: DataTypes.STRING(255),
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        CREATED_AT: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+            allowNull: false,
+        },
+        CREATED_ID: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        UPDATED_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        UPDATED_ID: {
+            type: DataTypes.INTEGER,
             allowNull: true,
         },
     },
     {
-        tableName: "purchase_order_moq",
+        tableName: "purchase_order_notes",
         timestamps: false,
     }
 );
-
 
 PurchaseOrderModel.belongsTo(PurchaseOrderRevModel, {
     foreignKey: "REV_ID",
     as: "REV"
 })
 
-PurchaseOrderModel.belongsTo(ListCountry, {
-    foreignKey: "COUNTRY_ID",
-    targetKey: "COUNTRY_CODE",
-    as: "COUNTRY"
-})
 
-PurchaseOrderModel.belongsTo(ModelWarehouseDetail, {
-    foreignKey: "WAREHOUSE_ID",
-    as: "WAREHOUSE"
-})
 
-PurchaseOrderModel.belongsTo(ModelVendorDetail, {
-    foreignKey: "VENDOR_ID",
-    as: "VENDOR"
-})
 
 PurchaseOrderModel.belongsTo(ModelVendorShipperLocation, {
     foreignKey: "VENDOR_SHIPPER_LOCATION_ID",
@@ -257,19 +246,15 @@ PurchaseOrderModel.belongsTo(MasterUnitModel, {
     as: "INVOICE_UNIT"
 })
 
-PurchaseOrderModel.belongsTo(MasterUnitModel, {
-    foreignKey: "DELIVERY_UNIT_ID",
-    as: "DELIVERY_UNIT"
-})
 
 PurchaseOrderModel.belongsTo(MasterCompanyModel, {
     foreignKey: "COMPANY_ID",
     as: "COMPANY"
 })
 
-PurchaseOrderModel.belongsTo(MasterPayMethode, {
-    foreignKey: "PAYMENT_TERM_ID",
-    as: "PAYMENT_TERM"
+PurchaseOrderModel.belongsTo(ModelVendorDetail, {
+    foreignKey: "VENDOR_ID",
+    as: "VENDOR"
 })
 
 PurchaseOrderModel.belongsTo(Users, {
@@ -282,17 +267,38 @@ PurchaseOrderModel.belongsTo(Users, {
     as: "UPDATED"
 })
 
-PurchaseOrderMoqModel.belongsTo(ColorChartMod, {
-    foreignKey: "COLOR_ID",
-    as: "COLOR"
+PurchaseOrderNotesModel.belongsTo(PurchaseOrderModel, {
+    foreignKey: "PURCHASE_ORDER_ID",
+    as: "PURCHASE_ORDER"
 })
 
-PurchaseOrderMoqModel.belongsTo(SizeChartMod, {
-    foreignKey: "SIZE_ID",
-    as: "SIZE"
+PurchaseOrderNotesModel.belongsTo(MasterPayMethode, {
+    foreignKey: "PAYMENT_TERM_ID",
+    as: "PAYMENT_TERM"
 })
 
-PurchaseOrderMoqModel.belongsTo(MasterItemIdModel, {
-    foreignKey: "MASTER_ITEM_ID",
-    as: "MASTER_ITEM"
+PurchaseOrderNotesModel.belongsTo(ModelWarehouseDetail, {
+    foreignKey: "WAREHOUSE_ID",
+    as: "WAREHOUSE"
+})
+
+PurchaseOrderNotesModel.belongsTo(ListCountry, {
+    foreignKey: "COUNTRY_ID",
+    targetKey: "COUNTRY_CODE",
+    as: "COUNTRY"
+})
+
+PurchaseOrderNotesModel.belongsTo(MasterUnitModel, {
+    foreignKey: "DELIVERY_UNIT_ID",
+    as: "DELIVERY_UNIT"
+})
+
+PurchaseOrderNotesModel.belongsTo(Users, {
+    foreignKey: "CREATED_ID",
+    as: "CREATED"
+})
+
+PurchaseOrderNotesModel.belongsTo(Users, {
+    foreignKey: "UPDATED_ID",
+    as: "UPDATED"
 })
