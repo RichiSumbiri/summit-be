@@ -7,18 +7,19 @@ import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system
 import {MasterPayMethode} from "../../models/system/finance.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
+import {Op, where, col} from "sequelize";
 
 export const createPurchaseOrder = async (req, res) => {
     try {
         const {
             REV_ID = 0,
             MPO_DATE,
-            MPO_STATUS,
             MPO_ETD,
             MPO_ETA,
             DELIVERY_MODE_CODE,
             DELIVERY_TERM,
             COUNTRY_ID,
+            RECEIPT_STATUS,
             PORT_DISCHARGE,
             VENDOR_DETAIL,
             INVOICE_DETAIL,
@@ -56,7 +57,7 @@ export const createPurchaseOrder = async (req, res) => {
             REV_ID,
             MOQ_VALIDATION_STATUS,
             MPO_DATE,
-            MPO_STATUS,
+            RECEIPT_STATUS,
             MOQ_NOTE,
             VENDOR_ID,
             VENDOR_DETAIL,
@@ -77,6 +78,7 @@ export const createPurchaseOrder = async (req, res) => {
             MPO_ETD,
             MPO_ETA,
             DELIVERY_MODE_CODE,
+            MPO_STATUS: 'Open',
             DELIVERY_TERM,
             COUNTRY_ID,
             PORT_DISCHARGE,
@@ -85,6 +87,7 @@ export const createPurchaseOrder = async (req, res) => {
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
             NOTE,
+            IS_ACTIVE: true,
             CREATED_AT: new Date(),
             CREATED_ID: CREATE_BY
         })
@@ -103,56 +106,126 @@ export const getAllPurchaseOrders = async (req, res) => {
     const {UNIT_ID, VENDOR_ID, MPO_STATUS} = req.query;
 
     try {
-        const where = {};
-        if (UNIT_ID) where.UNIT_ID = UNIT_ID;
-        if (VENDOR_ID) where.VENDOR_ID = VENDOR_ID;
-        if (MPO_STATUS) where.MPO_STATUS = MPO_STATUS;
+        const whereNote = {};
+        const wherePO = {};
+
+        if (MPO_STATUS) whereNote.MPO_STATUS = MPO_STATUS;
+        if (UNIT_ID) whereNote.UNIT_ID = UNIT_ID;
+
+        if (VENDOR_ID) wherePO.VENDOR_ID = VENDOR_ID;
+
+        whereNote[Op.and] = [
+            where(col("NOTES.REV_ID"), col("purchase_order.REV_ID"))
+        ];
 
         const purchaseOrders = await PurchaseOrderModel.findAll({
-            where, include: [{
-                model: PurchaseOrderRevModel, as: "REV", attributes: ["NAME", "DESCRIPTION", "SEQUENCE"]
-            }, {
-                model: ModelVendorDetail,
-                as: "VENDOR",
-                attributes: ["VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME", "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1", "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE", "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME", "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2", "VENDOR_CONTACT_EMAIL"]
-            }, {
-                model: ModelVendorShipperLocation,
-                as: "VENDOR_SHIPPER_LOCATION",
-                attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
-            }, {
-                model: Users, as: "CREATED", attributes: ["USER_NAME"]
-            }, {
-                model: Users, as: "UPDATED", attributes: ["USER_NAME"]
-            },], order: [['MPO_ID', 'ASC']]
+            include: [
+                {
+                    model: PurchaseOrderNotesModel,
+                    as: "NOTES",
+                    where: whereNote,
+                    required: true,
+                    attributes: [
+                        'ID',
+                        'REV_ID',
+                        'MPO_STATUS',
+                        'MPO_ETD',
+                        'MPO_ETA',
+                        'DELIVERY_MODE_CODE',
+                        'DELIVERY_TERM',
+                        'COUNTRY_ID',
+                        'PORT_DISCHARGE',
+                        'WAREHOUSE_ID',
+                        'PAYMENT_TERM_ID',
+                        'PAYMENT_REFERENCE',
+                        'NOTE',
+                    ],
+                    include: [
+                        {
+                            model: ListCountry,
+                            as: "COUNTRY",
+                            attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
+                        },
+                        {
+                            model: ModelWarehouseDetail,
+                            as: "WAREHOUSE",
+                            attributes: ["WHI_CODE", "WHI_NAME"]
+                        },
+                        {
+                            model: MasterPayMethode,
+                            as: "PAYMENT_TERM",
+                            attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
+                        }
+                    ]
+                },
+                {
+                    model: PurchaseOrderRevModel,
+                    as: "REV",
+                    attributes: ["NAME", "DESCRIPTION", "SEQUENCE"]
+                },
+                {
+                    model: ModelVendorDetail,
+                    as: "VENDOR",
+                    attributes: [
+                        "VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME",
+                        "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1",
+                        "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE",
+                        "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME",
+                        "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2",
+                        "VENDOR_CONTACT_EMAIL"
+                    ]
+                },
+                {
+                    model: ModelVendorShipperLocation,
+                    as: "VENDOR_SHIPPER_LOCATION",
+                    attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
+                },
+                {
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ["USER_NAME"]
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ["USER_NAME"]
+                }
+            ],
+            where: wherePO,
+            order: [['MPO_ID', 'ASC']]
         });
+
+        const formattedData = purchaseOrders.map(item => {
+            const note = item.NOTES[0];
+
+            let vendorDetail = null;
+            let invoiceDetail = null;
+            try {
+                vendorDetail = item?.VENDOR_DETAIL ? JSON.parse(item.VENDOR_DETAIL) : null;
+                invoiceDetail = item?.INVOICE_DETAIL ? JSON.parse(item.INVOICE_DETAIL) : null;
+            } catch (e) {
+                console.warn("Failed to parse JSON for MPO_ID:", item.MPO_ID);
+            }
+
+            return {
+                ...item.dataValues,
+                ...note.dataValues,
+                VENDOR_DETAIL: vendorDetail,
+                INVOICE_DETAIL: invoiceDetail,
+                NOTES: undefined
+            };
+        });
+
         return res.status(200).json({
             success: true,
             message: "Purchase Orders retrieved successfully",
-            data: await Promise.all(purchaseOrders.map(async (item) => {
-                const notes = await PurchaseOrderNotesModel.findOne({
-                    where: {
-                        PURCHASE_ORDER_ID: item.MPO_ID, REV_ID: item.REV_ID
-                    }, include: [{
-                        model: ListCountry, as: "COUNTRY", attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
-                    }, {
-                        model: ModelWarehouseDetail, as: "WAREHOUSE", attributes: ["WHI_CODE", "WHI_NAME"]
-                    }, {
-                        model: MasterPayMethode,
-                        as: "PAYMENT_TERM",
-                        attributes: ["PAYMET_CODE", "PAYMET_DESC", "PAYMET_LEADTIME"]
-                    },]
-                })
-
-                return {
-                    ...item.dataValues, ...notes?.dataValues,
-                    VENDOR_DETAIL: JSON.parse(item.VENDOR_DETAIL),
-                    INVOICE_DETAIL: JSON.parse(item.INVOICE_DETAIL)
-                }
-            }))
+            data: formattedData,
         });
     } catch (error) {
+        console.error("Error in getAllPurchaseOrders:", error);
         return res.status(500).json({
-            success: false, message: `Failed to retrieve purchase orders: ${error.message}`,
+            success: false,
+            message: `Failed to retrieve purchase orders: ${error.message}`,
         });
     }
 };
@@ -160,7 +233,6 @@ export const getAllPurchaseOrders = async (req, res) => {
 export const getPurchaseOrderById = async (req, res) => {
     try {
         const {id} = req.params;
-        const {REV_ID = 0} = req.query
 
         const purchaseOrder = await PurchaseOrderModel.findOne({
             where: {
@@ -190,7 +262,7 @@ export const getPurchaseOrderById = async (req, res) => {
 
         const notes = await PurchaseOrderNotesModel.findOne({
             where: {
-                PURCHASE_ORDER_ID: id, REV_ID
+                PURCHASE_ORDER_ID: id, REV_ID:purchaseOrder.REV_ID
             }, include: [{
                 model: ListCountry, as: "COUNTRY", attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
             }, {
@@ -222,9 +294,9 @@ export const updatePurchaseOrder = async (req, res) => {
         const {REV_ID} = req.query
         const {
             MPO_DATE,
-            MPO_STATUS,
             MPO_ETD,
             MPO_ETA,
+            MPO_STATUS,
             MOQ_VALIDATION_STATUS,
             DELIVERY_MODE_CODE,
             DELIVERY_TERM,
@@ -285,6 +357,7 @@ export const updatePurchaseOrder = async (req, res) => {
             PURCHASE_ORDER_ID: purchaseOrder.MPO_ID,
             MPO_ETD,
             MPO_ETA,
+            MPO_STATUS,
             DELIVERY_MODE_CODE,
             DELIVERY_TERM,
             COUNTRY_ID,
@@ -330,9 +403,14 @@ export const updatePurchaseOrderStatus = async (req, res) => {
             });
         }
 
-        await purchaseOrder.update({
-            MPO_STATUS: STATUS, UPDATE_BY, UPDATE_DATE: new Date(),
-        });
+        await PurchaseOrderNotesModel.update({
+            MPO_STATUS: STATUS,
+            IS_APPROVE: true,
+        }, {
+            where: {
+                REV_ID: purchaseOrder.REV_ID, PURCHASE_ORDER_ID: purchaseOrder.MPO_ID
+            }
+        })
 
         return res.status(200).json({
             success: true, message: "Purchase Order updated successfully",
@@ -412,12 +490,11 @@ export const createPurchaseOrderRev = async (req, res) => {
             NAME: `Revision ${purchaseOrder.MPO_ID}`,
             DESCRIPTION: `Revision ${purchaseOrder.MPO_ID} ke ${countRev + 1}`,
             MPO_ID: purchaseOrder.MPO_ID,
-            SEQUENCE: countRev+1
+            SEQUENCE: countRev + 1
         })
 
         await purchaseOrder.update({
             REV_ID: createNewRev.ID,
-            MPO_STATUS: 'Open',
             UPDATE_BY: CREATED_ID,
             UPDATE_DATE: new Date()
         })
@@ -425,6 +502,8 @@ export const createPurchaseOrderRev = async (req, res) => {
         await PurchaseOrderNotesModel.create({
             ...purchaseOrderNote.dataValues,
             ID: null,
+            IS_ACTIVE: true,
+            MPO_STATUS: 'Open',
             REV_ID: createNewRev.ID,
             CREATED_ID,
             CREATED_AT: new Date(),
@@ -550,6 +629,7 @@ export const createPurchaseOrderNote = async (req, res) => {
             MPO_ETA,
             DELIVERY_MODE_CODE,
             DELIVERY_TERM,
+            MPO_STATUS,
             COUNTRY_ID,
             PORT_DISCHARGE,
             DELIVERY_UNIT_ID = "1",
@@ -567,13 +647,15 @@ export const createPurchaseOrderNote = async (req, res) => {
             DELIVERY_MODE_CODE,
             DELIVERY_TERM,
             COUNTRY_ID,
+            MPO_STATUS,
             PORT_DISCHARGE,
             DELIVERY_UNIT_ID,
             WAREHOUSE_ID,
             PAYMENT_TERM_ID,
             PAYMENT_REFERENCE,
+            IS_ACTIVE: true,
             NOTE,
-            CREATED_ID,
+            CREATED_ID
         });
 
         return res.status(201).json({
@@ -587,18 +669,127 @@ export const createPurchaseOrderNote = async (req, res) => {
 };
 
 export const getAllPurchaseOrderNotes = async (req, res) => {
-    const {REV_ID, WAREHOUSE_ID} = req.query;
+    const {PURCHASE_ORDER_ID, REV_ID, WAREHOUSE_ID} = req.query
+
+    if (!PURCHASE_ORDER_ID) return res.status(400).json({
+        success: false, message: `Purchase order must be required`,
+    });
 
     try {
-        const where = {};
-        if (REV_ID !== undefined) where.REV_ID = REV_ID;
-        if (WAREHOUSE_ID) where.WAREHOUSE_ID = WAREHOUSE_ID;
+        const where = {PURCHASE_ORDER_ID};
+        if (REV_ID !== undefined) where.REV_ID = REV_ID
+        if (WAREHOUSE_ID) where.WAREHOUSE_ID = WAREHOUSE_ID
 
-        const notes = await PurchaseOrderNotesModel.findAll({where});
+        const notes = await PurchaseOrderNotesModel.findAll({
+            where,
+            include: [
+                {
+                    model: PurchaseOrderModel,
+                    as: "PURCHASE_ORDER",
+                    attributes: ['VENDOR_DETAIL', 'INVOICE_DETAIL', 'VENDOR_ID', 'VENDOR_SHIPPER_LOCATION_ID', 'CURRENCY_CODE', 'COMPANY_ID'],
+                    include: [
+                        {
+                            model: ModelVendorDetail,
+                            as: "VENDOR",
+                            attributes: ["VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME", "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1", "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE", "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME", "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2", "VENDOR_CONTACT_EMAIL"]
+                        },
+                        {
+                            model: ModelVendorShipperLocation,
+                            as: "VENDOR_SHIPPER_LOCATION",
+                            attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
+                        }
+                    ]
+                },
+                {
+                    model: PurchaseOrderRevModel,
+                    as: "REV",
+                    attributes: ['NAME', 'DESCRIPTION', 'SEQUENCE']
+                },
+                {
+                    model: ListCountry, as: "COUNTRY", attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
+                },
+                {
+                    model: Users, as: "CREATED", attributes: ["USER_NAME"]
+                }, {
+                    model: Users, as: "UPDATED", attributes: ["USER_NAME"]
+                }
+            ]
+        });
+
+        if (notes.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Seccess get all notes",
+                data: []
+            });
+        }
+
+
+        const revIds = [...new Set(notes.map((n) => n.REV_ID))];
+        const mpoid = PURCHASE_ORDER_ID;
+
+        const allDetails = await PurchaseOrderDetailModel.findAll({
+            where: {
+                MPO_ID: mpoid,
+                REV_ID: revIds,
+            },
+        });
+
+        const detailsByRev = {};
+        allDetails.forEach((detail) => {
+            const rev = detail.REV_ID;
+            if (!detailsByRev[rev]) detailsByRev[rev] = [];
+            detailsByRev[rev].push(detail);
+        });
+
+        const enrichedNotes = await Promise.all(
+            notes.map(async (note) => {
+                const currentRevId = note.REV_ID;
+
+                let previousRev = null;
+                if (note.REV && note.REV.SEQUENCE > 1) {
+                    previousRev = await PurchaseOrderRevModel.findOne({
+                        where: {
+                            MPO_ID: mpoid,
+                            SEQUENCE: note.REV.SEQUENCE - 1,
+                        },
+                        attributes: ["ID"],
+                    });
+                }
+
+                const previousRevId = previousRev ? previousRev.ID : null;
+
+                const listNew = detailsByRev[currentRevId] || [];
+                const listOld = previousRevId ? detailsByRev[previousRevId] || [] : [];
+
+                let vendorDetail = null;
+                let invoiceDetail = null;
+                try {
+                    vendorDetail = note.PURCHASE_ORDER?.VENDOR_DETAIL
+                        ? JSON.parse(note.PURCHASE_ORDER.VENDOR_DETAIL)
+                        : null;
+                    invoiceDetail = note.PURCHASE_ORDER?.INVOICE_DETAIL
+                        ? JSON.parse(note.PURCHASE_ORDER.INVOICE_DETAIL)
+                        : null;
+                } catch (e) {
+                    console.warn("Failed to parse VENDOR_DETAIL or INVOICE_DETAIL");
+                }
+
+                return {
+                    ...note.dataValues,
+                    VENDOR_DETAIL: vendorDetail,
+                    INVOICE_DETAIL: invoiceDetail,
+                    LIST_OLD: listOld,
+                    LIST_NEW: listNew,
+                };
+            })
+        );
 
         return res.status(200).json({
-            success: true, message: "Purchase Order Notes retrieved successfully", data: notes,
-        });
+            success: true,
+            message: "Purchase Order Notes retrieved successfully",
+            data: enrichedNotes,
+        })
     } catch (error) {
         return res.status(500).json({
             success: false, message: `Failed to retrieve purchase order notes: ${error.message}`,

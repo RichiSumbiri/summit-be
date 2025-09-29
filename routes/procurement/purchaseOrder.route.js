@@ -43,7 +43,6 @@ router.get("/detail/:id", getPurchaseOrderDetailById);
 router.put("/detail/:id", updatePurchaseOrderDetail);
 router.delete("/detail/:id", deletePurchaseOrderDetail);
 
-
 router.post("/note", createPurchaseOrderNote);
 router.get("/note", getAllPurchaseOrderNotes);
 router.get("/note/:id", getPurchaseOrderNoteById);

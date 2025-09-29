@@ -25,7 +25,6 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 MPO_ID: MPOID,
                 REV_ID: 0,
                 MPO_DATE: DataMPO.MPO_DATE,
-                MPO_STATUS: 'Open',
                 VENDOR_ID: DataMPO.VENDOR_DETAIL.VENDOR_ID,
                 VENDOR_DETAIL: JSON.stringify(DataMPO.VENDOR_DETAIL),
                 VENDOR_SHIPPER_LOCATION_ID: DataMPO.VENDOR_SHIPPER_LOCATION_ID,
@@ -36,6 +35,7 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 CURRENCY_CODE: DataMPO.CURRENCY_CODE,
                 MOQ_VALIDATION_STATUS: DataMPO.MOQ_VALIDATION_STATUS,
                 SURCHARGE_AMOUNT: DataMPO.SURCHARGE_AMOUNT,
+                RECEIPT_STATUS: 'Not Completed',
                 TAX_PERCENTAGE: DataMPO.TAX_PERCENTAGE,
                 CREATE_BY: DataMPO.CREATE_BY,
                 CREATE_DATE: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -44,6 +44,8 @@ export const postMaterialPurchaseOrder = async(req,res) => {
             await PurchaseOrderNotesModel.create({
                 PURCHASE_ORDER_ID: MPOID,
                 REV_ID: 0,
+                MPO_STATUS: 'Open',
+                IS_ACTIVE: true,
                 MPO_ETD: DataMPO.DELIVERY_ETD_DATE,
                 MPO_ETA: DataMPO.DELIVERY_ETA_DATE,
                 DELIVERY_MODE_CODE: DataMPO.DELIVERY_MODE_CODE,

@@ -67,10 +67,7 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.DATEONLY,
             allowNull: true,
         },
-        MPO_STATUS: {
-            type: DataTypes.ENUM("Open", "Confirmed", "Closed", "Deleted"),
-            allowNull: true,
-        },
+
         VENDOR_ID: {
             type: DataTypes.STRING(10),
             allowNull: true,
@@ -135,6 +132,10 @@ export const PurchaseOrderModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        RECEIPT_STATUS: {
+            type: DataTypes.STRING(200),
+            defaultValue: 'Not Completed'
+        },
     },
     {
         tableName: "purchase_order",
@@ -159,6 +160,10 @@ export const PurchaseOrderNotesModel = db.define(
             defaultValue: 0,
             allowNull: true,
         },
+        MPO_STATUS: {
+            type: DataTypes.ENUM("Open", "Confirmed", "Closed", "Deleted"),
+            allowNull: true,
+        },
         MPO_ETD: {
             type: DataTypes.DATEONLY,
             allowNull: true,
@@ -174,6 +179,14 @@ export const PurchaseOrderNotesModel = db.define(
         DELIVERY_TERM: {
             type: DataTypes.STRING(10),
             allowNull: true,
+        },
+        IS_APPROVE: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        IS_ACTIVE: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         },
         COUNTRY_ID: {
             type: DataTypes.STRING(3),
@@ -265,6 +278,11 @@ PurchaseOrderModel.belongsTo(Users, {
 PurchaseOrderModel.belongsTo(Users, {
     foreignKey: "UPDATE_BY",
     as: "UPDATED"
+})
+
+PurchaseOrderNotesModel.belongsTo(PurchaseOrderRevModel, {
+    foreignKey: "REV_ID",
+    as: "REV"
 })
 
 PurchaseOrderNotesModel.belongsTo(PurchaseOrderModel, {
