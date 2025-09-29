@@ -1766,7 +1766,7 @@ export const qrygetSumAbsen = `SELECT
 	md.NameDept, 
 	mp.Name AS namaPosisi, 
 	sas.*,  
-	CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE IFNULL(sctl.SisaCuti,0) END AS SisaCuti 
+	CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
 FROM sumbiri_absens_sum sas 
 LEFT JOIN master_department md ON md.IdDept = sas.IDDepartemen
 LEFT JOIN master_position mp ON mp.IDPosition  = sas.IDPosisi
