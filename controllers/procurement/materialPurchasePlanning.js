@@ -12,7 +12,7 @@ import { BomStructureSourcingDetail } from "../../models/materialManagement/bomS
 export const postMaterialPurchaseOrder = async(req,res) => {
     try {
         const { DataMPO } = req.body;
-
+        let mpo_number = 0;
 
         if(DataMPO.MPO_ID===''){
             // check latest number of mpo
@@ -21,7 +21,7 @@ export const postMaterialPurchaseOrder = async(req,res) => {
             const MPOID = `MPO${newIncrement.toString().padStart(7, '0')}`;
 
             // create header mpo
-            const headeMpo = await PurchaseOrderModel.create({
+            await PurchaseOrderModel.create({
                 MPO_ID: MPOID,
                 REV_ID: 0,
                 MPO_DATE: DataMPO.MPO_DATE,
@@ -112,7 +112,7 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                 });
                 // update on bom structure sourcing
                 await BomStructureSourcingDetail.update({
-                    UNCONFIRM_PO_QTY: mdm.PURCHASE_QTY,
+                    UNCONFIRM_PO_QTY: mdm.UNCONFIRM_PO_QTY + mdm.PURCHASE_QTY ,
                     PENDING_PURCHASE_ORDER_QTY: parseFloat(mdm.APPROVE_PURCHASE_QUANTITY) - parseFloat(mdm.CONFIRM_PO_QTY) - parseFloat(mdm.UNCONFIRM_PO_QTY) - parseFloat(mdm.PURCHASE_QTY)
                 }, {
                     where: {
@@ -120,6 +120,8 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                     }
                 })
             }
+
+            mpo_number = MPOID;
         } else {
             await PurchaseOrderModel.update({
                 REV_ID: 0,
@@ -172,11 +174,14 @@ export const postMaterialPurchaseOrder = async(req,res) => {
                     PURCHASE_ORDER_ID: DataMPO.MPO_ID,
                     REV_ID: 0
                 }
-            })
+            });
+
+            mpo_number = DataMPO.MPO_ID;
         }
         return res.status(200).json({
             success: true,
-            message: "success post material purchase order"
+            message: "success post material purchase order",
+            mpo_number
         });
     } catch(err){
         return res.status(500).json({
