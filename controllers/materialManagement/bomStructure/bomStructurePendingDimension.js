@@ -2,11 +2,11 @@ import {
     BomStructureListDetailModel,
     BomStructureListModel,
     BomStructurePendingDimension
-} from "../../../models/system/bomStructure.mod.js";
+} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import ColorChartMod from "../../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../../models/system/sizeChart.mod.js";
 import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
-import BomStructureModel from "../../../models/system/bomStructure.mod.js";
+import BomStructureModel from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import {Op} from "sequelize";
 import {OrderPoListing, OrderPoListingSize} from "../../../models/production/order.mod.js";
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";

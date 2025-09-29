@@ -2,37 +2,15 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("rm_lab_dip_strike_off_submission", {
-      ID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        primaryKey: true,
-        autoIncrement: false,
-      },
-      RM_LAB_STRIKE__APPROVAL_ID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-
-      SUBMIT_ID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      SUBMIT_CODE: {
-        type: Sequelize.STRING(255),
-        allowNull: false,
-      },
-      COMMENT_STATUS: {
+    await queryInterface.createTable("master_status", {
+      STATUS_ID: {
         type: Sequelize.STRING(25),
         allowNull: false,
+        primaryKey: true,
       },
-      OBTAIN_COMMENT: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      COMMENT_NOTE: {
+      STATUS_NAME: {
         type: Sequelize.STRING(255),
-        allowNull: true,
+        allowNull: false,
       },
 
       CREATED_AT: {
@@ -63,6 +41,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("rm_lab_dip_strike_off_submission");
+    await queryInterface.dropTable("master_status");
   },
 };

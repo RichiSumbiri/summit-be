@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../../config/database.js";
 import Users from "../../setup/users.mod.js";
+import { RMLabDipStrikeOffSubmission } from "./rmLabDipStrikeOffSubmission.mod.js";
 
 export const RMLabDipStrikeOffApproval = db.define(
   "rm_lab_dip_strike_off_approval",
@@ -72,4 +73,9 @@ RMLabDipStrikeOffApproval.belongsTo(Users, {
   foreignKey: "COMPLETED_BY",
   targetKey: "USER_ID",
   as: "completed_by",
+});
+
+RMLabDipStrikeOffApproval.hasMany(RMLabDipStrikeOffSubmission, {
+  foreignKey: "RM_LAB_STRIKE__APPROVAL_ID",
+  as: "submissions",
 });

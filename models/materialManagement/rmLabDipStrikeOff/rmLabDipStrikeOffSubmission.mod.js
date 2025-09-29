@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import db from "../../../config/database.js";
+import masterStatus from "../../system/masterStatus.js";
 
 export const RMLabDipStrikeOffSubmission = db.define(
   "rm_lab_dip_strike_off_submission",
@@ -10,8 +11,8 @@ export const RMLabDipStrikeOffSubmission = db.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    RM_LAB_STRIKE_ID: {
-      type: DataTypes.INTEGER,
+    RM_LAB_STRIKE__APPROVAL_ID: {
+      type: DataTypes.STRING(25),
       allowNull: false,
     },
 
@@ -58,8 +59,8 @@ export const RMLabDipStrikeOffSubmission = db.define(
   }
 );
 
-// EventDiaryHeader.belongsTo(Users, {
-//   foreignKey: "COMPLETED_BY",
-//   targetKey: "USER_ID",
-//   as: "completed_by",
-// });
+RMLabDipStrikeOffSubmission.belongsTo(masterStatus, {
+  foreignKey: "COMMENT_STATUS",
+  targetKey: "STATUS_ID",
+  as: "status",
+});

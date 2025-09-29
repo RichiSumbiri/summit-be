@@ -1762,20 +1762,39 @@ export const SumbiriAbsensSum = dbSPL.define('sumbiri_absens_sum', {
   updatedAt: 'updatedAt',
 });
 
-export const qrygetSumAbsen = `SELECT 
+// export const qrygetSumAbsen = `SELECT 
+// 	md.NameDept, 
+// 	mp.Name AS namaPosisi, 
+// 	sas.*,  
+// 	CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
+// FROM sumbiri_absens_sum sas 
+// LEFT JOIN master_department md ON md.IdDept = sas.IDDepartemen
+// LEFT JOIN master_position mp ON mp.IDPosition  = sas.IDPosisi
+// LEFT JOIN sumbiri_cuti_tahunan_log sctl ON sctl.Tahun = sas.sum_year  
+// 		  AND sctl.Bulan = sas.sum_month
+// 		  AND sctl.Nik = sas.Nik
+// WHERE sas.sum_year = :yearNum AND sas.sum_month = :monthNum -- AND sas.resignStatus  = 1
+// ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap 
+// `;
+
+export const qrygetSumAbsen = `
+SELECT 
 	md.NameDept, 
 	mp.Name AS namaPosisi, 
 	sas.*,  
-	CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
+	-- CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti
+	CASE WHEN se.TanggalKeluar IS NOT NULL THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
 FROM sumbiri_absens_sum sas 
+LEFT JOIN sumbiri_employee se ON se.Nik = sas.Nik 
 LEFT JOIN master_department md ON md.IdDept = sas.IDDepartemen
 LEFT JOIN master_position mp ON mp.IDPosition  = sas.IDPosisi
 LEFT JOIN sumbiri_cuti_tahunan_log sctl ON sctl.Tahun = sas.sum_year  
 		  AND sctl.Bulan = sas.sum_month
 		  AND sctl.Nik = sas.Nik
 WHERE sas.sum_year = :yearNum AND sas.sum_month = :monthNum -- AND sas.resignStatus  = 1
-ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap 
-`
+ORDER BY sas.IDDepartemen, sas.IDPosisi, sas.NamaLengkap
+
+`;
 
 export const logSystemAbsPayroll = dbSPL.define(
   "system_log_absen_payroll",

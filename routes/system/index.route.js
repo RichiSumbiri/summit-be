@@ -13,6 +13,7 @@ import productItemComponentRoute from "./productItemComponent.route.js";
 import bomTemplateRoute from "./bomTemplate.route.js";
 import orderTypeRoute from "./orderType.route.js";
 import bomStructureRoute from "./bomStructure.route.js";
+import masterStatus from "./masterStatus.route.js";
 
 const router = express.Router();
 
@@ -39,5 +40,6 @@ router.use("/vendor-detail", vendorDetail);
 router.use("/customer", customer);
 router.use("/order-types", orderTypeRoute);
 router.use("/bom-structure", bomStructureRoute)
+router.use("/master-status", masterStatus);
 
 export default router;

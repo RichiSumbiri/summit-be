@@ -7,7 +7,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true,
+        autoIncrement: false,
       },
       RM_LAB_STRIKE_ID: {
         type: Sequelize.INTEGER,

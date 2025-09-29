@@ -5,13 +5,13 @@ import {
     getAllBomStructures,
     getBomStructureById, getBomStructureListDetailsByBomId, importBomTemplateListToStructure,
     updateBomStructure,
-} from "../../controllers/system/bomStructure/bomStructure.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructure.js";
 
 import {
     createBomStructureNote, deleteBomStructureNote,
     getAllBomStructureNotes,
     getBomStructureNoteById, updateBomStructureNote
-} from "../../controllers/system/bomStructure/bomStructureNote.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructureNote.js";
 import {
     createBomStructureList,
     createBomStructureListBulk,
@@ -21,32 +21,32 @@ import {
     getBomTemplateListByBomStructureList,
     updateBomStructureList, updateBomStructureListStatus,
     updateBomStructureListStatusBulk
-} from "../../controllers/system/bomStructure/bomStructureList.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructureList.js";
 import {
     createBomStructureRev, deleteBomStructureRev,
     getAllBomStructureRevs,
     getBomStructureRevById, updateBomStructureRev
-} from "../../controllers/system/bomStructure/bomStructureRev.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructureRev.js";
 
-import {createSourcingDetailHistory, getSourcingDetailHistoryById, updateSourcingDetailHistory, getAllSourcingDetailHistories, deleteSourcingDetailHistory} from "../../controllers/system/bomStructure/bomStructureSourcingDetailHistory.js"
+import {createSourcingDetailHistory, getSourcingDetailHistoryById, updateSourcingDetailHistory, getAllSourcingDetailHistories, deleteSourcingDetailHistory} from "../../controllers/materialManagement/bomStructure/bomStructureSourcingDetailHistory.js"
 
 import {
     createBomStructureListDetail, createBomStructureListDetailBulk, deleteBomStructureListDetail,
     getAllBomStructureListDetails,
     getBomStructureListDetailById, revertBomStructureListDetail, updateBomStructureListDetail
-} from "../../controllers/system/bomStructure/bomStructureLIstDetail.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructureLIstDetail.js";
 import {
     createPendingDimensionFromBomTemplateList,
     createPendingDimensionStructure, deletePendingDimensionStructure,
     getAllPendingDimensionStructure,
     getPendingDimensionStructureById, updatePendingDimensionStructure, updatePendingDimensionStructureCustom
-} from "../../controllers/system/bomStructure/bomStructurePendingDimension.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructurePendingDimension.js";
 import {
     approveSourcingDetail,
     createSourcingDetail, deleteSourcingDetail, getAllBomSourcingCategory,
     getAllSourcingDetails,
     getSourcingDetailById, unApproveSourcingDetail, updateSourcingDetail
-} from "../../controllers/system/bomStructure/bomStructureSourcingDetail.js";
+} from "../../controllers/materialManagement/bomStructure/bomStructureSourcingDetail.js";
 
 const router = express.Router();
 

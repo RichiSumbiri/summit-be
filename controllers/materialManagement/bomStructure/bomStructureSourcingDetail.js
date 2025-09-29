@@ -1,7 +1,7 @@
 import BomStructureModel, {
     BomStructureListModel, BomStructureRevModel,
     BomStructureSourcingDetail, BomStructureSourcingDetailHistory
-} from "../../../models/system/bomStructure.mod.js";
+} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import MasterItemDimensionModel from "../../../models/system/masterItemDimention.mod.js";
 import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
 import ColorChartMod from "../../../models/system/colorChart.mod.js";

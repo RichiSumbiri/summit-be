@@ -1,6 +1,6 @@
 import MasterAttributeSetting from "./system/masterAttributeSetting.mod.js";
 import MasterAttributeValue from "./system/masterAttributeValue.mod.js";
-import MasterItemIdModel, { MasterItemIdAttributesModel } from "./system/masterItemId.mod.js";
+import { MasterItemIdAttributesModel } from "./system/masterItemId.mod.js";
 import eventFramework from "./tna/eventFramework.mod.js";
 import { ModelOrderPOHeader } from "./orderManagement/orderManagement.mod.js";
 import { orderitemSMV } from "./orderManagement/orderitemSMV.mod.js";
