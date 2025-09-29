@@ -1,7 +1,7 @@
 import BomStructureModel, {
     BomStructureListDetailModel,
     BomStructureListModel, BomStructureSourcingDetail
-} from "../../../models/system/bomStructure.mod.js";
+} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import BomTemplateModel from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../../models/setup/ItemGroups.mod.js";

@@ -3,7 +3,7 @@ import BomStructureModel, {
     BomStructureListModel,
     BomStructureNoteModel,
     BomStructureRevModel
-} from "../../../models/system/bomStructure.mod.js";
+} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import {Op} from "sequelize";
 import BomTemplateModel from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";

@@ -1,4 +1,4 @@
-import BomStructureModel, {BomStructureNoteModel} from "../../../models/system/bomStructure.mod.js";
+import BomStructureModel, {BomStructureNoteModel} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 
 export const getAllBomStructureNotes = async (req, res) => {
     const { BOM_STRUCTURE_ID, REV_ID } = req.query;

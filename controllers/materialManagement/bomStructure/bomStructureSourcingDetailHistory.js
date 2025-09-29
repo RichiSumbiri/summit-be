@@ -1,4 +1,4 @@
-import {BomStructureSourcingDetailHistory} from "../../../models/system/bomStructure.mod.js";
+import {BomStructureSourcingDetailHistory} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 export const createSourcingDetailHistory = async (req, res) => {
     const { PURCHASE_QTY, NOTE, TYPE, BOM_STRUCTURE_SOURCING_DETAIL_ID, CREATED_ID } = req.body;

@@ -8,7 +8,7 @@ import {ModelVendorDetail} from "../../models/system/VendorDetail.mod.js";
 import {where} from "sequelize";
 import Users from "../../models/setup/users.mod.js";
 import BomTemplateListDetail from "../../models/materialManagement/bomTemplate/bomTemplateListDetail.mod.js";
-import {BomStructureListDetailModel} from "../../models/system/bomStructure.mod.js";
+import {BomStructureListDetailModel} from "../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import BomTemplateListDetailMod from "../../models/materialManagement/bomTemplate/bomTemplateListDetail.mod.js";
 
 export const createBomTemplateList = async (req, res) => {

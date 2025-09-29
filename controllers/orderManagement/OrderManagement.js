@@ -38,7 +38,7 @@ import {
     CustomerProgramName
 } from "../../models/system/customer.mod.js";
 import { orderitemSMV } from "../../models/orderManagement/orderitemSMV.mod.js";
-import BomStructureModel, { BomStructureListModel } from "../../models/system/bomStructure.mod.js";
+import BomStructureModel, { BomStructureListModel } from "../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import { ModelVendorDetail } from "../../models/system/VendorDetail.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import { MasterItemGroup } from "../../models/setup/ItemGroups.mod.js";
