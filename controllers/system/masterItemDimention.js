@@ -85,7 +85,7 @@ export const createMasterItemDimension = async (req, res) => {
 
 export const getAllMasterItemDimensions = async (req, res) => {
     try {
-        const { masterItemId, isActive = '' } = req.query;
+        const { masterItemId, IS_FILTER, isActive = '' } = req.query;
 
         const whereCondition = {};
         if (masterItemId) {
@@ -95,8 +95,11 @@ export const getAllMasterItemDimensions = async (req, res) => {
             whereCondition.IS_ACTIVE = isActive;
         }
 
+        const attributes = IS_FILTER ? ["ID", "DIMENSION_ID", "SERIAL_NO"] : undefined;
+
         const itemDimensions = await MasterItemDimensionModel.findAll({
             where: {IS_DELETED: false, ...whereCondition},
+            attributes,
             include: [
                 {
                     model: SizeChartMod,

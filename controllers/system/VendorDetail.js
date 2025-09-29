@@ -13,12 +13,18 @@ import { toDecimal } from "../../util/general.js";
 
 export const getAllVendorDetail = async(req,res) => {
    try {
+        const { is_filter } = req.query;
+
+        const attributes = is_filter
+            ? ["VENDOR_ID", "VENDOR_CODE", "VENDOR_NAME"]
+            : undefined;
+    
         let data=[];
         const dataRedis = await redisConn.get('list-vendor-detail');
         if(dataRedis){
             data = JSON.parse(dataRedis);
         } else {
-            data = await ModelVendorDetail.findAll({raw:true});
+            data = await ModelVendorDetail.findAll({attributes,raw:true});
             redisConn.set('list-vendor-detail', JSON.stringify(data), { EX: 604800 })
         }
         if(data){
@@ -277,8 +283,11 @@ export const getVendorPurchaseDetailByVDC = async(req,res) => {
 }
 
 export  const getVendorPurchaseByFilter = async  (req, res) => {
-    const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, CUSTOMER_ID } = req.query
+    const {ITEM_GROUP_ID, ITEM_TYPE_ID, ITEM_CATEGORY_ID, CUSTOMER_ID, IS_FILTER } = req.query
     const  where = {}
+    const  attributes1 = IS_FILTER ? ['VPD_ID', 'VENDOR_ID', 'CUSTOMER_ID'] : undefined;
+    const  attributes2 = IS_FILTER ? ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_ADDRESS_1', 'VENDOR_ADDRESS_2', 'VENDOR_COUNTRY_CODE'] : 
+    ['VENDOR_CONTACT_TITLE', 'VENDOR_COUNTRY_CODE', 'VENDOR_POSTAL_CODE', 'VENDOR_PROVINCE', 'VENDOR_CITY', 'VENDOR_ADDRESS_2', 'VENDOR_ADDRESS_1', 'VENDOR_WEB', 'VENDOR_FAX', 'VENDOR_PHONE', 'VENDOR_COMPANY_NAME', 'VENDOR_ACTIVE', 'VENDOR_NAME', 'VENDOR_CODE', 'VENDOR_ID']
 
     if (ITEM_GROUP_ID) {
         where.ITEM_GROUP_ID = ITEM_GROUP_ID
@@ -299,11 +308,12 @@ export  const getVendorPurchaseByFilter = async  (req, res) => {
     try {
         const resp = await ModelVendorPurchaseDetail.findAll({
             where,
+            attributes: attributes1,
             include: [
                 {
                     model: ModelVendorDetail,
                     as: "VENDOR_DETAIL",
-                    attributes: ['VENDOR_CONTACT_TITLE', 'VENDOR_COUNTRY_CODE', 'VENDOR_POSTAL_CODE', 'VENDOR_PROVINCE', 'VENDOR_CITY', 'VENDOR_ADDRESS_2', 'VENDOR_ADDRESS_1', 'VENDOR_WEB', 'VENDOR_FAX', 'VENDOR_PHONE', 'VENDOR_COMPANY_NAME', 'VENDOR_ACTIVE', 'VENDOR_NAME', 'VENDOR_CODE', 'VENDOR_ID']
+                    attributes: attributes2,
                 }
             ]
         })

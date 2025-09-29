@@ -253,7 +253,7 @@ export const updateCloneItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const {ITEM_ID, ITEM_CATEGORY_ID, IGNORE_ID, IS_FILTER} = req.query;
+        const {ITEM_ID, ITEM_CATEGORY_ID, ITEM_TYPE_ID, IGNORE_ID, IS_FILTER, IS_MATERIAL} = req.query;
 
         const whereCondition = {IS_DELETED: false}
 
@@ -267,9 +267,19 @@ export const getAllItems = async (req, res) => {
             whereCondition.ITEM_CATEGORY_ID = ITEM_CATEGORY_ID
         }
 
+        if (ITEM_TYPE_ID) {
+            whereCondition.ITEM_TYPE_ID = ITEM_TYPE_ID
+        }
+
         if (IGNORE_ID) {
             whereCondition.ITEM_CATEGORY_ID = {
                 [Op.not]:IGNORE_ID
+            }
+        }
+
+        if (IS_MATERIAL) {
+            whereCondition.ITEM_ID = {
+                [Op.notLike]:"%GMT0%"
             }
         }
 
@@ -1031,7 +1041,7 @@ export const getListFGItemID = async(req,res) => {
 }
 
 export const getListFGItemIDByProductID = async(req,res) => {
-    try {
+    // try {
         let dataGMT;
         const dataRedis = await redisConn.get('list-finish-good-product');
         if(dataRedis){
@@ -1049,11 +1059,11 @@ export const getListFGItemIDByProductID = async(req,res) => {
         });
         }
         
-    } catch(err){
-        return res.status(500).json({
-            success: false,
-            message: `Failed to get list FG Item by Product ID`,
-            error: err
-        });
-    }
+    // } catch(err){
+    //     return res.status(500).json({
+    //         success: false,
+    //         message: `Failed to get list FG Item by Product ID`,
+    //         error: err
+    //     });
+    // }
 }
