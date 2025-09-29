@@ -7,7 +7,7 @@ import {
     deletePurchaseOrderRev, getAllPurchaseOrderNotes,
     getAllPurchaseOrderRevs,
     getAllPurchaseOrders,
-    getPurchaseOrderById, getPurchaseOrderNoteById,
+    getPurchaseOrderById, getPurchaseOrderNoteById, getPurchaseOrderNoteHistoryById,
     getPurchaseOrderRevById,
     updatePurchaseOrder, updatePurchaseOrderNote,
     updatePurchaseOrderRev, updatePurchaseOrderStatus
@@ -45,6 +45,7 @@ router.delete("/detail/:id", deletePurchaseOrderDetail);
 
 router.post("/note", createPurchaseOrderNote);
 router.get("/note", getAllPurchaseOrderNotes);
+router.get("/note-detail/:id", getPurchaseOrderNoteHistoryById);
 router.get("/note/:id", getPurchaseOrderNoteById);
 router.put("/note/:id", updatePurchaseOrderNote);
 router.delete("/note/:id", deletePurchaseOrderNote);

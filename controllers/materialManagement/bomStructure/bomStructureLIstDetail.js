@@ -269,11 +269,11 @@ export const revertBomStructureListDetail = async (req, res) => {
                     as: "BOM_STRUCTURE_LIST",
                     attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID"],
                     required: true,
-                    include: {
+                    include: [{
                         model: ModelVendorDetail,
                         as: "VENDOR",
                         attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
-                    }
+                    }]
                 },
                 {
                     model: OrderPoListing,
@@ -391,11 +391,11 @@ export const createBomStructureListDetailBulk = async (req, res) => {
                     as: "BOM_STRUCTURE_LIST",
                     attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID"],
                     required: true,
-                    include: {
+                    include: [{
                         model: ModelVendorDetail,
                         as: "VENDOR",
                         attributes: ['VENDOR_ID', 'VENDOR_CODE', 'VENDOR_NAME', 'VENDOR_COUNTRY_CODE']
-                    }
+                    }]
                 },
                 {
                     model: OrderPoListing,

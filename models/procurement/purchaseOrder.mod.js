@@ -186,7 +186,7 @@ export const PurchaseOrderNotesModel = db.define(
         },
         IS_ACTIVE: {
             type: DataTypes.BOOLEAN,
-            defaultValue: false
+            defaultValue: true
         },
         COUNTRY_ID: {
             type: DataTypes.STRING(3),

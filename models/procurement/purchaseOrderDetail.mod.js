@@ -13,10 +13,6 @@ const PurchaseOrderDetailModel = db.define(
             autoIncrement: true,
             primaryKey: true,
         },
-        BOM_SOURCING_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
         MPO_ID: {
             type: DataTypes.STRING(10),
             allowNull: true,
@@ -24,6 +20,7 @@ const PurchaseOrderDetailModel = db.define(
         REV_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
+            defaultValue: 0
         },
         BOM_STRUCTURE_LINE_ID: {
             type: DataTypes.INTEGER,

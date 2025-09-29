@@ -8,6 +8,14 @@ import {MasterPayMethode} from "../../models/system/finance.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
 import {Op, where, col} from "sequelize";
+import ColorChartMod from "../../models/system/colorChart.mod.js";
+import SizeChartMod from "../../models/system/sizeChart.mod.js";
+import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
+import {
+    BomStructureListModel,
+    BomStructureSourcingDetail
+} from "../../models/materialManagement/bomStructure/bomStructure.mod.js";
+import db from "../../config/database.js";
 
 export const createPurchaseOrder = async (req, res) => {
     try {
@@ -262,7 +270,7 @@ export const getPurchaseOrderById = async (req, res) => {
 
         const notes = await PurchaseOrderNotesModel.findOne({
             where: {
-                PURCHASE_ORDER_ID: id, REV_ID:purchaseOrder.REV_ID
+                PURCHASE_ORDER_ID: id, REV_ID: purchaseOrder.REV_ID
             }, include: [{
                 model: ListCountry, as: "COUNTRY", attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
             }, {
@@ -403,9 +411,72 @@ export const updatePurchaseOrderStatus = async (req, res) => {
             });
         }
 
+        let IS_APPROVE = false
+
+        if (STATUS === "Confirmed") {
+            IS_APPROVE = true
+            const listPurchaseOrderDetail = await PurchaseOrderDetailModel.findAll({
+                where: {
+                    MPO_ID: purchaseOrder.MPO_ID,
+                    REV_ID: purchaseOrder.REV_ID
+                }
+            })
+
+            const transaction = await db.transaction();
+
+            for (let i = 0; i < listPurchaseOrderDetail.length; i++) {
+                const data = listPurchaseOrderDetail[i].dataValues
+
+                const sourcingDetail = await BomStructureSourcingDetail.findOne({
+                    where: {
+                        BOM_STRUCTURE_LINE_ID: data.BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID: data.ITEM_DIMENSION_ID
+                    },
+                    transaction
+                })
+
+                if (!sourcingDetail) {
+                    await transaction.rollback();
+                    return res.status(404).json({
+                        success: false, message: "Sourcing detail not found",
+                    });
+                }
+
+                const AVAILABLE_UNAPPROVED_QTY = Number(sourcingDetail.AVAILABLE_UNAPPROVED_QTY) - Number(data.PURCHASE_ORDER_QTY)
+                const UNCONFIRM_PO_QTY = Number(sourcingDetail.UNCONFIRM_PO_QTY) - Number(data.PURCHASE_ORDER_QTY)
+                if (AVAILABLE_UNAPPROVED_QTY < 0) {
+                    await transaction.rollback();
+                    return res.status(500).json({
+                        success: false,
+                        message: "Availabel unapprove cannot negative, result " + AVAILABLE_UNAPPROVED_QTY,
+                    });
+                }
+
+                if (UNCONFIRM_PO_QTY < 0) {
+                    await transaction.rollback();
+                    return res.status(500).json({
+                        success: false,
+                        message: "Availabel un confirm po quantity cannot negative, result " + UNCONFIRM_PO_QTY,
+                    });
+                }
+
+                await sourcingDetail.update({
+                    AVAILABLE_UNAPPROVED_QTY,
+                    CONFIRM_PO_QTY: Number(sourcingDetail.CONFIRM_PO_QTY) + Number(data.PURCHASE_ORDER_QTY),
+                    UNCONFIRM_PO_QTY,
+                    PENDING_PURCHASE_ORDER_QTY: Number(sourcingDetail.PENDING_PURCHASE_ORDER_QTY) + Number(data.PURCHASE_ORDER_QTY)
+                })
+
+            }
+
+            await transaction.commit();
+        }
+
+
         await PurchaseOrderNotesModel.update({
             MPO_STATUS: STATUS,
-            IS_APPROVE: true,
+            IS_APPROVE,
+            UPDATED_ID: UPDATE_BY,
+            UPDATED_AT: new Date()
         }, {
             where: {
                 REV_ID: purchaseOrder.REV_ID, PURCHASE_ORDER_ID: purchaseOrder.MPO_ID
@@ -669,16 +740,19 @@ export const createPurchaseOrderNote = async (req, res) => {
 };
 
 export const getAllPurchaseOrderNotes = async (req, res) => {
-    const {PURCHASE_ORDER_ID, REV_ID, WAREHOUSE_ID} = req.query
+    const {PURCHASE_ORDER_ID, REV_ID, WAREHOUSE_ID} = req.query;
 
-    if (!PURCHASE_ORDER_ID) return res.status(400).json({
-        success: false, message: `Purchase order must be required`,
-    });
+    if (!PURCHASE_ORDER_ID) {
+        return res.status(400).json({
+            success: false,
+            message: "Purchase order ID is required",
+        });
+    }
 
     try {
         const where = {PURCHASE_ORDER_ID};
-        if (REV_ID !== undefined) where.REV_ID = REV_ID
-        if (WAREHOUSE_ID) where.WAREHOUSE_ID = WAREHOUSE_ID
+        if (REV_ID !== undefined) where.REV_ID = Number(REV_ID);
+        if (WAREHOUSE_ID) where.WAREHOUSE_ID = WAREHOUSE_ID;
 
         const notes = await PurchaseOrderNotesModel.findAll({
             where,
@@ -686,113 +760,255 @@ export const getAllPurchaseOrderNotes = async (req, res) => {
                 {
                     model: PurchaseOrderModel,
                     as: "PURCHASE_ORDER",
-                    attributes: ['VENDOR_DETAIL', 'INVOICE_DETAIL', 'VENDOR_ID', 'VENDOR_SHIPPER_LOCATION_ID', 'CURRENCY_CODE', 'COMPANY_ID'],
+                    attributes: [
+                        "VENDOR_DETAIL",
+                        "INVOICE_DETAIL",
+                        "VENDOR_ID",
+                        "VENDOR_SHIPPER_LOCATION_ID",
+                        "CURRENCY_CODE",
+                        "COMPANY_ID",
+                    ],
                     include: [
                         {
                             model: ModelVendorDetail,
                             as: "VENDOR",
-                            attributes: ["VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME", "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1", "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE", "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME", "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2", "VENDOR_CONTACT_EMAIL"]
+                            attributes: [
+                                "VENDOR_CODE", "VENDOR_NAME", "VENDOR_ACTIVE", "VENDOR_COMPANY_NAME",
+                                "VENDOR_PHONE", "VENDOR_FAX", "VENDOR_WEB", "VENDOR_ADDRESS_1",
+                                "VENDOR_ADDRESS_2", "VENDOR_CITY", "VENDOR_PROVINCE", "VENDOR_POSTAL_CODE",
+                                "VENDOR_COUNTRY_CODE", "VENDOR_CONTACT_TITLE", "VENDOR_CONTACT_NAME",
+                                "VENDOR_CONTACT_POSITION", "VENDOR_CONTACT_PHONE_1", "VENDOR_CONTACT_PHONE_2",
+                                "VENDOR_CONTACT_EMAIL"
+                            ],
                         },
                         {
                             model: ModelVendorShipperLocation,
                             as: "VENDOR_SHIPPER_LOCATION",
-                            attributes: ["VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME", "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"]
-                        }
-                    ]
+                            attributes: [
+                                "VSL_NAME", "VSL_CONTACT_TITLE", "VSL_CONTACT_NAME",
+                                "VSL_CONTACT_POSITION", "VSL_ADDRESS_1"
+                            ],
+                        },
+                    ],
                 },
                 {
                     model: PurchaseOrderRevModel,
                     as: "REV",
-                    attributes: ['NAME', 'DESCRIPTION', 'SEQUENCE']
+                    attributes: ["NAME", "DESCRIPTION", "SEQUENCE"],
                 },
                 {
-                    model: ListCountry, as: "COUNTRY", attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"]
+                    model: ListCountry,
+                    as: "COUNTRY",
+                    attributes: ["BUYER_CODE", "COUNTRY_CODE", "COUNTRY_NAME"],
                 },
                 {
-                    model: Users, as: "CREATED", attributes: ["USER_NAME"]
-                }, {
-                    model: Users, as: "UPDATED", attributes: ["USER_NAME"]
-                }
-            ]
+                    model: Users,
+                    as: "CREATED",
+                    attributes: ["USER_NAME"],
+                },
+                {
+                    model: Users,
+                    as: "UPDATED",
+                    attributes: ["USER_NAME"],
+                },
+            ],
         });
 
-        if (notes.length === 0) {
-            return res.status(200).json({
-                success: true,
-                message: "Seccess get all notes",
-                data: []
-            });
-        }
+        const parsedNotes = notes.map(note => {
+            let vendorDetail = null;
+            let invoiceDetail = null;
 
+            try {
+                vendorDetail = note.PURCHASE_ORDER?.VENDOR_DETAIL
+                    ? JSON.parse(note.PURCHASE_ORDER.VENDOR_DETAIL)
+                    : null;
+                invoiceDetail = note.PURCHASE_ORDER?.INVOICE_DETAIL
+                    ? JSON.parse(note.PURCHASE_ORDER.INVOICE_DETAIL)
+                    : null;
+            } catch (e) {
+                console.warn(`Failed to parse JSON for note ID: ${note.ID}`);
+            }
 
-        const revIds = [...new Set(notes.map((n) => n.REV_ID))];
-        const mpoid = PURCHASE_ORDER_ID;
-
-        const allDetails = await PurchaseOrderDetailModel.findAll({
-            where: {
-                MPO_ID: mpoid,
-                REV_ID: revIds,
-            },
+            return {
+                ...note.dataValues,
+                VENDOR_DETAIL: vendorDetail,
+                INVOICE_DETAIL: invoiceDetail,
+            };
         });
-
-        const detailsByRev = {};
-        allDetails.forEach((detail) => {
-            const rev = detail.REV_ID;
-            if (!detailsByRev[rev]) detailsByRev[rev] = [];
-            detailsByRev[rev].push(detail);
-        });
-
-        const enrichedNotes = await Promise.all(
-            notes.map(async (note) => {
-                const currentRevId = note.REV_ID;
-
-                let previousRev = null;
-                if (note.REV && note.REV.SEQUENCE > 1) {
-                    previousRev = await PurchaseOrderRevModel.findOne({
-                        where: {
-                            MPO_ID: mpoid,
-                            SEQUENCE: note.REV.SEQUENCE - 1,
-                        },
-                        attributes: ["ID"],
-                    });
-                }
-
-                const previousRevId = previousRev ? previousRev.ID : null;
-
-                const listNew = detailsByRev[currentRevId] || [];
-                const listOld = previousRevId ? detailsByRev[previousRevId] || [] : [];
-
-                let vendorDetail = null;
-                let invoiceDetail = null;
-                try {
-                    vendorDetail = note.PURCHASE_ORDER?.VENDOR_DETAIL
-                        ? JSON.parse(note.PURCHASE_ORDER.VENDOR_DETAIL)
-                        : null;
-                    invoiceDetail = note.PURCHASE_ORDER?.INVOICE_DETAIL
-                        ? JSON.parse(note.PURCHASE_ORDER.INVOICE_DETAIL)
-                        : null;
-                } catch (e) {
-                    console.warn("Failed to parse VENDOR_DETAIL or INVOICE_DETAIL");
-                }
-
-                return {
-                    ...note.dataValues,
-                    VENDOR_DETAIL: vendorDetail,
-                    INVOICE_DETAIL: invoiceDetail,
-                    LIST_OLD: listOld,
-                    LIST_NEW: listNew,
-                };
-            })
-        );
 
         return res.status(200).json({
             success: true,
             message: "Purchase Order Notes retrieved successfully",
-            data: enrichedNotes,
-        })
+            data: parsedNotes,
+        });
     } catch (error) {
         return res.status(500).json({
-            success: false, message: `Failed to retrieve purchase order notes: ${error.message}`,
+            success: false,
+            message: `Failed to retrieve purchase order notes: ${error.message}`,
+        });
+    }
+};
+
+export const getPurchaseOrderNoteHistoryById = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const note = await PurchaseOrderNotesModel.findOne({
+                where: {ID: id},
+                include: [
+                    {
+                        model: PurchaseOrderRevModel,
+                        as: "REV",
+                        attributes: ["SEQUENCE", "MPO_ID"],
+                        order: [['SEQUENCE', 'DESC']]
+                    }
+                ]
+            })
+
+        if (!note) {
+            return res.status(404).json({
+                success: false,
+                message: "Purchase Order Note not found",
+            });
+        }
+
+        const mpoid = note.PURCHASE_ORDER_ID;
+        const currentRevId = note.REV_ID;
+        const currentSequence = note.REV?.SEQUENCE || 0;
+
+        const detailsNew = await PurchaseOrderDetailModel.findAll({
+            where: {MPO_ID: mpoid, REV_ID: currentRevId},
+            include: [
+                {
+                    model: BomStructureListModel,
+                    as: "BOM_STRUCTURE_LINE",
+                    attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID", "BOM_STRUCTURE_ID"]
+                },
+                {
+                    model: MasterItemDimensionModel,
+                    as: "ITEM_DIMENSION",
+                    attributes: ["COLOR_ID", "SIZE_ID"],
+                    include: [
+                        {
+                            model: ColorChartMod,
+                            as: "MASTER_COLOR",
+                            attributes: ["COLOR_DESCRIPTION"]
+                        },
+                        {
+                            model: SizeChartMod,
+                            as: "MASTER_SIZE",
+                            attributes: ["SIZE_DESCRIPTION"]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        let detailsOld = [];
+        if (currentSequence > 0) {
+
+            const seq = currentSequence - 1
+            const prevRev = await PurchaseOrderRevModel.findOne({
+                where: {MPO_ID: mpoid, SEQUENCE: seq},
+                attributes: ["ID"]
+            });
+
+
+            if (seq >= 0) {
+                detailsOld = await PurchaseOrderDetailModel.findAll({
+                    where: {MPO_ID: mpoid, REV_ID: prevRev?.ID ?? seq},
+                    include: [
+                        {
+                            model: BomStructureListModel,
+                            as: "BOM_STRUCTURE_LINE",
+                            attributes: ["ID", "BOM_LINE_ID", "MASTER_ITEM_ID", "STATUS", "CONSUMPTION_UOM", "VENDOR_ID", "BOM_STRUCTURE_ID"]
+                        },
+                        {
+                            model: MasterItemDimensionModel,
+                            as: "ITEM_DIMENSION",
+                            attributes: ["COLOR_ID", "SIZE_ID"],
+                            include: [
+                                {
+                                    model: ColorChartMod,
+                                    as: "MASTER_COLOR",
+                                    attributes: ["COLOR_DESCRIPTION"]
+                                },
+                                {
+                                    model: SizeChartMod,
+                                    as: "MASTER_SIZE",
+                                    attributes: ["SIZE_DESCRIPTION"]
+                                }
+                            ]
+                        }
+                    ]
+                });
+            }
+        }
+
+        console.log("detailsNew ", detailsNew.length)
+        console.log("detailsOld ", detailsOld.length)
+
+        const oldMap = {};
+        detailsOld.forEach(detail => {
+            const key = `${detail.BOM_STRUCTURE_LINE_ID || ''}-${detail.ITEM_DIMENSION_ID || ''}`;
+            oldMap[key] = detail;
+        });
+
+        const result = detailsNew.map(detail => {
+            const bomLine = detail.BOM_STRUCTURE_LINE;
+            const dim = detail.ITEM_DIMENSION || {};
+            const colorDesc = dim.MASTER_COLOR?.COLOR_DESCRIPTION || "";
+            const sizeDesc = dim.MASTER_SIZE?.SIZE_DESCRIPTION || "";
+
+            // Gunakan kunci yang SAMA seperti di oldMap
+            const key = `${detail.BOM_STRUCTURE_LINE_ID || ''}-${detail.ITEM_DIMENSION_ID || ''}`;
+            const oldDetail = oldMap[key];
+
+            let oldBomLine = null;
+            let oldDim = null;
+            let oldColorDesc = "";
+            let oldSizeDesc = "";
+
+            if (oldDetail) {
+                oldBomLine = oldDetail.BOM_STRUCTURE_LINE;
+                oldDim = oldDetail.ITEM_DIMENSION || {};
+                oldColorDesc = oldDim.MASTER_COLOR?.COLOR_DESCRIPTION || "";
+                oldSizeDesc = oldDim.MASTER_SIZE?.SIZE_DESCRIPTION || "";
+            }
+
+            return {
+                BOM_ID: bomLine?.BOM_STRUCTURE_ID || "",
+                REVISION_QTY: detail.PURCHASE_ORDER_QTY || 0,
+                BOM_LINE_ID: bomLine?.BOM_LINE_ID || "",
+                ITEM_ID: bomLine?.MASTER_ITEM_ID || "",
+                DIMENSION_ID: dim?.ID || "",
+                COLOR: colorDesc,
+                SIZE: sizeDesc,
+                UOM: bomLine?.CONSUMPTION_UOM || "",
+                COST_PER_UNIT: detail.UNIT_COST || 0,
+                PO_QTY: detail.PURCHASE_ORDER_QTY || 0,
+
+                BOM_LINE_ID_OLD: oldBomLine?.BOM_LINE_ID || "",
+                ITEM_ID_OLD: oldBomLine?.MASTER_ITEM_ID || "",
+                DIMENSION_ID_OLD: oldDim?.ID || "",
+                COLOR_OLD: oldColorDesc,
+                SIZE_OLD: oldSizeDesc,
+                UOM_OLD: oldBomLine?.CONSUMPTION_UOM || "",
+                COST_PER_UNIT_OLD: oldDetail?.UNIT_COST || 0,
+                PO_QTY_OLD: oldDetail?.PURCHASE_ORDER_QTY || 0,
+            };
+        });
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase Order Note history retrieved successfully",
+            data: result,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to retrieve purchase order note history: ${error.message}`,
         });
     }
 };
