@@ -2,7 +2,7 @@
 import { DataTypes } from "sequelize";
 import db from "../../config/database.js";
 import {PurchaseOrderModel} from "./purchaseOrder.mod.js";
-import {BomStructureListModel} from "../system/bomStructure.mod.js";
+import {BomStructureListModel} from "../materialManagement/bomStructure/bomStructure.mod.js";
 import MasterItemDimensionModel from "../system/masterItemDimention.mod.js";
 
 const PurchaseOrderDetailModel = db.define(

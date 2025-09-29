@@ -4,7 +4,7 @@ import {
     PurchaseOrderNotesModel
 } from "../../models/procurement/purchaseOrder.mod.js";
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
-import { BomStructureSourcingDetail } from "../../models/system/bomStructure.mod.js";
+import { BomStructureSourcingDetail } from "../../models/materialManagement/bomStructure/bomStructure.mod.js";
 
 
 

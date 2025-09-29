@@ -10,7 +10,7 @@ import BomStructureModel, {
   BomStructureListDetailModel, BomStructureListModel, BomStructureNoteModel,
   BomStructurePendingDimension,
   BomStructureRevModel
-} from "./system/bomStructure.mod.js";
+} from "./materialManagement/bomStructure/bomStructure.mod.js";
 import {OrderPoListing} from "./production/order.mod.js";
 import SizeChartMod from "./system/sizeChart.mod.js";
 import ColorChartMod from "./system/colorChart.mod.js";

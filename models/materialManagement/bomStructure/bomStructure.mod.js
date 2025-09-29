@@ -1,16 +1,16 @@
 import {DataTypes} from "sequelize";
-import db from "../../config/database.js";
-import BomTemplateModel from "../materialManagement/bomTemplate/bomTemplate.mod.js";
-import {ModelOrderPOHeader} from "../orderManagement/orderManagement.mod.js";
-import Users from "../setup/users.mod.js";
-import MasterItemIdModel from "./masterItemId.mod.js";
-import {ModelVendorDetail} from "./VendorDetail.mod.js";
-import MasterCompanyModel from "../setup/company.mod.js";
-import SizeChartMod from "./sizeChart.mod.js";
-import ColorChartMod from "./colorChart.mod.js";
-import {OrderPoListing} from "../production/order.mod.js";
-import BomTemplateListModel from "../materialManagement/bomTemplate/bomTemplateList.mod.js";
-import MasterItemDimensionModel from "./masterItemDimention.mod.js";
+import db from "../../../config/database.js";
+import BomTemplateModel from "../bomTemplate/bomTemplate.mod.js";
+import {ModelOrderPOHeader} from "../../orderManagement/orderManagement.mod.js";
+import Users from "../../setup/users.mod.js";
+import MasterItemIdModel from "../../system/masterItemId.mod.js";
+import {ModelVendorDetail} from "../../system/VendorDetail.mod.js";
+import MasterCompanyModel from "../../setup/company.mod.js";
+import SizeChartMod from "../../system/sizeChart.mod.js";
+import ColorChartMod from "../../system/colorChart.mod.js";
+import {OrderPoListing} from "../../production/order.mod.js";
+import BomTemplateListModel from "../bomTemplate/bomTemplateList.mod.js";
+import MasterItemDimensionModel from "../../system/masterItemDimention.mod.js";
 
 export const BomStructureRevModel = db.define("bom_structure_rev", {
     ID: {

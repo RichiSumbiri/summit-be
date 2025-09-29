@@ -2,7 +2,7 @@ import BomStructureModel, {
     BomStructureListDetailModel,
     BomStructureListModel,
     BomStructureNoteModel, BomStructurePendingDimension, BomStructureRevModel, BomStructureSourcingDetail
-} from "../../../models/system/bomStructure.mod.js";
+} from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import BomTemplateModel, {
     BomTemplateNote,
 } from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
