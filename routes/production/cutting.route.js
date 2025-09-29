@@ -59,6 +59,7 @@ import {
   QRScanSuperMarketOut,
 } from "../../controllers/production/planning/CutSchedule.js";
 import { getCutDeptPrepWip, getCutDeptSewingWip, getCutDeptWipProccess, getDataDashCutting, getDetailCutOutput, getLoadPlanVsActual, getLowWipLoad, getMolSupSewDtl, getPlanVSactDtl, getWipMolChartClick, getWipPrepDtl } from "../../controllers/production/dashAnalitycs/DashCutting.js";
+import { deleteTrolley, getlistStationBySite, getListTrolley, postTrolley } from "../../controllers/production/cutting/CuttingTrolley.js";
 
 // ROUTE CUTTING
 
@@ -171,6 +172,14 @@ router.get("/cutting-dashboard-dtl-out-excuting", getMolSupSewDtl);
 router.get("/cutting-dashboard-dtl-plan-vs-actual", getPlanVSactDtl);
 router.get("/cutting-dashboard-dtl-prep-and-sewing", getWipPrepDtl);
 router.get("/cutting-dashboard-dtl-cut-wip", getWipMolChartClick);
+
+
+//cutting trolley
+router.get("/trolley-station-line/:siteName", getlistStationBySite);
+router.get("/get-list-trolley/:siteName/:scheduleDate", getListTrolley);
+
+router.post("/create-trolley-id/", postTrolley);
+router.post("/delete-trolley-id/", deleteTrolley);
 
 
 export default router;

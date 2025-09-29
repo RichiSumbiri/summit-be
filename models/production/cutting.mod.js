@@ -942,3 +942,122 @@ export const qryGetDtlWipSewInSite = `SELECT smo.CUT_SITE AS SITE, SUM(od.ORDER_
                         WHERE ssi.BARCODE_SERIAL = smo.BARCODE_SERIAL AND DATE(ssi.SEWING_SCAN_TIME) <= :date
                         ) AND DATE(smo.CUT_SCAN_TIME)  <= :date
                         GROUP BY smo.CUT_SITE`;
+
+
+export const qryGetListStatinBySite = `SELECT
+	asl.ID,
+	asl.STATION_ID,
+	asl.ID_SITELINE,
+	isl.SITE_NAME,
+	isl.LINE_NAME 
+FROM
+	agv_station_line asl
+JOIN item_siteline isl ON isl.ID_SITELINE = asl.ID_SITELINE 
+WHERE isl.SITE_NAME = :siteName`
+
+
+export const AgvListTrolley = db.define(
+  "agv_list_trolley",
+  {
+    TROLLEY_ID: {
+      type: DataTypes.STRING(100),
+      primaryKey: true,
+    },
+    SCHEDULE_DATE: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    CONTAINER_QTY: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    SEQ_NO: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    STATION_ID_SEWING: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    STATION_ID_PREPARATION: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    STATION_ID_PACKING: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    IS_PRINTED: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    IS_PREPARATION: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ADD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+  },
+  {
+    tableName: "agv_list_trolley",
+    freezeTableName: true, // otomatis pakai createdAt & updatedAt
+    timestamps: true, // otomatis pakai createdAt & updatedAt
+  }
+);
+
+export const qryGetListTrolley = `SELECT 
+	alt.*,
+	is2.SITE_NAME 
+FROM agv_list_trolley alt 
+JOIN agv_station_line asl ON asl.STATION_ID = alt.STATION_ID_SEWING 
+LEFT JOIN item_siteline is2 ON is2.ID_SITELINE = asl.ID_SITELINE 
+WHERE alt.SCHEDULE_DATE  = :scheduleDate AND is2.SITE_NAME = :siteName
+GROUP BY alt.TROLLEY_ID `
+
+
+
+export const AgvScanSewingIn = db.define(
+  "agv_scan_sewing_in",
+  {
+    TROLLEY_ID: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    BARCODE_SERIAL: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      primaryKey: true,
+    },
+    SCH_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    SCHD_ID: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    SEWING_SCAN_BY: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      comment: "Sewing Scan By",
+    },
+    SEWING_SCAN_LOCATION: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "ID_SITELINE",
+    },
+    SEWING_SCAN_TIME: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Sewing Scan Time",
+    },
+  },
+  {
+    tableName: "agv_scan_sewing_in",
+    freezeTableName: true, // karena tabel tidak punya createdAt / updatedAt
+    timestamps: false, // karena tabel tidak punya createdAt / updatedAt
+  }
+);
+
