@@ -1047,7 +1047,7 @@ export const reNoIeObDetail = async (req, res, next) => {
           {
             OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
             OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
-            OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+            OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(4) : null,
           },
           {
             where: { OB_ID },
@@ -1774,7 +1774,7 @@ export const postImportObDetail = async (req, res, next) => {
           {
             OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
             OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
-            OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+            OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(4) : null,
           },
           {
             where: { OB_ID : obId },
@@ -2079,7 +2079,7 @@ export const copyIeOb = async (req, res) =>{
             {
               OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
               OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
-              OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+              OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(4) : null,
             },
             {
               where: { OB_ID },
@@ -2213,7 +2213,7 @@ export const postObCopy = async (req, res) => {
         {
           OB_TARGET: totalObDetailSvm ? totalTargetHeader : null, // jika totalTargetHeader NaN maka set ke 0
           OB_TAKE_TIME: totalObDetailSvm ? takeTime : null, // jika takeTime NaN maka set ke 0
-          OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(2) : null,
+          OB_SMV : totalObDetailSvm ? totalObDetailSvm.toFixed(4) : null,
         },
         {
           where: { OB_ID : newObObj.OB_ID },
