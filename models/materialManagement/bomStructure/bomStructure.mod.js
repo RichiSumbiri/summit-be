@@ -634,10 +634,6 @@ export const BomStructureSourcingDetail = db.define("bom_structure_sourcing_deta
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
-    AVAILABLE_UNAPPROVED_QTY: {
-      type: DataTypes.DECIMAL(65,2),
-      defaultValue: 0
-    },
     ORDER_PO_ID: {
         type: DataTypes.STRING(20),
     },

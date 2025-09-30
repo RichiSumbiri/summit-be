@@ -562,7 +562,7 @@ export const unApproveSourcingDetail = async (req, res) => {
         }
 
 
-        if (Number(UN_APPROVE_QTY) > Number(detail.AVAILABLE_UNAPPROVED_QTY)) return res.status(400).json({status: false, message: "un-approve quantity must not be greater than un-approve available"})
+        if (Number(UN_APPROVE_QTY) > (Number(detail.APPROVE_PURCHASE_QUANTITY) - Number(detail.UNCONFIRM_PO_QTY) - Number(detail.CONFIRM_PO_QTY))) return res.status(400).json({status: false, message: "un-approve quantity must not be greater than un-approve available"})
 
         const PENDING_APPROVE_PURCHASE_QUANTITY = Number(detail.PENDING_APPROVE_PURCHASE_QUANTITY) + Number(UN_APPROVE_QTY)
         const APPROVE_PURCHASE_QUANTITY = Number(detail.APPROVE_PURCHASE_QUANTITY) -  Number(UN_APPROVE_QTY)
@@ -574,7 +574,6 @@ export const unApproveSourcingDetail = async (req, res) => {
             IS_APPROVAL_SECTION: false,
             APPROVAL_QTY: 0,
             PENDING_PURCHASE_ORDER_QTY: APPROVE_PURCHASE_QUANTITY,
-            AVAILABLE_UNAPPROVED_QTY: APPROVE_PURCHASE_QUANTITY,
             UPDATED_ID: USER_ID,
             UPDATED_AT: new Date()
         });
@@ -656,7 +655,6 @@ export const approveSourcingDetail = async (req, res) => {
                 PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: (PENDING_APPROVE_PURCHASE_QUANTITY / Number(sourcing.PLAN_PURCHASE_QTY)) * 100,
                 IS_APPROVAL_SECTION: false,
                 APPROVAL_QTY: 0,
-                AVAILABLE_UNAPPROVED_QTY: APPROVE_PURCHASE_QUANTITY,
                 PENDING_PURCHASE_ORDER_QTY: APPROVE_PURCHASE_QUANTITY,
                 UPDATED_ID: USER_ID,
                 UPDATED_AT: new Date()

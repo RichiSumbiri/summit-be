@@ -440,16 +440,7 @@ export const updatePurchaseOrderStatus = async (req, res) => {
                         success: false, message: "Sourcing detail not found",
                     });
                 }
-
-                const AVAILABLE_UNAPPROVED_QTY = Number(sourcingDetail.AVAILABLE_UNAPPROVED_QTY) - Number(data.PURCHASE_ORDER_QTY)
                 const UNCONFIRM_PO_QTY = Number(sourcingDetail.UNCONFIRM_PO_QTY) - Number(data.PURCHASE_ORDER_QTY)
-                if (AVAILABLE_UNAPPROVED_QTY < 0) {
-                    await transaction.rollback();
-                    return res.status(500).json({
-                        success: false,
-                        message: "Availabel unapprove cannot negative, result " + AVAILABLE_UNAPPROVED_QTY,
-                    });
-                }
 
                 if (UNCONFIRM_PO_QTY < 0) {
                     await transaction.rollback();
@@ -460,12 +451,10 @@ export const updatePurchaseOrderStatus = async (req, res) => {
                 }
 
                 await sourcingDetail.update({
-                    AVAILABLE_UNAPPROVED_QTY,
                     CONFIRM_PO_QTY: Number(sourcingDetail.CONFIRM_PO_QTY) + Number(data.PURCHASE_ORDER_QTY),
                     UNCONFIRM_PO_QTY,
                     PENDING_PURCHASE_ORDER_QTY: Number(sourcingDetail.PENDING_PURCHASE_ORDER_QTY) + Number(data.PURCHASE_ORDER_QTY)
                 })
-
             }
 
             await transaction.commit();
@@ -557,18 +546,20 @@ export const createPurchaseOrderRev = async (req, res) => {
         })
         if (checkRev) countRev = checkRev.SEQUENCE
 
+        const transaction = await db.transaction();
+
         const createNewRev = await PurchaseOrderRevModel.create({
             NAME: `Revision ${purchaseOrder.MPO_ID}`,
             DESCRIPTION: `Revision ${purchaseOrder.MPO_ID} ke ${countRev + 1}`,
             MPO_ID: purchaseOrder.MPO_ID,
             SEQUENCE: countRev + 1
-        })
+        }, { transaction })
 
         await purchaseOrder.update({
             REV_ID: createNewRev.ID,
             UPDATE_BY: CREATED_ID,
             UPDATE_DATE: new Date()
-        })
+        }, { transaction })
 
         await PurchaseOrderNotesModel.create({
             ...purchaseOrderNote.dataValues,
@@ -580,8 +571,7 @@ export const createPurchaseOrderRev = async (req, res) => {
             CREATED_AT: new Date(),
             UPDATED_ID: null,
             UPDATED_AT: null
-        })
-
+        }, { transaction })
         for (let i = 0; i < purchaseOrderDetail.length; i++) {
             const data = purchaseOrderDetail[i].dataValues
             await PurchaseOrderDetailModel.create({
@@ -592,8 +582,42 @@ export const createPurchaseOrderRev = async (req, res) => {
                 CREATE_DATE: new Date(),
                 UPDATE_BY: null,
                 UPDATE_DATE: null
+            }, { transaction })
+
+            const sourcingDetail = await BomStructureSourcingDetail.findOne({
+                where: {
+                    BOM_STRUCTURE_LINE_ID: data.BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID: data.ITEM_DIMENSION_ID
+                },
+                transaction
             })
+
+            if (!sourcingDetail) {
+                await transaction.rollback();
+                return res.status(404).json({
+                    success: false, message: "Sourcing detail not found",
+                });
+            }
+
+            const CONFIRM_PO_QTY = Number(sourcingDetail.CONFIRM_PO_QTY) - Number(data.PURCHASE_ORDER_QTY)
+
+            if (CONFIRM_PO_QTY < 0) {
+                await transaction.rollback();
+                return res.status(500).json({
+                    success: false,
+                    message: "Availabel un confirm po quantity cannot negative, result " + CONFIRM_PO_QTY,
+                });
+            }
+
+            await sourcingDetail.update({
+                UNCONFIRM_PO_QTY: Number(sourcingDetail.UNCONFIRM_PO_QTY) + Number(data.PURCHASE_ORDER_QTY),
+                CONFIRM_PO_QTY,
+                PENDING_PURCHASE_ORDER_QTY: Number(sourcingDetail.PENDING_PURCHASE_ORDER_QTY) + Number(data.PURCHASE_ORDER_QTY)
+            }, { transaction })
+
+
         }
+
+        await transaction.commit();
 
         return res.status(201).json({
             success: true, message: "Purchase Order Revision created successfully",
@@ -992,7 +1016,7 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
             return {
                 BOM_ID: bomLine?.BOM_STRUCTURE_ID || oldBomLine?.BOM_STRUCTURE_ID || "",
                 REVISION_QTY: poQtyNew - poQtyOld,
-                BOM_LINE_ID: bomLine?.BOM_LINE_ID ||  "",
+                BOM_LINE_ID: bomLine?.BOM_LINE_ID || "",
                 ITEM_ID: bomLine?.MASTER_ITEM_ID || "",
                 DIMENSION_ID: dim?.ID || "",
                 COLOR: colorDesc || "",
