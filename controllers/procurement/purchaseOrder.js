@@ -1,13 +1,13 @@
 import {
     PurchaseOrderModel, PurchaseOrderNotesModel, PurchaseOrderRevModel
 } from "../../models/procurement/purchaseOrder.mod.js";
-import {ListCountry} from "../../models/list/referensiList.mod.js";
-import {ModelWarehouseDetail} from "../../models/setup/WarehouseDetail.mod.js";
-import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system/VendorDetail.mod.js";
-import {MasterPayMethode} from "../../models/system/finance.mod.js";
+import { ListCountry } from "../../models/list/referensiList.mod.js";
+import { ModelWarehouseDetail } from "../../models/setup/WarehouseDetail.mod.js";
+import { ModelVendorDetail, ModelVendorShipperLocation } from "../../models/system/VendorDetail.mod.js";
+import { MasterPayMethode } from "../../models/system/finance.mod.js";
 import Users from "../../models/setup/users.mod.js";
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
-import {Op, where, col} from "sequelize";
+import { Op, where, col } from "sequelize";
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
 import MasterItemDimensionModel from "../../models/system/masterItemDimention.mod.js";
@@ -111,7 +111,7 @@ export const createPurchaseOrder = async (req, res) => {
 };
 
 export const getAllPurchaseOrders = async (req, res) => {
-    const {UNIT_ID, VENDOR_ID, MPO_STATUS} = req.query;
+    const { UNIT_ID, VENDOR_ID, MPO_STATUS } = req.query;
 
     try {
         const whereNote = {};
@@ -240,7 +240,7 @@ export const getAllPurchaseOrders = async (req, res) => {
 
 export const getPurchaseOrderById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const purchaseOrder = await PurchaseOrderModel.findOne({
             where: {
@@ -298,8 +298,8 @@ export const getPurchaseOrderById = async (req, res) => {
 
 export const updatePurchaseOrder = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {REV_ID} = req.query
+        const { id } = req.params;
+        const { REV_ID } = req.query
         const {
             MPO_DATE,
             MPO_ETD,
@@ -334,7 +334,7 @@ export const updatePurchaseOrder = async (req, res) => {
             });
         }
 
-        const purchaseOrder = await PurchaseOrderModel.findOne({where: {MPO_ID: id, REV_ID}});
+        const purchaseOrder = await PurchaseOrderModel.findOne({ where: { MPO_ID: id, REV_ID } });
 
         if (!purchaseOrder) {
             return res.status(404).json({
@@ -395,8 +395,8 @@ export const updatePurchaseOrder = async (req, res) => {
 
 export const updatePurchaseOrderStatus = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {STATUS, UPDATE_BY} = req.body;
+        const { id } = req.params;
+        const { STATUS, UPDATE_BY } = req.body;
 
         if (!STATUS) {
             return res.status(400).json({
@@ -495,7 +495,7 @@ export const updatePurchaseOrderStatus = async (req, res) => {
 
 export const deletePurchaseOrder = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const purchaseOrder = await PurchaseOrderModel.findByPk(id);
 
@@ -519,7 +519,7 @@ export const deletePurchaseOrder = async (req, res) => {
 
 export const createPurchaseOrderRev = async (req, res) => {
     try {
-        const {MPO_ID, CREATED_ID} = req.body;
+        const { MPO_ID, CREATED_ID } = req.body;
 
         if (!MPO_ID || !CREATED_ID) return res.status(400).json({
             success: false, message: `MPO and created id must be rquired`,
@@ -532,7 +532,7 @@ export const createPurchaseOrderRev = async (req, res) => {
 
         const purchaseOrderNote = await PurchaseOrderNotesModel.findOne({
             where: {
-                MPO_ID: purchaseOrder.MPO_ID, REV_ID: purchaseOrder.REV_ID
+                PURCHASE_ORDER_ID: purchaseOrder.MPO_ID, REV_ID: purchaseOrder.REV_ID
             }
         })
 
@@ -621,7 +621,7 @@ export const getAllPurchaseOrderRevs = async (req, res) => {
 
 export const getPurchaseOrderRevById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const record = await PurchaseOrderRevModel.findByPk(id);
 
@@ -643,8 +643,8 @@ export const getPurchaseOrderRevById = async (req, res) => {
 
 export const updatePurchaseOrderRev = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {NAME, DESCRIPTION, SEQUENCE, CREATED_ID} = req.body;
+        const { id } = req.params;
+        const { NAME, DESCRIPTION, SEQUENCE, CREATED_ID } = req.body;
 
         const record = await PurchaseOrderRevModel.findByPk(id);
 
@@ -670,7 +670,7 @@ export const updatePurchaseOrderRev = async (req, res) => {
 
 export const deletePurchaseOrderRev = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const record = await PurchaseOrderRevModel.findByPk(id);
 
@@ -740,7 +740,7 @@ export const createPurchaseOrderNote = async (req, res) => {
 };
 
 export const getAllPurchaseOrderNotes = async (req, res) => {
-    const {PURCHASE_ORDER_ID, REV_ID, WAREHOUSE_ID} = req.query;
+    const { PURCHASE_ORDER_ID, REV_ID, WAREHOUSE_ID } = req.query;
 
     if (!PURCHASE_ORDER_ID) {
         return res.status(400).json({
@@ -750,7 +750,7 @@ export const getAllPurchaseOrderNotes = async (req, res) => {
     }
 
     try {
-        const where = {PURCHASE_ORDER_ID};
+        const where = { PURCHASE_ORDER_ID };
         if (REV_ID !== undefined) where.REV_ID = Number(REV_ID);
         if (WAREHOUSE_ID) where.WAREHOUSE_ID = WAREHOUSE_ID;
 
@@ -851,19 +851,19 @@ export const getAllPurchaseOrderNotes = async (req, res) => {
 
 export const getPurchaseOrderNoteHistoryById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const note = await PurchaseOrderNotesModel.findOne({
-                where: {ID: id},
-                include: [
-                    {
-                        model: PurchaseOrderRevModel,
-                        as: "REV",
-                        attributes: ["SEQUENCE", "MPO_ID"],
-                        order: [['SEQUENCE', 'DESC']]
-                    }
-                ]
-            })
+            where: { ID: id },
+            include: [
+                {
+                    model: PurchaseOrderRevModel,
+                    as: "REV",
+                    attributes: ["SEQUENCE", "MPO_ID"],
+                    order: [['SEQUENCE', 'DESC']]
+                }
+            ]
+        })
 
         if (!note) {
             return res.status(404).json({
@@ -877,7 +877,7 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
         const currentSequence = note.REV?.SEQUENCE || 0;
 
         const detailsNew = await PurchaseOrderDetailModel.findAll({
-            where: {MPO_ID: mpoid, REV_ID: currentRevId},
+            where: { MPO_ID: mpoid, REV_ID: currentRevId },
             include: [
                 {
                     model: BomStructureListModel,
@@ -887,7 +887,7 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
                 {
                     model: MasterItemDimensionModel,
                     as: "ITEM_DIMENSION",
-                    attributes: ["COLOR_ID", "SIZE_ID"],
+                    attributes: ["ID", "COLOR_ID", "SIZE_ID"],
                     include: [
                         {
                             model: ColorChartMod,
@@ -909,14 +909,14 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
 
             const seq = currentSequence - 1
             const prevRev = await PurchaseOrderRevModel.findOne({
-                where: {MPO_ID: mpoid, SEQUENCE: seq},
+                where: { MPO_ID: mpoid, SEQUENCE: seq },
                 attributes: ["ID"]
             });
 
 
             if (seq >= 0) {
                 detailsOld = await PurchaseOrderDetailModel.findAll({
-                    where: {MPO_ID: mpoid, REV_ID: prevRev?.ID ?? seq},
+                    where: { MPO_ID: mpoid, REV_ID: prevRev?.ID ?? seq },
                     include: [
                         {
                             model: BomStructureListModel,
@@ -926,7 +926,7 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
                         {
                             model: MasterItemDimensionModel,
                             as: "ITEM_DIMENSION",
-                            attributes: ["COLOR_ID", "SIZE_ID"],
+                            attributes: ["ID", "COLOR_ID", "SIZE_ID"],
                             include: [
                                 {
                                     model: ColorChartMod,
@@ -945,24 +945,32 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
             }
         }
 
-        console.log("detailsNew ", detailsNew.length)
-        console.log("detailsOld ", detailsOld.length)
-
+        const newMap = {};
         const oldMap = {};
+
+        detailsNew.forEach(detail => {
+            const key = `${detail.BOM_STRUCTURE_LINE_ID || ''}-${detail.ITEM_DIMENSION_ID || ''}`;
+            newMap[key] = detail;
+        });
+
         detailsOld.forEach(detail => {
             const key = `${detail.BOM_STRUCTURE_LINE_ID || ''}-${detail.ITEM_DIMENSION_ID || ''}`;
             oldMap[key] = detail;
         });
 
-        const result = detailsNew.map(detail => {
-            const bomLine = detail.BOM_STRUCTURE_LINE;
-            const dim = detail.ITEM_DIMENSION || {};
+        const allKeys = new Set([
+            ...Object.keys(newMap),
+            ...Object.keys(oldMap)
+        ]);
+
+        const result = Array.from(allKeys).map(key => {
+            const newDetail = newMap[key];
+            const oldDetail = oldMap[key];
+
+            const bomLine = newDetail?.BOM_STRUCTURE_LINE;
+            const dim = newDetail?.ITEM_DIMENSION || {};
             const colorDesc = dim.MASTER_COLOR?.COLOR_DESCRIPTION || "";
             const sizeDesc = dim.MASTER_SIZE?.SIZE_DESCRIPTION || "";
-
-            // Gunakan kunci yang SAMA seperti di oldMap
-            const key = `${detail.BOM_STRUCTURE_LINE_ID || ''}-${detail.ITEM_DIMENSION_ID || ''}`;
-            const oldDetail = oldMap[key];
 
             let oldBomLine = null;
             let oldDim = null;
@@ -976,17 +984,22 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
                 oldSizeDesc = oldDim.MASTER_SIZE?.SIZE_DESCRIPTION || "";
             }
 
+            const poQtyNew = newDetail ? Number(newDetail.PURCHASE_ORDER_QTY) || 0 : 0;
+            const poQtyOld = oldDetail ? Number(oldDetail.PURCHASE_ORDER_QTY) || 0 : 0;
+            const unitCostNew = newDetail ? Number(newDetail.UNIT_COST) || 0 : 0;
+            const unitCostOld = oldDetail ? Number(oldDetail.UNIT_COST) || 0 : 0;
+
             return {
-                BOM_ID: bomLine?.BOM_STRUCTURE_ID || "",
-                REVISION_QTY: detail.PURCHASE_ORDER_QTY || 0,
-                BOM_LINE_ID: bomLine?.BOM_LINE_ID || "",
+                BOM_ID: bomLine?.BOM_STRUCTURE_ID || oldBomLine?.BOM_STRUCTURE_ID || "",
+                REVISION_QTY: poQtyNew - poQtyOld,
+                BOM_LINE_ID: bomLine?.BOM_LINE_ID ||  "",
                 ITEM_ID: bomLine?.MASTER_ITEM_ID || "",
                 DIMENSION_ID: dim?.ID || "",
-                COLOR: colorDesc,
-                SIZE: sizeDesc,
+                COLOR: colorDesc || "",
+                SIZE: sizeDesc || "",
                 UOM: bomLine?.CONSUMPTION_UOM || "",
-                COST_PER_UNIT: detail.UNIT_COST || 0,
-                PO_QTY: detail.PURCHASE_ORDER_QTY || 0,
+                COST_PER_UNIT: unitCostNew,
+                PO_QTY: poQtyNew,
 
                 BOM_LINE_ID_OLD: oldBomLine?.BOM_LINE_ID || "",
                 ITEM_ID_OLD: oldBomLine?.MASTER_ITEM_ID || "",
@@ -994,8 +1007,8 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
                 COLOR_OLD: oldColorDesc,
                 SIZE_OLD: oldSizeDesc,
                 UOM_OLD: oldBomLine?.CONSUMPTION_UOM || "",
-                COST_PER_UNIT_OLD: oldDetail?.UNIT_COST || 0,
-                PO_QTY_OLD: oldDetail?.PURCHASE_ORDER_QTY || 0,
+                COST_PER_UNIT_OLD: unitCostOld,
+                PO_QTY_OLD: poQtyOld,
             };
         });
 
@@ -1015,7 +1028,7 @@ export const getPurchaseOrderNoteHistoryById = async (req, res) => {
 
 export const getPurchaseOrderNoteById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const note = await PurchaseOrderNotesModel.findByPk(id);
 
@@ -1037,7 +1050,7 @@ export const getPurchaseOrderNoteById = async (req, res) => {
 
 export const updatePurchaseOrderNote = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
         const {
             REV_ID,
             MPO_ETD,
@@ -1091,7 +1104,7 @@ export const updatePurchaseOrderNote = async (req, res) => {
 
 export const deletePurchaseOrderNote = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const note = await PurchaseOrderNotesModel.findByPk(id);
 

@@ -1,19 +1,12 @@
 import PurchaseOrderDetailModel from "../../models/procurement/purchaseOrderDetail.mod.js";
 import {
     PurchaseOrderModel,
-    PurchaseOrderNotesModel,
-    PurchaseOrderRevModel
 } from "../../models/procurement/purchaseOrder.mod.js";
-import {ListCountry} from "../../models/list/referensiList.mod.js";
-import {ModelWarehouseDetail} from "../../models/setup/WarehouseDetail.mod.js";
-import {ModelVendorDetail, ModelVendorShipperLocation} from "../../models/system/VendorDetail.mod.js";
-import MasterUnitModel from "../../models/setup/unit.mod.js";
+import {ModelVendorDetail, ModelVendorPurchaseDetail} from "../../models/system/VendorDetail.mod.js";
 import MasterCompanyModel from "../../models/setup/company.mod.js";
-import {MasterPayMethode} from "../../models/system/finance.mod.js";
 import BomStructureModel, {
     BomStructureListModel, BomStructureSourcingDetail
 } from "../../models/materialManagement/bomStructure/bomStructure.mod.js";
-import BomTemplateModel from "../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../models/system/masterItemId.mod.js";
 import {MasterItemGroup} from "../../models/setup/ItemGroups.mod.js";
 import {MasterItemTypes} from "../../models/setup/ItemTypes.mod.js";
@@ -27,6 +20,7 @@ import MasterItemDimensionModel from "../../models/system/masterItemDimention.mo
 import ColorChartMod from "../../models/system/colorChart.mod.js";
 import SizeChartMod from "../../models/system/sizeChart.mod.js";
 import {Op} from "sequelize";
+import db from "../../config/database.js";
 
 export const createPurchaseOrderDetail = async (req, res) => {
     try {
@@ -225,29 +219,39 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
             }
         })
 
+        const transaction = await db.transaction();
+
         for (let i = 0; i < roleback.length; i++) {
             const data = roleback[i].dataValues
             const sourcingDetail = await BomStructureSourcingDetail.findOne({
                 where: {
                     BOM_STRUCTURE_LINE_ID: data.BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID: data.ITEM_DIMENSION_ID
-                }
+                },
+                transaction
             })
 
             if (!sourcingDetail) {
+                await transaction.rollback();
                 return res.status(404).json({
                     success: false, message: "Sourcing detail not found",
                 });
             }
+            const UNCONFIRM_PO_QTY = Number(sourcingDetail.UNCONFIRM_PO_QTY) - Number(data.PURCHASE_ORDER_QTY)
+            if (UNCONFIRM_PO_QTY < 0) {
+                await transaction.rollback();
+                return res.status(400).json({
+                    status: false, message: "Unconfirm purchase min zero, calculate is" + UNCONFIRM_PO_QTY
+                })
+            }
 
             await sourcingDetail.update({
-                UNCONFIRM_PO_QTY: Number(sourcingDetail.UNCONFIRM_PO_QTY) - Number(data.PURCHASE_ORDER_QTY),
+                UNCONFIRM_PO_QTY,
                 PENDING_PURCHASE_ORDER_QTY: Number(sourcingDetail.PENDING_PURCHASE_ORDER_QTY) + Number(data.PURCHASE_ORDER_QTY)
             })
 
             await PurchaseOrderDetailModel.destroy({
-                where: {
-                    ID: data.ID
-                }
+                where: { ID: data.ID },
+                transaction
             })
         }
 
@@ -255,9 +259,11 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
             const sourcingDetail = await BomStructureSourcingDetail.findOne({
                 where: {
                     BOM_STRUCTURE_LINE_ID: datum.BOM_STRUCTURE_LINE_ID, ITEM_DIMENSION_ID: datum.ITEM_DIMENSION_ID
-                }
+                },
+                transaction
             })
             if (!sourcingDetail) {
+                await transaction.rollback();
                 return res.status(404).json({
                     success: false, message: "Sourcing detail not found",
                 });
@@ -265,6 +271,7 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
 
             const PENDING_PURCHASE_ORDER_QTY = Number(sourcingDetail?.PENDING_PURCHASE_ORDER_QTY) - Number(datum.PURCHASE_ORDER_QTY)
             if (PENDING_PURCHASE_ORDER_QTY < 0) {
+                await transaction.rollback();
                 return res.status(400).json({
                     status: false, message: "Panding purchase min zero, calculate is" + PENDING_PURCHASE_ORDER_QTY
                 })
@@ -273,9 +280,12 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
             await sourcingDetail.update({
                 UNCONFIRM_PO_QTY: Number(sourcingDetail.UNCONFIRM_PO_QTY) + Number(datum.PURCHASE_ORDER_QTY),
                 PENDING_PURCHASE_ORDER_QTY
-            })
-            await PurchaseOrderDetailModel.create(datum);
+            }, transaction)
+            await PurchaseOrderDetailModel.create(datum, {transaction});
         }
+
+        await transaction.commit();
+
         return res.status(201).json({
             success: true, message: "Purchase Order Detail created successfully",
         });
@@ -346,7 +356,7 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
                 }, {
                     model: MasterItemIdModel,
                     as: "MASTER_ITEM",
-                    attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"],
+                    attributes: ["ITEM_ID", "ITEM_GROUP_ID", "ITEM_TYPE_ID", "ITEM_CATEGORY_ID", "ITEM_CODE", "ITEM_DESCRIPTION", "ITEM_ACTIVE", "ITEM_UOM_BASE"],
                     include: [{
                         model: MasterItemGroup, as: "ITEM_GROUP", attributes: ['ITEM_GROUP_CODE']
                     }, {
@@ -379,7 +389,25 @@ export const getAllPurchaseOrderDetails = async (req, res) => {
             }]
         });
         return res.status(200).json({
-            success: true, message: "Purchase Order Details retrieved successfully", data: details
+            success: true, message: "Purchase Order Details retrieved successfully", data: await Promise.all(details.map(async (item) => {
+                const data =  item.dataValues
+                
+                const vendorPurchaseDetail = await ModelVendorPurchaseDetail.findOne({
+                    where: {
+                        VENDOR_ID: data?.BOM_STRUCTURE_LINE?.VENDOR_ID,
+                        ITEM_GROUP_ID: data?.BOM_STRUCTURE_LINE?.MASTER_ITEM?.ITEM_GROUP_ID,
+                        ITEM_TYPE_ID: data?.BOM_STRUCTURE_LINE?.MASTER_ITEM?.ITEM_TYPE_ID,
+                        ITEM_CATEGORY_ID: data?.BOM_STRUCTURE_LINE?.MASTER_ITEM?.ITEM_CATEGORY_ID
+                    }
+                })
+
+                const vdrResp = vendorPurchaseDetail ? vendorPurchaseDetail.dataValues : {}
+
+                return {
+                    ...data,
+                    ...vdrResp
+                }
+            }))
         })
     } catch (error) {
         return res.status(500).json({
