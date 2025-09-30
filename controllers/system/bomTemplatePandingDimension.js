@@ -278,6 +278,19 @@ export const createPendingDimensionDetail = async (req, res) => {
             });
         }
 
+        if (!bomTemplateList?.MASTER_ITEM_ID) return res.status(404).json({
+            status: false,
+            message: "Master item is required in bom template list"
+        });
+        if (!bomTemplateList?.VENDOR_ID) return res.status(404).json({
+            status: false,
+            message: "Vendor is required in bom template list"
+        });
+        if (!bomTemplateList?.CONSUMPTION_UOM) return res.status(404).json({
+            status: false,
+            message: "Consumption UOM is required in bom template list"
+        });
+
         const {
             IS_SPLIT_SIZE,
             IS_SPLIT_COLOR,
