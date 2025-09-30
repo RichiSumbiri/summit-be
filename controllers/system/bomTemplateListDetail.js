@@ -146,13 +146,35 @@ export const createBomTemplateListDetailBulk = async (req, res) => {
             return res.status(400).json({status: false, message: "Pending list must be array"})
         }
 
+
+        const bomTemplateList = await BomTemplateListModel.findByPk(BOM_TEMPLATE_LIST_ID)
+        if (!bomTemplateList) {
+            return res.status(404).json({
+                status: false,
+                message: "Bom Template List not found"
+            });
+        }
+    
+        if (!bomTemplateList?.MASTER_ITEM_ID) return res.status(404).json({
+            status: false,
+            message: "Master item is required in bom template list"
+        });
+        if (!bomTemplateList?.VENDOR_ID) return res.status(404).json({
+            status: false,
+            message: "Vendor is required in bom template list"
+        });
+        if (!bomTemplateList?.CONSUMPTION_UOM) return res.status(404).json({
+            status: false,
+            message: "Consumption UOM is required in bom template list"
+        });
+    
         const itemDimension = await MasterItemDimensionModel.findOne({
             where: {
                 ID:ITEM_DIMENSION_ID
             }
         })
         if (!itemDimension) {
-            return res.status(400).json({
+            return res.status(404).json({
                 status: false,
                 message: "Item dimension not found"
             });
