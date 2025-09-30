@@ -160,9 +160,6 @@ export const cloneBomTemplateList = async (req, res) => {
             });
         }
 
-        const bomTemplate = await BomTemplateModel.findByPk(originalEntry.BOM_TEMPLATE_ID)
-        const masterItemid = await MasterItemIdModel.findByPk(bomTemplate.MASTER_ITEM_ID)
-
         const lastEntry = await BomTemplateListModel.findOne({
             where: {BOM_TEMPLATE_ID: originalEntry.BOM_TEMPLATE_ID, REV_ID}, order: [["BOM_TEMPLATE_LINE_ID", "DESC"]],
         });
@@ -179,7 +176,7 @@ export const cloneBomTemplateList = async (req, res) => {
             IS_SPLIT_COLOR: originalEntry.IS_SPLIT_COLOR,
             IS_SPLIT_SIZE: originalEntry.IS_SPLIT_SIZE,
             IS_SPLIT_STATUS: false,
-            CONSUMPTION_UOM: masterItemid?.ITEM_UOM_BASE,
+            CONSUMPTION_UOM: originalEntry?.CONSUMPTION_UOM,
             ITEM_POSITION: originalEntry.ITEM_POSITION,
             VENDOR_ID: originalEntry.VENDOR_ID,
             NOTE: originalEntry.NOTE,
