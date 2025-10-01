@@ -313,7 +313,6 @@ export const createBomStructure = async (req, res) => {
         if (bomTemplateList.length) {
             await BomStructureListModel.bulkCreate(await Promise.all(bomTemplateList.map(async (item, idx) => {
                 const data = item.dataValues
-                const masterItemId = await MasterItemIdModel.findByPk(item.MASTER_ITEM_ID)
                 return {
                     ...data,
                     ID: null,
@@ -323,7 +322,7 @@ export const createBomStructure = async (req, res) => {
                     INTERNAL_CONSUMPTION_PER_ITEM: data.INTERNAL_CUSTOMER_PER_ITEM,
                     BOOKING_CONSUMPTION_PER_ITEM: data.COSTING_CONSUMER_PER_ITEM,
                     PRODUCTION_CONSUMPTION_PER_ITEM: 0,
-                    CONSUMPTION_UOM: masterItemId.ITEM_UOM_BASE,
+                    CONSUMPTION_UOM: data.CONSUMPTION_UOM,
                     BOM_LINE_ID: idx + 1,
                     BOM_STRUCTURE_ID: ID,
                     IS_SPLIT_STATUS: false,
