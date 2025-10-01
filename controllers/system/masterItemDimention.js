@@ -41,7 +41,7 @@ export const createMasterItemDimension = async (req, res) => {
             raw: true
         });
 
-        const newID = getLastID ? Number(getLastID.DIMENSION_ID)+1 : 0;
+        let newID = getLastID ? Number(getLastID.DIMENSION_ID)+1 : 0;
         const existItemDimension = await  MasterItemDimensionModel.findOne({
             where: {COLOR_ID, SIZE_ID, MASTER_ITEM_ID, IS_DELETED: false}
         })
@@ -51,6 +51,20 @@ export const createMasterItemDimension = async (req, res) => {
                 status: false,
                 message: `Skipping addition: COLOR ${COLOR_ID}, SIZE ${SIZE_ID} already exists`,
             })
+        }
+
+        if (newID === 0) {
+            await MasterItemDimensionModel.create({
+                DIMENSION_ID: newID,
+                MASTER_ITEM_ID,
+                COLOR_ID: "CID0000000",
+                SIZE_ID: "SID0000000",
+                SERIAL_NO: "",
+                IS_ACTIVE: true,
+                CREATE_BY,
+                CREATED_AT: new Date(),
+            });    
+            newID += 1
         }
 
         const newItemDimension = await MasterItemDimensionModel.create({
