@@ -431,7 +431,11 @@ export const createBomStructureRev = async (req, res) => {
         const updatedStructure = await BomStructureModel.findOne({
             where: { ID: BOM_STRUCTURE_ID },
             include: [
-                { model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"] },
+                { model: BomTemplateModel, as: "BOM_TEMPLATE", attributes: ["ID", "NAME", "LAST_REV_ID"], include: [{
+                                        model: MasterItemIdModel,
+                                        as: "MASTER_ITEM",
+                                        attributes: ["ITEM_ID", "ITEM_CODE", "ITEM_DESCRIPTION"]
+                                    }] },
                 { model: BomStructureRevModel, as: "REV", attributes: ["ID", "TITLE", "SEQUENCE"] },
                 {
                     model: ModelOrderPOHeader,
