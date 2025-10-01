@@ -3,10 +3,17 @@ import { QueryTypes, Op } from "sequelize";
 import {
   AgvListTrolley,
   AgvScanSewingIn,
+  CutSupermarketIn,
+  CutSupermarketOut,
+  CuttinScanSewingIn,
+  GetQrlistAftrTrolleyIn,
   qryGetListStatinBySite,
   qryGetListTrolley,
+  qryGetSiteLineWithStation,
 } from "../../../models/production/cutting.mod.js";
 import { getUniqueAttribute } from "../../util/Utility.js";
+import { QueryCheckSchdScan, QueryfindQrSewingIn } from "../../../models/planning/dailyPlan.mod.js";
+import { qryCheckTtlSewScanIn } from "../../../models/planning/cuttingplan.mod.js";
 
 export const getlistStationBySite = async (req, res) => {
   try {
@@ -25,6 +32,30 @@ export const getlistStationBySite = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: dataList,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
+    });
+  }
+};
+
+export const getlistLineStationBySite = async (req, res) => {
+  try {
+    const { siteName } = req.params;
+
+    const getAllStation = await db.query(qryGetSiteLineWithStation, {
+      replacements: { siteName },
+      type: QueryTypes.SELECT,
+    });
+
+
+    return res.status(200).json({
+      success: true,
+      data: getAllStation,
     });
   } catch (error) {
     console.log(error);
@@ -165,6 +196,194 @@ export const postTrolley = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
+    });
+  }
+};
+
+
+
+export const QRScanTrolleyIn = async (req, res) => {
+  try {
+    const { barcodeserial, trolleyId, schDate, sitename, lineName, userId } = req.body;
+    //check apakah barcode serial ada pada table orders detail
+    //find schedule
+    const checkBarcodeSerial = await db.query(QueryfindQrSewingIn, {
+      replacements: {
+        barcodeserial: barcodeserial,
+      },
+      type: QueryTypes.SELECT,
+    });
+    // console.log(checkBarcodeSerial);
+    //jika tidak ada reject
+    if (checkBarcodeSerial.length === 0) {
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "QRCode Not Found",
+      });
+    }
+
+
+
+    //jika ada maka bandingkan dengan
+    if (checkBarcodeSerial) {
+      const valueBarcode = checkBarcodeSerial[0];
+
+      const checkScan = await AgvScanSewingIn.findAll({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+      });
+      //jika ketemu sudah di scan reject
+      if (checkScan.length !== 0) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "duplicate",
+          message: "Already Scan",
+        });
+      }
+
+      const checkScaOut = await CutSupermarketOut.findOne({
+        where: {
+          BARCODE_SERIAL: barcodeserial,
+        },
+        raw: true,
+      });
+
+      if (!checkScaOut) {
+        return res.status(200).json({
+          success: true,
+          qrstatus: "error",
+          message: "Belum Supermarket Out",
+        });
+      }
+      //find schedule
+      const checkSchdNsize = await db.query(QueryCheckSchdScan, {
+        replacements: {
+          plannDate: schDate,
+          sitename: sitename,
+          lineName: lineName ? lineName : valueBarcode.LINE_NAME,
+          // moNo: valueBarcode.MO_NO,
+          orderNo: valueBarcode.ORDER_NO,
+          orderRef: valueBarcode.ORDER_REF,
+          styleDesc: valueBarcode.ORDER_STYLE,
+          colorCode: valueBarcode.ORDER_COLOR,
+          sizeCode: valueBarcode.ORDER_SIZE,
+          prodMonth: valueBarcode.PRODUCTION_MONTH,
+          planExFty: valueBarcode.PLAN_EXFACTORY_DATE,
+          fxSiteName: valueBarcode.MANUFACTURING_SITE,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      if (checkSchdNsize.length > 0) {
+        const { SCHD_ID, SCH_ID, SCH_SIZE_QTY } = checkSchdNsize[0];
+
+        //check total schedule berdasarkan serwing in nanti kalo sudah jalan pakai trolley
+        const ttlScanInQty = await db.query(qryCheckTtlSewScanIn, {
+          replacements: {
+            schId: SCH_ID,
+            size: valueBarcode.ORDER_SIZE,
+          },
+          type: QueryTypes.SELECT,
+        });
+
+        if (ttlScanInQty.length > 0) {
+          const ttlInQty = parseInt(ttlScanInQty[0].TOTAL_SCAN);
+
+          if (ttlInQty > SCH_SIZE_QTY)
+            return res.status(200).json({
+              success: true,
+              qrstatus: "error",
+              message: "Melebih Schedule Qty",
+            });
+        }
+
+        const dataBarcode = {
+          BARCODE_SERIAL: valueBarcode.BARCODE_SERIAL,
+          SCHD_ID,
+          SCH_ID,
+          SEWING_SCAN_BY: userId,
+          SEWING_SCAN_LOCATION: sitename,
+          TROLLEY_ID: trolleyId,
+        };
+        const returnData = {
+          ...valueBarcode,
+          LINE_NAME: lineName ? lineName : valueBarcode.LINE_NAME,
+          SCHD_ID,
+          SCH_ID,
+          SITE_NAME: sitename,
+        };
+        const pushQrSewin = await AgvScanSewingIn.create(dataBarcode);
+
+        if (pushQrSewin) {
+          if (checkScaOut.SCH_ID !== dataBarcode.SCH_ID) {
+            //update SCH_ID Supermarket In jika tidak sama dengan SCH_ID supermarket out
+            await CutSupermarketIn.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+            await CutSupermarketOut.update(
+              { SCH_ID: dataBarcode.SCH_ID },
+              {
+                where: {
+                  BARCODE_SERIAL: barcodeserial,
+                },
+              }
+            );
+          }
+
+          return res.status(200).json({
+            success: true,
+            qrstatus: "success",
+            message: "Scan Success",
+            data: returnData,
+          });
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        qrstatus: "error",
+        message: "No Schedule",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
+    });
+  }
+};
+
+
+export const QrListAftrTrolleyIn = async (req, res) => {
+  try {
+    //line name disini tidak dipakai tapi dipakai untuk tablet
+    const { schDate, sitename, linename } = req.params;
+
+    const listQrAfterScan = await db.query(GetQrlistAftrTrolleyIn, {
+      replacements: { schDate, sitename, linename },
+      type: QueryTypes.SELECT,
+    });
+
+    if (listQrAfterScan)
+      return res.status(200).json({
+        success: true,
+        message: "Found Data Scan",
+        data: listQrAfterScan,
+      });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      data: error,
+      message: "error processing request",
     });
   }
 };

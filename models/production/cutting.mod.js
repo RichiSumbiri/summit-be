@@ -1057,7 +1057,38 @@ export const AgvScanSewingIn = db.define(
   {
     tableName: "agv_scan_sewing_in",
     freezeTableName: true, // karena tabel tidak punya createdAt / updatedAt
-    timestamps: false, // karena tabel tidak punya createdAt / updatedAt
+    createdAt: 'SEWING_SCAN_TIME',
+    updatedAt: false
   }
 );
 
+export const qryGetSiteLineWithStation = `SELECT
+	a.ID_SITELINE,
+	a.SITE,
+	a.LINE,
+	a.SITE_NAME,
+	a.LINE_NAME,
+	a.SHIFT,
+	a.DEFAULT_MANPOWER,
+	a.FOREMAN,
+	a.START_TIME,
+	a.END_TIME,
+	asl.STATION_ID 
+FROM
+	item_siteline a
+JOIN agv_station_line asl ON asl.ID_SITELINE = a.ID_SITELINE 
+WHERE a.SITE_NAME = :siteName`
+
+
+export const GetQrlistAftrTrolleyIn = `SELECT a.BARCODE_SERIAL, h.BUNDLE_SEQUENCE, a.SCH_ID, a.SCHD_ID, b.BUYER_CODE, b.SITE_LINE SITE_LINE_FX, g.SCHD_SITE SITE_NAME, e.LINE_NAME,
+b.ORDER_NO, b.MO_NO, f.ORDER_REFERENCE_PO_NO ORDER_REF, f.ITEM_COLOR_NAME ORDER_COLOR, b.ORDER_STYLE, b.ORDER_SIZE, 
+b.ORDER_QTY, a.SEWING_SCAN_BY, d.USER_INISIAL, g.SCHD_PROD_DATE, DATE(a.SEWING_SCAN_TIME) SCAN_DATE, TIME(a.SEWING_SCAN_TIME) SCAN_TIME
+FROM agv_sewing_in a
+LEFT JOIN order_detail b ON a.BARCODE_SERIAL = b.BARCODE_SERIAL 
+LEFT JOIN weekly_prod_sch_detail g ON a.SCHD_ID = g.SCHD_ID
+LEFT JOIN viewcapacity f ON f.ID_CAPACITY = g.SCHD_CAPACITY_ID
+LEFT JOIN xref_user_web d ON a.SEWING_SCAN_BY = d.USER_ID 
+LEFT JOIN item_siteline e ON e.ID_SITELINE = g.SCHD_ID_SITELINE
+LEFT JOIN order_qr_generate h ON  h.BARCODE_SERIAL = a.BARCODE_SERIAL
+WHERE g.SCHD_PROD_DATE = :schDate AND a.SEWING_SCAN_LOCATION = :sitename  AND 
+e.LINE_NAME LIKE :linename  `;

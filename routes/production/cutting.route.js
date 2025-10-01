@@ -59,7 +59,7 @@ import {
   QRScanSuperMarketOut,
 } from "../../controllers/production/planning/CutSchedule.js";
 import { getCutDeptPrepWip, getCutDeptSewingWip, getCutDeptWipProccess, getDataDashCutting, getDetailCutOutput, getLoadPlanVsActual, getLowWipLoad, getMolSupSewDtl, getPlanVSactDtl, getWipMolChartClick, getWipPrepDtl } from "../../controllers/production/dashAnalitycs/DashCutting.js";
-import { deleteTrolley, getlistStationBySite, getListTrolley, postTrolley } from "../../controllers/production/cutting/CuttingTrolley.js";
+import { deleteTrolley, getlistLineStationBySite, getlistStationBySite, getListTrolley, postTrolley, QrListAftrTrolleyIn, QRScanTrolleyIn } from "../../controllers/production/cutting/CuttingTrolley.js";
 
 // ROUTE CUTTING
 
@@ -97,6 +97,10 @@ router.get("/order/bundle/:orderNo", getOrderByBLK);
 router.get(
   "/qr/scan-sewing-in/:schDate/:sitename/:linename/:barcodeserial",
   QrListAftrSewingIn
+);
+router.get(
+  "/qr/result-trolley-in/:schDate/:sitename/:linename",
+  QrListAftrTrolleyIn
 );
 
 router.patch('/order/switchMolStatus', updateMolStatus)
@@ -176,10 +180,14 @@ router.get("/cutting-dashboard-dtl-cut-wip", getWipMolChartClick);
 
 //cutting trolley
 router.get("/trolley-station-line/:siteName", getlistStationBySite);
+router.get("/list-line-with-station/:siteName", getlistLineStationBySite);
 router.get("/get-list-trolley/:siteName/:scheduleDate", getListTrolley);
 
 router.post("/create-trolley-id/", postTrolley);
 router.post("/delete-trolley-id/", deleteTrolley);
+
+router.post("/scan-trolley-in/", QRScanTrolleyIn);
+
 
 
 export default router;
