@@ -1783,7 +1783,7 @@ SELECT
 	mp.Name AS namaPosisi, 
 	sas.*,  
 	-- CASE WHEN sas.resignStatus = 1 THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti
-	CASE WHEN se.TanggalKeluar IS NOT NULL THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
+	CASE WHEN se.TanggalKeluar IS NOT NULL AND se.StatusAktif='1' THEN IFNULL(sctl.SisaCuti,0) ELSE 0 END AS SisaCuti 
 FROM sumbiri_absens_sum sas 
 LEFT JOIN sumbiri_employee se ON se.Nik = sas.Nik 
 LEFT JOIN master_department md ON md.IdDept = sas.IDDepartemen
