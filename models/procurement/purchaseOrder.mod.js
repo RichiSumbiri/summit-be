@@ -230,6 +230,14 @@ export const PurchaseOrderNotesModel = db.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        APPROVE_BY: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        APPROVE_AT: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
         UPDATED_ID: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -319,4 +327,9 @@ PurchaseOrderNotesModel.belongsTo(Users, {
 PurchaseOrderNotesModel.belongsTo(Users, {
     foreignKey: "UPDATED_ID",
     as: "UPDATED"
+})
+
+PurchaseOrderNotesModel.belongsTo(Users, {
+    foreignKey: "APPROVE_BY",
+    as: "APPROVE"
 })

@@ -464,6 +464,8 @@ export const updatePurchaseOrderStatus = async (req, res) => {
         await PurchaseOrderNotesModel.update({
             MPO_STATUS: STATUS,
             IS_APPROVE,
+            APPROVE_BY: IS_APPROVE ? UPDATE_BY: null,
+            APPROVE_AT: IS_APPROVE ? new Date(): null,
             UPDATED_ID: UPDATE_BY,
             UPDATED_AT: new Date()
         }, {
@@ -570,7 +572,9 @@ export const createPurchaseOrderRev = async (req, res) => {
             CREATED_ID,
             CREATED_AT: new Date(),
             UPDATED_ID: null,
-            UPDATED_AT: null
+            UPDATED_AT: null,
+            APPROVE_BY: null,
+            APPROVE_AT: null
         }, { transaction })
         for (let i = 0; i < purchaseOrderDetail.length; i++) {
             const data = purchaseOrderDetail[i].dataValues
@@ -833,6 +837,11 @@ export const getAllPurchaseOrderNotes = async (req, res) => {
                 {
                     model: Users,
                     as: "UPDATED",
+                    attributes: ["USER_NAME"],
+                },
+                {
+                    model: Users,
+                    as: "APPROVE",
                     attributes: ["USER_NAME"],
                 },
             ],
