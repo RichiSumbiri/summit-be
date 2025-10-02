@@ -25,6 +25,7 @@ export const refreshToken = async (req, res) => {
         if (err) return res.sendStatus(403);
         const userId = user[0].USER_ID;
         const username = user[0].USER_NAME;
+        const userInisial = user[0].USER_INISIAL;
         const userDept = user[0].USER_DEP;
         const userUnit = user[0].UNIT_ID;
         const userLevel = user[0].USER_LEVEL;
@@ -34,6 +35,7 @@ export const refreshToken = async (req, res) => {
           {
             userId,
             username,
+            userInisial,
             userLevel,
             userUnit,
             userDept,

@@ -31,18 +31,19 @@ export const Login = async (req, res) => {
         .json({ message: "User Name or Password Incorrect" });
     const userId = user.USER_ID;
     const username = user.USER_NAME;
+    const userInisial = user.USER_INISIAL;
     const userLevel = user.USER_LEVEL;
     const userUnit = user.USER_UNIT;
     const userDept = user.USER_DEP;
     const userPath = user.USER_PATH;
     const userMode = user.USER_DARK_MODE;
     const accessToken = jwt.sign(
-      { userId, username, userLevel, userDept, userUnit, userMode, userPath },
+      { userId, username, userInisial, userLevel, userDept, userUnit, userMode, userPath },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "20s" }
     );
     const refreshToken = jwt.sign(
-      { userId, username, userLevel, userDept, userUnit, userMode, userPath },
+      { userId, username, userInisial, userLevel, userDept, userUnit, userMode, userPath },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
