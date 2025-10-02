@@ -296,6 +296,164 @@ export const createPurchaseOrderDetailBulk = async (req, res) => {
     }
 };
 
+export const getAllPurchaseOrderDetailCustomer = async (req, res) => {
+  const { MPO_ID, REV_ID = 0 } = req.query;
+
+  if (!MPO_ID) {
+    return res.status(400).json({
+      success: false,
+      message: "MPO_ID is required",
+    });
+  }
+
+  const where = { MPO_ID, REV_ID };
+
+  try {
+    const details = await PurchaseOrderDetailModel.findAll({
+      where,
+      include: [
+        {
+          model: PurchaseOrderModel,
+          as: "MPO",
+          attributes: ["REV_ID", "VENDOR_ID", "VENDOR_SHIPPER_LOCATION_ID", "COMPANY_ID"]
+        },
+        {
+          model: BomStructureListModel,
+          as: "BOM_STRUCTURE_LINE",
+          attributes: ["ID", "MASTER_ITEM_ID", "STATUS", "BOM_LINE_ID", "CONSUMPTION_UOM", "VENDOR_ID"],
+          include: [
+            {
+              model: BomStructureModel,
+              as: "BOM_STRUCTURE",
+              attributes: ["ID", "LAST_REV_ID", "STATUS_STRUCTURE"],
+              required: false,
+              include: [
+                {
+                  model: ModelOrderPOHeader,
+                  as: "ORDER",
+                  attributes: [
+                    "ORDER_ID",
+                    "ORDER_TYPE_CODE",
+                    "ORDER_STATUS",
+                    "ORDER_PLACEMENT_COMPANY",
+                    "ORDER_REFERENCE_PO_NO",
+                    "ORDER_STYLE_DESCRIPTION",
+                    "PRICE_TYPE_CODE",
+                    "ORDER_UOM",
+                    "CONTRACT_NO",
+                    "NOTE_REMARKS",
+                    "ITEM_ID",
+                    "CUSTOMER_ID",
+                    "CUSTOMER_DIVISION_ID",
+                    "CUSTOMER_SEASON_ID",
+                    "CUSTOMER_PROGRAM_ID",
+                    "CUSTOMER_BUYPLAN_ID"
+                  ],
+                  required: false,
+                  include: [
+                    {
+                      model: CustomerDetail,
+                      as: "CUSTOMER",
+                      attributes: ["CTC_ID", "CTC_CODE", "CTC_NAME", "CTC_COMPANY_NAME"],
+                      required: false
+                    },
+                    {
+                      model: CustomerProductDivision,
+                      as: "CUSTOMER_DIVISION",
+                      attributes: ["CTPROD_DIVISION_ID", "CTPROD_DIVISION_CODE", "CTPROD_DIVISION_NAME", "CTPROD_DIVISION_STATUS"],
+                      required: false
+                    },
+                    {
+                      model: CustomerProductSeason,
+                      as: "CUSTOMER_SEASON",
+                      attributes: ["CTPROD_SESION_ID", "CTPROD_SESION_CODE", "CTPROD_SESION_NAME", "CTPROD_SESION_YEAR"],
+                      required: false
+                    },
+                    {
+                      model: CustomerProgramName,
+                      as: "CUSTOMER_PROGRAM",
+                      attributes: ["CTPROG_ID", "CTPROG_CODE", "CTPROG_NAME", "CTPROG_STATUS"],
+                      required: false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+
+    const orderMap = new Map();
+    for (const detail of details) {
+      const order = detail.BOM_STRUCTURE_LINE?.BOM_STRUCTURE?.ORDER;
+      if (!order || !order.ORDER_ID) continue;
+
+      const orderId = order.ORDER_ID;
+
+      if (orderMap.has(orderId)) continue;
+
+      const customer = order.CUSTOMER || {};
+      const division = order.CUSTOMER_DIVISION || {};
+      const season = order.CUSTOMER_SEASON || {};
+      const program = order.CUSTOMER_PROGRAM || {};
+
+      orderMap.set(orderId, {
+        ORDER_ID: order.ORDER_ID,
+        ORDER_TYPE_CODE: order.ORDER_TYPE_CODE,
+        ORDER_STATUS: order.ORDER_STATUS,
+        ORDER_PLACEMENT_COMPANY: order.ORDER_PLACEMENT_COMPANY,
+        ORDER_REFERENCE_PO_NO: order.ORDER_REFERENCE_PO_NO,
+        ORDER_STYLE_DESCRIPTION: order.ORDER_STYLE_DESCRIPTION,
+        PRICE_TYPE_CODE: order.PRICE_TYPE_CODE,
+        ORDER_UOM: order.ORDER_UOM,
+        CONTRACT_NO: order.CONTRACT_NO,
+        NOTE_REMARKS: order.NOTE_REMARKS,
+        ITEM_ID: order.ITEM_ID,
+        CUSTOMER_ID: order.CUSTOMER_ID,
+
+        CUSTOMER: {
+          CTC_ID: customer.CTC_ID,
+          CTC_CODE: customer.CTC_CODE,
+          CTC_NAME: customer.CTC_NAME,
+          CTC_COMPANY_NAME: customer.CTC_COMPANY_NAME
+        },
+        CUSTOMER_DIVISION: {
+          CTPROD_DIVISION_ID: division.CTPROD_DIVISION_ID,
+          CTPROD_DIVISION_CODE: division.CTPROD_DIVISION_CODE,
+          CTPROD_DIVISION_NAME: division.CTPROD_DIVISION_NAME,
+          CTPROD_DIVISION_STATUS: division.CTPROD_DIVISION_STATUS
+        },
+        CUSTOMER_SEASON: {
+          CTPROD_SESION_ID: season.CTPROD_SESION_ID,
+          CTPROD_SESION_CODE: season.CTPROD_SESION_CODE,
+          CTPROD_SESION_NAME: season.CTPROD_SESION_NAME,
+          CTPROD_SESION_YEAR: season.CTPROD_SESION_YEAR
+        },
+        CUSTOMER_PROGRAM: {
+          CTPROG_ID: program.CTPROG_ID,
+          CTPROG_CODE: program.CTPROG_CODE,
+          CTPROG_NAME: program.CTPROG_NAME,
+          CTPROG_STATUS: program.CTPROG_STATUS
+        }
+      });
+    }
+
+    const uniqueOrders = Array.from(orderMap.values());
+    return res.status(200).json({
+      success: true,
+      message: "Unique purchase order customer details retrieved successfully",
+      data: uniqueOrders,
+    });
+  } catch (error) {
+    console.error("Error in getAllPurchaseOrderDetailCustomer:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Failed to retrieve purchase order details: ${error.message}`,
+    });
+  }
+};
+
 
 export const getAllPurchaseOrderDetails = async (req, res) => {
     const {MPO_ID, REV_ID = 0, ORDER_NO} = req.query;

@@ -14,6 +14,7 @@ import {
 } from "../../controllers/procurement/purchaseOrder.js";
 import {
     createPurchaseOrderDetail, createPurchaseOrderDetailBulk, deletePurchaseOrderDetail,
+    getAllPurchaseOrderDetailCustomer,
     getAllPurchaseOrderDetails,
     getPurchaseOrderDetailById, updatePurchaseOrderDetail
 } from "../../controllers/procurement/purchaseOrderDetail.js";
@@ -39,6 +40,7 @@ router.delete("/rev/:id", deletePurchaseOrderRev);
 router.post("/detail", createPurchaseOrderDetail);
 router.post("/detail/bulk", createPurchaseOrderDetailBulk);
 router.get("/detail", getAllPurchaseOrderDetails);
+router.get("/detail-customers", getAllPurchaseOrderDetailCustomer);
 router.get("/detail/:id", getPurchaseOrderDetailById);
 router.put("/detail/:id", updatePurchaseOrderDetail);
 router.delete("/detail/:id", deletePurchaseOrderDetail);
