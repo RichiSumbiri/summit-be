@@ -231,7 +231,7 @@ export const getAllSourcingDetails = async (req, res) => {
             success: true,
             message: "Sourcing detail data retrieved successfully",
             data: await Promise.all(response.map(async (item) => {
-                const orderPoListing = await OrderPoListing.findAll({where: {ORDER_NO: item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.ORDER_ID}, attributes: ['PRODUCTION_MONTH', 'PLAN_EXFACTORY_DATE'], limit: 1})
+                const orderPoListing = await OrderPoListing.findAll({where: {ORDER_NO: item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.ORDER_ID}, order: ['PLAN_EXFACTORY_DATE'], attributes: ['PRODUCTION_MONTH', 'PLAN_EXFACTORY_DATE']})
                 return{
                     ...item,
                     BOM_STRUCTURE_LINE: {
@@ -240,7 +240,7 @@ export const getAllSourcingDetails = async (req, res) => {
                             ...item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.dataValues,
                             ORDER: {
                                 ...item.BOM_STRUCTURE_LINE.BOM_STRUCTURE.ORDER.dataValues,
-                                PO_LISTING: orderPoListing[0].dataValues
+                                PO_LISTING: orderPoListing
                             }
                         }
                     }
