@@ -98,10 +98,7 @@ router.get(
   "/qr/scan-sewing-in/:schDate/:sitename/:linename/:barcodeserial",
   QrListAftrSewingIn
 );
-router.get(
-  "/qr/result-trolley-in/:schDate/:sitename/:linename",
-  QrListAftrTrolleyIn
-);
+
 
 router.patch('/order/switchMolStatus', updateMolStatus)
 
@@ -182,12 +179,12 @@ router.get("/cutting-dashboard-dtl-cut-wip", getWipMolChartClick);
 router.get("/trolley-station-line/:siteName", getlistStationBySite);
 router.get("/list-line-with-station/:siteName", getlistLineStationBySite);
 router.get("/get-list-trolley/:siteName/:scheduleDate", getListTrolley);
+router.get("/result-trolley-in/:trolleyId",QrListAftrTrolleyIn);
 
 router.post("/create-trolley-id/", postTrolley);
 router.post("/delete-trolley-id/", deleteTrolley);
 
 router.post("/scan-trolley-in/", QRScanTrolleyIn);
-
 
 
 export default router;

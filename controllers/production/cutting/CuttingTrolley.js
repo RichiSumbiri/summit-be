@@ -118,7 +118,7 @@ export const deleteTrolley = async (req, res) => {
     const arrTrolley = req.body; // bentuknya array dari FE
 
     if (!Array.isArray(arrTrolley) || arrTrolley.length === 0) {
-      return res.status(400).json({ message: "arrTrolley harus berupa array berisi TROLLEY_ID" });
+      return res.status(202).json({ message: "arrTrolley harus berupa array berisi TROLLEY_ID" });
     }
 
     // cek apakah ada yang sudah dipakai di agv_scan_sewing_in
@@ -127,7 +127,7 @@ export const deleteTrolley = async (req, res) => {
     });
 
     if (existScan) {
-      return res.status(400).json({
+      return res.status(202).json({
         message: `Trolley ${existScan.TROLLEY_ID} tidak dapat dihapus karena sudah ada Bundle!`,
       });
     }
@@ -366,10 +366,9 @@ export const QRScanTrolleyIn = async (req, res) => {
 export const QrListAftrTrolleyIn = async (req, res) => {
   try {
     //line name disini tidak dipakai tapi dipakai untuk tablet
-    const { schDate, sitename, linename } = req.params;
-
+    const { trolleyId } = req.params;
     const listQrAfterScan = await db.query(GetQrlistAftrTrolleyIn, {
-      replacements: { schDate, sitename, linename },
+      replacements: { trolleyId },
       type: QueryTypes.SELECT,
     });
 
@@ -380,6 +379,8 @@ export const QrListAftrTrolleyIn = async (req, res) => {
         data: listQrAfterScan,
       });
   } catch (error) {
+    console.log(error);
+    
     res.status(404).json({
       success: false,
       data: error,
