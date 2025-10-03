@@ -4,23 +4,24 @@ import BomStructureModel, {
 } from "../../../models/materialManagement/bomStructure/bomStructure.mod.js";
 import BomTemplateModel from "../../../models/materialManagement/bomTemplate/bomTemplate.mod.js";
 import MasterItemIdModel from "../../../models/system/masterItemId.mod.js";
-import {MasterItemGroup} from "../../../models/setup/ItemGroups.mod.js";
-import {MasterItemTypes} from "../../../models/setup/ItemTypes.mod.js";
-import {MasterItemCategories} from "../../../models/setup/ItemCategories.mod.js";
-import {ModelVendorDetail} from "../../../models/system/VendorDetail.mod.js";
+import { MasterItemGroup } from "../../../models/setup/ItemGroups.mod.js";
+import { MasterItemTypes } from "../../../models/setup/ItemTypes.mod.js";
+import { MasterItemCategories } from "../../../models/setup/ItemCategories.mod.js";
+import { ModelVendorDetail } from "../../../models/system/VendorDetail.mod.js";
 import Users from "../../../models/setup/users.mod.js";
 import MasterCompanyModel from "../../../models/setup/company.mod.js";
 import BomTemplateListModel from "../../../models/materialManagement/bomTemplate/bomTemplateList.mod.js";
-import {Op} from "sequelize";
+import { Op } from "sequelize";
+import db from "../../../config/database.js";
 
 export const getAllBomStructureList = async (req, res) => {
     try {
-        const {BOM_STRUCTURE_ID, MASTER_ITEM_ID, STATUS} = req.query;
+        const { BOM_STRUCTURE_ID, MASTER_ITEM_ID, STATUS } = req.query;
 
-        const where = {IS_DELETED: false};
+        const where = { IS_DELETED: false };
         if (BOM_STRUCTURE_ID) {
             const bomStructure = await BomStructureModel.findByPk(BOM_STRUCTURE_ID)
-            if (!bomStructure) return res.status(404).json({status: false, message: "Bom structure not found"})
+            if (!bomStructure) return res.status(404).json({ status: false, message: "Bom structure not found" })
 
             where.BOM_STRUCTURE_ID = BOM_STRUCTURE_ID
         }
@@ -72,10 +73,10 @@ export const getAllBomStructureList = async (req, res) => {
 
 export const getBomStructureListById = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const data = await BomStructureListModel.findOne({
-            where: {ID: id, IS_DELETED: false}, include: [{
+            where: { ID: id, IS_DELETED: false }, include: [{
                 model: BomStructureModel,
                 as: "BOM_STRUCTURE",
                 attributes: ["ID", "LAST_REV_ID", "STATUS_STRUCTURE"],
@@ -164,7 +165,7 @@ export const createBomStructureList = async (req, res) => {
         })
 
         const lastStructure = await BomStructureListModel.findOne({
-            where: {BOM_STRUCTURE_ID: BOM_STRUCTURE_ID},
+            where: { BOM_STRUCTURE_ID: BOM_STRUCTURE_ID },
             order: [['BOM_LINE_ID', 'DESC']],
         });
         const nextId = lastStructure ? lastStructure.BOM_LINE_ID + 1 : 1;
@@ -217,7 +218,7 @@ export const createBomStructureListBulk = async (req, res) => {
 
         const data = await Promise.all(payload.map(async (item, idx) => {
             const lastStructure = await BomStructureListModel.findOne({
-                where: {BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID},
+                where: { BOM_STRUCTURE_ID: item.BOM_STRUCTURE_ID },
                 order: [['BOM_LINE_ID', 'DESC']],
             });
             const masterItemId = await MasterItemIdModel.findByPk(item.MASTER_ITEM_ID)
@@ -277,11 +278,11 @@ export const createBomStructureListBulk = async (req, res) => {
 
 export const updateBomStructureList = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
         const body = req.body;
 
         const data = await BomStructureListModel.findOne({
-            where: {ID: id}
+            where: { ID: id }
         });
 
         if (!data) {
@@ -329,11 +330,11 @@ export const updateBomStructureList = async (req, res) => {
 
 export const deleteBomStructureList = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {USER_ID} = req.query
+        const { id } = req.params;
+        const { USER_ID } = req.query
 
         const data = await BomStructureListModel.findOne({
-            where: {ID: id, IS_DELETED: false}
+            where: { ID: id, IS_DELETED: false }
         });
 
         if (!data) {
@@ -360,17 +361,17 @@ export const deleteBomStructureList = async (req, res) => {
 
 
 export const getBomTemplateListByBomStructureList = async (req, res) => {
-    const {id} = req.params
-    if (!id) return res.status(400).json({status: false, message: "Id is required"})
+    const { id } = req.params
+    if (!id) return res.status(400).json({ status: false, message: "Id is required" })
     try {
         const bomStructureList = await BomStructureListModel.findByPk(id)
-        if (!bomStructureList) return res.status(404).json({status: false, message: "Bom structure list not found"})
+        if (!bomStructureList) return res.status(404).json({ status: false, message: "Bom structure list not found" })
 
         const bomStructure = await BomStructureModel.findByPk(bomStructureList.BOM_STRUCTURE_ID)
-        if (!bomStructure) return res.status(404).json({status: false, message: "Bom structure not found"})
+        if (!bomStructure) return res.status(404).json({ status: false, message: "Bom structure not found" })
 
         const bomTemplate = await BomTemplateModel.findByPk(bomStructure.BOM_TEMPLATE_ID)
-        if (!bomTemplate) return res.status(404).json({status: false, message: "Bom template not found"})
+        if (!bomTemplate) return res.status(404).json({ status: false, message: "Bom template not found" })
 
         const lists = await BomTemplateListModel.findAll({
             where: {
@@ -400,7 +401,7 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
             },],
         });
 
-        return res.status(200).json({status: true, message: "Success get bom template list", data: lists})
+        return res.status(200).json({ status: true, message: "Success get bom template list", data: lists })
     } catch (err) {
         return res.status(500).json({
             status: false,
@@ -411,7 +412,7 @@ export const getBomTemplateListByBomStructureList = async (req, res) => {
 
 
 export const updateBomStructureListStatus = async (req, res) => {
-    const {id, status, UPDATED_ID} = req.body;
+    const { id, status, UPDATED_ID } = req.body;
 
     if (!["Confirmed", "Canceled", "Deleted"].includes(status)) {
         return res.status(400).json({
@@ -451,7 +452,7 @@ export const updateBomStructureListStatus = async (req, res) => {
             singeAdd.APPROVE_ID = UPDATED_ID
             singeAdd.APPROVE_AT = new Date()
             const listDetails = await BomStructureListDetailModel.findAll({
-                where: {BOM_STRUCTURE_LIST_ID: id, IS_DELETED: false},
+                where: { BOM_STRUCTURE_LIST_ID: id, IS_DELETED: false },
                 include: [{
                     model: BomStructureListModel,
                     as: "BOM_STRUCTURE_LIST",
@@ -572,24 +573,25 @@ export const updateBomStructureListStatus = async (req, res) => {
                     CURRENCY_CODE: group.CURRENCY_CODE,
                     PLAN_PURCHASE_QTY_VARIANCE,
                     PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
-                    LATEST_PER_ITEM_PURCHASE_DETAIL: null,
+                    LATEST_PER_ITEM_PURCHASE_DETAIL: existingSourcing?.LATEST_PER_ITEM_PURCHASE_DETAIL ?? null,
                     COST_PER_ITEM,
                     FINANCE_COST,
                     FREIGHT_COST,
                     OTHER_COST,
                     TOTAL_ITEM_COST,
                     PLAN_PURCHASE_COST,
-                    NOTE: null,
-                    APPROVE_PURCHASE_QUANTITY: 0,
+                    IS_APPROVE: false,
+                    NOTE: existingSourcing?.NOTE || "",
+                    APPROVE_PURCHASE_QUANTITY: existingSourcing?.APPROVE_PURCHASE_QUANTITY || 0,
                     PENDING_APPROVE_PURCHASE_QUANTITY: group.REQUIRE_QTY,
                     PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: 100,
-                    TOTAL_APPROVE_PURCHASE_QUANTITY: 0,
+                    TOTAL_APPROVE_PURCHASE_QUANTITY: existingSourcing?.TOTAL_APPROVE_PURCHASE_QUANTITY || 0,
                     IS_APPROVAL_SECTION: false,
                     APPROVAL_QTY: 0.00,
-                    STOCK_ALLOCATE_QTY: 0.00,
-                    CONFIRM_PO_QTY: 0.00,
-                    UNCONFIRM_PO_QTY: 0.00,
-                    PENDING_PURCHASE_ORDER_QTY: 0.00,
+                    STOCK_ALLOCATE_QTY: existingSourcing?.STOCK_ALLOCATE_QTY || 0.00,
+                    CONFIRM_PO_QTY: existingSourcing?.CONFIRM_PO_QTY || 0.00,
+                    UNCONFIRM_PO_QTY: existingSourcing?.UNCONFIRM_PO_QTY || 0.00,
+                    PENDING_PURCHASE_ORDER_QTY: existingSourcing?.PENDING_PURCHASE_ORDER_QTY || 0.00,
                     IS_ACTIVE: true,
 
                 };
@@ -602,12 +604,12 @@ export const updateBomStructureListStatus = async (req, res) => {
                         ID: existingSourcing.ID
                     });
                 } else {
-                    sourcingToCreate.push({...commonData, CREATED_ID: UPDATED_ID, CREATED_AT: new Date()});
+                    sourcingToCreate.push({ ...commonData, CREATED_ID: UPDATED_ID, CREATED_AT: new Date() });
                 }
             }
 
             if (sourcingToCreate.length > 0) {
-                await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, {validate: true});
+                await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
             }
 
             if (sourcingToUpdate.length > 0) {
@@ -635,17 +637,17 @@ export const updateBomStructureListStatus = async (req, res) => {
                             PURCHASE_UOM: detail.PURCHASE_UOM || null,
                             REQUIRE_PURCHASE_QTY: safeValue(detail.REQUIRE_PURCHASE_QTY, 2),
                             PLAN_PURCHASE_QTY: safeValue(detail.PLAN_PURCHASE_QTY, 2),
-                            CURRENCY_CODE: detail.CURRENCY_CODE || null,
+                            CURRENCY_CODE: detail.CURRENCY_CODE,
                             PLAN_PURCHASE_QTY_VARIANCE: safeValue(detail.PLAN_PURCHASE_QTY_VARIANCE, 2),
                             PLAN_PURCHASE_QTY_VARIANCE_PERCENT: safeValue(detail.PLAN_PURCHASE_QTY_VARIANCE_PERCENT, 2),
-                            LATEST_PER_ITEM_PURCHASE_DETAIL: detail.LATEST_PER_ITEM_PURCHASE_DETAIL || null,
+                            LATEST_PER_ITEM_PURCHASE_DETAIL: detail.LATEST_PER_ITEM_PURCHASE_DETAIL,
                             COST_PER_ITEM: safeValue(COST_PER_ITEM, 6),
                             FINANCE_COST: safeValue(FINANCE_COST, 6),
                             FREIGHT_COST: safeValue(FREIGHT_COST, 6),
                             OTHER_COST: safeValue(OTHER_COST, 6),
                             TOTAL_ITEM_COST: safeValue(TOTAL_ITEM_COST, 6),
                             PLAN_PURCHASE_COST: safeValue(detail.PLAN_PURCHASE_COST, 6),
-                            NOTE: detail.NOTE || null,
+                            NOTE: detail.NOTE || "",
                             IS_APPROVE: false,
                             APPROVE_PURCHASE_QUANTITY: safeValue(detail.APPROVE_PURCHASE_QUANTITY, 2),
                             PENDING_APPROVE_PURCHASE_QUANTITY: safeValue(detail.PENDING_APPROVE_PURCHASE_QUANTITY, 2),
@@ -653,7 +655,7 @@ export const updateBomStructureListStatus = async (req, res) => {
                             TOTAL_APPROVE_PURCHASE_QUANTITY: safeValue(detail.TOTAL_APPROVE_PURCHASE_QUANTITY, 6),
                             IS_APPROVAL_SECTION: false,
                             APPROVAL_QTY: 0.00,
-                            IS_ACTIVE: detail.IS_ACTIVE === true,
+                            IS_ACTIVE: detail.IS_ACTIVE,
                             UPDATED_ID: detail.UPDATED_ID || null,
                             UPDATED_AT: new Date()
                         };
@@ -671,10 +673,10 @@ export const updateBomStructureListStatus = async (req, res) => {
         }
 
         await record.update({
+            ...singeAdd,
             STATUS: status,
             UPDATED_AT: new Date(),
             UPDATED_ID,
-            ...singeAdd
         });
 
         return res.status(200).json({
@@ -690,7 +692,7 @@ export const updateBomStructureListStatus = async (req, res) => {
 };
 
 export const updateBomStructureListStatusBulk = async (req, res) => {
-    const {bom_structure_list, status, UPDATED_ID} = req.body;
+    const { bom_structure_list, status, UPDATED_ID } = req.body;
 
     if (!Array.isArray(bom_structure_list) || bom_structure_list.length === 0) {
         return res.status(400).json({
@@ -724,8 +726,8 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
 
         const records = await BomStructureListModel.findAll({
             where: {
-                ID: {[Op.in]: bom_structure_list},
-                STATUS: {[Op.in]: validStatuses}
+                ID: { [Op.in]: bom_structure_list },
+                STATUS: { [Op.in]: validStatuses }
             },
             include: [{
                 model: BomStructureModel,
@@ -744,10 +746,11 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
 
         let updatedCount = 0;
 
+        const transaction = await db.transaction()
+
         for (const record of records) {
             try {
                 const singeAdd = {}
-
                 if (status === "Confirmed") {
                     singeAdd.APPROVE_ID = UPDATED_ID
                     singeAdd.APPROVE_AT = new Date()
@@ -766,12 +769,11 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                                     }
                                 ]
                             }
-                        ]
+                        ],
+                        transaction
                     });
 
-                    if (listDetails.length === 0) {
-                        continue
-                    }
+                    if (listDetails.length === 0) continue
 
                     const validItemDimensionIds = new Set(
                         listDetails.map(detail => detail.ITEM_DIMENSION_ID).filter(Boolean)
@@ -779,9 +781,10 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
 
                     const existingSourcings = await BomStructureSourcingDetail.findAll({
                         where: {
-                            BOM_STRUCTURE_LINE_ID: id,
+                            BOM_STRUCTURE_LINE_ID: record.ID,
                             IS_DELETED: false
-                        }
+                        },
+                        transaction
                     });
 
                     const sourcingToDelete = existingSourcings.filter(sourcing =>
@@ -796,7 +799,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                                         IS_DELETED: true,
                                         DELETED_AT: new Date(),
                                     },
-                                    { where: { ID: sourcing.ID } }
+                                    { where: { ID: sourcing.ID }, transaction }
                                 )
                             )
                         );
@@ -847,7 +850,8 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                                 BOM_STRUCTURE_LINE_ID: record.ID,
                                 ITEM_DIMENSION_ID: group.ITEM_DIMENSION_ID,
                                 IS_DELETED: false
-                            }
+                            },
+                            transaction
                         });
                         const PLAN_PURCHASE_QTY_VARIANCE = group.PLAN_PURCHASE_QTY - group.REQUIRE_QTY;
                         const PLAN_PURCHASE_QTY_VARIANCE_PERCENT = group.REQUIRE_QTY > 0
@@ -876,29 +880,27 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                             CURRENCY_CODE: group.CURRENCY_CODE,
                             PLAN_PURCHASE_QTY_VARIANCE,
                             PLAN_PURCHASE_QTY_VARIANCE_PERCENT,
-                            LATEST_PER_ITEM_PURCHASE_DETAIL: null,
+                            LATEST_PER_ITEM_PURCHASE_DETAIL: existingSourcing?.LATEST_PER_ITEM_PURCHASE_DETAIL ?? null,
                             COST_PER_ITEM,
                             FINANCE_COST,
                             FREIGHT_COST,
                             OTHER_COST,
                             TOTAL_ITEM_COST,
                             PLAN_PURCHASE_COST,
-                            NOTE: null,
-                            APPROVE_PURCHASE_QUANTITY: 0,
+                            NOTE: existingSourcing?.NOTE || "",
+                            APPROVE_PURCHASE_QUANTITY: existingSourcing?.APPROVE_PURCHASE_QUANTITY || 0,
                             PENDING_APPROVE_PURCHASE_QUANTITY: group.REQUIRE_QTY,
                             PENDING_APPROVE_PURCHASE_QUANTITY_PERCENT: 100,
-                            TOTAL_APPROVE_PURCHASE_QUANTITY: 0,
+                            TOTAL_APPROVE_PURCHASE_QUANTITY: existingSourcing?.TOTAL_APPROVE_PURCHASE_QUANTITY || 0,
                             IS_APPROVAL_SECTION: false,
                             APPROVAL_QTY: 0.00,
-                            STOCK_ALLOCATE_QTY: 0.00,
-                            CONFIRM_PO_QTY: 0.00,
-                            UNCONFIRM_PO_QTY: 0.00,
-                            PENDING_PURCHASE_ORDER_QTY: 0.00,
+                            STOCK_ALLOCATE_QTY: existingSourcing?.STOCK_ALLOCATE_QTY || 0.00,
+                            CONFIRM_PO_QTY: existingSourcing?.CONFIRM_PO_QTY || 0.00,
+                            UNCONFIRM_PO_QTY: existingSourcing?.UNCONFIRM_PO_QTY || 0.00,
+                            PENDING_PURCHASE_ORDER_QTY: existingSourcing?.PENDING_PURCHASE_ORDER_QTY || 0.00,
                             IS_ACTIVE: true,
                             CREATED_ID: UPDATED_ID,
-                            UPDATED_ID,
                             CREATED_AT: new Date(),
-                            UPDATED_AT: new Date()
                         };
 
                         if (existingSourcing) {
@@ -911,7 +913,7 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                         }
                     }
                     if (sourcingToCreate.length > 0) {
-                        await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true });
+                        await BomStructureSourcingDetail.bulkCreate(sourcingToCreate, { validate: true, transaction });
                     }
                     if (sourcingToUpdate.length > 0) {
                         await Promise.all(
@@ -949,10 +951,10 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                                         UNCONFIRM_PO_QTY: detail.UNCONFIRM_PO_QTY,
                                         PENDING_PURCHASE_ORDER_QTY: detail.PENDING_PURCHASE_ORDER_QTY,
                                         IS_ACTIVE: detail.IS_ACTIVE,
-                                        UPDATED_ID: detail.UPDATED_ID,
+                                        UPDATED_ID: detail?.CREATED_ID,
                                         UPDATED_AT: new Date()
                                     },
-                                    { where: { ID: detail.ID } }
+                                    { where: { ID: detail.ID }, transaction }
                                 )
                             )
                         );
@@ -965,33 +967,47 @@ export const updateBomStructureListStatusBulk = async (req, res) => {
                         where: {
                             BOM_STRUCTURE_LINE_ID: record.ID,
                             IS_APPROVE: true
-                        }
+                        },
+                        transaction
                     })
 
-                    if (sourcingDetail) return res.status(500).json({
-                        status: false,
-                        message: "failed to cancel bom structure list because sourcing detail already confirmed"
-                    })
+                    if (sourcingDetail) {
+                        await transaction.rollback()
+                        return res.status(500).json({
+                            status: false,
+                            message: "failed to cancel bom structure list because sourcing detail already confirmed"
+                        })
+                    }
                 }
+
                 await record.update({
+                    ...singeAdd,
                     STATUS: status,
                     UPDATED_AT: new Date(),
                     UPDATED_ID: UPDATED_ID || null,
-                    ...singeAdd
                 });
 
                 updatedCount++;
             } catch (err) {
-                console.error("Error updating record ID:", record.ID, err.message);
-                continue;
+                await transaction.rollback()
+                return res.status(500).json({
+                    status: false,
+                    message: err?.message ?? "Failed to update multiple status"
+                })
             }
         }
+
+        await transaction.commit()
+
+        if (!updatedCount) return res.status(500).json({
+            success: false,
+            message: `No changes Available`,
+        });
 
         return res.status(200).json({
             success: true,
             message: `Success change ${updatedCount} data to status ${status}`,
         });
-
     } catch (error) {
         return res.status(500).json({
             success: false,
